@@ -1,13 +1,19 @@
 import { Bell, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { adminProfile } from "@/data/mockData";
+import { useAdminProfile } from "@/contexts/AdminProfileContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const AdminHeader = () => {
-  const initials = adminProfile.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2);
+  const { profile, loading } = useAdminProfile();
+
+  const initials = profile
+    ? profile.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+    : "";
 
   return (
     <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 lg:px-8 shrink-0">
@@ -26,13 +32,28 @@ const AdminHeader = () => {
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
-            <span className="text-primary text-sm font-bold">{initials}</span>
-          </div>
-          <div className="hidden sm:block">
-            <p className="text-sm font-medium text-foreground leading-none">{adminProfile.name}</p>
-            <p className="text-xs text-muted-foreground">{adminProfile.role}</p>
-          </div>
+          {loading ? (
+            <>
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <div className="hidden sm:block space-y-1">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            </>
+          ) : (
+            <>
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={profile?.avatarUrl || undefined} />
+                <AvatarFallback className="bg-primary/20 text-primary text-sm font-bold">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="hidden sm:block">
+                <p className="text-sm font-medium text-foreground leading-none">{profile?.name}</p>
+                <p className="text-xs text-muted-foreground">{profile?.role}</p>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </header>

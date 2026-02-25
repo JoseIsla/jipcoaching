@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AdminProfileProvider } from "@/contexts/AdminProfileContext";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminClients from "./pages/AdminClients";
@@ -20,20 +21,22 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/clients" element={<AdminClients />} />
-          <Route path="/admin/clients/:id" element={<AdminClientDetail />} />
-          <Route path="/admin/nutrition" element={<AdminNutrition />} />
-          <Route path="/admin/training" element={<AdminTraining />} />
-          <Route path="/admin/settings" element={<AdminSettings />} />
-          <Route path="/admin/questionnaires" element={<AdminQuestionnaires />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <AdminProfileProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/clients" element={<AdminClients />} />
+            <Route path="/admin/clients/:id" element={<AdminClientDetail />} />
+            <Route path="/admin/nutrition" element={<AdminNutrition />} />
+            <Route path="/admin/training" element={<AdminTraining />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
+            <Route path="/admin/questionnaires" element={<AdminQuestionnaires />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AdminProfileProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
