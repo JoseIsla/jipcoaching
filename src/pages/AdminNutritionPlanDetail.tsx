@@ -21,6 +21,7 @@ import {
   globalVegetableTable,
   globalSupplements,
   setGlobalSupplements,
+  syncPlanToList,
   createEmptyMeal,
   createEmptyOption,
   createEmptyRow,
@@ -408,7 +409,11 @@ const AdminNutritionPlanDetail = () => {
 
   const save = useCallback(() => {
     if (!plan) return;
-    nutritionPlanDetailStore[plan.id] = plan;
+    // Save to detail store
+    nutritionPlanDetailStore[plan.id] = { ...plan, meals: plan.meals.map(m => ({ ...m, options: m.options.map(o => ({ ...o, rows: [...o.rows] })) })) };
+    // Sync list store (calories, name, etc)
+    syncPlanToList(plan);
+    // Save global supplements
     setGlobalSupplements(supplements);
     toast.success("Plan guardado");
     navigate("/admin/nutrition");

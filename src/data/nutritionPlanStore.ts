@@ -191,6 +191,73 @@ export const addNutritionPlanDetail = (plan: NutritionPlanDetail) => {
   nutritionPlanDetailStore[plan.id] = plan;
 };
 
+// ---- Mutable plan list (synced with detail store) ----
+import { mockNutritionPlans, type NutritionPlan } from "@/data/mockData";
+
+// Initialize from mock data
+export const nutritionPlanList: NutritionPlan[] = [...mockNutritionPlans];
+
+export const addNutritionPlanToList = (plan: NutritionPlan) => {
+  nutritionPlanList.unshift(plan);
+};
+
+export const deactivateClientPlans = (clientId: string): void => {
+  const today = new Date().toISOString().split("T")[0];
+  // Deactivate in list
+  nutritionPlanList.forEach((p) => {
+    if (p.clientId === clientId && p.active) {
+      p.active = false;
+      p.endDate = today;
+    }
+  });
+  // Deactivate in detail store
+  Object.values(nutritionPlanDetailStore).forEach((d) => {
+    if (d.clientId === clientId && d.active) {
+      d.active = false;
+      d.endDate = today;
+    }
+  });
+};
+
+export const togglePlanActive = (planId: string, activate: boolean): void => {
+  const today = new Date().toISOString().split("T")[0];
+  const plan = nutritionPlanList.find((p) => p.id === planId);
+  if (!plan) return;
+
+  if (activate) {
+    // Deactivate other plans for same client first
+    deactivateClientPlans(plan.clientId);
+  }
+
+  // Update in list
+  const listPlan = nutritionPlanList.find((p) => p.id === planId);
+  if (listPlan) {
+    listPlan.active = activate;
+    listPlan.endDate = activate ? null : today;
+  }
+
+  // Update in detail store
+  if (nutritionPlanDetailStore[planId]) {
+    nutritionPlanDetailStore[planId].active = activate;
+    nutritionPlanDetailStore[planId].endDate = activate ? null : today;
+  }
+};
+
+export const syncPlanToList = (detail: NutritionPlanDetail): void => {
+  const listPlan = nutritionPlanList.find((p) => p.id === detail.id);
+  if (listPlan) {
+    listPlan.planName = detail.planName;
+    listPlan.calories = detail.calories ?? 0;
+    listPlan.active = detail.active;
+    listPlan.startDate = detail.startDate;
+    listPlan.endDate = detail.endDate;
+  }
+};
+
+export const getActivePlanForClient = (clientId: string): NutritionPlan | undefined => {
+  return nutritionPlanList.find((p) => p.clientId === clientId && p.active);
+};
+
 export const createEmptyMeal = (name: string): Meal => ({
   id: mealId(),
   name,
