@@ -1,0 +1,315 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Activity, Utensils, Dumbbell, Trophy, Brain, AlertTriangle, Search } from "lucide-react";
+import AdminLayout from "@/components/admin/AdminLayout";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import {
+  mockClients,
+  getActiveClients,
+  clientWeightHistory,
+  getClientBestRMs,
+  getClientTrainingProgress,
+  type Client,
+} from "@/data/mockData";
+
+const ClientProgressCard = ({ client, onClick }: { client: Client; onClick: () => void }) => {
+  const hasNutrition = client.services.includes("nutrition");
+  const hasTraining = client.services.includes("training");
+  const wh = hasNutrition ? clientWeightHistory[client.id] || [] : [];
+  const bestRMs = hasTraining ? getClientBestRMs(client.id) : [];
+  const sbdTotal = bestRMs.filter((r) => ["e1", "e4", "e7"].includes(r.exerciseId)).reduce((s, r) => s + r.estimated1RM, 0);
+  const latestWeight = wh.length > 0 ? wh[wh.length - 1].weight : null;
+
+  return (
+    <button
+      onClick={onClick}
+      className="w-full bg-card border border-border rounded-xl p-5 hover:border-primary/30 transition-all text-left group"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary group-hover:bg-primary/20 transition-colors">
+            {client.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+          </div>
+          <div>
+            <p className="font-medium text-foreground">{client.name}</p>
+            <p className="text-xs text-muted-foreground">{client.plan}</p>
+          </div>
+        </div>
+        <div className="flex gap-1.5">
+          {hasNutrition && <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10 text-[10px] px-1.5 py-0.5">Nutri</Badge>}
+          {hasTraining && <Badge variant="outline" className="border-accent/30 text-accent bg-accent/10 text-[10px] px-1.5 py-0.5">Entreno</Badge>}
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        {latestWeight && (
+          <div className="flex items-center gap-1.5">
+            <Utensils className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-sm font-mono text-foreground">{latestWeight} kg</span>
+          </div>
+        )}
+        {sbdTotal > 0 && (
+          <div className="flex items-center gap-1.5">
+            <Trophy className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-sm font-mono text-foreground">SBD {sbdTotal} kg</span>
+          </div>
+        )}
+      </div>
+    </button>
+  );
+};
+
+const ClientDetail = ({ client, onBack }: { client: Client; onBack: () => void }) => {
+  const hasNutrition = client.services.includes("nutrition");
+  const hasTraining = client.services.includes("training");
+  const weightHistory = hasNutrition ? clientWeightHistory[client.id] || [] : [];
+  const bestRMs = hasTraining ? getClientBestRMs(client.id) : [];
+  const trainingProgress = hasTraining ? getClientTrainingProgress(client.id) : null;
+  const weightDelta = weightHistory.length >= 2
+    ? (weightHistory[weightHistory.length - 1].weight - weightHistory[0].weight).toFixed(1)
+    : null;
+  const defaultTab = hasNutrition ? "nutrition" : "training";
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" onClick={onBack} className="text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary">
+            {client.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-foreground">{client.name}</h2>
+            <div className="flex gap-1.5 mt-0.5">
+              {hasNutrition && <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10 text-xs">Nutrición</Badge>}
+              {hasTraining && <Badge variant="outline" className="border-accent/30 text-accent bg-accent/10 text-xs">Entrenamiento</Badge>}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Tabs defaultValue={defaultTab} className="space-y-4">
+        <TabsList className="bg-muted border border-border">
+          {hasNutrition && (
+            <TabsTrigger value="nutrition" className="data-[state=active]:bg-card data-[state=active]:text-primary">
+              <Utensils className="h-4 w-4 mr-1.5" /> Nutrición
+            </TabsTrigger>
+          )}
+          {hasTraining && (
+            <TabsTrigger value="training" className="data-[state=active]:bg-card data-[state=active]:text-primary">
+              <Dumbbell className="h-4 w-4 mr-1.5" /> Entrenamiento
+            </TabsTrigger>
+          )}
+        </TabsList>
+
+        {hasNutrition && (
+          <TabsContent value="nutrition" className="space-y-6">
+            <div className="bg-card border border-border rounded-xl p-6 space-y-5">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Evolución de Peso en Ayunas</h3>
+              {weightHistory.length > 0 ? (
+                <>
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <p className="text-4xl font-bold text-foreground">{weightHistory[weightHistory.length - 1].weight} <span className="text-lg text-muted-foreground font-normal">kg</span></p>
+                      <p className="text-xs text-muted-foreground mt-1">Último registro — {weightHistory[weightHistory.length - 1].date}</p>
+                    </div>
+                    {weightDelta && (
+                      <div className="text-right">
+                        <p className={`text-2xl font-bold ${Number(weightDelta) < 0 ? "text-primary" : Number(weightDelta) > 0 ? "text-accent" : "text-muted-foreground"}`}>
+                          {Number(weightDelta) > 0 ? "+" : ""}{weightDelta} kg
+                        </p>
+                        <p className="text-xs text-muted-foreground">Variación total</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {weightHistory.map((entry, idx) => {
+                      const min = Math.min(...weightHistory.map((w) => w.weight));
+                      const max = Math.max(...weightHistory.map((w) => w.weight));
+                      const range = max - min || 1;
+                      const pct = ((entry.weight - min) / range) * 55 + 45;
+                      return (
+                        <div key={idx} className="flex items-center gap-4">
+                          <span className="text-xs text-muted-foreground w-24 shrink-0 font-mono">{entry.date}</span>
+                          <div className="flex-1 h-6 bg-muted/40 rounded-full overflow-hidden">
+                            <div className="h-full bg-primary/25 rounded-full flex items-center justify-end pr-3 transition-all" style={{ width: `${pct}%` }}>
+                              <span className="text-xs font-mono font-semibold text-primary">{entry.weight}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground py-8 text-center">Sin datos de peso aún</p>
+              )}
+            </div>
+          </TabsContent>
+        )}
+
+        {hasTraining && (
+          <TabsContent value="training" className="space-y-6">
+            {/* Best RMs */}
+            <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                <Trophy className="h-4 w-4" /> Mejores RMs Estimados
+              </h3>
+              {bestRMs.length > 0 ? (
+                <div className="rounded-lg border border-border overflow-hidden">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-muted/50 text-left">
+                        <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground">Ejercicio</th>
+                        <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">Peso</th>
+                        <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">Reps</th>
+                        <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">e1RM</th>
+                        <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">Fecha</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bestRMs.filter((r) => ["e1", "e4", "e7"].includes(r.exerciseId)).map((rm) => (
+                        <tr key={rm.exerciseId} className="border-t border-border/50">
+                          <td className="px-4 py-3 text-sm font-medium text-foreground">{rm.exerciseName}</td>
+                          <td className="px-4 py-3 text-sm text-muted-foreground text-right font-mono">{rm.weight} kg</td>
+                          <td className="px-4 py-3 text-sm text-muted-foreground text-right font-mono">{rm.reps}</td>
+                          <td className="px-4 py-3 text-sm text-primary text-right font-mono font-bold">{rm.estimated1RM} kg</td>
+                          <td className="px-4 py-3 text-xs text-muted-foreground text-right">{rm.date}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t border-border bg-muted/30">
+                        <td className="px-4 py-2.5 text-sm font-semibold text-foreground">Total SBD</td>
+                        <td colSpan={4} className="px-4 py-2.5 text-sm font-bold text-primary text-right font-mono">
+                          {bestRMs.filter((r) => ["e1", "e4", "e7"].includes(r.exerciseId)).reduce((s, r) => s + r.estimated1RM, 0)} kg
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground py-8 text-center">Sin datos de RMs aún</p>
+              )}
+
+              {bestRMs.filter((r) => !["e1", "e4", "e7"].includes(r.exerciseId)).length > 0 && (
+                <div className="space-y-2 pt-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Variantes</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {bestRMs.filter((r) => !["e1", "e4", "e7"].includes(r.exerciseId)).map((rm) => (
+                      <div key={rm.exerciseId} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30 border border-border/50">
+                        <span className="text-sm text-foreground">{rm.exerciseName}</span>
+                        <span className="text-sm font-mono font-medium text-muted-foreground">{rm.estimated1RM} kg</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Questionnaire Metrics */}
+            {trainingProgress && (
+              <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <Brain className="h-4 w-4" /> Último Check-in Semanal
+                </h3>
+                <div className="grid grid-cols-3 gap-4">
+                  {trainingProgress.latestFatigue !== undefined && (
+                    <div className="bg-muted/40 rounded-xl p-4 text-center space-y-2">
+                      <p className="text-3xl font-bold text-foreground">{trainingProgress.latestFatigue}</p>
+                      <p className="text-xs text-muted-foreground">Fatiga /10</p>
+                      <Progress value={trainingProgress.latestFatigue * 10} className="h-1.5" />
+                    </div>
+                  )}
+                  {trainingProgress.latestSleep !== undefined && (
+                    <div className="bg-muted/40 rounded-xl p-4 text-center space-y-2">
+                      <p className="text-3xl font-bold text-foreground">{trainingProgress.latestSleep}</p>
+                      <p className="text-xs text-muted-foreground">Sueño /10</p>
+                      <Progress value={trainingProgress.latestSleep * 10} className="h-1.5" />
+                    </div>
+                  )}
+                  {trainingProgress.latestMotivation !== undefined && (
+                    <div className="bg-muted/40 rounded-xl p-4 text-center space-y-2">
+                      <p className="text-3xl font-bold text-foreground">{trainingProgress.latestMotivation}</p>
+                      <p className="text-xs text-muted-foreground">Motivación /10</p>
+                      <Progress value={trainingProgress.latestMotivation * 10} className="h-1.5" />
+                    </div>
+                  )}
+                </div>
+                {trainingProgress.hasInjury && (
+                  <div className="flex items-start gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+                    <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-destructive">Molestia reportada</p>
+                      {trainingProgress.injuryDetail && (
+                        <p className="text-sm text-muted-foreground mt-0.5">{trainingProgress.injuryDetail}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </TabsContent>
+        )}
+      </Tabs>
+    </div>
+  );
+};
+
+const AdminProgress = () => {
+  const navigate = useNavigate();
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [search, setSearch] = useState("");
+
+  const activeClients = getActiveClients();
+  const filtered = activeClients.filter((c) =>
+    c.name.toLowerCase().includes(search.toLowerCase()) ||
+    c.plan.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <AdminLayout>
+      {selectedClient ? (
+        <ClientDetail client={selectedClient} onBack={() => setSelectedClient(null)} />
+      ) : (
+        <div className="space-y-6 animate-fade-in">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <Activity className="h-6 w-6 text-primary" />
+              Progreso de Clientes
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Métricas de nutrición y entrenamiento por cliente
+            </p>
+          </div>
+
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar cliente..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 bg-card border-border"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((client) => (
+              <ClientProgressCard key={client.id} client={client} onClick={() => setSelectedClient(client)} />
+            ))}
+            {filtered.length === 0 && (
+              <p className="text-sm text-muted-foreground col-span-full text-center py-12">No se encontraron clientes</p>
+            )}
+          </div>
+        </div>
+      )}
+    </AdminLayout>
+  );
+};
+
+export default AdminProgress;
