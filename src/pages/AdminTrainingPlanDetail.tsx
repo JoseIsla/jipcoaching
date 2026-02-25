@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, Plus, Trash2, GripVertical, Dumbbell, ChevronDown, ChevronRight, Lock } from "lucide-react";
+import { ArrowLeft, Save, Plus, Trash2, GripVertical, Dumbbell, ChevronDown, ChevronRight, Lock, Copy } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -225,9 +225,11 @@ const ExerciseForm = ({
 const DayEditor = ({
   day,
   onChange,
+  allDays,
 }: {
   day: TrainingDay;
   onChange: (d: TrainingDay) => void;
+  allDays: TrainingDay[];
 }) => {
   const [open, setOpen] = useState(true);
   const basics = day.exercises.filter((e) => e.section === "basic");
@@ -264,6 +266,37 @@ const DayEditor = ({
           <span className="font-semibold text-foreground">Día {day.dayNumber}</span>
           <span className="text-sm text-muted-foreground">— {day.name || "Sin nombre"}</span>
           <Badge variant="outline" className="text-xs">{basics.length} básicos · {accessories.length} accesorios</Badge>
+        </div>
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          {/* Duplicate from another day */}
+          {allDays.filter((d) => d.id !== day.id && d.exercises.length > 0).length > 0 && (
+            <Select
+              value=""
+              onValueChange={(sourceDayId) => {
+                const sourceDay = allDays.find((d) => d.id === sourceDayId);
+                if (!sourceDay) return;
+                const clonedExercises = sourceDay.exercises.map((ex) => ({
+                  ...ex,
+                  id: `te-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                }));
+                onChange({ ...day, exercises: [...day.exercises, ...clonedExercises] });
+              }}
+            >
+              <SelectTrigger className="h-7 text-xs gap-1 w-auto border-border bg-background px-2">
+                <Copy className="h-3 w-3" />
+                <span>Copiar de...</span>
+              </SelectTrigger>
+              <SelectContent>
+                {allDays
+                  .filter((d) => d.id !== day.id && d.exercises.length > 0)
+                  .map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      Día {d.dayNumber} — {d.name || "Sin nombre"} ({d.exercises.length} ej.)
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </CollapsibleTrigger>
 
@@ -445,7 +478,7 @@ const AdminTrainingPlanDetail = () => {
         {/* Days */}
         <div className="space-y-4">
           {currentWeek.days.map((day) => (
-            <DayEditor key={day.id} day={day} onChange={(d) => updateDay(day.id, d)} />
+            <DayEditor key={day.id} day={day} onChange={(d) => updateDay(day.id, d)} allDays={currentWeek.days} />
           ))}
         </div>
 
