@@ -126,6 +126,108 @@ export const getRetentionRate = () => {
   return total > 0 ? Math.round((active / total) * 100) : 0;
 };
 
+// ==================== CLIENT PROGRESS ====================
+
+export interface WeightEntry {
+  date: string;
+  weight: number;
+}
+
+export interface RMRecord {
+  exerciseId: string;
+  exerciseName: string;
+  weight: number;
+  date: string;
+  reps: number;
+  estimated1RM: number;
+}
+
+// Historical fasting weight data per client (nutrition clients)
+export const clientWeightHistory: Record<string, WeightEntry[]> = {
+  "1": [
+    { date: "2025-01-15", weight: 84.0 }, { date: "2025-01-21", weight: 83.5 }, { date: "2025-01-28", weight: 83.2 },
+    { date: "2025-02-04", weight: 83.0 }, { date: "2025-02-11", weight: 82.8 }, { date: "2025-02-18", weight: 82.5 }, { date: "2025-02-25", weight: 82.3 },
+  ],
+  "2": [
+    { date: "2025-02-04", weight: 60.0 }, { date: "2025-02-11", weight: 59.2 }, { date: "2025-02-18", weight: 58.8 }, { date: "2025-02-25", weight: 58.2 },
+  ],
+  "4": [
+    { date: "2025-01-21", weight: 64.5 }, { date: "2025-01-28", weight: 64.8 }, { date: "2025-02-04", weight: 65.0 },
+    { date: "2025-02-11", weight: 65.3 }, { date: "2025-02-18", weight: 65.5 },
+  ],
+  "6": [
+    { date: "2025-02-18", weight: 57.0 }, { date: "2025-02-25", weight: 57.2 },
+  ],
+  "8": [
+    { date: "2024-12-10", weight: 65.0 }, { date: "2024-12-17", weight: 64.5 }, { date: "2025-01-07", weight: 64.0 },
+    { date: "2025-01-14", weight: 63.5 }, { date: "2025-01-21", weight: 63.2 }, { date: "2025-02-04", weight: 63.0 }, { date: "2025-02-18", weight: 63.0 },
+  ],
+};
+
+// RM records per client (training clients) — best lifts
+export const clientRMRecords: Record<string, RMRecord[]> = {
+  "1": [
+    { exerciseId: "e1", exerciseName: "Sentadilla", weight: 185, date: "2025-02-18", reps: 1, estimated1RM: 185 },
+    { exerciseId: "e4", exerciseName: "Press Banca", weight: 125, date: "2025-02-11", reps: 1, estimated1RM: 125 },
+    { exerciseId: "e7", exerciseName: "Peso Muerto", weight: 215, date: "2025-02-18", reps: 1, estimated1RM: 215 },
+    { exerciseId: "e2", exerciseName: "Sentadilla Pausa", weight: 160, date: "2025-02-04", reps: 2, estimated1RM: 165 },
+    { exerciseId: "e5", exerciseName: "Press Banca Estrecho", weight: 105, date: "2025-01-28", reps: 3, estimated1RM: 111 },
+  ],
+  "3": [
+    { exerciseId: "e1", exerciseName: "Sentadilla", weight: 120, date: "2025-02-18", reps: 3, estimated1RM: 127 },
+    { exerciseId: "e4", exerciseName: "Press Banca", weight: 80, date: "2025-02-18", reps: 3, estimated1RM: 85 },
+    { exerciseId: "e7", exerciseName: "Peso Muerto", weight: 150, date: "2025-02-18", reps: 2, estimated1RM: 155 },
+  ],
+  "4": [
+    { exerciseId: "e1", exerciseName: "Sentadilla", weight: 105, date: "2025-02-11", reps: 1, estimated1RM: 105 },
+    { exerciseId: "e4", exerciseName: "Press Banca", weight: 57.5, date: "2025-02-18", reps: 1, estimated1RM: 57.5 },
+    { exerciseId: "e7", exerciseName: "Peso Muerto", weight: 120, date: "2025-01-28", reps: 2, estimated1RM: 124 },
+  ],
+  "6": [
+    { exerciseId: "e1", exerciseName: "Sentadilla", weight: 80, date: "2025-02-25", reps: 5, estimated1RM: 90 },
+    { exerciseId: "e4", exerciseName: "Press Banca", weight: 45, date: "2025-02-25", reps: 5, estimated1RM: 51 },
+    { exerciseId: "e7", exerciseName: "Peso Muerto", weight: 100, date: "2025-02-25", reps: 3, estimated1RM: 106 },
+  ],
+  "7": [
+    { exerciseId: "e1", exerciseName: "Sentadilla", weight: 155, date: "2025-02-18", reps: 1, estimated1RM: 155 },
+    { exerciseId: "e4", exerciseName: "Press Banca", weight: 95, date: "2025-02-11", reps: 2, estimated1RM: 98 },
+    { exerciseId: "e7", exerciseName: "Peso Muerto", weight: 190, date: "2025-02-18", reps: 1, estimated1RM: 190 },
+    { exerciseId: "e5", exerciseName: "Press Banca Estrecho", weight: 82.5, date: "2025-02-18", reps: 3, estimated1RM: 87 },
+  ],
+  "8": [
+    { exerciseId: "e1", exerciseName: "Sentadilla", weight: 110, date: "2025-02-18", reps: 1, estimated1RM: 110 },
+    { exerciseId: "e4", exerciseName: "Press Banca", weight: 62.5, date: "2025-02-11", reps: 1, estimated1RM: 62.5 },
+    { exerciseId: "e7", exerciseName: "Peso Muerto", weight: 135, date: "2025-02-18", reps: 1, estimated1RM: 135 },
+  ],
+};
+
+// Helper: get best RM per main lift for a client
+export const getClientBestRMs = (clientId: string) => {
+  const records = clientRMRecords[clientId] || [];
+  const bestByExercise: Record<string, RMRecord> = {};
+  records.forEach((r) => {
+    if (!bestByExercise[r.exerciseId] || r.estimated1RM > bestByExercise[r.exerciseId].estimated1RM) {
+      bestByExercise[r.exerciseId] = r;
+    }
+  });
+  return Object.values(bestByExercise);
+};
+
+// Helper: get latest questionnaire data for training progress
+export const getClientTrainingProgress = (clientId: string) => {
+  const entries = mockQuestionnaireEntries.filter(
+    (e) => e.clientId === clientId && e.category === "training" && e.status === "respondido"
+  );
+  const latest = entries[entries.length - 1];
+  return {
+    latestFatigue: latest?.responses?.tq1 as number | undefined,
+    latestSleep: latest?.responses?.tq4 as number | undefined,
+    latestMotivation: latest?.responses?.tq5 as number | undefined,
+    hasInjury: latest?.responses?.tq2 as boolean | undefined,
+    injuryDetail: latest?.responses?.tq3 as string | undefined,
+  };
+};
+
 // ==================== QUESTIONNAIRES ====================
 
 export type QuestionType = "text" | "number" | "scale" | "yesno" | "select";
