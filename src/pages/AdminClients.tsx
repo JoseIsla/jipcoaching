@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus, Utensils, Dumbbell, MoreHorizontal } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
-import AddClientSheet from "@/components/admin/AddClientSheet";
+import AddClientSheet, { type NewClientData } from "@/components/admin/AddClientSheet";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { mockClients, type Client, type ServiceType } from "@/data/mockData";
+import { addClientToStore, type ClientDetail } from "@/data/clientStore";
 
 type FilterType = "all" | "nutrition" | "training" | "both";
 
@@ -23,21 +24,50 @@ const AdminClients = () => {
   const [clients, setClients] = useState<Client[]>(mockClients);
   const navigate = useNavigate();
 
-  const handleClientAdded = (newClient: { name: string; email: string; phone: string; services: ServiceType[]; status: "Activo" | "Pendiente" }) => {
+  const handleClientAdded = (data: NewClientData) => {
     const now = new Date();
     const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const id = String(Date.now());
+    const today = now.toISOString().split("T")[0];
+
+    // Add to client list
     const client: Client = {
-      id: String(Date.now()),
-      name: newClient.name,
-      email: newClient.email,
-      phone: newClient.phone,
-      services: newClient.services,
+      id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      services: data.services,
       plan: "Sin asignar",
-      status: newClient.status,
-      startDate: now.toISOString().split("T")[0],
+      status: "Activo",
+      startDate: today,
       joinedMonth: month,
     };
     setClients((prev) => [client, ...prev]);
+
+    // Add full detail to shared store
+    const detail: ClientDetail = {
+      id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      age: data.age,
+      sex: data.sex,
+      services: data.services,
+      plan: "Sin asignar",
+      status: "Activo",
+      startDate: today,
+      monthlyRate: data.monthlyRate || 0,
+      lastPaymentDate: "-",
+      nextPaymentDate: "-",
+      paymentMethod: data.paymentMethod || "-",
+      notes: data.notes || "",
+      currentWeight: data.currentWeight,
+      targetWeight: data.nutritionIntake?.targetWeight,
+      height: data.height,
+      nutritionIntake: data.nutritionIntake,
+      trainingIntake: data.trainingIntake,
+    };
+    addClientToStore(detail);
   };
 
   const filtered = clients.filter((c) => {
