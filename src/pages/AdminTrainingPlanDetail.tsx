@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, Plus, Trash2, GripVertical, Dumbbell, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Save, Plus, Trash2, GripVertical, Dumbbell, ChevronDown, ChevronRight, Lock } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import type { TrainingBlock } from "@/data/mockData";
 import {
   getTrainingPlanDetail,
   saveTrainingWeek,
+  addWeekToPlan,
   exerciseLibrary,
   TRAINING_METHOD_LABELS,
   type TrainingPlanFull,
@@ -374,26 +377,59 @@ const AdminTrainingPlanDetail = () => {
           </div>
         </div>
 
-        {/* Week selector */}
-        {plan.weeks.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {plan.weeks.map((w, i) => (
-              <Button
-                key={w.id}
-                variant={i === weekIdx ? "default" : "outline"}
-                size="sm"
-                className="text-xs shrink-0"
-                onClick={() => {
-                  setWeekIdx(i);
-                  setCurrentWeek(JSON.parse(JSON.stringify(plan.weeks[i])));
-                }}
-              >
-                Sem {w.weekNumber}
-                {w.status === "active" && " ●"}
-              </Button>
-            ))}
-          </div>
-        )}
+        {/* Week selector grouped by block */}
+        <div className="space-y-3">
+          {(() => {
+            const blockGroups: Record<string, { weeks: TrainingWeek[]; indices: number[] }> = {};
+            plan.weeks.forEach((w, i) => {
+              const b = w.block || plan.block;
+              if (!blockGroups[b]) blockGroups[b] = { weeks: [], indices: [] };
+              blockGroups[b].weeks.push(w);
+              blockGroups[b].indices.push(i);
+            });
+            return Object.entries(blockGroups).map(([block, group]) => (
+              <div key={block} className="space-y-1.5">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{block}</p>
+                <div className="flex gap-2 flex-wrap">
+                  {group.weeks.map((w, gi) => {
+                    const realIdx = group.indices[gi];
+                    const isCompleted = w.status === "completed";
+                    return (
+                      <Button
+                        key={w.id}
+                        variant={realIdx === weekIdx ? "default" : "outline"}
+                        size="sm"
+                        className={`text-xs shrink-0 gap-1 ${isCompleted && realIdx !== weekIdx ? "opacity-50" : ""}`}
+                        onClick={() => {
+                          if (isCompleted) return;
+                          setWeekIdx(realIdx);
+                          setCurrentWeek(JSON.parse(JSON.stringify(plan.weeks[realIdx])));
+                        }}
+                        disabled={isCompleted}
+                      >
+                        {isCompleted && <Lock className="h-3 w-3" />}
+                        Sem {w.weekNumber}
+                        {w.status === "active" && " ●"}
+                        {w.status === "completed" && " ✓"}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+            ));
+          })()}
+
+          {/* Add new week */}
+          <AddWeekDialog planId={plan.id} onAdded={(newWeek) => {
+            const updatedPlan = getTrainingPlanDetail(plan.id);
+            if (updatedPlan) {
+              setPlan({ ...updatedPlan });
+              const newIdx = updatedPlan.weeks.length - 1;
+              setWeekIdx(newIdx);
+              setCurrentWeek(JSON.parse(JSON.stringify(updatedPlan.weeks[newIdx])));
+            }
+          }} />
+        </div>
 
         {/* Week notes */}
         <div className="space-y-1">
@@ -421,6 +457,62 @@ const AdminTrainingPlanDetail = () => {
         </div>
       </div>
     </AdminLayout>
+  );
+};
+
+// ==================== ADD WEEK DIALOG ====================
+
+const BLOCKS: TrainingBlock[] = ["Hipertrofia", "Intensificación", "Peaking", "Tapering"];
+
+const AddWeekDialog = ({ planId, onAdded }: { planId: string; onAdded: (w: TrainingWeek) => void }) => {
+  const [open, setOpen] = useState(false);
+  const [block, setBlock] = useState<TrainingBlock>("Hipertrofia");
+  const { toast } = useToast();
+
+  const handleAdd = () => {
+    const newWeek = addWeekToPlan(planId, block);
+    if (newWeek) {
+      toast({ title: "Semana añadida", description: `Semana ${newWeek.weekNumber} (${block}) creada.` });
+      onAdded(newWeek);
+      setOpen(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="text-xs gap-1.5">
+          <Plus className="h-3.5 w-3.5" /> Añadir semana
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Nueva semana</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 pt-2">
+          <div className="space-y-2">
+            <Label>Bloque de entrenamiento</Label>
+            <Select value={block} onValueChange={(v) => setBlock(v as TrainingBlock)}>
+              <SelectTrigger className="bg-background border-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {BLOCKS.map((b) => (
+                  <SelectItem key={b} value={b}>{b}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              La semana anterior se marcará como completada automáticamente.
+            </p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAdd}>Crear semana</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
