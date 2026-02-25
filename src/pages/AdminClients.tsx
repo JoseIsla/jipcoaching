@@ -6,43 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-type ServiceType = "nutrition" | "training";
-
-interface Client {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  services: ServiceType[];
-  plan: string;
-  status: "Activo" | "Pendiente" | "Inactivo";
-  startDate: string;
-}
-
-const mockClients: Client[] = [
-  { id: "1", name: "Carlos Martínez", email: "carlos@email.com", phone: "+34 612 345 678", services: ["nutrition", "training"], plan: "Volumen", status: "Activo", startDate: "2025-01-15" },
-  { id: "2", name: "Ana López", email: "ana@email.com", phone: "+34 623 456 789", services: ["nutrition"], plan: "Definición", status: "Activo", startDate: "2025-02-01" },
-  { id: "3", name: "Diego Fernández", email: "diego@email.com", phone: "+34 634 567 890", services: ["training"], plan: "Fuerza", status: "Pendiente", startDate: "2025-02-10" },
-  { id: "4", name: "Laura García", email: "laura@email.com", phone: "+34 645 678 901", services: ["nutrition", "training"], plan: "Volumen", status: "Activo", startDate: "2025-01-20" },
-  { id: "5", name: "Miguel Torres", email: "miguel@email.com", phone: "+34 656 789 012", services: ["nutrition"], plan: "Pérdida de grasa", status: "Inactivo", startDate: "2024-11-05" },
-  { id: "6", name: "Sofía Ruiz", email: "sofia@email.com", phone: "+34 667 890 123", services: ["nutrition", "training"], plan: "Recomposición", status: "Activo", startDate: "2025-02-18" },
-  { id: "7", name: "Pablo Navarro", email: "pablo@email.com", phone: "+34 678 901 234", services: ["training"], plan: "Hipertrofia", status: "Activo", startDate: "2025-01-28" },
-  { id: "8", name: "María Jiménez", email: "maria@email.com", phone: "+34 689 012 345", services: ["nutrition", "training"], plan: "Mantenimiento", status: "Activo", startDate: "2024-12-10" },
-];
+import { mockClients, type Client } from "@/data/mockData";
 
 type FilterType = "all" | "nutrition" | "training" | "both";
 

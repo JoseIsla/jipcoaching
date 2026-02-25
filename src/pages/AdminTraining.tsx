@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Utensils, Eye, MoreHorizontal, CheckCircle2, XCircle, Calendar, User } from "lucide-react";
+import { Search, Plus, Dumbbell, MoreHorizontal, CheckCircle2, XCircle, Calendar, Eye, User } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,17 +11,25 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { mockNutritionPlans, type NutritionPlan } from "@/data/mockData";
+import { mockTrainingPlans, type TrainingPlan } from "@/data/mockData";
 
-const PlanTable = ({ plans, navigate }: { plans: NutritionPlan[]; navigate: ReturnType<typeof useNavigate> }) => (
+const blockColor: Record<string, string> = {
+  Hipertrofia: "bg-blue-500/15 text-blue-400 border-blue-500/20",
+  Intensificación: "bg-amber-500/15 text-amber-400 border-amber-500/20",
+  Peaking: "bg-red-500/15 text-red-400 border-red-500/20",
+  Tapering: "bg-purple-500/15 text-purple-400 border-purple-500/20",
+};
+
+const PlanTable = ({ plans, navigate }: { plans: TrainingPlan[]; navigate: ReturnType<typeof useNavigate> }) => (
   <div className="bg-card border border-border rounded-xl overflow-hidden">
     <Table>
       <TableHeader>
         <TableRow className="border-border hover:bg-transparent">
           <TableHead className="text-muted-foreground">Cliente</TableHead>
           <TableHead className="text-muted-foreground">Plan</TableHead>
-          <TableHead className="text-muted-foreground">Tipo</TableHead>
-          <TableHead className="text-muted-foreground">Kcal</TableHead>
+          <TableHead className="text-muted-foreground">Modalidad</TableHead>
+          <TableHead className="text-muted-foreground">Bloque</TableHead>
+          <TableHead className="text-muted-foreground">Semanas</TableHead>
           <TableHead className="text-muted-foreground">Inicio</TableHead>
           <TableHead className="text-muted-foreground">Fin</TableHead>
           <TableHead className="text-muted-foreground w-10"></TableHead>
@@ -38,10 +46,17 @@ const PlanTable = ({ plans, navigate }: { plans: NutritionPlan[]; navigate: Retu
             <TableCell className="font-medium text-foreground">{plan.planName}</TableCell>
             <TableCell>
               <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10 text-xs">
-                {plan.type}
+                {plan.modality}
               </Badge>
             </TableCell>
-            <TableCell className="text-muted-foreground font-mono text-sm">{plan.calories}</TableCell>
+            <TableCell>
+              <span className={`inline-flex text-xs font-medium px-2.5 py-1 rounded-full border ${blockColor[plan.block] || ""}`}>
+                {plan.block}
+              </span>
+            </TableCell>
+            <TableCell className="text-muted-foreground font-mono text-sm">
+              {plan.active && plan.currentWeek ? `${plan.currentWeek}/${plan.weeksDuration}` : plan.weeksDuration}
+            </TableCell>
             <TableCell className="text-muted-foreground text-sm">{plan.startDate}</TableCell>
             <TableCell className="text-muted-foreground text-sm">{plan.endDate ?? "—"}</TableCell>
             <TableCell>
@@ -64,8 +79,8 @@ const PlanTable = ({ plans, navigate }: { plans: NutritionPlan[]; navigate: Retu
         ))}
         {plans.length === 0 && (
           <TableRow>
-            <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
-              No se encontraron planes de nutrición
+            <TableCell colSpan={8} className="text-center text-muted-foreground py-12">
+              No se encontraron planes de entrenamiento
             </TableCell>
           </TableRow>
         )}
@@ -74,18 +89,19 @@ const PlanTable = ({ plans, navigate }: { plans: NutritionPlan[]; navigate: Retu
   </div>
 );
 
-const AdminNutrition = () => {
+const AdminTraining = () => {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
-  const matchesSearch = (p: NutritionPlan) =>
+  const matchesSearch = (p: TrainingPlan) =>
     p.clientName.toLowerCase().includes(search.toLowerCase()) ||
     p.planName.toLowerCase().includes(search.toLowerCase()) ||
-    p.type.toLowerCase().includes(search.toLowerCase());
+    p.modality.toLowerCase().includes(search.toLowerCase()) ||
+    p.block.toLowerCase().includes(search.toLowerCase());
 
-  const activePlans = mockNutritionPlans.filter((p) => p.active && matchesSearch(p));
-  const inactivePlans = mockNutritionPlans.filter((p) => !p.active && matchesSearch(p));
-  const uniqueClients = new Set(mockNutritionPlans.filter((p) => p.active).map((p) => p.clientId)).size;
+  const activePlans = mockTrainingPlans.filter((p) => p.active && matchesSearch(p));
+  const inactivePlans = mockTrainingPlans.filter((p) => !p.active && matchesSearch(p));
+  const uniqueClients = new Set(mockTrainingPlans.filter((p) => p.active).map((p) => p.clientId)).size;
 
   return (
     <AdminLayout>
@@ -94,11 +110,11 @@ const AdminNutrition = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Utensils className="h-6 w-6 text-primary" />
-              Nutrición
+              <Dumbbell className="h-6 w-6 text-primary" />
+              Entrenamiento
             </h1>
             <p className="text-muted-foreground text-sm mt-1">
-              Planes nutricionales de tus clientes
+              Planes de entrenamiento de tus clientes
             </p>
           </div>
           <Button className="glow-primary-sm gap-2">
@@ -114,7 +130,7 @@ const AdminNutrition = () => {
               <CheckCircle2 className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{mockNutritionPlans.filter((p) => p.active).length}</p>
+              <p className="text-2xl font-bold text-foreground">{mockTrainingPlans.filter((p) => p.active).length}</p>
               <p className="text-xs text-muted-foreground">Planes activos</p>
             </div>
           </div>
@@ -123,7 +139,7 @@ const AdminNutrition = () => {
               <XCircle className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{mockNutritionPlans.filter((p) => !p.active).length}</p>
+              <p className="text-2xl font-bold text-foreground">{mockTrainingPlans.filter((p) => !p.active).length}</p>
               <p className="text-xs text-muted-foreground">Planes anteriores</p>
             </div>
           </div>
@@ -133,7 +149,7 @@ const AdminNutrition = () => {
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{uniqueClients}</p>
-              <p className="text-xs text-muted-foreground">Clientes con nutrición</p>
+              <p className="text-xs text-muted-foreground">Clientes con entrenamiento</p>
             </div>
           </div>
         </div>
@@ -142,7 +158,7 @@ const AdminNutrition = () => {
         <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por cliente, plan o tipo..."
+            placeholder="Buscar por cliente, plan, modalidad o bloque..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 bg-card border-border"
@@ -173,4 +189,4 @@ const AdminNutrition = () => {
   );
 };
 
-export default AdminNutrition;
+export default AdminTraining;
