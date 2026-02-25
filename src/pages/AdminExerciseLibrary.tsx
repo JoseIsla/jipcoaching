@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Library, Dumbbell, Target, Plus, Trash2, Search, Pencil, ChevronDown, ChevronRight, Layers } from "lucide-react";
+import { Library, Dumbbell, Target, Plus, Trash2, Search, Pencil, ChevronDown, ChevronRight, Layers, Apple, Leaf } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,12 +22,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import {
   exerciseLibrary,
   addExerciseToLibrary,
   type ExerciseLibraryItem,
 } from "@/data/trainingPlanStore";
+import {
+  globalFruitTable,
+  globalVegetableTable,
+} from "@/data/nutritionPlanStore";
 
 const MUSCLE_GROUPS = [
   "Pierna", "Posterior", "Glúteo", "Pecho", "Hombro",
@@ -304,6 +309,104 @@ const ExerciseSection = ({
   );
 };
 
+// ==================== FOOD TABLE SECTION ====================
+
+const FoodTableSection = ({
+  icon: Icon,
+  iconClass,
+  title,
+  items,
+  onAdd,
+  onRemove,
+  onEdit,
+  defaultOpen = false,
+}: {
+  icon: typeof Apple;
+  iconClass: string;
+  title: string;
+  items: string[];
+  onAdd: (name: string) => void;
+  onRemove: (index: number) => void;
+  onEdit: (index: number, name: string) => void;
+  defaultOpen?: boolean;
+}) => {
+  const [open, setOpen] = useState(defaultOpen);
+  const [newItem, setNewItem] = useState("");
+  const [editIdx, setEditIdx] = useState<number | null>(null);
+  const [editVal, setEditVal] = useState("");
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+          <div className="flex items-center gap-3">
+            {open ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+            <Icon className={`h-5 w-5 ${iconClass}`} />
+            <h2 className="text-base font-semibold text-foreground">{title}</h2>
+            <Badge variant="outline" className="text-xs">{items.length}</Badge>
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="border-t border-border p-4 space-y-3">
+            {/* Add new */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Nuevo alimento..."
+                value={newItem}
+                onChange={(e) => setNewItem(e.target.value)}
+                className="bg-background border-border text-sm h-8"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newItem.trim()) {
+                    onAdd(newItem.trim());
+                    setNewItem("");
+                  }
+                }}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 text-xs gap-1"
+                disabled={!newItem.trim()}
+                onClick={() => { onAdd(newItem.trim()); setNewItem(""); }}
+              >
+                <Plus className="h-3 w-3" /> Añadir
+              </Button>
+            </div>
+
+            {/* List */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5 max-h-[400px] overflow-y-auto">
+              {items.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-1.5 bg-background/50 border border-border/50 rounded-lg px-3 py-1.5 text-sm group">
+                  {editIdx === idx ? (
+                    <Input
+                      value={editVal}
+                      onChange={(e) => setEditVal(e.target.value)}
+                      className="h-6 text-xs bg-background border-border flex-1"
+                      autoFocus
+                      onBlur={() => { if (editVal.trim()) onEdit(idx, editVal.trim()); setEditIdx(null); }}
+                      onKeyDown={(e) => { if (e.key === "Enter") { if (editVal.trim()) onEdit(idx, editVal.trim()); setEditIdx(null); } }}
+                    />
+                  ) : (
+                    <>
+                      <span className="flex-1 text-foreground truncate">{item}</span>
+                      <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground" onClick={() => { setEditIdx(idx); setEditVal(item); }}>
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 text-destructive/60 hover:text-destructive" onClick={() => onRemove(idx)}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
+  );
+};
+
 // ==================== MAIN PAGE ====================
 
 const AdminExerciseLibrary = () => {
@@ -338,56 +441,112 @@ const AdminExerciseLibrary = () => {
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Library className="h-6 w-6 text-primary" />
-            Biblioteca de Ejercicios
+            Biblioteca
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Gestiona los ejercicios disponibles para tus planes de entrenamiento
+            Gestiona ejercicios, frutas y verduras disponibles para tus planes
           </p>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
-            <div className="h-10 w-10 rounded-lg bg-primary/15 flex items-center justify-center">
-              <Dumbbell className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{exerciseLibrary.filter((e) => e.category === "basico").length}</p>
-              <p className="text-xs text-muted-foreground">Básicos</p>
-            </div>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
-            <div className="h-10 w-10 rounded-lg bg-accent/15 flex items-center justify-center">
-              <Layers className="h-5 w-5 text-accent" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{exerciseLibrary.filter((e) => e.category === "variante").length}</p>
-              <p className="text-xs text-muted-foreground">Variantes</p>
-            </div>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
-            <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-              <Target className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{exerciseLibrary.filter((e) => e.category === "accesorio").length}</p>
-              <p className="text-xs text-muted-foreground">Accesorios</p>
-            </div>
-          </div>
-        </div>
+        <Tabs defaultValue="exercises" className="space-y-6">
+          <TabsList className="bg-card border border-border">
+            <TabsTrigger value="exercises" className="gap-1.5"><Dumbbell className="h-4 w-4" /> Ejercicios</TabsTrigger>
+            <TabsTrigger value="foods" className="gap-1.5"><Apple className="h-4 w-4" /> Frutas y Verduras</TabsTrigger>
+          </TabsList>
 
-        {/* Search */}
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar por nombre o grupo muscular..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-card border-border" />
-        </div>
+          {/* ======= EXERCISES TAB ======= */}
+          <TabsContent value="exercises" className="space-y-6">
+            {/* Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-lg bg-primary/15 flex items-center justify-center">
+                  <Dumbbell className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{exerciseLibrary.filter((e) => e.category === "basico").length}</p>
+                  <p className="text-xs text-muted-foreground">Básicos</p>
+                </div>
+              </div>
+              <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-lg bg-accent/15 flex items-center justify-center">
+                  <Layers className="h-5 w-5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{exerciseLibrary.filter((e) => e.category === "variante").length}</p>
+                  <p className="text-xs text-muted-foreground">Variantes</p>
+                </div>
+              </div>
+              <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                  <Target className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{exerciseLibrary.filter((e) => e.category === "accesorio").length}</p>
+                  <p className="text-xs text-muted-foreground">Accesorios</p>
+                </div>
+              </div>
+            </div>
 
-        {/* 3 collapsible sections */}
-        <div className="space-y-4">
-          <ExerciseSection icon={Dumbbell} iconClass="text-primary" title="Básicos" items={basics} mode="basico" onRemove={handleRemove} onRefresh={refresh} defaultOpen />
-          <ExerciseSection icon={Layers} iconClass="text-accent" title="Variantes" items={variants} mode="variante" onRemove={handleRemove} onRefresh={refresh} showParent />
-          <ExerciseSection icon={Target} iconClass="text-muted-foreground" title="Accesorios" items={accessories} mode="accesorio" onRemove={handleRemove} onRefresh={refresh} />
-        </div>
+            {/* Search */}
+            <div className="relative max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Buscar por nombre o grupo muscular..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-card border-border" />
+            </div>
+
+            {/* 3 collapsible sections */}
+            <div className="space-y-4">
+              <ExerciseSection icon={Dumbbell} iconClass="text-primary" title="Básicos" items={basics} mode="basico" onRemove={handleRemove} onRefresh={refresh} defaultOpen />
+              <ExerciseSection icon={Layers} iconClass="text-accent" title="Variantes" items={variants} mode="variante" onRemove={handleRemove} onRefresh={refresh} showParent />
+              <ExerciseSection icon={Target} iconClass="text-muted-foreground" title="Accesorios" items={accessories} mode="accesorio" onRemove={handleRemove} onRefresh={refresh} />
+            </div>
+          </TabsContent>
+
+          {/* ======= FOODS TAB ======= */}
+          <TabsContent value="foods" className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-lg bg-green-500/15 flex items-center justify-center">
+                  <Apple className="h-5 w-5 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{globalFruitTable.length}</p>
+                  <p className="text-xs text-muted-foreground">Frutas</p>
+                </div>
+              </div>
+              <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-lg bg-emerald-500/15 flex items-center justify-center">
+                  <Leaf className="h-5 w-5 text-emerald-500" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{globalVegetableTable.length}</p>
+                  <p className="text-xs text-muted-foreground">Verduras</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <FoodTableSection
+                icon={Apple}
+                iconClass="text-green-500"
+                title="Tabla 01 — Frutas"
+                items={globalFruitTable}
+                defaultOpen
+                onAdd={(name) => { globalFruitTable.push(name); toast({ title: "Fruta añadida", description: `"${name}" añadida.` }); refresh(); }}
+                onRemove={(idx) => { const name = globalFruitTable[idx]; globalFruitTable.splice(idx, 1); toast({ title: "Fruta eliminada", description: `"${name}" eliminada.` }); refresh(); }}
+                onEdit={(idx, name) => { globalFruitTable[idx] = name; refresh(); }}
+              />
+              <FoodTableSection
+                icon={Leaf}
+                iconClass="text-emerald-500"
+                title="Tabla 02 — Verduras"
+                items={globalVegetableTable}
+                onAdd={(name) => { globalVegetableTable.push(name); toast({ title: "Verdura añadida", description: `"${name}" añadida.` }); refresh(); }}
+                onRemove={(idx) => { const name = globalVegetableTable[idx]; globalVegetableTable.splice(idx, 1); toast({ title: "Verdura eliminada", description: `"${name}" eliminada.` }); refresh(); }}
+                onEdit={(idx, name) => { globalVegetableTable[idx] = name; refresh(); }}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </AdminLayout>
   );
