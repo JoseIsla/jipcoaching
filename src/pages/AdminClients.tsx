@@ -23,7 +23,7 @@ const AdminClients = () => {
   const [clients, setClients] = useState<Client[]>(mockClients);
   const navigate = useNavigate();
 
-  const handleClientAdded = (newClient: { name: string; email: string; phone: string; services: ServiceType[]; plan: string; status: "Activo" | "Pendiente" }) => {
+  const handleClientAdded = (newClient: { name: string; email: string; phone: string; services: ServiceType[]; status: "Activo" | "Pendiente" }) => {
     const now = new Date();
     const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const client: Client = {
@@ -32,7 +32,7 @@ const AdminClients = () => {
       email: newClient.email,
       phone: newClient.phone,
       services: newClient.services,
-      plan: newClient.plan,
+      plan: "Sin asignar",
       status: newClient.status,
       startDate: now.toISOString().split("T")[0],
       joinedMonth: month,
