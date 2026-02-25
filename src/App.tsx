@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminClients from "./pages/AdminClients";
+import AdminClientDetail from "./pages/AdminClientDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/clients" element={<AdminClients />} />
+          <Route path="/admin/clients/:id" element={<AdminClientDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
