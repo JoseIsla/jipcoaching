@@ -7,6 +7,7 @@ import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminClients from "./pages/AdminClients";
 import AdminClientDetail from "./pages/AdminClientDetail";
+import AdminNutrition from "./pages/AdminNutrition";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/clients" element={<AdminClients />} />
           <Route path="/admin/clients/:id" element={<AdminClientDetail />} />
+          <Route path="/admin/nutrition" element={<AdminNutrition />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
