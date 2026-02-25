@@ -19,6 +19,8 @@ import {
   nutritionPlanDetailStore,
   globalFruitTable,
   globalVegetableTable,
+  globalSupplements,
+  setGlobalSupplements,
   createEmptyMeal,
   createEmptyOption,
   createEmptyRow,
@@ -401,13 +403,15 @@ const AdminNutritionPlanDetail = () => {
   const navigate = useNavigate();
   const stored = planId ? nutritionPlanDetailStore[planId] : undefined;
 
-  const [plan, setPlan] = useState<NutritionPlanDetail | null>(stored ? { ...stored, meals: stored.meals.map((m) => ({ ...m })), supplements: [...stored.supplements] } : null);
+  const [plan, setPlan] = useState<NutritionPlanDetail | null>(stored ? { ...stored, meals: stored.meals.map((m) => ({ ...m })) } : null);
+  const [supplements, setSupplements] = useState<Supplement[]>([...globalSupplements]);
 
   const save = useCallback(() => {
     if (!plan) return;
     nutritionPlanDetailStore[plan.id] = plan;
+    setGlobalSupplements(supplements);
     toast.success("Plan guardado");
-  }, [plan]);
+  }, [plan, supplements]);
 
   if (!plan) {
     return (
@@ -435,17 +439,17 @@ const AdminNutritionPlanDetail = () => {
   };
 
   const updateSupplement = (idx: number, sup: Supplement) => {
-    const supplements = [...plan.supplements];
-    supplements[idx] = sup;
-    setPlan({ ...plan, supplements });
+    const updated = [...supplements];
+    updated[idx] = sup;
+    setSupplements(updated);
   };
 
   const deleteSupplement = (idx: number) => {
-    setPlan({ ...plan, supplements: plan.supplements.filter((_, i) => i !== idx) });
+    setSupplements(supplements.filter((_, i) => i !== idx));
   };
 
   const addSupplement = () => {
-    setPlan({ ...plan, supplements: [...plan.supplements, { name: "", dose: "", timing: "" }] });
+    setSupplements([...supplements, { name: "", dose: "", timing: "" }]);
   };
 
   return (
@@ -529,19 +533,20 @@ const AdminNutritionPlanDetail = () => {
 
         <Separator className="bg-border" />
 
-        {/* Supplements */}
+        {/* Global Supplements */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
               <Pill className="h-4 w-4 text-primary" />
-              Suplementación
+              Suplementación Global
             </h2>
             <Button variant="ghost" size="sm" className="text-primary text-xs" onClick={addSupplement}>
               <Plus className="h-3 w-3 mr-1" />Añadir
             </Button>
           </div>
+          <p className="text-xs text-muted-foreground">Compartida entre todos los planes</p>
           <div className="space-y-2">
-            {plan.supplements.map((sup, i) => (
+            {supplements.map((sup, i) => (
               <SupplementRow key={i} sup={sup} onUpdate={(s) => updateSupplement(i, s)} onDelete={() => deleteSupplement(i)} />
             ))}
           </div>

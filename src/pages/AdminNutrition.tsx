@@ -86,7 +86,6 @@ const AdminNutrition = () => {
       startDate: today,
       endDate: null,
       meals: [],
-      supplements: [],
       recommendations: [],
     };
     addNutritionPlanDetail(detail);

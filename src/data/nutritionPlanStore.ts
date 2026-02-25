@@ -43,7 +43,6 @@ export interface NutritionPlanDetail {
   startDate: string;
   endDate: string | null;
   meals: Meal[];
-  supplements: Supplement[];
   recommendations: string[];
 }
 
@@ -68,6 +67,17 @@ export const globalVegetableTable: string[] = [
   "Pepinillos", "Champiñones", "Rábano", "Puerro", "Tomate cherry",
 ];
 
+// Global supplements table
+export let globalSupplements: Supplement[] = [
+  { name: "Creatina", dose: "5 g/día", timing: "A cualquier hora" },
+  { name: "Magnesio bisglicinato", dose: "200–300 mg/día", timing: "Noche" },
+  { name: "Vitamina D3 + K2", dose: "2000 UI/día", timing: "Con comida rica en grasa" },
+  { name: "Omega-3 (EPA+DHA)", dose: "1–2 g/día", timing: "Con comidas principales" },
+];
+
+export const setGlobalSupplements = (sups: Supplement[]) => {
+  globalSupplements = sups;
+};
 // ---- Helpers ----
 let nextId = 100;
 export const genId = () => `np-${++nextId}`;
@@ -89,12 +99,6 @@ const mockPlanDetail: NutritionPlanDetail = {
   active: true,
   startDate: "2025-02-01",
   endDate: null,
-  supplements: [
-    { name: "Creatina", dose: "5 g/día", timing: "A cualquier hora" },
-    { name: "Magnesio bisglicinato", dose: "200–300 mg/día", timing: "Noche" },
-    { name: "Vitamina D3 + K2", dose: "2000 UI/día", timing: "Con comida rica en grasa" },
-    { name: "Omega-3 (EPA+DHA)", dose: "1–2 g/día", timing: "Con comidas principales" },
-  ],
   recommendations: [
     "Dormir 7–9 horas por noche.",
     "Mínimo 3–4 L de agua diarios.",
