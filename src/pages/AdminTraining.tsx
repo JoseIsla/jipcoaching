@@ -11,7 +11,7 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { trainingPlanList, toggleTrainingPlanActive } from "@/data/trainingPlanStore";
+import { trainingPlanList, toggleTrainingPlanActive, getCurrentBlockForPlan } from "@/data/trainingPlanStore";
 import type { TrainingBlock } from "@/data/mockData";
 import CreateTrainingPlanSheet from "@/components/admin/CreateTrainingPlanSheet";
 
@@ -62,14 +62,7 @@ const PlanTable = ({ plans, navigate, onDeactivate }: {
             className="border-border/50 hover:bg-muted/30 cursor-pointer"
             onClick={() => navigate(`/admin/training/${plan.id}`)}
           >
-            <TableCell>
-              <button
-                onClick={(e) => { e.stopPropagation(); navigate(`/admin/clients/${plan.clientId}`); }}
-                className="font-medium text-foreground hover:text-primary transition-colors text-left"
-              >
-                {plan.clientName}
-              </button>
-            </TableCell>
+            <TableCell className="font-medium text-foreground">{plan.clientName}</TableCell>
             <TableCell className="font-medium text-foreground">{plan.planName}</TableCell>
             <TableCell>
               <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10 text-xs">
@@ -77,9 +70,14 @@ const PlanTable = ({ plans, navigate, onDeactivate }: {
               </Badge>
             </TableCell>
             <TableCell>
-              <span className={`inline-flex text-xs font-medium px-2.5 py-1 rounded-full border ${blockColor[plan.block] || ""}`}>
-                {plan.block}
-              </span>
+              {(() => {
+                const currentBlock = getCurrentBlockForPlan(plan.id) || plan.block;
+                return (
+                  <span className={`inline-flex text-xs font-medium px-2.5 py-1 rounded-full border ${blockColor[currentBlock] || ""}`}>
+                    {currentBlock}
+                  </span>
+                );
+              })()}
             </TableCell>
             <TableCell className="text-muted-foreground font-mono text-sm">
               {plan.active && plan.currentWeek ? `${plan.currentWeek}/${plan.weeksDuration}` : plan.weeksDuration}

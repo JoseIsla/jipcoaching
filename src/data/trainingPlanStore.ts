@@ -70,6 +70,7 @@ export interface TrainingWeek {
   id: string;
   planId: string;
   weekNumber: number;
+  block: TrainingBlock;
   status: "draft" | "active" | "completed";
   generalNotes?: string;
   days: TrainingDay[];
@@ -166,10 +167,11 @@ export const trainingPlanList = [...mockTrainingPlans];
 const trainingPlanDetails: Record<string, TrainingPlanFull> = {};
 
 // Build a default week 1 for demo plans
-const buildEmptyWeek = (planId: string, weekNum: number, daysPerWeek: number): TrainingWeek => ({
+const buildEmptyWeek = (planId: string, weekNum: number, daysPerWeek: number, block: TrainingBlock = "Hipertrofia"): TrainingWeek => ({
   id: `tw-${planId}-w${weekNum}`,
   planId,
   weekNumber: weekNum,
+  block,
   status: weekNum === 1 ? "active" : "draft",
   days: Array.from({ length: daysPerWeek }, (_, i) => ({
     id: `td-${planId}-w${weekNum}-d${i + 1}`,
@@ -227,6 +229,7 @@ const buildDemoPlan = (): void => {
     id: "tw-t1-w1",
     planId: "t1",
     weekNumber: 1,
+    block: "Intensificación",
     status: "completed",
     generalNotes: "Objetivo: volver a meter patrón S/B/D con técnica sólida, RPE moderado, y controlar volumen con %fatiga.",
     days: [
@@ -361,9 +364,9 @@ const buildDemoPlan = (): void => {
     blockVariants: "SSB, Banca comp. pausa, DL desde bloques (3-5cm)",
     weeks: [
       week1,
-      { ...buildEmptyWeek("t1", 2, 4), status: "completed" },
-      { ...buildEmptyWeek("t1", 3, 4), status: "completed" },
-      { ...buildEmptyWeek("t1", 4, 4), status: "active" },
+      { ...buildEmptyWeek("t1", 2, 4, "Intensificación"), status: "completed" },
+      { ...buildEmptyWeek("t1", 3, 4, "Intensificación"), status: "completed" },
+      { ...buildEmptyWeek("t1", 4, 4, "Intensificación"), status: "active" },
     ],
   };
 };
@@ -451,11 +454,41 @@ export const addTrainingPlanToList = (plan: {
     ...newListEntry,
     daysPerWeek: plan.daysPerWeek,
     blockVariants: plan.blockVariants || "",
-    weeks: [buildEmptyWeek(id, 1, plan.daysPerWeek)],
+    weeks: [buildEmptyWeek(id, 1, plan.daysPerWeek, plan.block)],
   };
   trainingPlanDetails[id] = detail;
 
   return id;
+};
+
+export const addWeekToPlan = (planId: string, block: TrainingBlock): TrainingWeek | null => {
+  const detail = getTrainingPlanDetail(planId);
+  if (!detail) return null;
+  const nextWeekNum = detail.weeks.length + 1;
+  // Mark previous active week as completed
+  detail.weeks.forEach((w) => {
+    if (w.status === "active") w.status = "completed";
+  });
+  const newWeek = buildEmptyWeek(planId, nextWeekNum, detail.daysPerWeek, block);
+  newWeek.status = "active";
+  detail.weeks.push(newWeek);
+  detail.weeksDuration = nextWeekNum;
+  // Update block to current
+  detail.block = block;
+  const listEntry = trainingPlanList.find((p) => p.id === planId);
+  if (listEntry) {
+    listEntry.currentWeek = nextWeekNum;
+    listEntry.weeksDuration = nextWeekNum;
+    listEntry.block = block;
+  }
+  return newWeek;
+};
+
+export const getCurrentBlockForPlan = (planId: string): TrainingBlock | null => {
+  const detail = trainingPlanDetails[planId];
+  if (!detail) return null;
+  const activeWeek = detail.weeks.find((w) => w.status === "active");
+  return activeWeek?.block || detail.block;
 };
 
 export const toggleTrainingPlanActive = (planId: string, active: boolean): void => {

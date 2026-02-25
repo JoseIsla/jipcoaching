@@ -137,18 +137,34 @@ const AdminTrainingPlanView = () => {
           </div>
         )}
 
-        {/* Week tabs */}
-        {plan.weeks.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {plan.weeks.map((w, i) => (
-              <Button key={w.id} variant={i === selectedWeek ? "default" : "outline"} size="sm" className="text-xs shrink-0" onClick={() => setSelectedWeek(i)}>
-                Sem {w.weekNumber}
-                {w.status === "active" && " ●"}
-                {w.status === "completed" && " ✓"}
-              </Button>
-            ))}
-          </div>
-        )}
+        {/* Week tabs grouped by block */}
+        {plan.weeks.length > 0 && (() => {
+          const blockGroups: Record<string, { weeks: typeof plan.weeks; indices: number[] }> = {};
+          plan.weeks.forEach((w, i) => {
+            const b = w.block || plan.block;
+            if (!blockGroups[b]) blockGroups[b] = { weeks: [], indices: [] };
+            blockGroups[b].weeks.push(w);
+            blockGroups[b].indices.push(i);
+          });
+          return (
+            <div className="space-y-3">
+              {Object.entries(blockGroups).map(([block, group]) => (
+                <div key={block} className="space-y-1.5">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{block}</p>
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {group.weeks.map((w, gi) => (
+                      <Button key={w.id} variant={group.indices[gi] === selectedWeek ? "default" : "outline"} size="sm" className="text-xs shrink-0" onClick={() => setSelectedWeek(group.indices[gi])}>
+                        Sem {w.weekNumber}
+                        {w.status === "active" && " ●"}
+                        {w.status === "completed" && " ✓"}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* Week content */}
         <WeekView week={plan.weeks[selectedWeek]} />
