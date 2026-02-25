@@ -1,9 +1,12 @@
 // ==================== NUTRITION PLAN DETAIL STORE ====================
 
+export type MacroCategory = "carbohidratos" | "proteinas" | "grasas" | "frutas" | "verduras" | "";
+
 export interface IngredientRow {
   id: string;
   mainIngredient: string;
   alternatives: string[];
+  macroCategory: MacroCategory;
 }
 
 export interface MealOption {
@@ -105,17 +108,17 @@ const mockPlanDetail: NutritionPlanDetail = {
         {
           id: "o-des1", name: "Opción 1", notes: "1 porción de Frutas (Tabla 01)",
           rows: [
-            { id: "r1", mainIngredient: "Pan de Barra (55g)", alternatives: ["Tortilla de Trigo (50g)", "Tortitas de Maíz/Arroz/Avena (40g)", "Bagels - 1 Unidad"] },
-            { id: "r2", mainIngredient: "Huevos de Gallina - 2 Unidades", alternatives: ["Jamón Serrano (50g)", "Pechuga de Pavo (80g)", "Queso Havarti Light (50g)", "Queso Cottage (100g)", "Salmón Ahumado (50g)"] },
-            { id: "r3", mainIngredient: "Aceite de Oliva Virgen Extra (5g)", alternatives: ["Mix de Frutos Secos (5g)", "Aguacate (25g)", "Crema de Cacahuete (7g)", "Chocolate 85% (8g)"] },
+            { id: "r1", mainIngredient: "Pan de Barra (55g)", alternatives: ["Tortilla de Trigo (50g)", "Tortitas de Maíz/Arroz/Avena (40g)", "Bagels - 1 Unidad"], macroCategory: "carbohidratos" },
+            { id: "r2", mainIngredient: "Huevos de Gallina - 2 Unidades", alternatives: ["Jamón Serrano (50g)", "Pechuga de Pavo (80g)", "Queso Havarti Light (50g)", "Queso Cottage (100g)", "Salmón Ahumado (50g)"], macroCategory: "proteinas" },
+            { id: "r3", mainIngredient: "Aceite de Oliva Virgen Extra (5g)", alternatives: ["Mix de Frutos Secos (5g)", "Aguacate (25g)", "Crema de Cacahuete (7g)", "Chocolate 85% (8g)"], macroCategory: "grasas" },
           ],
         },
         {
           id: "o-des2", name: "Opción 2", notes: "1 porción de Frutas (Tabla 01)",
           rows: [
-            { id: "r4", mainIngredient: "Copos de Avena (30g)", alternatives: ["Corn Flakes S/A (30g)", "Tortitas Maíz/Arroz/Avena (40g)", "Muesli S/A (30g)", "Crema de Arroz (30g)"] },
-            { id: "r5", mainIngredient: "Leche semidesnatada (200g)", alternatives: ["Yogur proteína – 1 ud", "Queso fresco batido desnatado (150g)", "Whey Protein (30g)"] },
-            { id: "r6", mainIngredient: "Mix frutos secos (10g)", alternatives: ["Chocolate 85% (10g)", "Mix semillas (15g)", "Crema de cacahuete (10g)"] },
+            { id: "r4", mainIngredient: "Copos de Avena (30g)", alternatives: ["Corn Flakes S/A (30g)", "Tortitas Maíz/Arroz/Avena (40g)", "Muesli S/A (30g)", "Crema de Arroz (30g)"], macroCategory: "carbohidratos" },
+            { id: "r5", mainIngredient: "Leche semidesnatada (200g)", alternatives: ["Yogur proteína – 1 ud", "Queso fresco batido desnatado (150g)", "Whey Protein (30g)"], macroCategory: "proteinas" },
+            { id: "r6", mainIngredient: "Mix frutos secos (10g)", alternatives: ["Chocolate 85% (10g)", "Mix semillas (15g)", "Crema de cacahuete (10g)"], macroCategory: "grasas" },
           ],
         },
       ],
@@ -126,9 +129,9 @@ const mockPlanDetail: NutritionPlanDetail = {
         {
           id: "o-snk1", name: "Opción 1", notes: "1 porción de Frutas (Tabla 01)",
           rows: [
-            { id: "r7", mainIngredient: "Pan de Barra (55g)", alternatives: ["Tortilla de Trigo (50g)", "Tortitas de Maíz/Arroz/Avena (40g)", "Bagels - 1 Unidad"] },
-            { id: "r8", mainIngredient: "Huevos de Gallina - 2 Unidades", alternatives: ["Jamón Serrano (50g)", "Pechuga de Pavo (80g)", "Queso Havarti Light (50g)", "Queso Cottage (100g)", "Salmón Ahumado (50g)"] },
-            { id: "r9", mainIngredient: "Aceite de Oliva Virgen Extra (5g)", alternatives: ["Mix de Frutos Secos (6g)", "Aguacate (25g)", "Crema de Cacahuete (7g)", "Chocolate 85% (8g)"] },
+            { id: "r7", mainIngredient: "Pan de Barra (55g)", alternatives: ["Tortilla de Trigo (50g)", "Tortitas de Maíz/Arroz/Avena (40g)", "Bagels - 1 Unidad"], macroCategory: "carbohidratos" },
+            { id: "r8", mainIngredient: "Huevos de Gallina - 2 Unidades", alternatives: ["Jamón Serrano (50g)", "Pechuga de Pavo (80g)", "Queso Havarti Light (50g)", "Queso Cottage (100g)", "Salmón Ahumado (50g)"], macroCategory: "proteinas" },
+            { id: "r9", mainIngredient: "Aceite de Oliva Virgen Extra (5g)", alternatives: ["Mix de Frutos Secos (6g)", "Aguacate (25g)", "Crema de Cacahuete (7g)", "Chocolate 85% (8g)"], macroCategory: "grasas" },
           ],
         },
       ],
@@ -139,15 +142,15 @@ const mockPlanDetail: NutritionPlanDetail = {
         {
           id: "o-com1", name: "Opción 1", notes: "1 porción de Verduras (Tabla 02). Aceite de Oliva Virgen Extra (5g).",
           rows: [
-            { id: "r10", mainIngredient: "Arroz Blanco Crudo (45g)", alternatives: ["Pasta S/Gluten Cruda (40g)", "Patatas Crudas (205g)", "Boniato Crudo (185g)", "Gnocchis Crudos (100g)", "Pan de Barra (55g)"] },
-            { id: "r11", mainIngredient: "Pechuga de Pollo Crudo (125g)", alternatives: ["Pechuga de pavo (125g)", "Pescado Blanco Crudo (150g)", "Atún al natural - 2 Latas", "Carne de Ternera Cruda (125g)"] },
+            { id: "r10", mainIngredient: "Arroz Blanco Crudo (45g)", alternatives: ["Pasta S/Gluten Cruda (40g)", "Patatas Crudas (205g)", "Boniato Crudo (185g)", "Gnocchis Crudos (100g)", "Pan de Barra (55g)"], macroCategory: "carbohidratos" },
+            { id: "r11", mainIngredient: "Pechuga de Pollo Crudo (125g)", alternatives: ["Pechuga de pavo (125g)", "Pescado Blanco Crudo (150g)", "Atún al natural - 2 Latas", "Carne de Ternera Cruda (125g)"], macroCategory: "proteinas" },
           ],
         },
         {
           id: "o-com2", name: "Opción 2", notes: "1 porción de Verduras (Tabla 02). Aceite de Oliva Virgen Extra (5g).",
           rows: [
-            { id: "r12", mainIngredient: "Garbanzos Cocidos (200g)", alternatives: ["Alubias Cocidas (245g)", "Lentejas Cocidas (215g)", "Quinua Cruda (50g)"] },
-            { id: "r13", mainIngredient: "Pechuga de Pollo Crudo (125g)", alternatives: ["Soja Texturizada (125g)", "Pescado Blanco Crudo (125g)", "Atún al natural - 2 Latas", "Carne de Ternera Cruda (125g)"] },
+            { id: "r12", mainIngredient: "Garbanzos Cocidos (200g)", alternatives: ["Alubias Cocidas (245g)", "Lentejas Cocidas (215g)", "Quinua Cruda (50g)"], macroCategory: "carbohidratos" },
+            { id: "r13", mainIngredient: "Pechuga de Pollo Crudo (125g)", alternatives: ["Soja Texturizada (125g)", "Pescado Blanco Crudo (125g)", "Atún al natural - 2 Latas", "Carne de Ternera Cruda (125g)"], macroCategory: "proteinas" },
           ],
         },
       ],
@@ -158,15 +161,15 @@ const mockPlanDetail: NutritionPlanDetail = {
         {
           id: "o-cen1", name: "Opción 1", notes: "1 porción de Verduras (Tabla 02). Aceite de Oliva Virgen Extra (5g).",
           rows: [
-            { id: "r14", mainIngredient: "Arroz Blanco Crudo (45g)", alternatives: ["Pasta S/Gluten Cruda (40g)", "Patatas Crudas (205g)", "Boniato Crudo (185g)", "Gnocchis Crudos (100g)", "Pan de Barra (55g)"] },
-            { id: "r15", mainIngredient: "Pechuga de Pollo Crudo (125g)", alternatives: ["Pechuga de pavo (125g)", "Pescado Blanco Crudo (150g)", "Atún al natural - 2 Latas", "Carne de Ternera Cruda (125g)"] },
+            { id: "r14", mainIngredient: "Arroz Blanco Crudo (45g)", alternatives: ["Pasta S/Gluten Cruda (40g)", "Patatas Crudas (205g)", "Boniato Crudo (185g)", "Gnocchis Crudos (100g)", "Pan de Barra (55g)"], macroCategory: "carbohidratos" },
+            { id: "r15", mainIngredient: "Pechuga de Pollo Crudo (125g)", alternatives: ["Pechuga de pavo (125g)", "Pescado Blanco Crudo (150g)", "Atún al natural - 2 Latas", "Carne de Ternera Cruda (125g)"], macroCategory: "proteinas" },
           ],
         },
         {
           id: "o-cen2", name: "Opción 2", notes: "1 porción de Verduras (Tabla 02). Aceite de Oliva Virgen Extra (5g).",
           rows: [
-            { id: "r16", mainIngredient: "Garbanzos Cocidos (200g)", alternatives: ["Alubias Cocidas (245g)", "Lentejas Cocidas (215g)", "Quinua Cruda (50g)"] },
-            { id: "r17", mainIngredient: "Pechuga de Pollo Crudo (125g)", alternatives: ["Soja Texturizada (125g)", "Pescado Blanco Crudo (125g)", "Atún al natural - 2 Latas", "Carne de Ternera Cruda (125g)"] },
+            { id: "r16", mainIngredient: "Garbanzos Cocidos (200g)", alternatives: ["Alubias Cocidas (245g)", "Lentejas Cocidas (215g)", "Quinua Cruda (50g)"], macroCategory: "carbohidratos" },
+            { id: "r17", mainIngredient: "Pechuga de Pollo Crudo (125g)", alternatives: ["Soja Texturizada (125g)", "Pescado Blanco Crudo (125g)", "Atún al natural - 2 Latas", "Carne de Ternera Cruda (125g)"], macroCategory: "proteinas" },
           ],
         },
       ],
@@ -197,8 +200,20 @@ export const createEmptyOption = (name: string): MealOption => ({
   notes: "",
 });
 
-export const createEmptyRow = (): IngredientRow => ({
+export const createEmptyRow = (macroCategory: MacroCategory = ""): IngredientRow => ({
   id: rowId(),
   mainIngredient: "",
   alternatives: [],
+  macroCategory,
 });
+
+export const macroCategoryLabels: Record<MacroCategory, string> = {
+  carbohidratos: "🍚 Carbohidratos",
+  proteinas: "🥩 Proteínas",
+  grasas: "🥑 Grasas",
+  frutas: "🍎 Frutas (Tabla 01)",
+  verduras: "🥦 Verduras (Tabla 02)",
+  "": "Sin categoría",
+};
+
+export const macroCategoryOptions: MacroCategory[] = ["carbohidratos", "proteinas", "grasas", "frutas", "verduras"];

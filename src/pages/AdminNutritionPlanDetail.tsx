@@ -11,6 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   nutritionPlanDetailStore,
@@ -19,12 +22,25 @@ import {
   createEmptyMeal,
   createEmptyOption,
   createEmptyRow,
+  macroCategoryLabels,
+  macroCategoryOptions,
   type NutritionPlanDetail,
   type Meal,
   type MealOption,
   type IngredientRow,
   type Supplement,
+  type MacroCategory,
 } from "@/data/nutritionPlanStore";
+
+// ─── Macro category badge colors ───
+const macroCategoryColors: Record<MacroCategory, string> = {
+  carbohidratos: "border-amber-500/40 text-amber-400 bg-amber-500/10",
+  proteinas: "border-red-500/40 text-red-400 bg-red-500/10",
+  grasas: "border-emerald-500/40 text-emerald-400 bg-emerald-500/10",
+  frutas: "border-pink-500/40 text-pink-400 bg-pink-500/10",
+  verduras: "border-green-500/40 text-green-400 bg-green-500/10",
+  "": "border-border text-muted-foreground",
+};
 
 // ─── Ingredient Row Editor ───
 const RowEditor = ({
@@ -50,6 +66,26 @@ const RowEditor = ({
 
   return (
     <div className="bg-muted/20 border border-border/50 rounded-lg p-3 space-y-2">
+      {/* Macro category header */}
+      <div className="flex items-center gap-2 mb-1">
+        <Select
+          value={row.macroCategory || "none"}
+          onValueChange={(v) => onUpdate({ ...row, macroCategory: v === "none" ? "" : v as MacroCategory })}
+        >
+          <SelectTrigger className="h-6 w-auto min-w-[140px] text-xs bg-transparent border-none p-0 focus:ring-0">
+            <Badge variant="outline" className={`text-xs ${macroCategoryColors[row.macroCategory || ""]}`}>
+              {row.macroCategory ? macroCategoryLabels[row.macroCategory] : "Categoría"}
+            </Badge>
+          </SelectTrigger>
+          <SelectContent>
+            {macroCategoryOptions.map((cat) => (
+              <SelectItem key={cat} value={cat} className="text-xs">
+                {macroCategoryLabels[cat]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <div className="flex items-center gap-2">
         <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
         <Input
@@ -112,6 +148,10 @@ const OptionEditor = ({
     onUpdate({ ...option, rows: option.rows.filter((_, i) => i !== idx) });
   };
 
+  const addRowWithCategory = (cat: MacroCategory) => {
+    onUpdate({ ...option, rows: [...option.rows, createEmptyRow(cat)] });
+  };
+
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden">
       <div className="flex items-center justify-between p-3 bg-muted/30 border-b border-border/50">
@@ -139,14 +179,20 @@ const OptionEditor = ({
           {option.rows.map((row, i) => (
             <RowEditor key={row.id} row={row} onUpdate={(r) => updateRow(i, r)} onDelete={() => deleteRow(i)} />
           ))}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full text-xs text-muted-foreground hover:text-primary border border-dashed border-border"
-            onClick={() => onUpdate({ ...option, rows: [...option.rows, createEmptyRow()] })}
-          >
-            <Plus className="h-3 w-3 mr-1" />Añadir fila de ingrediente
-          </Button>
+          {/* Add row with macro category */}
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {macroCategoryOptions.map((cat) => (
+              <Button
+                key={cat}
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs text-muted-foreground hover:text-primary border border-dashed border-border"
+                onClick={() => addRowWithCategory(cat)}
+              >
+                <Plus className="h-3 w-3 mr-1" />{macroCategoryLabels[cat]}
+              </Button>
+            ))}
+          </div>
           <div className="pt-1">
             <Input
               value={option.notes ?? ""}
@@ -276,6 +322,79 @@ const ReferenceTable = ({ title, icon, items }: { title: string; icon: React.Rea
   </div>
 );
 
+// ─── Add Meal Dialog ───
+const mealPresets = [
+  "Desayuno",
+  "Snack / Media mañana",
+  "Comida",
+  "Merienda",
+  "Cena",
+  "Pre-entreno",
+  "Post-entreno",
+];
+
+const AddMealSection = ({ onAdd }: { onAdd: (name: string) => void }) => {
+  const [showPresets, setShowPresets] = useState(false);
+  const [customName, setCustomName] = useState("");
+
+  if (!showPresets) {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full text-primary border-dashed border-primary/30"
+        onClick={() => setShowPresets(true)}
+      >
+        <Plus className="h-3.5 w-3.5 mr-1" />Añadir comida
+      </Button>
+    );
+  }
+
+  return (
+    <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+      <p className="text-sm font-medium text-foreground">Selecciona o escribe el nombre de la comida</p>
+      <div className="flex flex-wrap gap-2">
+        {mealPresets.map((preset) => (
+          <Button
+            key={preset}
+            variant="outline"
+            size="sm"
+            className="text-xs border-primary/30 text-primary hover:bg-primary/10"
+            onClick={() => { onAdd(preset); setShowPresets(false); }}
+          >
+            {preset}
+          </Button>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <Input
+          value={customName}
+          onChange={(e) => setCustomName(e.target.value)}
+          placeholder="Nombre personalizado..."
+          className="bg-muted/20 border-border text-sm flex-1"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && customName.trim()) {
+              onAdd(customName.trim());
+              setCustomName("");
+              setShowPresets(false);
+            }
+          }}
+        />
+        <Button
+          size="sm"
+          disabled={!customName.trim()}
+          onClick={() => { onAdd(customName.trim()); setCustomName(""); setShowPresets(false); }}
+        >
+          Añadir
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => setShowPresets(false)}>
+          Cancelar
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 // ─── Main Page ───
 const AdminNutritionPlanDetail = () => {
   const { planId } = useParams<{ planId: string }>();
@@ -311,8 +430,8 @@ const AdminNutritionPlanDetail = () => {
     setPlan({ ...plan, meals: plan.meals.filter((_, i) => i !== idx) });
   };
 
-  const addMeal = () => {
-    setPlan({ ...plan, meals: [...plan.meals, createEmptyMeal("Nueva Comida")] });
+  const addMeal = (name: string) => {
+    setPlan({ ...plan, meals: [...plan.meals, createEmptyMeal(name)] });
   };
 
   const updateSupplement = (idx: number, sup: Supplement) => {
@@ -393,15 +512,10 @@ const AdminNutritionPlanDetail = () => {
 
         {/* Meals editor */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <Utensils className="h-5 w-5 text-primary" />
-              Comidas
-            </h2>
-            <Button variant="outline" size="sm" className="text-primary border-primary/30" onClick={addMeal}>
-              <Plus className="h-3.5 w-3.5 mr-1" />Añadir comida
-            </Button>
-          </div>
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <Utensils className="h-5 w-5 text-primary" />
+            Comidas
+          </h2>
           {plan.meals.map((meal, i) => (
             <MealEditor key={meal.id} meal={meal} onUpdate={(m) => updateMeal(i, m)} onDelete={() => deleteMeal(i)} />
           ))}
@@ -410,6 +524,7 @@ const AdminNutritionPlanDetail = () => {
               No hay comidas aún. Añade la primera.
             </div>
           )}
+          <AddMealSection onAdd={addMeal} />
         </div>
 
         <Separator className="bg-border" />
