@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
-  User, Mail, Phone, Utensils, Dumbbell, Save, X, ChevronRight, ChevronLeft,
-  Scale, Activity, Brain, Pill, AlertTriangle, Briefcase, Target, Clock,
+  User, Utensils, Dumbbell, Save, X, ChevronRight, ChevronLeft,
+  Activity, AlertTriangle, Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,9 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { type ServiceType } from "@/data/mockData";
+import { type NutritionIntake, type TrainingIntake } from "@/data/clientStore";
 
 interface NewClientForm {
-  // Step 1 — Personal
   name: string;
   email: string;
   phone: string;
@@ -26,8 +26,7 @@ interface NewClientForm {
   services: ServiceType[];
   monthlyRate: string;
   paymentMethod: string;
-
-  // Step 2 — Nutrition intake (if nutrition selected)
+  // Nutrition intake
   nutritionGoal: string;
   goalTimeframe: string;
   goalMotivation: string;
@@ -41,8 +40,7 @@ interface NewClientForm {
   allergies: string;
   pathologies: string;
   digestiveIssues: string;
-
-  // Step 3 — Training intake (if training selected)
+  // Training intake
   trainingExperience: string;
   sessionsPerWeek: string;
   trainingIntensity: string;
@@ -51,8 +49,7 @@ interface NewClientForm {
   currentSBD: string;
   injuries: string;
   trainingGoal: string;
-
-  // Step 4 — Notes
+  // Notes
   notes: string;
 }
 
@@ -67,16 +64,26 @@ const defaultForm: NewClientForm = {
   notes: "",
 };
 
+export interface NewClientData {
+  name: string;
+  email: string;
+  phone: string;
+  age?: number;
+  sex?: string;
+  height?: number;
+  currentWeight?: number;
+  services: ServiceType[];
+  monthlyRate?: number;
+  paymentMethod: string;
+  notes: string;
+  nutritionIntake?: NutritionIntake;
+  trainingIntake?: TrainingIntake;
+}
+
 interface AddClientSheetProps {
   open: boolean;
   onClose: () => void;
-  onClientAdded: (client: {
-    name: string;
-    email: string;
-    phone: string;
-    services: ServiceType[];
-    status: "Activo" | "Pendiente";
-  }) => void;
+  onClientAdded: (data: NewClientData) => void;
 }
 
 const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) => {
@@ -87,25 +94,18 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
   const hasNutrition = form.services.includes("nutrition");
   const hasTraining = form.services.includes("training");
 
-  // Steps: 0=Personal, 1=Nutrition(if), 2=Training(if), 3=Notes
   const steps = [
     { label: "Datos personales", icon: User },
-    ...(hasNutrition ? [{ label: "Formulario Nutrición", icon: Utensils }] : []),
-    ...(hasTraining ? [{ label: "Formulario Entrenamiento", icon: Dumbbell }] : []),
+    ...(hasNutrition ? [{ label: "Intake Nutrición", icon: Utensils }] : []),
+    ...(hasTraining ? [{ label: "Intake Entrenamiento", icon: Dumbbell }] : []),
     { label: "Notas y finalizar", icon: Save },
   ];
 
   const currentStepType = (): "personal" | "nutrition" | "training" | "notes" => {
     if (step === 0) return "personal";
     let idx = 1;
-    if (hasNutrition) {
-      if (step === idx) return "nutrition";
-      idx++;
-    }
-    if (hasTraining) {
-      if (step === idx) return "training";
-      idx++;
-    }
+    if (hasNutrition) { if (step === idx) return "nutrition"; idx++; }
+    if (hasTraining) { if (step === idx) return "training"; idx++; }
     return "notes";
   };
 
@@ -131,35 +131,65 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
     return true;
   };
 
-  const handleNext = () => {
-    if (!validateStep()) return;
-    setStep((s) => Math.min(s + 1, steps.length - 1));
-  };
-
+  const handleNext = () => { if (!validateStep()) return; setStep((s) => Math.min(s + 1, steps.length - 1)); };
   const handleBack = () => setStep((s) => Math.max(s - 1, 0));
 
   const handleSave = () => {
     if (!validateStep()) return;
 
-    onClientAdded({
+    const data: NewClientData = {
       name: form.name,
       email: form.email,
       phone: form.phone,
+      age: form.age ? Number(form.age) : undefined,
+      sex: form.sex || undefined,
+      height: form.height ? Number(form.height) : undefined,
+      currentWeight: form.currentWeight ? Number(form.currentWeight) : undefined,
       services: form.services,
-      status: "Activo",
-    });
+      monthlyRate: form.monthlyRate ? Number(form.monthlyRate) : undefined,
+      paymentMethod: form.paymentMethod,
+      notes: form.notes,
+    };
 
+    if (hasNutrition) {
+      data.nutritionIntake = {
+        goal: form.nutritionGoal,
+        goalTimeframe: form.goalTimeframe,
+        goalMotivation: form.goalMotivation,
+        targetWeight: form.targetWeight ? Number(form.targetWeight) : 0,
+        mealsPerDay: form.mealsPerDay ? Number(form.mealsPerDay) : 0,
+        sleepHours: form.sleepHours ? Number(form.sleepHours) : 0,
+        stressLevel: form.stressLevel ? Number(form.stressLevel) : 0,
+        occupation: form.occupation,
+        supplements: form.supplements,
+        excludedFoods: form.excludedFoods,
+        allergies: form.allergies,
+        pathologies: form.pathologies,
+        digestiveIssues: form.digestiveIssues,
+      };
+    }
+
+    if (hasTraining) {
+      data.trainingIntake = {
+        experience: form.trainingExperience,
+        sessionsPerWeek: form.sessionsPerWeek,
+        intensity: form.trainingIntensity ? Number(form.trainingIntensity) : 0,
+        otherSports: form.otherSports,
+        modality: form.trainingModality,
+        goal: form.trainingGoal,
+        currentSBD: form.currentSBD,
+        injuries: form.injuries,
+      };
+    }
+
+    onClientAdded(data);
     toast({ title: "Cliente añadido", description: `${form.name} se ha registrado correctamente.` });
     setForm({ ...defaultForm });
     setStep(0);
     onClose();
   };
 
-  const handleClose = () => {
-    setForm({ ...defaultForm });
-    setStep(0);
-    onClose();
-  };
+  const handleClose = () => { setForm({ ...defaultForm }); setStep(0); onClose(); };
 
   const inputCls = "bg-muted/50 border-border mt-1";
 
@@ -207,7 +237,7 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                 <div className="space-y-3">
                   <div>
                     <Label className="text-foreground text-xs">Nombre completo *</Label>
-                    <Input value={form.name} onChange={(e) => updateField("name", e.target.value)} className={inputCls} placeholder="Nombre y apellidos" />
+                    <Input value={form.name} onChange={(e) => updateField("name", e.target.value)} className={inputCls} placeholder="Nombre y apellidos del cliente" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -251,7 +281,7 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
               <section className="space-y-4">
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Servicio y Facturación</h3>
                 <div>
-                  <Label className="text-foreground text-xs mb-2 block">Servicios *</Label>
+                  <Label className="text-foreground text-xs mb-2 block">Servicios contratados *</Label>
                   <div className="flex gap-4">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <Checkbox checked={hasNutrition} onCheckedChange={() => toggleService("nutrition")} />
@@ -268,17 +298,17 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                     <Label className="text-foreground text-xs">Tarifa mensual (€)</Label>
                     <Input type="number" value={form.monthlyRate} onChange={(e) => updateField("monthlyRate", e.target.value)} className={inputCls} />
                   </div>
-                </div>
-                <div>
-                  <Label className="text-foreground text-xs">Método de pago</Label>
-                  <Select value={form.paymentMethod} onValueChange={(v) => updateField("paymentMethod", v)}>
-                    <SelectTrigger className={inputCls}><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                    <SelectContent className="bg-card border-border">
-                      {["Bizum", "Transferencia bancaria", "Tarjeta", "Efectivo", "PayPal"].map((m) => (
-                        <SelectItem key={m} value={m}>{m}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div>
+                    <Label className="text-foreground text-xs">Método de pago</Label>
+                    <Select value={form.paymentMethod} onValueChange={(v) => updateField("paymentMethod", v)}>
+                      <SelectTrigger className={inputCls}><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                      <SelectContent className="bg-card border-border">
+                        {["Bizum", "Transferencia bancaria", "Tarjeta", "Efectivo", "PayPal"].map((m) => (
+                          <SelectItem key={m} value={m}>{m}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </section>
             </div>
@@ -289,10 +319,10 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
             <div className="space-y-5 animate-fade-in">
               <section className="space-y-4">
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <Target className="h-3.5 w-3.5" /> Objetivos
+                  <Target className="h-3.5 w-3.5" /> Objetivos nutricionales
                 </h3>
                 <div>
-                  <Label className="text-foreground text-xs">¿Cuál es tu objetivo principal?</Label>
+                  <Label className="text-foreground text-xs">Objetivo principal del cliente</Label>
                   <Select value={form.nutritionGoal} onValueChange={(v) => updateField("nutritionGoal", v)}>
                     <SelectTrigger className={inputCls}><SelectValue placeholder="Seleccionar objetivo" /></SelectTrigger>
                     <SelectContent className="bg-card border-border">
@@ -303,12 +333,12 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-foreground text-xs">¿En cuánto tiempo esperas lograrlo?</Label>
+                  <Label className="text-foreground text-xs">Plazo estimado para el objetivo</Label>
                   <Input value={form.goalTimeframe} onChange={(e) => updateField("goalTimeframe", e.target.value)} className={inputCls} placeholder="Ej: 6 meses, 1 año..." />
                 </div>
                 <div>
-                  <Label className="text-foreground text-xs">¿Qué te motiva a conseguirlo?</Label>
-                  <Textarea value={form.goalMotivation} onChange={(e) => updateField("goalMotivation", e.target.value)} className={`${inputCls} min-h-[60px] resize-none`} placeholder="Motivación personal..." />
+                  <Label className="text-foreground text-xs">Motivación del cliente</Label>
+                  <Textarea value={form.goalMotivation} onChange={(e) => updateField("goalMotivation", e.target.value)} className={`${inputCls} min-h-[60px] resize-none`} placeholder="¿Qué le motiva a conseguirlo?" />
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">Peso objetivo (kg)</Label>
@@ -323,7 +353,7 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                   <Activity className="h-3.5 w-3.5" /> Estilo de vida
                 </h3>
                 <div>
-                  <Label className="text-foreground text-xs">Ocupación actual</Label>
+                  <Label className="text-foreground text-xs">Ocupación actual del cliente</Label>
                   <Input value={form.occupation} onChange={(e) => updateField("occupation", e.target.value)} className={inputCls} placeholder="Ej: Estudiante, Oficina, Construcción..." />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -337,7 +367,7 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                   </div>
                 </div>
                 <div>
-                  <Label className="text-foreground text-xs">¿Cuántas comidas haces al día?</Label>
+                  <Label className="text-foreground text-xs">Comidas al día</Label>
                   <Input type="number" value={form.mealsPerDay} onChange={(e) => updateField("mealsPerDay", e.target.value)} className={inputCls} />
                 </div>
               </section>
@@ -349,23 +379,23 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                   <AlertTriangle className="h-3.5 w-3.5" /> Salud y restricciones
                 </h3>
                 <div>
-                  <Label className="text-foreground text-xs">¿Tomas algún suplemento?</Label>
+                  <Label className="text-foreground text-xs">Suplementación actual</Label>
                   <Input value={form.supplements} onChange={(e) => updateField("supplements", e.target.value)} className={inputCls} placeholder="Ej: Proteína, creatina, multivitamínico..." />
                 </div>
                 <div>
-                  <Label className="text-foreground text-xs">¿Hay alimentos que no quieras incluir?</Label>
-                  <Input value={form.excludedFoods} onChange={(e) => updateField("excludedFoods", e.target.value)} className={inputCls} placeholder="Ej: Brócoli, hígado..." />
+                  <Label className="text-foreground text-xs">Alimentos a excluir</Label>
+                  <Input value={form.excludedFoods} onChange={(e) => updateField("excludedFoods", e.target.value)} className={inputCls} placeholder="Alimentos que el cliente no quiere incluir" />
                 </div>
                 <div>
-                  <Label className="text-foreground text-xs">¿Tienes alguna alergia alimentaria?</Label>
+                  <Label className="text-foreground text-xs">Alergias alimentarias</Label>
                   <Input value={form.allergies} onChange={(e) => updateField("allergies", e.target.value)} className={inputCls} placeholder="Ej: Lactosa, gluten, frutos secos..." />
                 </div>
                 <div>
-                  <Label className="text-foreground text-xs">¿Tienes alguna patología o enfermedad?</Label>
+                  <Label className="text-foreground text-xs">Patologías o enfermedades</Label>
                   <Input value={form.pathologies} onChange={(e) => updateField("pathologies", e.target.value)} className={inputCls} placeholder="Ej: Diabetes, hipotiroidismo..." />
                 </div>
                 <div>
-                  <Label className="text-foreground text-xs">¿Problemas digestivos habituales?</Label>
+                  <Label className="text-foreground text-xs">Problemas digestivos habituales</Label>
                   <Input value={form.digestiveIssues} onChange={(e) => updateField("digestiveIssues", e.target.value)} className={inputCls} placeholder="Ej: Hinchazón, gases, reflujo..." />
                 </div>
               </section>
@@ -377,7 +407,7 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
             <div className="space-y-5 animate-fade-in">
               <section className="space-y-4">
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <Dumbbell className="h-3.5 w-3.5" /> Experiencia
+                  <Dumbbell className="h-3.5 w-3.5" /> Experiencia del cliente
                 </h3>
                 <div>
                   <Label className="text-foreground text-xs">Años de experiencia entrenando</Label>
@@ -403,12 +433,12 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                     </Select>
                   </div>
                   <div>
-                    <Label className="text-foreground text-xs">Intensidad (1-10)</Label>
+                    <Label className="text-foreground text-xs">Intensidad percibida (1-10)</Label>
                     <Input type="number" min="1" max="10" value={form.trainingIntensity} onChange={(e) => updateField("trainingIntensity", e.target.value)} className={inputCls} />
                   </div>
                 </div>
                 <div>
-                  <Label className="text-foreground text-xs">¿Realizas otros deportes?</Label>
+                  <Label className="text-foreground text-xs">Otros deportes que practica</Label>
                   <Input value={form.otherSports} onChange={(e) => updateField("otherSports", e.target.value)} className={inputCls} placeholder="Ej: Fútbol, natación, running..." />
                 </div>
               </section>
@@ -453,8 +483,8 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                   <AlertTriangle className="h-3.5 w-3.5" /> Lesiones y consideraciones
                 </h3>
                 <div>
-                  <Label className="text-foreground text-xs">¿Tienes alguna lesión actual o previa?</Label>
-                  <Textarea value={form.injuries} onChange={(e) => updateField("injuries", e.target.value)} className={`${inputCls} min-h-[60px] resize-none`} placeholder="Describe lesiones, molestias o limitaciones..." />
+                  <Label className="text-foreground text-xs">Lesiones actuales o previas</Label>
+                  <Textarea value={form.injuries} onChange={(e) => updateField("injuries", e.target.value)} className={`${inputCls} min-h-[60px] resize-none`} placeholder="Lesiones, molestias o limitaciones del cliente..." />
                 </div>
               </section>
             </div>
@@ -464,7 +494,7 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
           {currentStepType() === "notes" && (
             <div className="space-y-5 animate-fade-in">
               <section className="space-y-4">
-                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Resumen</h3>
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Resumen del cliente</h3>
                 <div className="bg-muted/40 rounded-lg p-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Cliente</span>
@@ -484,6 +514,18 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Tarifa</span>
                       <span className="text-primary font-medium">{form.monthlyRate}€/mes</span>
+                    </div>
+                  )}
+                  {hasNutrition && form.nutritionGoal && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Objetivo nutricional</span>
+                      <span className="text-foreground">{form.nutritionGoal}</span>
+                    </div>
+                  )}
+                  {hasTraining && form.trainingModality && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Modalidad</span>
+                      <span className="text-foreground">{form.trainingModality}</span>
                     </div>
                   )}
                 </div>
