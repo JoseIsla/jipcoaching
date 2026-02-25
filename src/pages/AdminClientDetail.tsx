@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Mail, Phone, Utensils, Dumbbell, CreditCard, CalendarDays,
   Scale, TrendingDown, TrendingUp, User, Pencil, Save, Eye, EyeOff, Shield, X,
+  Target, Activity, AlertTriangle, Pill, Brain, Briefcase, Clock,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -18,11 +19,40 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 
+interface NutritionIntake {
+  goal: string;
+  goalTimeframe: string;
+  goalMotivation: string;
+  targetWeight: number;
+  mealsPerDay: number;
+  sleepHours: number;
+  stressLevel: number;
+  occupation: string;
+  supplements: string;
+  excludedFoods: string;
+  allergies: string;
+  pathologies: string;
+  digestiveIssues: string;
+}
+
+interface TrainingIntake {
+  experience: string;
+  sessionsPerWeek: string;
+  intensity: number;
+  otherSports: string;
+  modality: string;
+  goal: string;
+  currentSBD: string;
+  injuries: string;
+}
+
 interface ClientDetail {
   id: string;
   name: string;
   email: string;
   phone: string;
+  age?: number;
+  sex?: string;
   services: ("nutrition" | "training")[];
   plan: string;
   status: "Activo" | "Pendiente" | "Inactivo";
@@ -36,6 +66,8 @@ interface ClientDetail {
   targetWeight?: number;
   height?: number;
   weightHistory?: { date: string; weight: number }[];
+  nutritionIntake?: NutritionIntake;
+  trainingIntake?: TrainingIntake;
 }
 
 const mockClientsDetail: Record<string, ClientDetail> = {
@@ -44,83 +76,143 @@ const mockClientsDetail: Record<string, ClientDetail> = {
     services: ["nutrition", "training"], plan: "Volumen", status: "Activo", startDate: "2025-01-15",
     monthlyRate: 120, lastPaymentDate: "2026-02-01", nextPaymentDate: "2026-03-01",
     paymentMethod: "Tarjeta ****4521", notes: "Objetivo: ganar 5kg de masa muscular en 6 meses.",
-    currentWeight: 78.5, targetWeight: 83, height: 178,
+    currentWeight: 78.5, targetWeight: 83, height: 178, age: 28, sex: "Masculino",
     weightHistory: [
       { date: "2025-01-15", weight: 75.2 }, { date: "2025-02-15", weight: 76.1 },
       { date: "2025-03-15", weight: 76.8 }, { date: "2025-04-15", weight: 77.3 },
       { date: "2025-05-15", weight: 77.9 }, { date: "2026-01-15", weight: 78.1 },
       { date: "2026-02-15", weight: 78.5 },
     ],
+    nutritionIntake: {
+      goal: "Ganar músculo", goalTimeframe: "6 meses", goalMotivation: "Mejorar rendimiento en competición de powerlifting",
+      targetWeight: 83, mealsPerDay: 5, sleepHours: 7.5, stressLevel: 4, occupation: "Ingeniero informático",
+      supplements: "Proteína whey, creatina, vitamina D", excludedFoods: "Ninguno",
+      allergies: "", pathologies: "", digestiveIssues: "",
+    },
+    trainingIntake: {
+      experience: "4-7 años", sessionsPerWeek: "5 días", intensity: 8, otherSports: "No",
+      modality: "Powerlifting", goal: "Preparar competición", currentSBD: "185/125/215", injuries: "",
+    },
   },
   "2": {
     id: "2", name: "Ana López", email: "ana@email.com", phone: "+34 623 456 789",
     services: ["nutrition"], plan: "Definición", status: "Activo", startDate: "2025-02-01",
     monthlyRate: 80, lastPaymentDate: "2026-02-05", nextPaymentDate: "2026-03-05",
     paymentMethod: "Bizum", notes: "Intolerancia a la lactosa. Dieta sin gluten.",
-    currentWeight: 62.3, targetWeight: 58, height: 165,
+    currentWeight: 62.3, targetWeight: 58, height: 165, age: 31, sex: "Femenino",
     weightHistory: [
       { date: "2025-02-01", weight: 67.0 }, { date: "2025-03-01", weight: 66.1 },
       { date: "2025-04-01", weight: 65.2 }, { date: "2025-05-01", weight: 64.5 },
       { date: "2026-01-01", weight: 63.0 }, { date: "2026-02-01", weight: 62.3 },
     ],
+    nutritionIntake: {
+      goal: "Perder grasa", goalTimeframe: "4 meses", goalMotivation: "Sentirme más cómoda y mejorar mi composición corporal",
+      targetWeight: 58, mealsPerDay: 4, sleepHours: 7, stressLevel: 6, occupation: "Diseñadora gráfica",
+      supplements: "Proteína vegana", excludedFoods: "Lácteos, gluten",
+      allergies: "Intolerancia a la lactosa, celiaquía", pathologies: "", digestiveIssues: "Hinchazón ocasional",
+    },
   },
   "3": {
     id: "3", name: "Diego Fernández", email: "diego@email.com", phone: "+34 634 567 890",
     services: ["training"], plan: "Fuerza", status: "Pendiente", startDate: "2025-02-10",
     monthlyRate: 70, lastPaymentDate: "2026-01-10", nextPaymentDate: "2026-02-10",
-    paymentMethod: "Transferencia bancaria", notes: "Lesión previa en rodilla derecha.",
+    paymentMethod: "Transferencia bancaria", notes: "Lesión previa en rodilla derecha.", age: 25, sex: "Masculino",
+    trainingIntake: {
+      experience: "2-4 años", sessionsPerWeek: "4 días", intensity: 7, otherSports: "Fútbol sala los viernes",
+      modality: "Powerlifting", goal: "Ganar fuerza", currentSBD: "120/80/150", injuries: "Lesión de menisco rodilla derecha (2023), recuperada",
+    },
   },
   "4": {
     id: "4", name: "Laura García", email: "laura@email.com", phone: "+34 645 678 901",
     services: ["nutrition", "training"], plan: "Volumen", status: "Activo", startDate: "2025-01-20",
     monthlyRate: 120, lastPaymentDate: "2026-02-01", nextPaymentDate: "2026-03-01",
     paymentMethod: "Tarjeta ****8832", notes: "Competidora de CrossFit.",
-    currentWeight: 65.0, targetWeight: 68, height: 170,
+    currentWeight: 65.0, targetWeight: 68, height: 170, age: 27, sex: "Femenino",
     weightHistory: [
       { date: "2025-01-20", weight: 62.5 }, { date: "2025-03-20", weight: 63.4 },
       { date: "2025-05-20", weight: 64.1 }, { date: "2026-01-20", weight: 64.8 },
       { date: "2026-02-20", weight: 65.0 },
     ],
+    nutritionIntake: {
+      goal: "Ganar músculo", goalTimeframe: "1 año", goalMotivation: "Mejorar rendimiento en competiciones",
+      targetWeight: 68, mealsPerDay: 5, sleepHours: 8, stressLevel: 3, occupation: "Fisioterapeuta",
+      supplements: "Creatina, proteína whey, omega 3", excludedFoods: "Ninguno",
+      allergies: "", pathologies: "", digestiveIssues: "",
+    },
+    trainingIntake: {
+      experience: "4-7 años", sessionsPerWeek: "5 días", intensity: 9, otherSports: "CrossFit",
+      modality: "Powerbuilding", goal: "Hipertrofia", currentSBD: "105/57.5/120", injuries: "",
+    },
   },
   "5": {
     id: "5", name: "Miguel Torres", email: "miguel@email.com", phone: "+34 656 789 012",
     services: ["nutrition"], plan: "Pérdida de grasa", status: "Inactivo", startDate: "2024-11-05",
     monthlyRate: 80, lastPaymentDate: "2025-06-05", nextPaymentDate: "-",
     paymentMethod: "Bizum", notes: "Cliente inactivo desde julio 2025.",
-    currentWeight: 92.0, targetWeight: 82, height: 182,
+    currentWeight: 92.0, targetWeight: 82, height: 182, age: 35, sex: "Masculino",
     weightHistory: [
       { date: "2024-11-05", weight: 98.3 }, { date: "2025-01-05", weight: 96.1 },
       { date: "2025-03-05", weight: 94.2 }, { date: "2025-05-05", weight: 92.0 },
     ],
+    nutritionIntake: {
+      goal: "Perder grasa", goalTimeframe: "8 meses", goalMotivation: "Salud y mejorar tensión arterial",
+      targetWeight: 82, mealsPerDay: 3, sleepHours: 6, stressLevel: 7, occupation: "Comercial",
+      supplements: "Multivitamínico", excludedFoods: "Ninguno",
+      allergies: "", pathologies: "Hipertensión leve", digestiveIssues: "Reflujo",
+    },
   },
   "6": {
     id: "6", name: "Sofía Ruiz", email: "sofia@email.com", phone: "+34 667 890 123",
     services: ["nutrition", "training"], plan: "Recomposición", status: "Activo", startDate: "2025-02-18",
     monthlyRate: 120, lastPaymentDate: "2026-02-18", nextPaymentDate: "2026-03-18",
     paymentMethod: "Tarjeta ****1290", notes: "Preparación para media maratón en mayo.",
-    currentWeight: 58.7, targetWeight: 57, height: 163,
+    currentWeight: 58.7, targetWeight: 57, height: 163, age: 24, sex: "Femenino",
     weightHistory: [
       { date: "2025-02-18", weight: 60.2 }, { date: "2025-06-18", weight: 59.5 },
       { date: "2026-01-18", weight: 59.0 }, { date: "2026-02-18", weight: 58.7 },
     ],
+    nutritionIntake: {
+      goal: "Recomposición corporal", goalTimeframe: "6 meses", goalMotivation: "Rendir mejor en la media maratón sin perder masa muscular",
+      targetWeight: 57, mealsPerDay: 4, sleepHours: 7.5, stressLevel: 5, occupation: "Estudiante universitaria",
+      supplements: "Proteína whey, cafeína", excludedFoods: "Mariscos",
+      allergies: "Alergia al marisco", pathologies: "", digestiveIssues: "",
+    },
+    trainingIntake: {
+      experience: "1-2 años", sessionsPerWeek: "4 días", intensity: 7, otherSports: "Running",
+      modality: "Powerlifting", goal: "Ganar fuerza", currentSBD: "80/45/100", injuries: "",
+    },
   },
   "7": {
     id: "7", name: "Pablo Navarro", email: "pablo@email.com", phone: "+34 678 901 234",
     services: ["training"], plan: "Hipertrofia", status: "Activo", startDate: "2025-01-28",
     monthlyRate: 70, lastPaymentDate: "2026-02-01", nextPaymentDate: "2026-03-01",
-    paymentMethod: "Transferencia bancaria", notes: "Entrena 5 días por semana.",
+    paymentMethod: "Transferencia bancaria", notes: "Entrena 5 días por semana.", age: 30, sex: "Masculino",
+    trainingIntake: {
+      experience: "4-7 años", sessionsPerWeek: "5 días", intensity: 8, otherSports: "No",
+      modality: "Powerbuilding", goal: "Hipertrofia", currentSBD: "155/95/190", injuries: "",
+    },
   },
   "8": {
     id: "8", name: "María Jiménez", email: "maria@email.com", phone: "+34 689 012 345",
     services: ["nutrition", "training"], plan: "Mantenimiento", status: "Activo", startDate: "2024-12-10",
     monthlyRate: 120, lastPaymentDate: "2026-02-10", nextPaymentDate: "2026-03-10",
     paymentMethod: "Tarjeta ****7743", notes: "Embarazada, adaptar plan a partir del tercer trimestre.",
-    currentWeight: 70.2, targetWeight: 68, height: 172,
+    currentWeight: 70.2, targetWeight: 68, height: 172, age: 33, sex: "Femenino",
     weightHistory: [
       { date: "2024-12-10", weight: 66.5 }, { date: "2025-03-10", weight: 67.2 },
       { date: "2025-06-10", weight: 68.0 }, { date: "2025-09-10", weight: 69.1 },
       { date: "2026-02-10", weight: 70.2 },
     ],
+    nutritionIntake: {
+      goal: "Mantenimiento", goalTimeframe: "Indefinido", goalMotivation: "Mantener peso saludable durante el embarazo",
+      targetWeight: 68, mealsPerDay: 5, sleepHours: 6.5, stressLevel: 5, occupation: "Abogada",
+      supplements: "Ácido fólico, hierro, vitamina D", excludedFoods: "Pescado crudo",
+      allergies: "", pathologies: "Embarazo", digestiveIssues: "Náuseas matutinas",
+    },
+    trainingIntake: {
+      experience: "2-4 años", sessionsPerWeek: "4 días", intensity: 6, otherSports: "Yoga",
+      modality: "Powerlifting", goal: "Mejorar técnica", currentSBD: "110/62.5/135", injuries: "Molestia lumbar ocasional",
+    },
   },
 };
 
@@ -570,6 +662,141 @@ const AdminClientDetail = () => {
             </Card>
           )}
         </div>
+
+        {/* ── Intake Context ── */}
+        {(client.nutritionIntake || client.trainingIntake) && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-foreground">Contexto Inicial del Cliente</h2>
+            <div className={`grid grid-cols-1 ${client.nutritionIntake && client.trainingIntake ? "lg:grid-cols-2" : ""} gap-6`}>
+
+              {/* Nutrition Intake */}
+              {client.nutritionIntake && (
+                <Card className="bg-card border-border">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base text-foreground flex items-center gap-2">
+                      <Utensils className="h-4 w-4 text-primary" /> Formulario Nutrición
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Goals */}
+                    <div className="space-y-2">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1"><Target className="h-3 w-3" /> Objetivos</p>
+                      <div className="bg-muted/40 rounded-lg p-3 space-y-2">
+                        <div className="flex justify-between text-sm"><span className="text-muted-foreground">Objetivo</span><span className="text-foreground font-medium">{client.nutritionIntake.goal}</span></div>
+                        <div className="flex justify-between text-sm"><span className="text-muted-foreground">Plazo</span><span className="text-foreground">{client.nutritionIntake.goalTimeframe}</span></div>
+                        <div className="flex justify-between text-sm"><span className="text-muted-foreground">Peso objetivo</span><span className="text-foreground">{client.nutritionIntake.targetWeight} kg</span></div>
+                      </div>
+                      {client.nutritionIntake.goalMotivation && (
+                        <p className="text-sm text-muted-foreground italic bg-muted/30 rounded-lg p-2.5">"{client.nutritionIntake.goalMotivation}"</p>
+                      )}
+                    </div>
+                    <Separator className="bg-border" />
+                    {/* Lifestyle */}
+                    <div className="space-y-2">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1"><Activity className="h-3 w-3" /> Estilo de vida</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-muted/40 rounded-lg p-2.5 text-center">
+                          <p className="text-lg font-bold text-foreground">{client.nutritionIntake.mealsPerDay}</p>
+                          <p className="text-xs text-muted-foreground">comidas/día</p>
+                        </div>
+                        <div className="bg-muted/40 rounded-lg p-2.5 text-center">
+                          <p className="text-lg font-bold text-foreground">{client.nutritionIntake.sleepHours}h</p>
+                          <p className="text-xs text-muted-foreground">sueño medio</p>
+                        </div>
+                        <div className="bg-muted/40 rounded-lg p-2.5 text-center">
+                          <p className="text-lg font-bold text-foreground">{client.nutritionIntake.stressLevel}/10</p>
+                          <p className="text-xs text-muted-foreground">estrés</p>
+                        </div>
+                        <div className="bg-muted/40 rounded-lg p-2.5 text-center">
+                          <p className="text-sm font-medium text-foreground truncate">{client.nutritionIntake.occupation || "—"}</p>
+                          <p className="text-xs text-muted-foreground">ocupación</p>
+                        </div>
+                      </div>
+                    </div>
+                    <Separator className="bg-border" />
+                    {/* Health */}
+                    <div className="space-y-2">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Salud y restricciones</p>
+                      <div className="space-y-1.5">
+                        {[
+                          { label: "Suplementos", value: client.nutritionIntake.supplements },
+                          { label: "Alimentos excluidos", value: client.nutritionIntake.excludedFoods },
+                          { label: "Alergias", value: client.nutritionIntake.allergies },
+                          { label: "Patologías", value: client.nutritionIntake.pathologies },
+                          { label: "Problemas digestivos", value: client.nutritionIntake.digestiveIssues },
+                        ].filter((item) => item.value).map((item) => (
+                          <div key={item.label} className="flex justify-between text-sm py-1">
+                            <span className="text-muted-foreground">{item.label}</span>
+                            <span className="text-foreground text-right max-w-[60%]">{item.value}</span>
+                          </div>
+                        ))}
+                        {![client.nutritionIntake.supplements, client.nutritionIntake.excludedFoods, client.nutritionIntake.allergies, client.nutritionIntake.pathologies, client.nutritionIntake.digestiveIssues].some(Boolean) && (
+                          <p className="text-sm text-muted-foreground">Sin restricciones ni alergias reportadas</p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Training Intake */}
+              {client.trainingIntake && (
+                <Card className="bg-card border-border">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base text-foreground flex items-center gap-2">
+                      <Dumbbell className="h-4 w-4 text-accent" /> Formulario Entrenamiento
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Experience */}
+                    <div className="space-y-2">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1"><Activity className="h-3 w-3" /> Experiencia</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-muted/40 rounded-lg p-2.5 text-center">
+                          <p className="text-sm font-bold text-foreground">{client.trainingIntake.experience}</p>
+                          <p className="text-xs text-muted-foreground">experiencia</p>
+                        </div>
+                        <div className="bg-muted/40 rounded-lg p-2.5 text-center">
+                          <p className="text-lg font-bold text-foreground">{client.trainingIntake.sessionsPerWeek}</p>
+                          <p className="text-xs text-muted-foreground">por semana</p>
+                        </div>
+                        <div className="bg-muted/40 rounded-lg p-2.5 text-center">
+                          <p className="text-lg font-bold text-foreground">{client.trainingIntake.intensity}/10</p>
+                          <p className="text-xs text-muted-foreground">intensidad</p>
+                        </div>
+                        <div className="bg-muted/40 rounded-lg p-2.5 text-center">
+                          <p className="text-sm font-medium text-foreground truncate">{client.trainingIntake.otherSports || "Ninguno"}</p>
+                          <p className="text-xs text-muted-foreground">otros deportes</p>
+                        </div>
+                      </div>
+                    </div>
+                    <Separator className="bg-border" />
+                    {/* Training Goals */}
+                    <div className="space-y-2">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1"><Target className="h-3 w-3" /> Objetivos</p>
+                      <div className="bg-muted/40 rounded-lg p-3 space-y-2">
+                        <div className="flex justify-between text-sm"><span className="text-muted-foreground">Modalidad</span><span className="text-foreground font-medium">{client.trainingIntake.modality}</span></div>
+                        <div className="flex justify-between text-sm"><span className="text-muted-foreground">Objetivo</span><span className="text-foreground">{client.trainingIntake.goal}</span></div>
+                        {client.trainingIntake.currentSBD && (
+                          <div className="flex justify-between text-sm"><span className="text-muted-foreground">RMs iniciales (S/B/D)</span><span className="text-primary font-bold">{client.trainingIntake.currentSBD}</span></div>
+                        )}
+                      </div>
+                    </div>
+                    {client.trainingIntake.injuries && (
+                      <>
+                        <Separator className="bg-border" />
+                        <div className="space-y-2">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Lesiones</p>
+                          <p className="text-sm text-foreground bg-destructive/10 border border-destructive/20 rounded-lg p-2.5">{client.trainingIntake.injuries}</p>
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <EditClientSheet client={client} open={editing} onClose={() => setEditing(false)} />
