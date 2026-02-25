@@ -533,18 +533,17 @@ const AdminNutritionPlanDetail = () => {
 
         <Separator className="bg-border" />
 
-        {/* Global Supplements */}
+        {/* Suplementación Recomendada */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
               <Pill className="h-4 w-4 text-primary" />
-              Suplementación Global
+              Suplementación Recomendada
             </h2>
             <Button variant="ghost" size="sm" className="text-primary text-xs" onClick={addSupplement}>
               <Plus className="h-3 w-3 mr-1" />Añadir
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground">Compartida entre todos los planes</p>
           <div className="space-y-2">
             {supplements.map((sup, i) => (
               <SupplementRow key={i} sup={sup} onUpdate={(s) => updateSupplement(i, s)} onDelete={() => deleteSupplement(i)} />
