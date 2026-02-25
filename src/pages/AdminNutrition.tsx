@@ -54,7 +54,15 @@ const AdminNutrition = () => {
     const id = genId();
     const today = new Date().toISOString().split("T")[0];
 
-    // Deactivate existing active plans for this client
+    // Deactivate existing active plans for this client in detail store too
+    Object.values(nutritionPlanDetailStore).forEach((d) => {
+      if (d.clientId === data.clientId && d.active) {
+        d.active = false;
+        d.endDate = today;
+      }
+    });
+
+    // Deactivate in list and add new
     setPlans((prev) => {
       const updated = prev.map((p) =>
         p.clientId === data.clientId && p.active
@@ -89,7 +97,7 @@ const AdminNutrition = () => {
       recommendations: [],
     };
     addNutritionPlanDetail(detail);
-    navigate(`/admin/nutrition/${id}`);
+    navigate(`/admin/nutrition/${id}/edit`);
   };
 
   return (
@@ -257,7 +265,7 @@ const PlanCard = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="bg-card border-border">
-          <DropdownMenuItem className="gap-2" onClick={() => navigate(`/admin/nutrition/${plan.id}`)}>
+          <DropdownMenuItem className="gap-2" onClick={() => navigate(`/admin/nutrition/${plan.id}/edit`)}>
             <Pencil className="h-4 w-4" />Editar plan
           </DropdownMenuItem>
           {plan.active ? (

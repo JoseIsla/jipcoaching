@@ -411,7 +411,8 @@ const AdminNutritionPlanDetail = () => {
     nutritionPlanDetailStore[plan.id] = plan;
     setGlobalSupplements(supplements);
     toast.success("Plan guardado");
-  }, [plan, supplements]);
+    navigate("/admin/nutrition");
+  }, [plan, supplements, navigate]);
 
   if (!plan) {
     return (
