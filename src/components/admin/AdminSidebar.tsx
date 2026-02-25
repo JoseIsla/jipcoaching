@@ -10,6 +10,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Library,
 } from "lucide-react";
 import logoJip from "@/assets/logo-jip.png";
 
@@ -18,6 +19,7 @@ const navItems = [
   { label: "Clientes", icon: Users, path: "/admin/clients" },
   { label: "Nutrición", icon: Utensils, path: "/admin/nutrition" },
   { label: "Entrenamiento", icon: Dumbbell, path: "/admin/training" },
+  { label: "Biblioteca", icon: Library, path: "/admin/exercises" },
   { label: "Cuestionarios", icon: ClipboardList, path: "/admin/questionnaires" },
   { label: "Configuración", icon: Settings, path: "/admin/settings" },
 ];
