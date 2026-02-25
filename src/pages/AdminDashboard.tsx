@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Users, Utensils, Dumbbell, TrendingUp, Activity, CalendarDays } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import StatCard from "@/components/admin/StatCard";
@@ -10,14 +11,15 @@ const stats = [
 ];
 
 const recentClients = [
-  { name: "Carlos Martínez", plan: "Volumen", status: "Activo", lastSession: "Hoy" },
-  { name: "Ana López", plan: "Definición", status: "Activo", lastSession: "Ayer" },
-  { name: "Diego Fernández", plan: "Mantenimiento", status: "Pendiente", lastSession: "Hace 3 días" },
-  { name: "Laura García", plan: "Volumen", status: "Activo", lastSession: "Hoy" },
-  { name: "Miguel Torres", plan: "Definición", status: "Inactivo", lastSession: "Hace 1 semana" },
+  { id: "1", name: "Carlos Martínez", plan: "Volumen", status: "Activo", lastSession: "Hoy" },
+  { id: "2", name: "Ana López", plan: "Definición", status: "Activo", lastSession: "Ayer" },
+  { id: "3", name: "Diego Fernández", plan: "Mantenimiento", status: "Pendiente", lastSession: "Hace 3 días" },
+  { id: "4", name: "Laura García", plan: "Volumen", status: "Activo", lastSession: "Hoy" },
+  { id: "5", name: "Miguel Torres", plan: "Definición", status: "Inactivo", lastSession: "Hace 1 semana" },
 ];
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   return (
     <AdminLayout>
       <div className="space-y-8 animate-fade-in">
@@ -56,7 +58,7 @@ const AdminDashboard = () => {
                 </thead>
                 <tbody>
                   {recentClients.map((client) => (
-                    <tr key={client.name} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                    <tr key={client.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/admin/clients/${client.id}`)}>
                       <td className="px-5 py-3.5 text-sm font-medium text-foreground">{client.name}</td>
                       <td className="px-5 py-3.5 text-sm text-muted-foreground">{client.plan}</td>
                       <td className="px-5 py-3.5">

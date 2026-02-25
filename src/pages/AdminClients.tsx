@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Search, Plus, Filter, Utensils, Dumbbell, MoreHorizontal } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, Plus, Utensils, Dumbbell, MoreHorizontal } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ type FilterType = "all" | "nutrition" | "training" | "both";
 const AdminClients = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
+  const navigate = useNavigate();
 
   const filtered = mockClients.filter((c) => {
     const matchesSearch =
@@ -134,7 +136,7 @@ const AdminClients = () => {
             </TableHeader>
             <TableBody>
               {filtered.map((client) => (
-                <TableRow key={client.id} className="border-border/50 hover:bg-muted/30 cursor-pointer">
+                <TableRow key={client.id} className="border-border/50 hover:bg-muted/30 cursor-pointer" onClick={() => navigate(`/admin/clients/${client.id}`)}>
                   <TableCell className="font-medium text-foreground">{client.name}</TableCell>
                   <TableCell className="text-muted-foreground">{client.email}</TableCell>
                   <TableCell>
@@ -168,7 +170,7 @@ const AdminClients = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-card border-border">
-                        <DropdownMenuItem>Ver perfil</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate(`/admin/clients/${client.id}`)}>Ver perfil</DropdownMenuItem>
                         <DropdownMenuItem>Editar</DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
                       </DropdownMenuContent>
