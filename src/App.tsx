@@ -17,6 +17,7 @@ import AdminQuestionnaires from "./pages/AdminQuestionnaires";
 import AdminProgress from "./pages/AdminProgress";
 import AdminNutritionPlanDetail from "./pages/AdminNutritionPlanDetail";
 import AdminNutritionPlanView from "./pages/AdminNutritionPlanView";
+import AdminExerciseLibrary from "./pages/AdminExerciseLibrary";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/admin/training" element={<AdminTraining />} />
             <Route path="/admin/training/:planId" element={<AdminTrainingPlanView />} />
             <Route path="/admin/training/:planId/edit" element={<AdminTrainingPlanDetail />} />
+            <Route path="/admin/exercises" element={<AdminExerciseLibrary />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="/admin/questionnaires" element={<AdminQuestionnaires />} />
             <Route path="/admin/progress" element={<AdminProgress />} />
