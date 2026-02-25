@@ -24,7 +24,6 @@ interface NewClientForm {
   height: string;
   currentWeight: string;
   services: ServiceType[];
-  plan: string;
   monthlyRate: string;
   paymentMethod: string;
 
@@ -59,7 +58,7 @@ interface NewClientForm {
 
 const defaultForm: NewClientForm = {
   name: "", email: "", phone: "", age: "", sex: "", height: "", currentWeight: "",
-  services: [], plan: "", monthlyRate: "", paymentMethod: "",
+  services: [], monthlyRate: "", paymentMethod: "",
   nutritionGoal: "", goalTimeframe: "", goalMotivation: "", targetWeight: "",
   mealsPerDay: "", sleepHours: "", stressLevel: "", occupation: "",
   supplements: "", excludedFoods: "", allergies: "", pathologies: "", digestiveIssues: "",
@@ -76,7 +75,6 @@ interface AddClientSheetProps {
     email: string;
     phone: string;
     services: ServiceType[];
-    plan: string;
     status: "Activo" | "Pendiente";
   }) => void;
 }
@@ -148,7 +146,6 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
       email: form.email,
       phone: form.phone,
       services: form.services,
-      plan: form.plan || "Sin asignar",
       status: "Activo",
     });
 
@@ -252,7 +249,7 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
               <Separator className="bg-border" />
 
               <section className="space-y-4">
-                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Servicio y Plan</h3>
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Servicio y Facturación</h3>
                 <div>
                   <Label className="text-foreground text-xs mb-2 block">Servicios *</Label>
                   <div className="flex gap-4">
@@ -267,17 +264,6 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-foreground text-xs">Plan</Label>
-                    <Select value={form.plan} onValueChange={(v) => updateField("plan", v)}>
-                      <SelectTrigger className={inputCls}><SelectValue placeholder="Seleccionar plan" /></SelectTrigger>
-                      <SelectContent className="bg-card border-border">
-                        {["Volumen", "Definición", "Recomposición", "Mantenimiento", "Fuerza", "Hipertrofia", "Pérdida de grasa"].map((p) => (
-                          <SelectItem key={p} value={p}>{p}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
                   <div>
                     <Label className="text-foreground text-xs">Tarifa mensual (€)</Label>
                     <Input type="number" value={form.monthlyRate} onChange={(e) => updateField("monthlyRate", e.target.value)} className={inputCls} />
@@ -493,10 +479,6 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                     <span className="text-foreground">
                       {form.services.map((s) => s === "nutrition" ? "Nutrición" : "Entrenamiento").join(" + ") || "—"}
                     </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Plan</span>
-                    <span className="text-foreground">{form.plan || "Sin asignar"}</span>
                   </div>
                   {form.monthlyRate && (
                     <div className="flex justify-between text-sm">
