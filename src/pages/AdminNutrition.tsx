@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Utensils, Eye, MoreHorizontal, CheckCircle2, XCircle, Calendar, User } from "lucide-react";
+import { Search, Utensils, Eye, MoreHorizontal, CheckCircle2, XCircle, Calendar, User } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -11,7 +10,10 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { mockNutritionPlans, type NutritionPlan } from "@/data/mockData";
+import { nutritionPlanDetailStore, addNutritionPlanDetail, genId, type NutritionPlanDetail } from "@/data/nutritionPlanStore";
+import CreateNutritionPlanSheet from "@/components/admin/CreateNutritionPlanSheet";
 
 const PlanTable = ({ plans, navigate }: { plans: NutritionPlan[]; navigate: ReturnType<typeof useNavigate> }) => (
   <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -35,7 +37,11 @@ const PlanTable = ({ plans, navigate }: { plans: NutritionPlan[]; navigate: Retu
                 {plan.clientName}
               </button>
             </TableCell>
-            <TableCell className="font-medium text-foreground">{plan.planName}</TableCell>
+            <TableCell>
+              <button onClick={() => navigate(`/admin/nutrition/${plan.id}`)} className="font-medium text-foreground hover:text-primary transition-colors text-left">
+                {plan.planName}
+              </button>
+            </TableCell>
             <TableCell>
               <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10 text-xs">
                 {plan.type}
@@ -52,8 +58,10 @@ const PlanTable = ({ plans, navigate }: { plans: NutritionPlan[]; navigate: Retu
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-card border-border">
-                  <DropdownMenuItem className="gap-2"><Eye className="h-4 w-4" />Ver plan</DropdownMenuItem>
-                  <DropdownMenuItem className="gap-2"><Calendar className="h-4 w-4" />Editar</DropdownMenuItem>
+                  <DropdownMenuItem className="gap-2" onClick={() => navigate(`/admin/nutrition/${plan.id}`)}>
+                    <Eye className="h-4 w-4" />Ver / Editar plan
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="gap-2"><Calendar className="h-4 w-4" />Cambiar fechas</DropdownMenuItem>
                   {plan.active && (
                     <DropdownMenuItem className="text-destructive gap-2"><XCircle className="h-4 w-4" />Desactivar</DropdownMenuItem>
                   )}
@@ -76,6 +84,7 @@ const PlanTable = ({ plans, navigate }: { plans: NutritionPlan[]; navigate: Retu
 
 const AdminNutrition = () => {
   const [search, setSearch] = useState("");
+  const [plans, setPlans] = useState(mockNutritionPlans);
   const navigate = useNavigate();
 
   const matchesSearch = (p: NutritionPlan) =>
@@ -83,9 +92,47 @@ const AdminNutrition = () => {
     p.planName.toLowerCase().includes(search.toLowerCase()) ||
     p.type.toLowerCase().includes(search.toLowerCase());
 
-  const activePlans = mockNutritionPlans.filter((p) => p.active && matchesSearch(p));
-  const inactivePlans = mockNutritionPlans.filter((p) => !p.active && matchesSearch(p));
-  const uniqueClients = new Set(mockNutritionPlans.filter((p) => p.active).map((p) => p.clientId)).size;
+  const activePlans = plans.filter((p) => p.active && matchesSearch(p));
+  const inactivePlans = plans.filter((p) => !p.active && matchesSearch(p));
+  const uniqueClients = new Set(plans.filter((p) => p.active).map((p) => p.clientId)).size;
+
+  const handleCreate = (data: { planName: string; clientId: string; clientName: string; objective: string }) => {
+    const id = genId();
+    const today = new Date().toISOString().split("T")[0];
+
+    // Add to list
+    const newListPlan: NutritionPlan = {
+      id,
+      clientId: data.clientId,
+      clientName: data.clientName,
+      planName: data.planName,
+      type: "Sin definir",
+      calories: 0,
+      active: true,
+      startDate: today,
+      endDate: null,
+    };
+    setPlans((prev) => [newListPlan, ...prev]);
+
+    // Create detail entry
+    const detail: NutritionPlanDetail = {
+      id,
+      clientId: data.clientId,
+      clientName: data.clientName,
+      planName: data.planName,
+      objective: data.objective,
+      active: true,
+      startDate: today,
+      endDate: null,
+      meals: [],
+      supplements: [],
+      recommendations: [],
+    };
+    addNutritionPlanDetail(detail);
+
+    // Navigate to editor
+    navigate(`/admin/nutrition/${id}`);
+  };
 
   return (
     <AdminLayout>
@@ -101,10 +148,7 @@ const AdminNutrition = () => {
               Planes nutricionales de tus clientes
             </p>
           </div>
-          <Button className="glow-primary-sm gap-2">
-            <Plus className="h-4 w-4" />
-            Crear plan
-          </Button>
+          <CreateNutritionPlanSheet onCreated={handleCreate} />
         </div>
 
         {/* Stats */}
@@ -114,7 +158,7 @@ const AdminNutrition = () => {
               <CheckCircle2 className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{mockNutritionPlans.filter((p) => p.active).length}</p>
+              <p className="text-2xl font-bold text-foreground">{plans.filter((p) => p.active).length}</p>
               <p className="text-xs text-muted-foreground">Planes activos</p>
             </div>
           </div>
@@ -123,7 +167,7 @@ const AdminNutrition = () => {
               <XCircle className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{mockNutritionPlans.filter((p) => !p.active).length}</p>
+              <p className="text-2xl font-bold text-foreground">{plans.filter((p) => !p.active).length}</p>
               <p className="text-xs text-muted-foreground">Planes anteriores</p>
             </div>
           </div>
@@ -149,7 +193,7 @@ const AdminNutrition = () => {
           />
         </div>
 
-        {/* Active Plans Block */}
+        {/* Active Plans */}
         <div className="space-y-3">
           <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-primary" />
@@ -159,7 +203,7 @@ const AdminNutrition = () => {
           <PlanTable plans={activePlans} navigate={navigate} />
         </div>
 
-        {/* Inactive Plans Block */}
+        {/* Inactive Plans */}
         <div className="space-y-3">
           <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
             <XCircle className="h-5 w-5 text-muted-foreground" />
