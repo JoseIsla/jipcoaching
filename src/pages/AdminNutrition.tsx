@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Utensils, Eye, MoreHorizontal, CheckCircle2, XCircle, Calendar, User } from "lucide-react";
+import { Search, Utensils, Eye, MoreHorizontal, CheckCircle2, XCircle, Calendar, User, Power, Pencil } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -14,73 +11,7 @@ import { Button } from "@/components/ui/button";
 import { mockNutritionPlans, type NutritionPlan } from "@/data/mockData";
 import { nutritionPlanDetailStore, addNutritionPlanDetail, genId, type NutritionPlanDetail } from "@/data/nutritionPlanStore";
 import CreateNutritionPlanSheet from "@/components/admin/CreateNutritionPlanSheet";
-
-const PlanTable = ({ plans, navigate }: { plans: NutritionPlan[]; navigate: ReturnType<typeof useNavigate> }) => (
-  <div className="bg-card border border-border rounded-xl overflow-hidden">
-    <Table>
-      <TableHeader>
-        <TableRow className="border-border hover:bg-transparent">
-          <TableHead className="text-muted-foreground">Cliente</TableHead>
-          <TableHead className="text-muted-foreground">Plan</TableHead>
-          <TableHead className="text-muted-foreground">Tipo</TableHead>
-          <TableHead className="text-muted-foreground">Kcal</TableHead>
-          <TableHead className="text-muted-foreground">Inicio</TableHead>
-          <TableHead className="text-muted-foreground">Fin</TableHead>
-          <TableHead className="text-muted-foreground w-10"></TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {plans.map((plan) => (
-          <TableRow key={plan.id} className="border-border/50 hover:bg-muted/30">
-            <TableCell>
-              <button onClick={() => navigate(`/admin/clients/${plan.clientId}`)} className="font-medium text-foreground hover:text-primary transition-colors text-left">
-                {plan.clientName}
-              </button>
-            </TableCell>
-            <TableCell>
-              <button onClick={() => navigate(`/admin/nutrition/${plan.id}`)} className="font-medium text-foreground hover:text-primary transition-colors text-left">
-                {plan.planName}
-              </button>
-            </TableCell>
-            <TableCell>
-              <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10 text-xs">
-                {plan.type}
-              </Badge>
-            </TableCell>
-            <TableCell className="text-muted-foreground font-mono text-sm">{plan.calories}</TableCell>
-            <TableCell className="text-muted-foreground text-sm">{plan.startDate}</TableCell>
-            <TableCell className="text-muted-foreground text-sm">{plan.endDate ?? "—"}</TableCell>
-            <TableCell>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-card border-border">
-                  <DropdownMenuItem className="gap-2" onClick={() => navigate(`/admin/nutrition/${plan.id}`)}>
-                    <Eye className="h-4 w-4" />Ver / Editar plan
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="gap-2"><Calendar className="h-4 w-4" />Cambiar fechas</DropdownMenuItem>
-                  {plan.active && (
-                    <DropdownMenuItem className="text-destructive gap-2"><XCircle className="h-4 w-4" />Desactivar</DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
-          </TableRow>
-        ))}
-        {plans.length === 0 && (
-          <TableRow>
-            <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
-              No se encontraron planes de nutrición
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
-  </div>
-);
+import { toast } from "sonner";
 
 const AdminNutrition = () => {
   const [search, setSearch] = useState("");
@@ -96,25 +27,55 @@ const AdminNutrition = () => {
   const inactivePlans = plans.filter((p) => !p.active && matchesSearch(p));
   const uniqueClients = new Set(plans.filter((p) => p.active).map((p) => p.clientId)).size;
 
+  const togglePlanActive = (planId: string, activate: boolean) => {
+    setPlans((prev) => {
+      const plan = prev.find((p) => p.id === planId);
+      if (!plan) return prev;
+
+      return prev.map((p) => {
+        if (p.id === planId) return { ...p, active: activate, endDate: activate ? null : new Date().toISOString().split("T")[0] };
+        // If activating, deactivate other plans for same client
+        if (activate && p.clientId === plan.clientId && p.active) {
+          return { ...p, active: false, endDate: new Date().toISOString().split("T")[0] };
+        }
+        return p;
+      });
+    });
+
+    // Sync detail store
+    if (nutritionPlanDetailStore[planId]) {
+      nutritionPlanDetailStore[planId].active = activate;
+    }
+
+    toast.success(activate ? "Plan activado" : "Plan desactivado");
+  };
+
   const handleCreate = (data: { planName: string; clientId: string; clientName: string; objective: string }) => {
     const id = genId();
     const today = new Date().toISOString().split("T")[0];
 
-    // Add to list
-    const newListPlan: NutritionPlan = {
-      id,
-      clientId: data.clientId,
-      clientName: data.clientName,
-      planName: data.planName,
-      type: "Sin definir",
-      calories: 0,
-      active: true,
-      startDate: today,
-      endDate: null,
-    };
-    setPlans((prev) => [newListPlan, ...prev]);
+    // Deactivate existing active plans for this client
+    setPlans((prev) => {
+      const updated = prev.map((p) =>
+        p.clientId === data.clientId && p.active
+          ? { ...p, active: false, endDate: today }
+          : p
+      );
 
-    // Create detail entry
+      const newListPlan: NutritionPlan = {
+        id,
+        clientId: data.clientId,
+        clientName: data.clientName,
+        planName: data.planName,
+        type: "Sin definir",
+        calories: 0,
+        active: true,
+        startDate: today,
+        endDate: null,
+      };
+      return [newListPlan, ...updated];
+    });
+
     const detail: NutritionPlanDetail = {
       id,
       clientId: data.clientId,
@@ -129,8 +90,6 @@ const AdminNutrition = () => {
       recommendations: [],
     };
     addNutritionPlanDetail(detail);
-
-    // Navigate to editor
     navigate(`/admin/nutrition/${id}`);
   };
 
@@ -200,7 +159,17 @@ const AdminNutrition = () => {
             Planes Activos
             <span className="text-xs font-normal text-muted-foreground ml-1">({activePlans.length})</span>
           </h2>
-          <PlanTable plans={activePlans} navigate={navigate} />
+          {activePlans.length === 0 ? (
+            <div className="border border-dashed border-border rounded-xl p-8 text-center text-muted-foreground text-sm">
+              No hay planes activos
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {activePlans.map((plan) => (
+                <PlanCard key={plan.id} plan={plan} navigate={navigate} onToggle={togglePlanActive} />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Inactive Plans */}
@@ -210,11 +179,91 @@ const AdminNutrition = () => {
             Planes Anteriores
             <span className="text-xs font-normal text-muted-foreground ml-1">({inactivePlans.length})</span>
           </h2>
-          <PlanTable plans={inactivePlans} navigate={navigate} />
+          {inactivePlans.length === 0 ? (
+            <div className="border border-dashed border-border rounded-xl p-8 text-center text-muted-foreground text-sm">
+              No hay planes anteriores
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {inactivePlans.map((plan) => (
+                <PlanCard key={plan.id} plan={plan} navigate={navigate} onToggle={togglePlanActive} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </AdminLayout>
   );
 };
+
+const PlanCard = ({
+  plan,
+  navigate,
+  onToggle,
+}: {
+  plan: NutritionPlan;
+  navigate: ReturnType<typeof import("react-router-dom").useNavigate>;
+  onToggle: (id: string, activate: boolean) => void;
+}) => (
+  <div className="bg-card border border-border rounded-xl p-4 space-y-3 hover:border-primary/30 transition-colors">
+    <div className="flex items-start justify-between">
+      <div className="space-y-1 flex-1 min-w-0">
+        <button
+          onClick={() => navigate(`/admin/nutrition/${plan.id}`)}
+          className="font-semibold text-foreground hover:text-primary transition-colors text-left truncate block w-full"
+        >
+          {plan.planName}
+        </button>
+        <button
+          onClick={() => navigate(`/admin/clients/${plan.clientId}`)}
+          className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+        >
+          <User className="h-3 w-3" />
+          {plan.clientName}
+        </button>
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="bg-card border-border">
+          <DropdownMenuItem className="gap-2" onClick={() => navigate(`/admin/nutrition/${plan.id}`)}>
+            <Pencil className="h-4 w-4" />Editar plan
+          </DropdownMenuItem>
+          {plan.active ? (
+            <DropdownMenuItem className="text-destructive gap-2" onClick={() => onToggle(plan.id, false)}>
+              <XCircle className="h-4 w-4" />Desactivar
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem className="text-primary gap-2" onClick={() => onToggle(plan.id, true)}>
+              <Power className="h-4 w-4" />Reactivar
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+    <div className="flex items-center gap-2 flex-wrap">
+      <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10 text-xs">
+        {plan.type}
+      </Badge>
+      {plan.calories > 0 && (
+        <Badge variant="outline" className="border-border text-muted-foreground text-xs font-mono">
+          {plan.calories} kcal
+        </Badge>
+      )}
+    </div>
+    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+      <span className="flex items-center gap-1">
+        <Calendar className="h-3 w-3" />
+        {plan.startDate}
+      </span>
+      {plan.endDate && (
+        <span>→ {plan.endDate}</span>
+      )}
+    </div>
+  </div>
+);
 
 export default AdminNutrition;
