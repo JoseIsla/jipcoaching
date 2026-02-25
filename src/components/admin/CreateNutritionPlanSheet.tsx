@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,16 +6,16 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, AlertTriangle } from "lucide-react";
-import { mockClients, mockNutritionPlans } from "@/data/mockData";
+import { mockClients } from "@/data/mockData";
 import { clientDetailStore } from "@/data/clientStore";
+import { getActivePlanForClient } from "@/data/nutritionPlanStore";
 import { toast } from "sonner";
 
 interface Props {
   onCreated: (plan: { planName: string; clientId: string; clientName: string; objective: string }) => void;
-  activePlansByClient: Record<string, string>; // clientId -> planName
 }
 
-const CreateNutritionPlanSheet = ({ onCreated, activePlansByClient }: Props) => {
+const CreateNutritionPlanSheet = ({ onCreated }: Props) => {
   const [open, setOpen] = useState(false);
   const [planName, setPlanName] = useState("");
   const [clientId, setClientId] = useState("");
@@ -27,7 +27,8 @@ const CreateNutritionPlanSheet = ({ onCreated, activePlansByClient }: Props) => 
     return detail ? detail.services.includes("nutrition") : c.services.includes("nutrition");
   });
 
-  const existingActivePlan = clientId ? activePlansByClient[clientId] : undefined;
+  // Dynamically check from the shared store
+  const existingActivePlan = clientId ? getActivePlanForClient(clientId) : undefined;
 
   const handleCreate = () => {
     if (!planName.trim() || !clientId || !objective.trim()) {
@@ -35,10 +36,11 @@ const CreateNutritionPlanSheet = ({ onCreated, activePlansByClient }: Props) => 
       return;
     }
     if (existingActivePlan && !confirmDeactivate) {
-      return; // Should not happen, button is hidden
+      return;
     }
     const client = mockClients.find((c) => c.id === clientId);
     if (!client) return;
+
     onCreated({ planName: planName.trim(), clientId, clientName: client.name, objective: objective.trim() });
     setPlanName("");
     setClientId("");
@@ -54,7 +56,7 @@ const CreateNutritionPlanSheet = ({ onCreated, activePlansByClient }: Props) => 
   };
 
   return (
-    <Sheet open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setConfirmDeactivate(false); setClientId(""); } }}>
+    <Sheet open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setConfirmDeactivate(false); setClientId(""); setPlanName(""); setObjective(""); } }}>
       <SheetTrigger asChild>
         <Button className="glow-primary-sm gap-2">
           <Plus className="h-4 w-4" />
@@ -91,13 +93,13 @@ const CreateNutritionPlanSheet = ({ onCreated, activePlansByClient }: Props) => 
 
           {/* Warning if client already has active plan */}
           {existingActivePlan && !confirmDeactivate && (
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 space-y-2">
+            <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 space-y-2">
               <div className="flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
+                <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-amber-400">Este cliente ya tiene un plan activo</p>
+                  <p className="text-sm font-medium text-destructive">Este cliente ya tiene un plan activo</p>
                   <p className="text-xs text-muted-foreground">
-                    Plan actual: <span className="font-medium text-foreground">{existingActivePlan}</span>
+                    Plan actual: <span className="font-medium text-foreground">{existingActivePlan.planName}</span>
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Solo puede haber un plan activo por cliente. Al crear uno nuevo, el anterior se desactivará automáticamente.
@@ -107,7 +109,7 @@ const CreateNutritionPlanSheet = ({ onCreated, activePlansByClient }: Props) => 
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full text-xs border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                className="w-full text-xs border-destructive/30 text-destructive hover:bg-destructive/10"
                 onClick={() => setConfirmDeactivate(true)}
               >
                 Desactivar plan anterior y continuar
@@ -118,7 +120,7 @@ const CreateNutritionPlanSheet = ({ onCreated, activePlansByClient }: Props) => 
           {existingActivePlan && confirmDeactivate && (
             <div className="bg-primary/10 border border-primary/30 rounded-lg p-3">
               <p className="text-xs text-primary">
-                ✓ El plan "{existingActivePlan}" se desactivará al crear el nuevo plan.
+                ✓ El plan "{existingActivePlan.planName}" se desactivará al crear el nuevo plan.
               </p>
             </div>
           )}

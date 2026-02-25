@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Utensils, MoreHorizontal, CheckCircle2, XCircle, Calendar, User, Power, Pencil, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, Utensils, MoreHorizontal, CheckCircle2, XCircle, Calendar, User, Power, Pencil, ChevronDown, ChevronUp, Eye } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -8,14 +8,26 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { mockNutritionPlans, type NutritionPlan } from "@/data/mockData";
-import { nutritionPlanDetailStore, addNutritionPlanDetail, genId, type NutritionPlanDetail } from "@/data/nutritionPlanStore";
+import { type NutritionPlan } from "@/data/mockData";
+import {
+  nutritionPlanList,
+  nutritionPlanDetailStore,
+  addNutritionPlanDetail,
+  addNutritionPlanToList,
+  deactivateClientPlans,
+  togglePlanActive as togglePlanActiveStore,
+  getActivePlanForClient,
+  genId,
+  type NutritionPlanDetail,
+} from "@/data/nutritionPlanStore";
 import CreateNutritionPlanSheet from "@/components/admin/CreateNutritionPlanSheet";
 import { toast } from "sonner";
 
 const AdminNutrition = () => {
   const [search, setSearch] = useState("");
-  const [plans, setPlans] = useState(mockNutritionPlans);
+  // Force re-render counter since we mutate the shared array
+  const [, forceUpdate] = useState(0);
+  const rerender = useCallback(() => forceUpdate((n) => n + 1), []);
   const navigate = useNavigate();
 
   const matchesSearch = (p: NutritionPlan) =>
@@ -23,30 +35,13 @@ const AdminNutrition = () => {
     p.planName.toLowerCase().includes(search.toLowerCase()) ||
     p.type.toLowerCase().includes(search.toLowerCase());
 
-  const activePlans = plans.filter((p) => p.active && matchesSearch(p));
-  const inactivePlans = plans.filter((p) => !p.active && matchesSearch(p));
-  const uniqueClients = new Set(plans.filter((p) => p.active).map((p) => p.clientId)).size;
+  const activePlans = nutritionPlanList.filter((p) => p.active && matchesSearch(p));
+  const inactivePlans = nutritionPlanList.filter((p) => !p.active && matchesSearch(p));
+  const uniqueClients = new Set(nutritionPlanList.filter((p) => p.active).map((p) => p.clientId)).size;
 
-  const togglePlanActive = (planId: string, activate: boolean) => {
-    setPlans((prev) => {
-      const plan = prev.find((p) => p.id === planId);
-      if (!plan) return prev;
-
-      return prev.map((p) => {
-        if (p.id === planId) return { ...p, active: activate, endDate: activate ? null : new Date().toISOString().split("T")[0] };
-        // If activating, deactivate other plans for same client
-        if (activate && p.clientId === plan.clientId && p.active) {
-          return { ...p, active: false, endDate: new Date().toISOString().split("T")[0] };
-        }
-        return p;
-      });
-    });
-
-    // Sync detail store
-    if (nutritionPlanDetailStore[planId]) {
-      nutritionPlanDetailStore[planId].active = activate;
-    }
-
+  const handleToggle = (planId: string, activate: boolean) => {
+    togglePlanActiveStore(planId, activate);
+    rerender();
     toast.success(activate ? "Plan activado" : "Plan desactivado");
   };
 
@@ -54,37 +49,24 @@ const AdminNutrition = () => {
     const id = genId();
     const today = new Date().toISOString().split("T")[0];
 
-    // Deactivate existing active plans for this client in detail store too
-    Object.values(nutritionPlanDetailStore).forEach((d) => {
-      if (d.clientId === data.clientId && d.active) {
-        d.active = false;
-        d.endDate = today;
-      }
+    // Deactivate existing active plans for this client
+    deactivateClientPlans(data.clientId);
+
+    // Add to list
+    addNutritionPlanToList({
+      id,
+      clientId: data.clientId,
+      clientName: data.clientName,
+      planName: data.planName,
+      type: "Sin definir",
+      calories: 0,
+      active: true,
+      startDate: today,
+      endDate: null,
     });
 
-    // Deactivate in list and add new
-    setPlans((prev) => {
-      const updated = prev.map((p) =>
-        p.clientId === data.clientId && p.active
-          ? { ...p, active: false, endDate: today }
-          : p
-      );
-
-      const newListPlan: NutritionPlan = {
-        id,
-        clientId: data.clientId,
-        clientName: data.clientName,
-        planName: data.planName,
-        type: "Sin definir",
-        calories: 0,
-        active: true,
-        startDate: today,
-        endDate: null,
-      };
-      return [newListPlan, ...updated];
-    });
-
-    const detail: NutritionPlanDetail = {
+    // Add detail
+    addNutritionPlanDetail({
       id,
       clientId: data.clientId,
       clientName: data.clientName,
@@ -95,8 +77,8 @@ const AdminNutrition = () => {
       endDate: null,
       meals: [],
       recommendations: [],
-    };
-    addNutritionPlanDetail(detail);
+    });
+
     navigate(`/admin/nutrition/${id}/edit`);
   };
 
@@ -114,12 +96,7 @@ const AdminNutrition = () => {
               Planes nutricionales de tus clientes
             </p>
           </div>
-          <CreateNutritionPlanSheet
-            onCreated={handleCreate}
-            activePlansByClient={Object.fromEntries(
-              plans.filter((p) => p.active).map((p) => [p.clientId, p.planName])
-            )}
-          />
+          <CreateNutritionPlanSheet onCreated={handleCreate} />
         </div>
 
         {/* Stats */}
@@ -129,7 +106,7 @@ const AdminNutrition = () => {
               <CheckCircle2 className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{plans.filter((p) => p.active).length}</p>
+              <p className="text-2xl font-bold text-foreground">{nutritionPlanList.filter((p) => p.active).length}</p>
               <p className="text-xs text-muted-foreground">Planes activos</p>
             </div>
           </div>
@@ -138,7 +115,7 @@ const AdminNutrition = () => {
               <XCircle className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{plans.filter((p) => !p.active).length}</p>
+              <p className="text-2xl font-bold text-foreground">{nutritionPlanList.filter((p) => !p.active).length}</p>
               <p className="text-xs text-muted-foreground">Planes anteriores</p>
             </div>
           </div>
@@ -178,14 +155,14 @@ const AdminNutrition = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {activePlans.map((plan) => (
-                <PlanCard key={plan.id} plan={plan} navigate={navigate} onToggle={togglePlanActive} />
+                <PlanCard key={plan.id} plan={plan} navigate={navigate} onToggle={handleToggle} />
               ))}
             </div>
           )}
         </div>
 
-        {/* Inactive Plans - Collapsed by default */}
-        <InactivePlansSection plans={inactivePlans} navigate={navigate} onToggle={togglePlanActive} />
+        {/* Inactive Plans */}
+        <InactivePlansSection plans={inactivePlans} navigate={navigate} onToggle={handleToggle} />
       </div>
     </AdminLayout>
   );
@@ -241,17 +218,15 @@ const PlanCard = ({
   navigate: ReturnType<typeof import("react-router-dom").useNavigate>;
   onToggle: (id: string, activate: boolean) => void;
 }) => (
-  <div className="bg-card border border-border rounded-xl p-4 space-y-3 hover:border-primary/30 transition-colors">
+  <div
+    className="bg-card border border-border rounded-xl p-4 space-y-3 hover:border-primary/30 transition-colors cursor-pointer"
+    onClick={() => navigate(`/admin/nutrition/${plan.id}`)}
+  >
     <div className="flex items-start justify-between">
       <div className="space-y-1 flex-1 min-w-0">
+        <p className="font-semibold text-foreground truncate">{plan.planName}</p>
         <button
-          onClick={() => navigate(`/admin/nutrition/${plan.id}`)}
-          className="font-semibold text-foreground hover:text-primary transition-colors text-left truncate block w-full"
-        >
-          {plan.planName}
-        </button>
-        <button
-          onClick={() => navigate(`/admin/clients/${plan.clientId}`)}
+          onClick={(e) => { e.stopPropagation(); navigate(`/admin/clients/${plan.clientId}`); }}
           className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
         >
           <User className="h-3 w-3" />
@@ -260,20 +235,28 @@ const PlanCard = ({
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0"
+            onClick={(e) => e.stopPropagation()}
+          >
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="bg-card border-border">
-          <DropdownMenuItem className="gap-2" onClick={() => navigate(`/admin/nutrition/${plan.id}/edit`)}>
+          <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); navigate(`/admin/nutrition/${plan.id}`); }}>
+            <Eye className="h-4 w-4" />Ver plan
+          </DropdownMenuItem>
+          <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); navigate(`/admin/nutrition/${plan.id}/edit`); }}>
             <Pencil className="h-4 w-4" />Editar plan
           </DropdownMenuItem>
           {plan.active ? (
-            <DropdownMenuItem className="text-destructive gap-2" onClick={() => onToggle(plan.id, false)}>
+            <DropdownMenuItem className="text-destructive gap-2" onClick={(e) => { e.stopPropagation(); onToggle(plan.id, false); }}>
               <XCircle className="h-4 w-4" />Desactivar
             </DropdownMenuItem>
           ) : (
-            <DropdownMenuItem className="text-primary gap-2" onClick={() => onToggle(plan.id, true)}>
+            <DropdownMenuItem className="text-primary gap-2" onClick={(e) => { e.stopPropagation(); onToggle(plan.id, true); }}>
               <Power className="h-4 w-4" />Reactivar
             </DropdownMenuItem>
           )}
