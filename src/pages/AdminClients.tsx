@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus, Utensils, Dumbbell, MoreHorizontal } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
+import AddClientSheet from "@/components/admin/AddClientSheet";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,16 +12,35 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { mockClients, type Client } from "@/data/mockData";
+import { mockClients, type Client, type ServiceType } from "@/data/mockData";
 
 type FilterType = "all" | "nutrition" | "training" | "both";
 
 const AdminClients = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
+  const [addOpen, setAddOpen] = useState(false);
+  const [clients, setClients] = useState<Client[]>(mockClients);
   const navigate = useNavigate();
 
-  const filtered = mockClients.filter((c) => {
+  const handleClientAdded = (newClient: { name: string; email: string; phone: string; services: ServiceType[]; plan: string; status: "Activo" | "Pendiente" }) => {
+    const now = new Date();
+    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const client: Client = {
+      id: String(Date.now()),
+      name: newClient.name,
+      email: newClient.email,
+      phone: newClient.phone,
+      services: newClient.services,
+      plan: newClient.plan,
+      status: newClient.status,
+      startDate: now.toISOString().split("T")[0],
+      joinedMonth: month,
+    };
+    setClients((prev) => [client, ...prev]);
+  };
+
+  const filtered = clients.filter((c) => {
     const matchesSearch =
       c.name.toLowerCase().includes(search.toLowerCase()) ||
       c.email.toLowerCase().includes(search.toLowerCase());
@@ -49,10 +69,10 @@ const AdminClients = () => {
           <div>
             <h1 className="text-2xl font-bold text-foreground">Clientes</h1>
             <p className="text-muted-foreground text-sm mt-1">
-              {mockClients.length} clientes registrados
+              {clients.length} clientes registrados
             </p>
           </div>
-          <Button className="glow-primary-sm gap-2">
+          <Button className="glow-primary-sm gap-2" onClick={() => setAddOpen(true)}>
             <Plus className="h-4 w-4" />
             Añadir cliente
           </Button>
@@ -157,6 +177,7 @@ const AdminClients = () => {
             </TableBody>
           </Table>
         </div>
+        <AddClientSheet open={addOpen} onClose={() => setAddOpen(false)} onClientAdded={handleClientAdded} />
       </div>
     </AdminLayout>
   );
