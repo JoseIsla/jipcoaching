@@ -10,6 +10,8 @@ import AdminClients from "./pages/AdminClients";
 import AdminClientDetail from "./pages/AdminClientDetail";
 import AdminNutrition from "./pages/AdminNutrition";
 import AdminTraining from "./pages/AdminTraining";
+import AdminTrainingPlanView from "./pages/AdminTrainingPlanView";
+import AdminTrainingPlanDetail from "./pages/AdminTrainingPlanDetail";
 import AdminSettings from "./pages/AdminSettings";
 import AdminQuestionnaires from "./pages/AdminQuestionnaires";
 import AdminProgress from "./pages/AdminProgress";
@@ -36,6 +38,8 @@ const App = () => (
             <Route path="/admin/nutrition/:planId" element={<AdminNutritionPlanView />} />
             <Route path="/admin/nutrition/:planId/edit" element={<AdminNutritionPlanDetail />} />
             <Route path="/admin/training" element={<AdminTraining />} />
+            <Route path="/admin/training/:planId" element={<AdminTrainingPlanView />} />
+            <Route path="/admin/training/:planId/edit" element={<AdminTrainingPlanDetail />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="/admin/questionnaires" element={<AdminQuestionnaires />} />
             <Route path="/admin/progress" element={<AdminProgress />} />

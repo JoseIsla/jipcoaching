@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Dumbbell, MoreHorizontal, CheckCircle2, XCircle, Calendar, Eye, User } from "lucide-react";
+import { Search, Dumbbell, MoreHorizontal, CheckCircle2, XCircle, Calendar, Eye, User, Pencil } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,9 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { mockTrainingPlans, type TrainingPlan } from "@/data/mockData";
+import { trainingPlanList, toggleTrainingPlanActive } from "@/data/trainingPlanStore";
+import type { TrainingBlock } from "@/data/mockData";
+import CreateTrainingPlanSheet from "@/components/admin/CreateTrainingPlanSheet";
 
 const blockColor: Record<string, string> = {
   Hipertrofia: "bg-blue-500/15 text-blue-400 border-blue-500/20",
@@ -20,7 +22,25 @@ const blockColor: Record<string, string> = {
   Tapering: "bg-purple-500/15 text-purple-400 border-purple-500/20",
 };
 
-const PlanTable = ({ plans, navigate }: { plans: TrainingPlan[]; navigate: ReturnType<typeof useNavigate> }) => (
+interface PlanEntry {
+  id: string;
+  clientId: string;
+  clientName: string;
+  planName: string;
+  modality: string;
+  block: TrainingBlock;
+  weeksDuration: number;
+  currentWeek: number | null;
+  active: boolean;
+  startDate: string;
+  endDate: string | null;
+}
+
+const PlanTable = ({ plans, navigate, onDeactivate }: {
+  plans: PlanEntry[];
+  navigate: ReturnType<typeof useNavigate>;
+  onDeactivate?: (id: string) => void;
+}) => (
   <div className="bg-card border border-border rounded-xl overflow-hidden">
     <Table>
       <TableHeader>
@@ -37,9 +57,16 @@ const PlanTable = ({ plans, navigate }: { plans: TrainingPlan[]; navigate: Retur
       </TableHeader>
       <TableBody>
         {plans.map((plan) => (
-          <TableRow key={plan.id} className="border-border/50 hover:bg-muted/30">
+          <TableRow
+            key={plan.id}
+            className="border-border/50 hover:bg-muted/30 cursor-pointer"
+            onClick={() => navigate(`/admin/training/${plan.id}`)}
+          >
             <TableCell>
-              <button onClick={() => navigate(`/admin/clients/${plan.clientId}`)} className="font-medium text-foreground hover:text-primary transition-colors text-left">
+              <button
+                onClick={(e) => { e.stopPropagation(); navigate(`/admin/clients/${plan.clientId}`); }}
+                className="font-medium text-foreground hover:text-primary transition-colors text-left"
+              >
                 {plan.clientName}
               </button>
             </TableCell>
@@ -62,15 +89,25 @@ const PlanTable = ({ plans, navigate }: { plans: TrainingPlan[]; navigate: Retur
             <TableCell>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                  <Button
+                    variant="ghost" size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-card border-border">
-                  <DropdownMenuItem className="gap-2"><Eye className="h-4 w-4" />Ver plan</DropdownMenuItem>
-                  <DropdownMenuItem className="gap-2"><Calendar className="h-4 w-4" />Editar</DropdownMenuItem>
-                  {plan.active && (
-                    <DropdownMenuItem className="text-destructive gap-2"><XCircle className="h-4 w-4" />Desactivar</DropdownMenuItem>
+                  <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); navigate(`/admin/training/${plan.id}`); }}>
+                    <Eye className="h-4 w-4" />Ver plan
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); navigate(`/admin/training/${plan.id}/edit`); }}>
+                    <Pencil className="h-4 w-4" />Editar
+                  </DropdownMenuItem>
+                  {plan.active && onDeactivate && (
+                    <DropdownMenuItem className="text-destructive gap-2" onClick={(e) => { e.stopPropagation(); onDeactivate(plan.id); }}>
+                      <XCircle className="h-4 w-4" />Desactivar
+                    </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -91,17 +128,23 @@ const PlanTable = ({ plans, navigate }: { plans: TrainingPlan[]; navigate: Retur
 
 const AdminTraining = () => {
   const [search, setSearch] = useState("");
+  const [, forceUpdate] = useState(0);
   const navigate = useNavigate();
 
-  const matchesSearch = (p: TrainingPlan) =>
+  const matchesSearch = (p: PlanEntry) =>
     p.clientName.toLowerCase().includes(search.toLowerCase()) ||
     p.planName.toLowerCase().includes(search.toLowerCase()) ||
     p.modality.toLowerCase().includes(search.toLowerCase()) ||
     p.block.toLowerCase().includes(search.toLowerCase());
 
-  const activePlans = mockTrainingPlans.filter((p) => p.active && matchesSearch(p));
-  const inactivePlans = mockTrainingPlans.filter((p) => !p.active && matchesSearch(p));
-  const uniqueClients = new Set(mockTrainingPlans.filter((p) => p.active).map((p) => p.clientId)).size;
+  const activePlans = trainingPlanList.filter((p) => p.active && matchesSearch(p));
+  const inactivePlans = trainingPlanList.filter((p) => !p.active && matchesSearch(p));
+  const uniqueClients = new Set(trainingPlanList.filter((p) => p.active).map((p) => p.clientId)).size;
+
+  const handleDeactivate = (id: string) => {
+    toggleTrainingPlanActive(id, false);
+    forceUpdate((n) => n + 1);
+  };
 
   return (
     <AdminLayout>
@@ -117,10 +160,7 @@ const AdminTraining = () => {
               Planes de entrenamiento de tus clientes
             </p>
           </div>
-          <Button className="glow-primary-sm gap-2">
-            <Plus className="h-4 w-4" />
-            Crear plan
-          </Button>
+          <CreateTrainingPlanSheet onCreated={() => forceUpdate((n) => n + 1)} />
         </div>
 
         {/* Stats */}
@@ -130,7 +170,7 @@ const AdminTraining = () => {
               <CheckCircle2 className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{mockTrainingPlans.filter((p) => p.active).length}</p>
+              <p className="text-2xl font-bold text-foreground">{trainingPlanList.filter((p) => p.active).length}</p>
               <p className="text-xs text-muted-foreground">Planes activos</p>
             </div>
           </div>
@@ -139,7 +179,7 @@ const AdminTraining = () => {
               <XCircle className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{mockTrainingPlans.filter((p) => !p.active).length}</p>
+              <p className="text-2xl font-bold text-foreground">{trainingPlanList.filter((p) => !p.active).length}</p>
               <p className="text-xs text-muted-foreground">Planes anteriores</p>
             </div>
           </div>
@@ -165,17 +205,17 @@ const AdminTraining = () => {
           />
         </div>
 
-        {/* Active Plans Block */}
+        {/* Active Plans */}
         <div className="space-y-3">
           <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-primary" />
             Planes Activos
             <span className="text-xs font-normal text-muted-foreground ml-1">({activePlans.length})</span>
           </h2>
-          <PlanTable plans={activePlans} navigate={navigate} />
+          <PlanTable plans={activePlans} navigate={navigate} onDeactivate={handleDeactivate} />
         </div>
 
-        {/* Inactive Plans Block */}
+        {/* Inactive Plans */}
         <div className="space-y-3">
           <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
             <XCircle className="h-5 w-5 text-muted-foreground" />
