@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, Plus, Trash2, GripVertical, Dumbbell, ChevronDown, ChevronRight, Lock, Copy } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -231,7 +231,8 @@ const DayEditor = ({
   onChange: (d: TrainingDay) => void;
   allDays: TrainingDay[];
 }) => {
-  const [open, setOpen] = useState(true);
+   const [open, setOpen] = useState(true);
+  const [dragId, setDragId] = useState<string | null>(null);
   const basics = day.exercises.filter((e) => e.section === "basic");
   const accessories = day.exercises.filter((e) => e.section === "accessory");
 
@@ -256,6 +257,27 @@ const DayEditor = ({
       intensityType: section === "accessory" ? "RIR" : undefined,
     };
     onChange({ ...day, exercises: [...day.exercises, newEx] });
+  };
+
+  const reorderExercises = (sectionExercises: TrainingExerciseEntry[], fromIdx: number, toIdx: number, section: "basic" | "accessory") => {
+    const reordered = [...sectionExercises];
+    const [moved] = reordered.splice(fromIdx, 1);
+    reordered.splice(toIdx, 0, moved);
+    // Rebuild full exercises list preserving the other section's order
+    const otherSection = day.exercises.filter((e) => e.section !== section);
+    const newExercises = section === "basic" ? [...reordered, ...otherSection] : [...otherSection, ...reordered];
+    onChange({ ...day, exercises: newExercises });
+  };
+
+  const handleDragStart = (id: string) => setDragId(id);
+  const handleDragEnd = () => setDragId(null);
+
+  const handleDrop = (targetId: string, sectionExercises: TrainingExerciseEntry[], section: "basic" | "accessory") => {
+    if (!dragId || dragId === targetId) return;
+    const fromIdx = sectionExercises.findIndex((e) => e.id === dragId);
+    const toIdx = sectionExercises.findIndex((e) => e.id === targetId);
+    if (fromIdx < 0 || toIdx < 0) return;
+    reorderExercises(sectionExercises, fromIdx, toIdx, section);
   };
 
   return (
@@ -326,7 +348,17 @@ const DayEditor = ({
             </div>
             {basics.length === 0 && <p className="text-xs text-muted-foreground italic">Sin ejercicios básicos</p>}
             {basics.map((ex, i) => (
-              <ExerciseForm key={ex.id} exercise={ex} section="basic" onChange={(u) => updateExercise(i, u)} onRemove={() => removeExercise(ex.id)} />
+              <div
+                key={ex.id}
+                draggable
+                onDragStart={() => handleDragStart(ex.id)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => handleDrop(ex.id, basics, "basic")}
+                className={`transition-opacity ${dragId === ex.id ? "opacity-40" : ""}`}
+              >
+                <ExerciseForm exercise={ex} section="basic" onChange={(u) => updateExercise(i, u)} onRemove={() => removeExercise(ex.id)} />
+              </div>
             ))}
           </div>
 
@@ -342,7 +374,17 @@ const DayEditor = ({
             </div>
             {accessories.length === 0 && <p className="text-xs text-muted-foreground italic">Sin accesorios</p>}
             {accessories.map((ex, i) => (
-              <ExerciseForm key={ex.id} exercise={ex} section="accessory" onChange={(u) => updateExercise(i, u)} onRemove={() => removeExercise(ex.id)} />
+              <div
+                key={ex.id}
+                draggable
+                onDragStart={() => handleDragStart(ex.id)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => handleDrop(ex.id, accessories, "accessory")}
+                className={`transition-opacity ${dragId === ex.id ? "opacity-40" : ""}`}
+              >
+                <ExerciseForm exercise={ex} section="accessory" onChange={(u) => updateExercise(i, u)} onRemove={() => removeExercise(ex.id)} />
+              </div>
             ))}
           </div>
         </div>
