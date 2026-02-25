@@ -1,7 +1,14 @@
 import { Bell, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { adminProfile } from "@/data/mockData";
 
 const AdminHeader = () => {
+  const initials = adminProfile.name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2);
+
   return (
     <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 lg:px-8 shrink-0">
       <div className="relative w-72">
@@ -20,11 +27,11 @@ const AdminHeader = () => {
 
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
-            <span className="text-primary text-sm font-bold">A</span>
+            <span className="text-primary text-sm font-bold">{initials}</span>
           </div>
           <div className="hidden sm:block">
-            <p className="text-sm font-medium text-foreground leading-none">Admin</p>
-            <p className="text-xs text-muted-foreground">Nutricionista</p>
+            <p className="text-sm font-medium text-foreground leading-none">{adminProfile.name}</p>
+            <p className="text-xs text-muted-foreground">{adminProfile.role}</p>
           </div>
         </div>
       </div>
