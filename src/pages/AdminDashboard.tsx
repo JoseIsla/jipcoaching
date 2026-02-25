@@ -2,24 +2,33 @@ import { useNavigate } from "react-router-dom";
 import { Users, Utensils, Dumbbell, TrendingUp, Activity, CalendarDays } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import StatCard from "@/components/admin/StatCard";
-
-const stats = [
-  { title: "Clientes Activos", value: "24", change: "+3 este mes", icon: Users, positive: true },
-  { title: "Planes de Nutrición", value: "18", change: "+5 esta semana", icon: Utensils, positive: true },
-  { title: "Entrenamientos", value: "42", change: "+12 esta semana", icon: Dumbbell, positive: true },
-  { title: "Tasa de Retención", value: "94%", change: "+2.1%", icon: TrendingUp, positive: true },
-];
-
-const recentClients = [
-  { id: "1", name: "Carlos Martínez", plan: "Volumen", status: "Activo", lastSession: "Hoy" },
-  { id: "2", name: "Ana López", plan: "Definición", status: "Activo", lastSession: "Ayer" },
-  { id: "3", name: "Diego Fernández", plan: "Mantenimiento", status: "Pendiente", lastSession: "Hace 3 días" },
-  { id: "4", name: "Laura García", plan: "Volumen", status: "Activo", lastSession: "Hoy" },
-  { id: "5", name: "Miguel Torres", plan: "Definición", status: "Inactivo", lastSession: "Hace 1 semana" },
-];
+import {
+  mockClients,
+  getActiveClients,
+  getNewClientsThisMonth,
+  getActiveNutritionPlans,
+  getActiveTrainingPlans,
+  getRetentionRate,
+} from "@/data/mockData";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+
+  const activeClients = getActiveClients();
+  const newThisMonth = getNewClientsThisMonth();
+  const activeNutrition = getActiveNutritionPlans();
+  const activeTraining = getActiveTrainingPlans();
+  const retention = getRetentionRate();
+
+  const stats = [
+    { title: "Clientes Activos", value: String(activeClients.length), change: `+${newThisMonth.length} este mes`, icon: Users, positive: true },
+    { title: "Planes de Nutrición", value: String(activeNutrition.length), change: `${activeNutrition.length} activos`, icon: Utensils, positive: true },
+    { title: "Entrenamientos", value: String(activeTraining.length), change: `${activeTraining.length} activos`, icon: Dumbbell, positive: true },
+    { title: "Tasa de Retención", value: `${retention}%`, change: `${mockClients.filter(c => c.status !== "Inactivo").length}/${mockClients.length} clientes`, icon: TrendingUp, positive: retention >= 80 },
+  ];
+
+  const recentClients = mockClients.slice(0, 5);
+
   return (
     <AdminLayout>
       <div className="space-y-8 animate-fade-in">
@@ -44,7 +53,7 @@ const AdminDashboard = () => {
           <div className="lg:col-span-2 bg-card border border-border rounded-xl">
             <div className="flex items-center justify-between p-5 border-b border-border">
               <h2 className="font-semibold text-foreground">Clientes Recientes</h2>
-              <span className="text-xs text-primary cursor-pointer hover:underline">Ver todos</span>
+              <span className="text-xs text-primary cursor-pointer hover:underline" onClick={() => navigate("/admin/clients")}>Ver todos</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -53,7 +62,7 @@ const AdminDashboard = () => {
                     <th className="px-5 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Nombre</th>
                     <th className="px-5 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Plan</th>
                     <th className="px-5 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Estado</th>
-                    <th className="px-5 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Última sesión</th>
+                    <th className="px-5 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Inicio</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -74,7 +83,7 @@ const AdminDashboard = () => {
                           {client.status}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-sm text-muted-foreground">{client.lastSession}</td>
+                      <td className="px-5 py-3.5 text-sm text-muted-foreground">{client.startDate}</td>
                     </tr>
                   ))}
                 </tbody>
