@@ -267,6 +267,28 @@ export interface TrainingTemplate {
 
 export type QuestionnaireStatus = "pendiente" | "respondido" | "no_enviado";
 
+export interface TrainingLogExercise {
+  exerciseId: string;
+  exerciseName: string;
+  section: "basic" | "accessory";
+  // Planned (from the training plan)
+  plannedSets: string;
+  plannedReps: string;
+  plannedLoad: string;
+  plannedRPE?: number;
+  // Actual (filled by client)
+  actualWeight?: number;
+  actualRPE?: number;
+  actualSets?: string;
+  actualReps?: string;
+}
+
+export interface TrainingLogDay {
+  dayNumber: number;
+  dayName: string;
+  exercises: TrainingLogExercise[];
+}
+
 export interface QuestionnaireEntry {
   id: string;
   clientId: string;
@@ -280,6 +302,10 @@ export interface QuestionnaireEntry {
   status: QuestionnaireStatus;
   responses?: Record<string, string | number | boolean>;
   liftLogs?: { exerciseId: string; exerciseName: string; sets: string; weight: number; rpe?: number }[];
+  // Auto-generated training log from active plan
+  trainingLog?: TrainingLogDay[];
+  planId?: string;
+  weekNumber?: number;
 }
 
 // ----- Nutrition Templates -----

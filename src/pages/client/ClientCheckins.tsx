@@ -11,11 +11,12 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ClipboardList, Check, Clock, AlertCircle } from "lucide-react";
+import { ClipboardList, Check, Clock, AlertCircle, Dumbbell } from "lucide-react";
 import AnimatedChevron from "@/components/ui/animated-chevron";
 import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-content";
 import { useToast } from "@/hooks/use-toast";
-import { mockQuestionnaireEntries, nutritionTemplates, trainingTemplate, type QuestionnaireEntry, type QuestionDefinition } from "@/data/mockData";
+import { nutritionTemplates, trainingTemplate, type QuestionnaireEntry, type QuestionDefinition, type TrainingLogDay } from "@/data/mockData";
+import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
 
 const getEntryWindowStatus = (entry: QuestionnaireEntry): "within" | "future" | "expired" => {
@@ -38,20 +39,20 @@ const QuestionField = ({ q, value, onChange }: { q: QuestionDefinition; value: s
   }
 };
 
-const CheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
+const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [responses, setResponses] = useState<Record<string, string | number | boolean>>(entry.responses || {});
   const [submitted, setSubmitted] = useState(entry.status === "respondido");
   const { toast } = useToast();
+  const submitEntry = useQuestionnaireStore((s) => s.submitEntry);
   const windowStatus = getEntryWindowStatus(entry);
   const canFill = !submitted && windowStatus === "within";
-  const template = entry.category === "nutrition" ? nutritionTemplates.find((t) => t.id === entry.templateId) : trainingTemplate;
-  const questions = template ? "questions" in template ? template.questions : [] : [];
+  const template = nutritionTemplates.find((tp) => tp.id === entry.templateId);
+  const questions = template?.questions || [];
 
   const handleSubmit = () => {
-    const idx = mockQuestionnaireEntries.findIndex((e) => e.id === entry.id);
-    if (idx >= 0) { mockQuestionnaireEntries[idx].status = "respondido"; mockQuestionnaireEntries[idx].responses = responses; }
+    submitEntry(entry.id, responses);
     setSubmitted(true);
     toast({ title: t("clientCheckins.checkinSent"), description: t("clientCheckins.checkinSentDesc") });
   };
@@ -84,14 +85,228 @@ const CheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   );
 };
 
+const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [trainingLog, setTrainingLog] = useState<TrainingLogDay[]>(entry.trainingLog || []);
+  const [responses, setResponses] = useState<Record<string, string | number | boolean>>(entry.responses || {});
+  const [submitted, setSubmitted] = useState(entry.status === "respondido");
+  const [activeDay, setActiveDay] = useState(0);
+  const { toast } = useToast();
+  const submitEntry = useQuestionnaireStore((s) => s.submitEntry);
+  const questions = trainingTemplate.questions;
+
+  const updateExercise = (dayIdx: number, exIdx: number, field: string, value: string | number) => {
+    const updated = trainingLog.map((day, di) =>
+      di === dayIdx
+        ? {
+            ...day,
+            exercises: day.exercises.map((ex, ei) =>
+              ei === exIdx ? { ...ex, [field]: value } : ex
+            ),
+          }
+        : day
+    );
+    setTrainingLog(updated);
+  };
+
+  const handleSubmit = () => {
+    submitEntry(entry.id, responses, trainingLog);
+    setSubmitted(true);
+    toast({ title: t("clientCheckins.checkinSent"), description: t("clientCheckins.checkinSentDesc") });
+  };
+
+  const statusIcon = submitted ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Clock className="h-3.5 w-3.5 text-yellow-500" />;
+  const statusLabel = submitted ? t("clientCheckins.responded") : t("clientCheckins.pendingLabel");
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <CollapsibleTrigger className="w-full flex items-center justify-between p-3 hover:bg-muted/30 transition-colors">
+          <div className="flex items-center gap-2">
+            <AnimatedChevron open={open} />
+            <div>
+              <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <Dumbbell className="h-3.5 w-3.5 text-primary" />
+                {entry.templateName}
+              </p>
+              <p className="text-[10px] text-muted-foreground">{entry.weekLabel}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">{statusIcon}<span className="text-[10px] text-muted-foreground">{statusLabel}</span></div>
+        </CollapsibleTrigger>
+        <AnimatedCollapsibleContent open={open}>
+          <div className="p-4 pt-2 space-y-4">
+            {!submitted ? (
+              <>
+                {/* Day tabs */}
+                {trainingLog.length > 0 && (
+                  <Tabs value={String(activeDay)} onValueChange={(v) => setActiveDay(Number(v))}>
+                    <TabsList className="bg-muted border border-border w-full flex-wrap h-auto gap-1 p-1">
+                      {trainingLog.map((day, i) => (
+                        <TabsTrigger key={i} value={String(i)} className="text-[10px] flex-1 min-w-0 px-2 py-1.5">
+                          {day.dayName}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                    {trainingLog.map((day, dayIdx) => (
+                      <TabsContent key={dayIdx} value={String(dayIdx)} className="mt-3 space-y-3">
+                        {day.exercises.map((ex, exIdx) => (
+                          <div key={exIdx} className="rounded-lg border border-border p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium text-foreground">{ex.exerciseName}</p>
+                              <Badge variant="outline" className="text-[10px] border-border text-muted-foreground">
+                                {ex.section === "basic" ? "🏋️" : "🎯"} {ex.plannedSets}×{ex.plannedReps}
+                              </Badge>
+                            </div>
+                            {/* Planned info */}
+                            <div className="flex gap-2 text-[10px] text-muted-foreground bg-muted/50 rounded p-1.5">
+                              <span>{t("clientCheckins.planned")}: {ex.plannedSets}×{ex.plannedReps}</span>
+                              {ex.plannedLoad !== "—" && <span>· {ex.plannedLoad}</span>}
+                              {ex.plannedRPE && <span>· RPE {ex.plannedRPE}</span>}
+                            </div>
+                            {/* Actual inputs */}
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground">{t("clientCheckins.actualWeight")}</Label>
+                                <Input
+                                  type="number"
+                                  step="0.5"
+                                  className="h-8 text-xs bg-background border-border"
+                                  value={ex.actualWeight ?? ""}
+                                  onChange={(e) => updateExercise(dayIdx, exIdx, "actualWeight", Number(e.target.value))}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground">{t("clientCheckins.actualRPE")}</Label>
+                                <Input
+                                  type="number"
+                                  step="0.5"
+                                  min={1}
+                                  max={10}
+                                  className="h-8 text-xs bg-background border-border"
+                                  value={ex.actualRPE ?? ""}
+                                  onChange={(e) => updateExercise(dayIdx, exIdx, "actualRPE", Number(e.target.value))}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground">{t("clientCheckins.actualSets")}</Label>
+                                <Input
+                                  type="text"
+                                  className="h-8 text-xs bg-background border-border"
+                                  placeholder={ex.plannedSets}
+                                  value={ex.actualSets ?? ""}
+                                  onChange={(e) => updateExercise(dayIdx, exIdx, "actualSets", e.target.value)}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground">{t("clientCheckins.actualReps")}</Label>
+                                <Input
+                                  type="text"
+                                  className="h-8 text-xs bg-background border-border"
+                                  placeholder={ex.plannedReps}
+                                  value={ex.actualReps ?? ""}
+                                  onChange={(e) => updateExercise(dayIdx, exIdx, "actualReps", e.target.value)}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        {day.exercises.length === 0 && (
+                          <p className="text-sm text-muted-foreground text-center py-4">{t("clientTraining.noExercises")}</p>
+                        )}
+                      </TabsContent>
+                    ))}
+                  </Tabs>
+                )}
+
+                {/* General training questions */}
+                <div className="border-t border-border pt-3 space-y-3">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("clientCheckins.generalQuestions")}</p>
+                  {questions.map((q) => (
+                    <QuestionField
+                      key={q.id}
+                      q={q}
+                      value={responses[q.id]}
+                      onChange={(v) => setResponses({ ...responses, [q.id]: v })}
+                    />
+                  ))}
+                </div>
+
+                <Button onClick={handleSubmit} className="w-full glow-primary-sm">{t("clientCheckins.submitCheckin")}</Button>
+              </>
+            ) : (
+              /* Submitted view */
+              <div className="space-y-4">
+                {trainingLog.map((day, dayIdx) => (
+                  <div key={dayIdx} className="space-y-2">
+                    <p className="text-xs font-medium text-foreground">{t("clientCheckins.dayLabel", { n: String(day.dayNumber), name: day.dayName })}</p>
+                    <div className="rounded-lg border border-border overflow-hidden">
+                      <table className="w-full text-[10px]">
+                        <thead>
+                          <tr className="bg-muted/50">
+                            <th className="px-2 py-1.5 text-left text-muted-foreground font-medium">Ejercicio</th>
+                            <th className="px-2 py-1.5 text-center text-muted-foreground font-medium">{t("clientCheckins.planned")}</th>
+                            <th className="px-2 py-1.5 text-center text-primary font-medium">{t("clientCheckins.actual")}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {day.exercises.map((ex, i) => (
+                            <tr key={i} className="border-t border-border/50">
+                              <td className="px-2 py-1.5 font-medium text-foreground">{ex.exerciseName}</td>
+                              <td className="px-2 py-1.5 text-center text-muted-foreground">
+                                {ex.plannedSets}×{ex.plannedReps} {ex.plannedRPE ? `@${ex.plannedRPE}` : ""}
+                              </td>
+                              <td className="px-2 py-1.5 text-center text-foreground font-mono">
+                                {ex.actualWeight ? `${ex.actualWeight}kg` : "—"} {ex.actualRPE ? `@${ex.actualRPE}` : ""}
+                                {ex.actualSets ? ` (${ex.actualSets}×${ex.actualReps || "?"})` : ""}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))}
+                {/* Show general responses */}
+                <div className="space-y-2 border-t border-border pt-3">
+                  {questions.map((q) => (
+                    <div key={q.id} className="flex justify-between items-start py-1 border-b border-border/30 last:border-0">
+                      <span className="text-xs text-muted-foreground">{q.label}</span>
+                      <span className="text-xs font-medium text-foreground ml-3">
+                        {responses[q.id] !== undefined ? typeof responses[q.id] === "boolean" ? responses[q.id] ? "Sí" : "No" : String(responses[q.id]) : "—"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </AnimatedCollapsibleContent>
+      </div>
+    </Collapsible>
+  );
+};
+
 const ClientCheckins = () => {
   const { t } = useTranslation();
   const { client } = useClient();
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
-  const myEntries = mockQuestionnaireEntries.filter((e) => e.clientId === client.id);
+
+  const allEntries = useQuestionnaireStore((s) => s.entries);
+  const getOrCreateTrainingEntry = useQuestionnaireStore((s) => s.getOrCreateTrainingEntry);
+
+  // Auto-generate training entry from active plan if needed
+  const trainingEntry = hasTraining ? getOrCreateTrainingEntry(client.id, client.name) : null;
+
+  const myEntries = allEntries.filter((e) => e.clientId === client.id);
   const nutritionEntries = myEntries.filter((e) => e.category === "nutrition");
-  const trainingEntries = myEntries.filter((e) => e.category === "training");
+  // For training, show only entries with trainingLog (auto-generated from plan)
+  const trainingEntries = myEntries.filter((e) => e.category === "training" && e.trainingLog && e.trainingLog.length > 0);
+  // Also keep legacy training entries (without trainingLog)
+  const legacyTrainingEntries = myEntries.filter((e) => e.category === "training" && (!e.trainingLog || e.trainingLog.length === 0));
+
   const defaultTab = hasNutrition ? "nutrition" : "training";
 
   return (
@@ -110,14 +325,20 @@ const ClientCheckins = () => {
             <TabsContent value="nutrition" className="space-y-3">
               <p className="text-xs text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("clientCheckins.nutritionSchedule") }} />
               {nutritionEntries.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">{t("clientCheckins.noNutrition")}</p>}
-              {nutritionEntries.map((entry) => <CheckinCard key={entry.id} entry={entry} />)}
+              {nutritionEntries.map((entry) => <NutritionCheckinCard key={entry.id} entry={entry} />)}
             </TabsContent>
           )}
           {hasTraining && (
             <TabsContent value="training" className="space-y-3">
               <p className="text-xs text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("clientCheckins.trainingSchedule") }} />
-              {trainingEntries.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">{t("clientCheckins.noTraining")}</p>}
-              {trainingEntries.map((entry) => <CheckinCard key={entry.id} entry={entry} />)}
+              {!trainingEntry && trainingEntries.length === 0 && legacyTrainingEntries.length === 0 && (
+                <div className="text-center py-8">
+                  <Dumbbell className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">{t("clientCheckins.noActivePlan")}</p>
+                </div>
+              )}
+              {/* Show auto-generated training log entries */}
+              {trainingEntries.map((entry) => <TrainingLogCard key={entry.id} entry={entry} />)}
             </TabsContent>
           )}
         </Tabs>
