@@ -11,7 +11,8 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, ClipboardList, Check, Clock, AlertCircle } from "lucide-react";
+import { ChevronDown, ClipboardList, Check, Clock, AlertCircle } from "lucide-react";
+import AnimatedChevron from "@/components/ui/animated-chevron";
 import { useToast } from "@/hooks/use-toast";
 import {
   mockQuestionnaireEntries,
@@ -160,7 +161,7 @@ const CheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <CollapsibleTrigger className="w-full flex items-center justify-between p-3 hover:bg-muted/30 transition-colors">
           <div className="flex items-center gap-2">
-            {open ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+            <AnimatedChevron open={open} />
             <div>
               <p className="text-sm font-semibold text-foreground">{entry.templateName}</p>
               <p className="text-[10px] text-muted-foreground">{entry.dayLabel} · {entry.weekLabel}</p>

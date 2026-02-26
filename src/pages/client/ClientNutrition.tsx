@@ -3,7 +3,8 @@ import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, Utensils, Apple, Leaf, Target, Flame, Droplets } from "lucide-react";
+import { ChevronDown, Utensils, Apple, Leaf, Target, Flame, Droplets } from "lucide-react";
+import AnimatedChevron from "@/components/ui/animated-chevron";
 import { useNutritionPlanStore, macroCategoryLabels, type Meal, type MealOption } from "@/data/useNutritionPlanStore";
 import { useExerciseLibraryStore } from "@/data/useExerciseLibraryStore";
 
@@ -45,7 +46,7 @@ const MealCard = ({ meal }: { meal: Meal }) => {
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
           <div className="flex items-center gap-2">
-            {open ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+            <AnimatedChevron open={open} />
             <span className="font-semibold text-foreground">{meal.name}</span>
             <Badge variant="outline" className="text-[10px]">{meal.options.length} opción{meal.options.length > 1 ? "es" : ""}</Badge>
           </div>
