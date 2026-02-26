@@ -3,9 +3,10 @@ import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, Dumbbell, Lock, Calendar } from "lucide-react";
 import AnimatedChevron from "@/components/ui/animated-chevron";
+import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-content";
 import {
   useTrainingPlanStore,
   TRAINING_METHOD_LABELS,
@@ -30,7 +31,7 @@ const DayView = ({ day }: { day: TrainingDay }) => {
           </div>
           <Badge variant="outline" className="text-[10px]">{day.exercises.length} ej.</Badge>
         </CollapsibleTrigger>
-        <CollapsibleContent>
+        <AnimatedCollapsibleContent open={open}>
           <div className="p-3 pt-0 space-y-3">
             {day.warmup && (
               <div className="bg-muted/30 rounded-lg p-2">
@@ -94,7 +95,7 @@ const DayView = ({ day }: { day: TrainingDay }) => {
               <p className="text-xs text-muted-foreground italic text-center py-4">Sin ejercicios programados</p>
             )}
           </div>
-        </CollapsibleContent>
+        </AnimatedCollapsibleContent>
       </div>
     </Collapsible>
   );
