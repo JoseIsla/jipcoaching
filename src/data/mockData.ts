@@ -362,9 +362,13 @@ const getDateOfDay = (dayOfWeek: number) => {
   return d.toISOString().split("T")[0];
 };
 
+const todayStr = new Date().toISOString().split("T")[0];
+
 export const mockQuestionnaireEntries: QuestionnaireEntry[] = [
   // Nutrition - Tuesday
   { id: "qe1", clientId: "1", clientName: "Carlos Martínez", templateId: "nt-tue", templateName: "Check-in Martes", category: "nutrition", weekLabel: thisWeekLabel, date: getDateOfDay(2), dayLabel: "Martes", status: "respondido", responses: { q1: 82.5, q2: 7, q3: false, q5: true, q6: 1, q7: 4, q8: 7.5 } },
+  // Extra pending entry for today (testing)
+  { id: "qe15", clientId: "1", clientName: "Carlos Martínez", templateId: "nt-tue", templateName: "Check-in Mitad de Semana", category: "nutrition", weekLabel: thisWeekLabel, date: todayStr, dayLabel: "Hoy", status: "pendiente" },
   { id: "qe2", clientId: "2", clientName: "Ana López", templateId: "nt-tue", templateName: "Check-in Martes", category: "nutrition", weekLabel: thisWeekLabel, date: getDateOfDay(2), dayLabel: "Martes", status: "respondido", responses: { q1: 58.2, q2: 8, q3: false, q5: false, q7: 3, q8: 8 } },
   { id: "qe3", clientId: "4", clientName: "Laura García", templateId: "nt-tue", templateName: "Check-in Martes", category: "nutrition", weekLabel: thisWeekLabel, date: getDateOfDay(2), dayLabel: "Martes", status: "pendiente" },
   { id: "qe4", clientId: "6", clientName: "Sofía Ruiz", templateId: "nt-tue", templateName: "Check-in Martes", category: "nutrition", weekLabel: thisWeekLabel, date: getDateOfDay(2), dayLabel: "Martes", status: "pendiente" },
