@@ -270,7 +270,7 @@ export type QuestionnaireStatus = "pendiente" | "respondido" | "no_enviado";
 export interface TrainingLogExercise {
   exerciseId: string;
   exerciseName: string;
-  section: "basic" | "accessory";
+  section: "basic" | "variant" | "accessory";
   // Planned (from the training plan)
   plannedSets: string;
   plannedReps: string;

@@ -107,7 +107,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
     const trainingLog: TrainingLogDay[] = sourceWeek.days.map((day) => ({
       dayNumber: day.dayNumber,
       dayName: day.name,
-      exercises: day.exercises.map((ex): TrainingLogExercise => ({
+      exercises: day.exercises.filter((ex) => ex.section !== "accessory").map((ex): TrainingLogExercise => ({
         exerciseId: ex.exerciseId || ex.id,
         exerciseName: ex.exerciseName,
         section: ex.section,
