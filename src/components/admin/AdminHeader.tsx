@@ -164,16 +164,16 @@ const AdminHeader = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2">
                               <p className={`text-xs leading-tight ${notif.read ? "font-medium text-foreground/70" : "font-semibold text-foreground"}`}>
-                                {notif.title}
+                                {t(notif.titleKey, notif.titleVars)}
                               </p>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); removeNotification(notif.id); }}
-                                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all flex-shrink-0 p-0.5"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </div>
-                            <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{notif.description}</p>
+                               <button
+                                 onClick={(e) => { e.stopPropagation(); removeNotification(notif.id); }}
+                                 className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all flex-shrink-0 p-0.5"
+                               >
+                                 <X className="h-3 w-3" />
+                               </button>
+                             </div>
+                             <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{t(notif.descriptionKey, notif.descriptionVars)}</p>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-[10px] text-muted-foreground">{timeAgo(notif.timestamp)}</span>
                               {!notif.read && (
