@@ -6,7 +6,7 @@ export interface LoginPayload {
 }
 
 export interface AuthSession {
-  token: string | null;
+  token: string;
   role: UserRole;
 }
 
@@ -16,17 +16,15 @@ export interface ApiResponse<T = void> {
   error?: string;
 }
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").trim();
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3001").trim();
 
 const endpoint = (path: string) => `${API_BASE_URL}${path}`;
 
 const normalizeRole = (role: unknown): UserRole | null => {
   if (typeof role !== "string") return null;
-
-  const value = role.toLowerCase();
-  if (value === "admin") return "admin";
-  if (value === "client" || value === "cliente" || value === "user") return "client";
-
+  const value = role.toUpperCase();
+  if (value === "ADMIN") return "admin";
+  if (value === "CLIENT" || value === "CLIENTE" || value === "USER") return "client";
   return null;
 };
 
@@ -39,114 +37,58 @@ const safeJson = async (response: Response): Promise<any> => {
 };
 
 const getErrorMessage = (payload: any, fallback: string) => {
-  if (payload && typeof payload.error === "string" && payload.error.trim()) {
-    return payload.error;
-  }
-  if (payload && typeof payload.message === "string" && payload.message.trim()) {
-    return payload.message;
-  }
+  if (payload && typeof payload.error === "string" && payload.error.trim()) return payload.error;
+  if (payload && typeof payload.message === "string" && payload.message.trim()) return payload.message;
   return fallback;
 };
 
 export const loginRequest = async (payload: LoginPayload): Promise<ApiResponse<AuthSession>> => {
   try {
-    const response = await fetch(endpoint("/api/auth/login"), {
+    const response = await fetch(endpoint("/auth/login"), {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
     const data = await safeJson(response);
 
     if (!response.ok) {
-      return {
-        success: false,
-        error: getErrorMessage(data, "Credenciales inválidas."),
-      };
+      return { success: false, error: getErrorMessage(data, "Credenciales inválidas.") };
     }
 
-    const role = normalizeRole(data?.role ?? data?.user?.role);
-    if (!role) {
-      return {
-        success: false,
-        error: "El backend no devolvió un rol válido para el usuario.",
-      };
+    const role = normalizeRole(data?.role);
+    const token = typeof data?.accessToken === "string" ? data.accessToken : null;
+
+    if (!role || !token) {
+      return { success: false, error: "Respuesta inesperada del servidor." };
     }
 
-    return {
-      success: true,
-      data: {
-        token: typeof data?.token === "string" ? data.token : null,
-        role,
-      },
-    };
+    return { success: true, data: { token, role } };
   } catch {
-    return {
-      success: false,
-      error: "No se pudo conectar con el servidor de autenticación.",
-    };
+    return { success: false, error: "No se pudo conectar con el servidor." };
   }
 };
 
 export const fetchSessionRequest = async (token: string | null): Promise<ApiResponse<AuthSession>> => {
+  if (!token) return { success: false };
+
   try {
-    const response = await fetch(endpoint("/api/auth/session"), {
+    const response = await fetch(endpoint("/me"), {
       method: "GET",
-      credentials: "include",
-      headers: token
-        ? {
-            Authorization: `Bearer ${token}`,
-          }
-        : undefined,
+      headers: { Authorization: `Bearer ${token}` },
     });
 
     const data = await safeJson(response);
 
     if (!response.ok) {
-      return {
-        success: false,
-        error: getErrorMessage(data, "Sesión no válida."),
-      };
+      return { success: false, error: getErrorMessage(data, "Sesión no válida.") };
     }
 
-    const role = normalizeRole(data?.role ?? data?.user?.role);
-    if (!role) {
-      return {
-        success: false,
-        error: "No se pudo validar el rol de la sesión.",
-      };
-    }
+    const role = normalizeRole(data?.role);
+    if (!role) return { success: false, error: "Rol no válido." };
 
-    return {
-      success: true,
-      data: {
-        token: typeof data?.token === "string" ? data.token : token,
-        role,
-      },
-    };
+    return { success: true, data: { token, role } };
   } catch {
-    return {
-      success: false,
-      error: "No se pudo validar la sesión actual.",
-    };
-  }
-};
-
-export const logoutRequest = async (token: string | null): Promise<void> => {
-  try {
-    await fetch(endpoint("/api/auth/logout"), {
-      method: "POST",
-      credentials: "include",
-      headers: token
-        ? {
-            Authorization: `Bearer ${token}`,
-          }
-        : undefined,
-    });
-  } catch {
-    // Intencionalmente ignorado para asegurar limpieza local de sesión.
+    return { success: false, error: "No se pudo validar la sesión." };
   }
 };
