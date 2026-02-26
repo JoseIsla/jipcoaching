@@ -18,6 +18,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { clientDetailStore, type ClientDetail } from "@/data/clientStore";
 
@@ -351,6 +355,7 @@ const AdminClientDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
+  const [confirmToggle, setConfirmToggle] = useState(false);
   const { toast } = useToast();
   const client = id ? mockClientsDetail[id] : null;
 
@@ -404,15 +409,7 @@ const AdminClientDetail = () => {
               <Button
                 variant="outline"
                 className={`gap-2 ${client.status === "Inactivo" ? "border-primary/30 text-primary hover:bg-primary/10" : "border-destructive/30 text-destructive hover:bg-destructive/10"}`}
-                onClick={() => {
-                  const newStatus = client.status === "Inactivo" ? "Activo" : "Inactivo";
-                  client.status = newStatus as ClientDetail["status"];
-                  toast({
-                    title: newStatus === "Inactivo" ? "Cliente desactivado" : "Cliente reactivado",
-                    description: `${client.name} ahora está ${newStatus.toLowerCase()}.`,
-                  });
-                  navigate("/admin/clients");
-                }}
+                onClick={() => setConfirmToggle(true)}
               >
                 {client.status === "Inactivo" ? (
                   <><UserCheck className="h-4 w-4" /> Reactivar</>
@@ -629,6 +626,39 @@ const AdminClientDetail = () => {
       </div>
 
       <EditClientSheet client={client} open={editing} onClose={() => setEditing(false)} />
+
+      <AlertDialog open={confirmToggle} onOpenChange={setConfirmToggle}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-foreground">
+              <AlertTriangle className="h-5 w-5 text-accent" />
+              {client.status === "Inactivo" ? "Reactivar cliente" : "Desactivar cliente"}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              {client.status === "Inactivo"
+                ? `¿Estás seguro de que quieres reactivar a ${client.name}?`
+                : `¿Estás seguro de que quieres desactivar a ${client.name}? El cliente pasará a estado inactivo.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-border">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const newStatus = client.status === "Inactivo" ? "Activo" : "Inactivo";
+                client.status = newStatus as ClientDetail["status"];
+                toast({
+                  title: newStatus === "Inactivo" ? "Cliente desactivado" : "Cliente reactivado",
+                  description: `${client.name} ahora está ${newStatus.toLowerCase()}.`,
+                });
+                navigate("/admin/clients");
+              }}
+              className={client.status === "Inactivo" ? "bg-primary hover:bg-primary/90" : "bg-destructive hover:bg-destructive/90"}
+            >
+              {client.status === "Inactivo" ? "Reactivar" : "Desactivar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };

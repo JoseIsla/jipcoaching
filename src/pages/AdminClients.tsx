@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Utensils, Dumbbell, MoreHorizontal, UserX, UserCheck } from "lucide-react";
+import { Search, Plus, Utensils, Dumbbell, MoreHorizontal, UserX, UserCheck, AlertTriangle } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AddClientSheet, { type NewClientData } from "@/components/admin/AddClientSheet";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,10 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { mockClients, type Client, type ServiceType } from "@/data/mockData";
 import { addClientToStore, type ClientDetail } from "@/data/clientStore";
 import { useToast } from "@/hooks/use-toast";
@@ -23,11 +27,13 @@ const AdminClients = () => {
   const [filter, setFilter] = useState<FilterType>("all");
   const [addOpen, setAddOpen] = useState(false);
   const [clients, setClients] = useState<Client[]>(mockClients);
+  const [confirmToggle, setConfirmToggle] = useState<Client | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const toggleClientStatus = (clientId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const confirmToggleStatus = () => {
+    if (!confirmToggle) return;
+    const clientId = confirmToggle.id;
     setClients((prev) =>
       prev.map((c) => {
         if (c.id !== clientId) return c;
@@ -39,6 +45,7 @@ const AdminClients = () => {
         return { ...c, status: newStatus as Client["status"] };
       })
     );
+    setConfirmToggle(null);
   };
 
   const handleClientAdded = (data: NewClientData) => {
@@ -213,7 +220,7 @@ const AdminClients = () => {
                           Editar
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={(e) => toggleClientStatus(client.id, e)}
+                          onClick={(e) => { e.stopPropagation(); setConfirmToggle(client); }}
                           className={client.status === "Inactivo" ? "text-primary focus:text-primary" : "text-destructive focus:text-destructive"}
                         >
                           {client.status === "Inactivo" ? (
@@ -238,6 +245,32 @@ const AdminClients = () => {
           </Table>
         </div>
         <AddClientSheet open={addOpen} onClose={() => setAddOpen(false)} onClientAdded={handleClientAdded} />
+
+        {/* Confirm toggle status dialog */}
+        <AlertDialog open={!!confirmToggle} onOpenChange={(o) => !o && setConfirmToggle(null)}>
+          <AlertDialogContent className="bg-card border-border">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2 text-foreground">
+                <AlertTriangle className="h-5 w-5 text-accent" />
+                {confirmToggle?.status === "Inactivo" ? "Reactivar cliente" : "Desactivar cliente"}
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                {confirmToggle?.status === "Inactivo"
+                  ? `¿Estás seguro de que quieres reactivar a ${confirmToggle?.name}?`
+                  : `¿Estás seguro de que quieres desactivar a ${confirmToggle?.name}? El cliente pasará a estado inactivo.`}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="border-border">Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmToggleStatus}
+                className={confirmToggle?.status === "Inactivo" ? "bg-primary hover:bg-primary/90" : "bg-destructive hover:bg-destructive/90"}
+              >
+                {confirmToggle?.status === "Inactivo" ? "Reactivar" : "Desactivar"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );
