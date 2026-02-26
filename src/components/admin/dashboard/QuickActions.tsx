@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { UserPlus, Utensils, Dumbbell, Activity, ClipboardList, BarChart3 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { mockQuestionnaireEntries } from "@/data/mockData";
+import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useClientStore } from "@/data/useClientStore";
 
 const item = (delay: number) => ({
@@ -23,9 +23,8 @@ const QuickActions = () => {
   const { clients, getRetentionRate } = useClientStore();
   const retention = getRetentionRate();
 
-  const pendingCheckins = mockQuestionnaireEntries.filter(
-    (e) => e.status === "pendiente"
-  ).length;
+  const getPendingCount = useQuestionnaireStore((s) => s.getPendingCount);
+  const pendingCheckins = getPendingCount();
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

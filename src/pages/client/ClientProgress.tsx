@@ -4,21 +4,20 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, TrendingDown, TrendingUp, Weight, Dumbbell, Activity } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import {
-  clientWeightHistory,
-  clientRMRecords,
-  getClientBestRMs,
-  getClientTrainingProgress,
-} from "@/data/mockData";
+import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 
 const ClientProgress = () => {
   const { client } = useClient();
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
 
-  const weightData = clientWeightHistory[client.id] || [];
-  const bestRMs = getClientBestRMs(client.id);
-  const trainingProgress = getClientTrainingProgress(client.id);
+  const getWeightHistory = useQuestionnaireStore((s) => s.getWeightHistory);
+  const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
+  const getTrainingProgress = useQuestionnaireStore((s) => s.getTrainingProgress);
+
+  const weightData = getWeightHistory(client.id);
+  const bestRMs = getBestRMs(client.id);
+  const trainingProgress = getTrainingProgress(client.id);
 
   // Weight delta
   const weightDelta = weightData.length >= 2
