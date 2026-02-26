@@ -483,7 +483,7 @@ const AdminExerciseLibrary = () => {
             </div>
 
             <div className="space-y-4">
-              <ExerciseSection icon={Dumbbell} iconClass="text-primary" title="Básicos" items={basics} mode="basico" onRemove={handleRemove} defaultOpen />
+              <ExerciseSection icon={Dumbbell} iconClass="text-primary" title="Básicos" items={basics} mode="basico" onRemove={handleRemove} />
               <ExerciseSection icon={Layers} iconClass="text-accent" title="Variantes" items={variants} mode="variante" onRemove={handleRemove} showParent />
               <ExerciseSection icon={Target} iconClass="text-muted-foreground" title="Accesorios" items={accessories} mode="accesorio" onRemove={handleRemove} />
             </div>
@@ -518,7 +518,6 @@ const AdminExerciseLibrary = () => {
                 iconClass="text-primary"
                 title="Tabla 01 — Frutas"
                 items={fruits}
-                defaultOpen
                 onAdd={(name) => {
                   if (fruits.some((f) => f.toLowerCase() === name.toLowerCase())) {
                     toast({ title: "Duplicado", description: `"${name}" ya existe en frutas.`, variant: "destructive" });
