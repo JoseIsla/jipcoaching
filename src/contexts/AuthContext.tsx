@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { fetchSessionRequest, loginRequest, type LoginPayload, type UserRole } from "@/services/authApi";
+import { toast } from "@/hooks/use-toast";
 
 type AuthStatus = "checking" | "authenticated" | "unauthenticated";
 
@@ -54,6 +55,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await originalFetch(...args);
       if (response.status === 401 && status === "authenticated") {
         clearSession();
+        toast({
+          title: "Sesión expirada",
+          description: "Tu sesión ha caducado. Por favor, inicia sesión de nuevo.",
+          variant: "destructive",
+        });
       }
       return response;
     };
