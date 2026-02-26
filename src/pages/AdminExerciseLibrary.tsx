@@ -8,31 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import {
-  exerciseLibrary,
-  addExerciseToLibrary,
-  type ExerciseLibraryItem,
-} from "@/data/trainingPlanStore";
-import {
-  globalFruitTable,
-  globalVegetableTable,
-} from "@/data/nutritionPlanStore";
+import { useExerciseLibraryStore, type ExerciseLibraryItem } from "@/data/useExerciseLibraryStore";
 
 const MUSCLE_GROUPS = [
   "Pierna", "Posterior", "Glúteo", "Pecho", "Hombro",
@@ -41,35 +24,26 @@ const MUSCLE_GROUPS = [
 
 // ==================== ADD DIALOG ====================
 
-const AddExerciseDialog = ({
-  mode,
-  onAdded,
-}: {
-  mode: "basico" | "variante" | "accesorio";
-  onAdded: () => void;
-}) => {
+const AddExerciseDialog = ({ mode }: { mode: "basico" | "variante" | "accesorio" }) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [muscleGroup, setMuscleGroup] = useState("");
   const [parentId, setParentId] = useState("");
   const { toast } = useToast();
 
-  const basics = exerciseLibrary.filter((e) => e.category === "basico");
+  const basics = useExerciseLibraryStore((s) => s.exercises.filter((e) => e.category === "basico"));
+  const addExercise = useExerciseLibraryStore((s) => s.addExercise);
 
   const handleAdd = () => {
     if (!name.trim()) return;
-    addExerciseToLibrary({
+    addExercise({
       name: name.trim(),
       category: mode,
       muscleGroup: muscleGroup || undefined,
       parentExerciseId: mode === "variante" && parentId ? parentId : undefined,
     });
     toast({ title: "Ejercicio añadido", description: `"${name.trim()}" añadido a la biblioteca.` });
-    setName("");
-    setMuscleGroup("");
-    setParentId("");
-    setOpen(false);
-    onAdded();
+    setName(""); setMuscleGroup(""); setParentId(""); setOpen(false);
   };
 
   const title = mode === "basico" ? "Nuevo básico" : mode === "variante" ? "Nueva variante" : "Nuevo accesorio";
@@ -82,15 +56,12 @@ const AddExerciseDialog = ({
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md bg-card border-border">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
+        <DialogHeader><DialogTitle>{title}</DialogTitle></DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
             <Label>Nombre del ejercicio</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Sentadilla Zercher" className="bg-background border-border" />
           </div>
-
           {mode === "variante" && (
             <div className="space-y-2">
               <Label>Variante de</Label>
@@ -102,7 +73,6 @@ const AddExerciseDialog = ({
               </Select>
             </div>
           )}
-
           <div className="space-y-2">
             <Label>Grupo muscular</Label>
             <Select value={muscleGroup} onValueChange={setMuscleGroup}>
@@ -112,7 +82,6 @@ const AddExerciseDialog = ({
               </SelectContent>
             </Select>
           </div>
-
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button onClick={handleAdd} disabled={!name.trim()}>Añadir</Button>
@@ -125,35 +94,25 @@ const AddExerciseDialog = ({
 
 // ==================== EDIT DIALOG ====================
 
-const EditExerciseDialog = ({
-  exercise,
-  onSaved,
-}: {
-  exercise: ExerciseLibraryItem;
-  onSaved: () => void;
-}) => {
+const EditExerciseDialog = ({ exercise }: { exercise: ExerciseLibraryItem }) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(exercise.name);
   const [muscleGroup, setMuscleGroup] = useState(exercise.muscleGroup || "");
   const [parentId, setParentId] = useState(exercise.parentExerciseId || "");
   const { toast } = useToast();
 
-  const basics = exerciseLibrary.filter((e) => e.category === "basico" && e.id !== exercise.id);
+  const basics = useExerciseLibraryStore((s) => s.exercises.filter((e) => e.category === "basico" && e.id !== exercise.id));
+  const updateExercise = useExerciseLibraryStore((s) => s.updateExercise);
 
   const handleSave = () => {
     if (!name.trim()) return;
-    const idx = exerciseLibrary.findIndex((e) => e.id === exercise.id);
-    if (idx >= 0) {
-      exerciseLibrary[idx] = {
-        ...exerciseLibrary[idx],
-        name: name.trim(),
-        muscleGroup: muscleGroup || undefined,
-        parentExerciseId: exercise.category === "variante" && parentId ? parentId : undefined,
-      };
-      toast({ title: "Ejercicio actualizado", description: `"${name.trim()}" guardado.` });
-      setOpen(false);
-      onSaved();
-    }
+    updateExercise(exercise.id, {
+      name: name.trim(),
+      muscleGroup: muscleGroup || undefined,
+      parentExerciseId: exercise.category === "variante" && parentId ? parentId : undefined,
+    });
+    toast({ title: "Ejercicio actualizado", description: `"${name.trim()}" guardado.` });
+    setOpen(false);
   };
 
   return (
@@ -164,15 +123,12 @@ const EditExerciseDialog = ({
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md bg-card border-border">
-        <DialogHeader>
-          <DialogTitle>Editar ejercicio</DialogTitle>
-        </DialogHeader>
+        <DialogHeader><DialogTitle>Editar ejercicio</DialogTitle></DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
             <Label>Nombre</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} className="bg-background border-border" />
           </div>
-
           {exercise.category === "variante" && (
             <div className="space-y-2">
               <Label>Variante de</Label>
@@ -184,7 +140,6 @@ const EditExerciseDialog = ({
               </Select>
             </div>
           )}
-
           <div className="space-y-2">
             <Label>Grupo muscular</Label>
             <Select value={muscleGroup} onValueChange={setMuscleGroup}>
@@ -194,7 +149,6 @@ const EditExerciseDialog = ({
               </SelectContent>
             </Select>
           </div>
-
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button onClick={handleSave} disabled={!name.trim()}>Guardar</Button>
@@ -210,55 +164,57 @@ const EditExerciseDialog = ({
 const ExerciseTable = ({
   items,
   onRemove,
-  onEdit,
   showParent,
 }: {
   items: ExerciseLibraryItem[];
   onRemove: (id: string) => void;
-  onEdit: () => void;
   showParent?: boolean;
-}) => (
-  <div className="bg-card border border-border rounded-xl overflow-hidden">
-    <Table>
-      <TableHeader>
-        <TableRow className="border-border hover:bg-transparent">
-          <TableHead className="text-muted-foreground">Ejercicio</TableHead>
-          <TableHead className="text-muted-foreground">Grupo muscular</TableHead>
-          {showParent && <TableHead className="text-muted-foreground">Variante de</TableHead>}
-          <TableHead className="text-muted-foreground w-20"></TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {items.map((item) => (
-          <TableRow key={item.id} className="border-border/50 hover:bg-muted/30">
-            <TableCell className="font-medium text-foreground">{item.name}</TableCell>
-            <TableCell className="text-muted-foreground text-sm">{item.muscleGroup || "—"}</TableCell>
-            {showParent && (
-              <TableCell className="text-muted-foreground text-sm">
-                {item.parentExerciseId ? exerciseLibrary.find((e) => e.id === item.parentExerciseId)?.name || "—" : "—"}
+}) => {
+  const exercises = useExerciseLibraryStore((s) => s.exercises);
+
+  return (
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="border-border hover:bg-transparent">
+            <TableHead className="text-muted-foreground">Ejercicio</TableHead>
+            <TableHead className="text-muted-foreground">Grupo muscular</TableHead>
+            {showParent && <TableHead className="text-muted-foreground">Variante de</TableHead>}
+            <TableHead className="text-muted-foreground w-20"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {items.map((item) => (
+            <TableRow key={item.id} className="border-border/50 hover:bg-muted/30">
+              <TableCell className="font-medium text-foreground">{item.name}</TableCell>
+              <TableCell className="text-muted-foreground text-sm">{item.muscleGroup || "—"}</TableCell>
+              {showParent && (
+                <TableCell className="text-muted-foreground text-sm">
+                  {item.parentExerciseId ? exercises.find((e) => e.id === item.parentExerciseId)?.name || "—" : "—"}
+                </TableCell>
+              )}
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  <EditExerciseDialog exercise={item} />
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/60 hover:text-destructive" onClick={() => onRemove(item.id)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </TableCell>
-            )}
-            <TableCell>
-              <div className="flex items-center gap-1">
-                <EditExerciseDialog exercise={item} onSaved={onEdit} />
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/60 hover:text-destructive" onClick={() => onRemove(item.id)}>
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
-        {items.length === 0 && (
-          <TableRow>
-            <TableCell colSpan={showParent ? 4 : 3} className="text-center text-muted-foreground py-8">
-              No hay ejercicios en esta categoría
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
-  </div>
-);
+            </TableRow>
+          ))}
+          {items.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={showParent ? 4 : 3} className="text-center text-muted-foreground py-8">
+                No hay ejercicios en esta categoría
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};
 
 // ==================== COLLAPSIBLE SECTION ====================
 
@@ -269,7 +225,6 @@ const ExerciseSection = ({
   items,
   mode,
   onRemove,
-  onRefresh,
   showParent,
   defaultOpen = false,
 }: {
@@ -279,7 +234,6 @@ const ExerciseSection = ({
   items: ExerciseLibraryItem[];
   mode: "basico" | "variante" | "accesorio";
   onRemove: (id: string) => void;
-  onRefresh: () => void;
   showParent?: boolean;
   defaultOpen?: boolean;
 }) => {
@@ -296,12 +250,12 @@ const ExerciseSection = ({
             <Badge variant="outline" className="text-xs">{items.length}</Badge>
           </div>
           <div onClick={(e) => e.stopPropagation()}>
-            <AddExerciseDialog mode={mode} onAdded={onRefresh} />
+            <AddExerciseDialog mode={mode} />
           </div>
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="border-t border-border">
-            <ExerciseTable items={items} onRemove={onRemove} onEdit={onRefresh} showParent={showParent} />
+            <ExerciseTable items={items} onRemove={onRemove} showParent={showParent} />
           </div>
         </CollapsibleContent>
       </div>
@@ -348,7 +302,6 @@ const FoodTableSection = ({
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="border-t border-border p-4 space-y-3">
-            {/* Add new */}
             <div className="flex gap-2">
               <Input
                 placeholder="Nuevo alimento..."
@@ -363,17 +316,13 @@ const FoodTableSection = ({
                 }}
               />
               <Button
-                size="sm"
-                variant="outline"
-                className="h-8 text-xs gap-1"
+                size="sm" variant="outline" className="h-8 text-xs gap-1"
                 disabled={!newItem.trim()}
                 onClick={() => { onAdd(newItem.trim()); setNewItem(""); }}
               >
                 <Plus className="h-3 w-3" /> Añadir
               </Button>
             </div>
-
-            {/* List */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5 max-h-[400px] overflow-y-auto">
               {items.map((item, idx) => (
                 <div key={idx} className="flex items-center gap-1.5 bg-background/50 border border-border/50 rounded-lg px-3 py-1.5 text-sm group">
@@ -411,18 +360,24 @@ const FoodTableSection = ({
 
 const AdminExerciseLibrary = () => {
   const [search, setSearch] = useState("");
-  const [, forceUpdate] = useState(0);
   const { toast } = useToast();
 
-  const refresh = () => forceUpdate((n) => n + 1);
+  const exercises = useExerciseLibraryStore((s) => s.exercises);
+  const removeExercise = useExerciseLibraryStore((s) => s.removeExercise);
+  const fruits = useExerciseLibraryStore((s) => s.fruits);
+  const vegetables = useExerciseLibraryStore((s) => s.vegetables);
+  const addFruit = useExerciseLibraryStore((s) => s.addFruit);
+  const removeFruit = useExerciseLibraryStore((s) => s.removeFruit);
+  const editFruit = useExerciseLibraryStore((s) => s.editFruit);
+  const addVegetable = useExerciseLibraryStore((s) => s.addVegetable);
+  const removeVegetable = useExerciseLibraryStore((s) => s.removeVegetable);
+  const editVegetable = useExerciseLibraryStore((s) => s.editVegetable);
 
   const handleRemove = (id: string) => {
-    const idx = exerciseLibrary.findIndex((e) => e.id === id);
-    if (idx >= 0) {
-      const name = exerciseLibrary[idx].name;
-      exerciseLibrary.splice(idx, 1);
-      toast({ title: "Ejercicio eliminado", description: `"${name}" eliminado de la biblioteca.` });
-      refresh();
+    const ex = exercises.find((e) => e.id === id);
+    if (ex) {
+      removeExercise(id);
+      toast({ title: "Ejercicio eliminado", description: `"${ex.name}" eliminado de la biblioteca.` });
     }
   };
 
@@ -430,14 +385,13 @@ const AdminExerciseLibrary = () => {
   const match = (e: ExerciseLibraryItem) =>
     e.name.toLowerCase().includes(ls) || (e.muscleGroup || "").toLowerCase().includes(ls);
 
-  const basics = exerciseLibrary.filter((e) => e.category === "basico" && match(e));
-  const variants = exerciseLibrary.filter((e) => e.category === "variante" && match(e));
-  const accessories = exerciseLibrary.filter((e) => e.category === "accesorio" && match(e));
+  const basics = exercises.filter((e) => e.category === "basico" && match(e));
+  const variants = exercises.filter((e) => e.category === "variante" && match(e));
+  const accessories = exercises.filter((e) => e.category === "accesorio" && match(e));
 
   return (
     <AdminLayout>
       <div className="space-y-6 animate-fade-in">
-        {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Library className="h-6 w-6 text-primary" />
@@ -456,14 +410,13 @@ const AdminExerciseLibrary = () => {
 
           {/* ======= EXERCISES TAB ======= */}
           <TabsContent value="exercises" className="space-y-6">
-            {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
                 <div className="h-10 w-10 rounded-lg bg-primary/15 flex items-center justify-center">
                   <Dumbbell className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{exerciseLibrary.filter((e) => e.category === "basico").length}</p>
+                  <p className="text-2xl font-bold text-foreground">{exercises.filter((e) => e.category === "basico").length}</p>
                   <p className="text-xs text-muted-foreground">Básicos</p>
                 </div>
               </div>
@@ -472,7 +425,7 @@ const AdminExerciseLibrary = () => {
                   <Layers className="h-5 w-5 text-accent" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{exerciseLibrary.filter((e) => e.category === "variante").length}</p>
+                  <p className="text-2xl font-bold text-foreground">{exercises.filter((e) => e.category === "variante").length}</p>
                   <p className="text-xs text-muted-foreground">Variantes</p>
                 </div>
               </div>
@@ -481,23 +434,21 @@ const AdminExerciseLibrary = () => {
                   <Target className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{exerciseLibrary.filter((e) => e.category === "accesorio").length}</p>
+                  <p className="text-2xl font-bold text-foreground">{exercises.filter((e) => e.category === "accesorio").length}</p>
                   <p className="text-xs text-muted-foreground">Accesorios</p>
                 </div>
               </div>
             </div>
 
-            {/* Search */}
             <div className="relative max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Buscar por nombre o grupo muscular..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-card border-border" />
             </div>
 
-            {/* 3 collapsible sections */}
             <div className="space-y-4">
-              <ExerciseSection icon={Dumbbell} iconClass="text-primary" title="Básicos" items={basics} mode="basico" onRemove={handleRemove} onRefresh={refresh} defaultOpen />
-              <ExerciseSection icon={Layers} iconClass="text-accent" title="Variantes" items={variants} mode="variante" onRemove={handleRemove} onRefresh={refresh} showParent />
-              <ExerciseSection icon={Target} iconClass="text-muted-foreground" title="Accesorios" items={accessories} mode="accesorio" onRemove={handleRemove} onRefresh={refresh} />
+              <ExerciseSection icon={Dumbbell} iconClass="text-primary" title="Básicos" items={basics} mode="basico" onRemove={handleRemove} defaultOpen />
+              <ExerciseSection icon={Layers} iconClass="text-accent" title="Variantes" items={variants} mode="variante" onRemove={handleRemove} showParent />
+              <ExerciseSection icon={Target} iconClass="text-muted-foreground" title="Accesorios" items={accessories} mode="accesorio" onRemove={handleRemove} />
             </div>
           </TabsContent>
 
@@ -505,20 +456,20 @@ const AdminExerciseLibrary = () => {
           <TabsContent value="foods" className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
-                <div className="h-10 w-10 rounded-lg bg-green-500/15 flex items-center justify-center">
-                  <Apple className="h-5 w-5 text-green-500" />
+                <div className="h-10 w-10 rounded-lg bg-primary/15 flex items-center justify-center">
+                  <Apple className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{globalFruitTable.length}</p>
+                  <p className="text-2xl font-bold text-foreground">{fruits.length}</p>
                   <p className="text-xs text-muted-foreground">Frutas</p>
                 </div>
               </div>
               <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
-                <div className="h-10 w-10 rounded-lg bg-emerald-500/15 flex items-center justify-center">
-                  <Leaf className="h-5 w-5 text-emerald-500" />
+                <div className="h-10 w-10 rounded-lg bg-accent/15 flex items-center justify-center">
+                  <Leaf className="h-5 w-5 text-accent" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{globalVegetableTable.length}</p>
+                  <p className="text-2xl font-bold text-foreground">{vegetables.length}</p>
                   <p className="text-xs text-muted-foreground">Verduras</p>
                 </div>
               </div>
@@ -527,22 +478,22 @@ const AdminExerciseLibrary = () => {
             <div className="space-y-4">
               <FoodTableSection
                 icon={Apple}
-                iconClass="text-green-500"
+                iconClass="text-primary"
                 title="Tabla 01 — Frutas"
-                items={globalFruitTable}
+                items={fruits}
                 defaultOpen
-                onAdd={(name) => { globalFruitTable.push(name); toast({ title: "Fruta añadida", description: `"${name}" añadida.` }); refresh(); }}
-                onRemove={(idx) => { const name = globalFruitTable[idx]; globalFruitTable.splice(idx, 1); toast({ title: "Fruta eliminada", description: `"${name}" eliminada.` }); refresh(); }}
-                onEdit={(idx, name) => { globalFruitTable[idx] = name; refresh(); }}
+                onAdd={(name) => { addFruit(name); toast({ title: "Fruta añadida", description: `"${name}" añadida.` }); }}
+                onRemove={(idx) => { const name = fruits[idx]; removeFruit(idx); toast({ title: "Fruta eliminada", description: `"${name}" eliminada.` }); }}
+                onEdit={(idx, name) => editFruit(idx, name)}
               />
               <FoodTableSection
                 icon={Leaf}
-                iconClass="text-emerald-500"
+                iconClass="text-accent"
                 title="Tabla 02 — Verduras"
-                items={globalVegetableTable}
-                onAdd={(name) => { globalVegetableTable.push(name); toast({ title: "Verdura añadida", description: `"${name}" añadida.` }); refresh(); }}
-                onRemove={(idx) => { const name = globalVegetableTable[idx]; globalVegetableTable.splice(idx, 1); toast({ title: "Verdura eliminada", description: `"${name}" eliminada.` }); refresh(); }}
-                onEdit={(idx, name) => { globalVegetableTable[idx] = name; refresh(); }}
+                items={vegetables}
+                onAdd={(name) => { addVegetable(name); toast({ title: "Verdura añadida", description: `"${name}" añadida.` }); }}
+                onRemove={(idx) => { const name = vegetables[idx]; removeVegetable(idx); toast({ title: "Verdura eliminada", description: `"${name}" eliminada.` }); }}
+                onEdit={(idx, name) => editVegetable(idx, name)}
               />
             </div>
           </TabsContent>
