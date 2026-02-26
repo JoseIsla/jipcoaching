@@ -14,14 +14,11 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianG
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Progress } from "@/components/ui/progress";
 import {
-  mockClients,
   mockQuestionnaireEntries,
-  getActiveClients,
-  getNewClientsThisMonth,
-  getActiveNutritionPlans,
-  getActiveTrainingPlans,
-  getRetentionRate,
 } from "@/data/mockData";
+import { useClientStore } from "@/data/useClientStore";
+import { nutritionPlanList } from "@/data/nutritionPlanStore";
+import { trainingPlanList } from "@/data/trainingPlanStore";
 
 const item = (delay: number) => ({
   initial: { opacity: 0, y: 16 },
@@ -32,10 +29,11 @@ const item = (delay: number) => ({
 const AdminDashboard = () => {
   const navigate = useNavigate();
 
+  const { clients, getActiveClients, getNewClientsThisMonth, getRetentionRate } = useClientStore();
   const activeClients = getActiveClients();
   const newThisMonth = getNewClientsThisMonth();
-  const activeNutrition = getActiveNutritionPlans();
-  const activeTraining = getActiveTrainingPlans();
+  const activeNutrition = nutritionPlanList.filter((p) => p.active);
+  const activeTraining = trainingPlanList.filter((p) => p.active);
   const retention = getRetentionRate();
 
   const pendingCheckins = mockQuestionnaireEntries.filter(
@@ -81,7 +79,7 @@ const AdminDashboard = () => {
     {
       title: "Retención",
       value: `${retention}%`,
-      sub: `${mockClients.filter((c) => c.status !== "Inactivo").length}/${mockClients.length}`,
+      sub: `${clients.filter((c) => c.status !== "Inactivo").length}/${clients.length}`,
       icon: TrendingUp,
       color: retention >= 80 ? ("primary" as const) : ("destructive" as const),
       positive: retention >= 80,
@@ -221,10 +219,10 @@ const AdminDashboard = () => {
               <p className="text-sm font-semibold text-foreground">Retención</p>
               <div className="mt-2 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">
-                    {mockClients.filter((c) => c.status !== "Inactivo").length} de{" "}
-                    {mockClients.length} clientes
-                  </span>
+                    <span className="text-xs text-muted-foreground">
+                      {clients.filter((c) => c.status !== "Inactivo").length} de{" "}
+                      {clients.length} clientes
+                    </span>
                   <span className="text-xs font-medium text-primary">
                     {retention}%
                   </span>

@@ -8,13 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import {
-  mockClients,
-  getActiveClients,
   clientWeightHistory,
   getClientBestRMs,
   getClientTrainingProgress,
   type Client,
 } from "@/data/mockData";
+import { useClientStore } from "@/data/useClientStore";
 
 const ClientProgressCard = ({ client, onClick }: { client: Client; onClick: () => void }) => {
   const hasNutrition = client.services.includes("nutrition");
@@ -266,7 +265,7 @@ const AdminProgress = () => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [search, setSearch] = useState("");
 
-  const activeClients = getActiveClients();
+  const activeClients = useClientStore((s) => s.getActiveClients)();
   const filtered = activeClients.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.plan.toLowerCase().includes(search.toLowerCase())

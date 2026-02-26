@@ -1,4 +1,5 @@
-import { mockTrainingPlans, mockClients, type TrainingBlock, type TrainingModality } from "./mockData";
+import { mockTrainingPlans, type TrainingBlock, type TrainingModality } from "./mockData";
+import { useClientStore } from "./useClientStore";
 
 // ==================== TYPES ====================
 
@@ -504,7 +505,7 @@ export const toggleTrainingPlanActive = (planId: string, active: boolean): void 
 };
 
 export const getTrainingClientsWithService = () =>
-  mockClients.filter((c) => c.services.includes("training") && c.status !== "Inactivo");
+  useClientStore.getState().clients.filter((c) => c.services.includes("training") && c.status !== "Inactivo");
 
 export const getActiveTrainingPlanForClient = (clientId: string) =>
   trainingPlanList.find((p) => p.clientId === clientId && p.active) || null;
