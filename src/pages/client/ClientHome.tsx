@@ -52,7 +52,7 @@ const ClientHome = () => {
             </div>
             <p className="text-3xl font-bold text-foreground tracking-tight">{latestWeight.weight}<span className="text-base font-normal text-muted-foreground ml-1">kg</span></p>
             <div className="flex gap-3 mt-1.5">
-              {weightDiff !== null && (<div className="flex items-center gap-1">{weightDiff < 0 ? <TrendingDown className="h-3.5 w-3.5 text-primary" /> : weightDiff > 0 ? <TrendingUp className="h-3.5 w-3.5 text-destructive" /> : null}<span className={`text-xs font-medium ${weightDiff < 0 ? "text-primary" : weightDiff > 0 ? "text-destructive" : "text-muted-foreground"}`}>{weightDiff > 0 ? "+" : ""}{weightDiff} sem</span></div>)}
+              {weightDiff !== null && (<div className="flex items-center gap-1">{weightDiff < 0 ? <TrendingDown className="h-3.5 w-3.5 text-primary" /> : weightDiff > 0 ? <TrendingUp className="h-3.5 w-3.5 text-primary" /> : null}<span className={`text-xs font-medium ${weightDiff !== 0 ? "text-primary" : "text-muted-foreground"}`}>{weightDiff > 0 ? "+" : ""}{weightDiff} sem</span></div>)}
               {totalDiff !== null && <span className="text-xs text-muted-foreground">{totalDiff > 0 ? "+" : ""}{totalDiff} total</span>}
             </div>
           </motion.button>
