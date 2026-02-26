@@ -2,11 +2,32 @@ import { useState } from "react";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, Utensils, Apple, Leaf, Target, Flame, Droplets } from "lucide-react";
 import AnimatedChevron from "@/components/ui/animated-chevron";
+import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-content";
 import { useNutritionPlanStore, macroCategoryLabels, type Meal, type MealOption } from "@/data/useNutritionPlanStore";
 import { useExerciseLibraryStore } from "@/data/useExerciseLibraryStore";
+import { type ReactNode } from "react";
+
+const ControlledCollapsible = ({ trigger, children }: { trigger: ReactNode; children: ReactNode }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+          <div className="flex items-center gap-2">
+            <AnimatedChevron open={open} />
+            {trigger}
+          </div>
+        </CollapsibleTrigger>
+        <AnimatedCollapsibleContent open={open}>
+          {children}
+        </AnimatedCollapsibleContent>
+      </div>
+    </Collapsible>
+  );
+};
 
 const OptionCard = ({ option, optionIdx }: { option: MealOption; optionIdx: number }) => (
   <div className="space-y-2">
@@ -51,14 +72,14 @@ const MealCard = ({ meal }: { meal: Meal }) => {
             <Badge variant="outline" className="text-[10px]">{meal.options.length} opción{meal.options.length > 1 ? "es" : ""}</Badge>
           </div>
         </CollapsibleTrigger>
-        <CollapsibleContent>
+        <AnimatedCollapsibleContent open={open}>
           <div className="p-4 pt-0 space-y-4">
             {meal.description && <p className="text-xs text-muted-foreground italic">{meal.description}</p>}
             {meal.options.map((opt, i) => (
               <OptionCard key={opt.id} option={opt} optionIdx={i} />
             ))}
           </div>
-        </CollapsibleContent>
+        </AnimatedCollapsibleContent>
       </div>
     </Collapsible>
   );
@@ -143,31 +164,26 @@ const ClientNutrition = () => {
         )}
 
         {/* Supplements */}
-        {supplements.length > 0 && (
-          <Collapsible>
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
-              <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-foreground">💊 Suplementación</span>
-                  <Badge variant="outline" className="text-[10px]">{supplements.length}</Badge>
-                </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="px-4 pb-4 space-y-2">
-                  {supplements.map((s, i) => (
-                    <div key={i} className="bg-background/50 border border-border/40 rounded-lg p-3 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{s.name}</p>
-                        <p className="text-xs text-muted-foreground">{s.dose}</p>
-                      </div>
-                      <Badge variant="outline" className="text-[10px]">{s.timing}</Badge>
-                    </div>
-                  ))}
-                </div>
-              </CollapsibleContent>
+        {supplements.length > 0 && <ControlledCollapsible
+          trigger={
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-foreground">💊 Suplementación</span>
+              <Badge variant="outline" className="text-[10px]">{supplements.length}</Badge>
             </div>
-          </Collapsible>
-        )}
+          }
+        >
+          <div className="px-4 pb-4 space-y-2">
+            {supplements.map((s, i) => (
+              <div key={i} className="bg-background/50 border border-border/40 rounded-lg p-3 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{s.name}</p>
+                  <p className="text-xs text-muted-foreground">{s.dose}</p>
+                </div>
+                <Badge variant="outline" className="text-[10px]">{s.timing}</Badge>
+              </div>
+            ))}
+          </div>
+        </ControlledCollapsible>}
 
         {/* Recommendations */}
         {planDetail && planDetail.recommendations.length > 0 && (
@@ -185,43 +201,37 @@ const ClientNutrition = () => {
 
         {/* Fruit & Vegetable tables */}
         <div className="grid grid-cols-1 gap-3">
-          <Collapsible>
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
-              <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
-                <div className="flex items-center gap-2">
-                  <Apple className="h-4 w-4 text-primary" />
-                  <span className="font-semibold text-foreground text-sm">Tabla 01 — Frutas</span>
-                  <Badge variant="outline" className="text-[10px]">{fruits.length}</Badge>
-                </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="px-4 pb-4 flex flex-wrap gap-1.5">
-                  {fruits.map((f, i) => (
-                    <span key={i} className="text-xs bg-muted/50 text-muted-foreground px-2 py-1 rounded-full">{f}</span>
-                  ))}
-                </div>
-              </CollapsibleContent>
+          <ControlledCollapsible
+            trigger={
+              <div className="flex items-center gap-2">
+                <Apple className="h-4 w-4 text-primary" />
+                <span className="font-semibold text-foreground text-sm">Tabla 01 — Frutas</span>
+                <Badge variant="outline" className="text-[10px]">{fruits.length}</Badge>
+              </div>
+            }
+          >
+            <div className="px-4 pb-4 flex flex-wrap gap-1.5">
+              {fruits.map((f, i) => (
+                <span key={i} className="text-xs bg-muted/50 text-muted-foreground px-2 py-1 rounded-full">{f}</span>
+              ))}
             </div>
-          </Collapsible>
+          </ControlledCollapsible>
 
-          <Collapsible>
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
-              <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
-                <div className="flex items-center gap-2">
-                  <Leaf className="h-4 w-4 text-accent" />
-                  <span className="font-semibold text-foreground text-sm">Tabla 02 — Verduras</span>
-                  <Badge variant="outline" className="text-[10px]">{vegetables.length}</Badge>
-                </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="px-4 pb-4 flex flex-wrap gap-1.5">
-                  {vegetables.map((v, i) => (
-                    <span key={i} className="text-xs bg-muted/50 text-muted-foreground px-2 py-1 rounded-full">{v}</span>
-                  ))}
-                </div>
-              </CollapsibleContent>
+          <ControlledCollapsible
+            trigger={
+              <div className="flex items-center gap-2">
+                <Leaf className="h-4 w-4 text-accent" />
+                <span className="font-semibold text-foreground text-sm">Tabla 02 — Verduras</span>
+                <Badge variant="outline" className="text-[10px]">{vegetables.length}</Badge>
+              </div>
+            }
+          >
+            <div className="px-4 pb-4 flex flex-wrap gap-1.5">
+              {vegetables.map((v, i) => (
+                <span key={i} className="text-xs bg-muted/50 text-muted-foreground px-2 py-1 rounded-full">{v}</span>
+              ))}
             </div>
-          </Collapsible>
+          </ControlledCollapsible>
         </div>
       </div>
     </ClientLayout>

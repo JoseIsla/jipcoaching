@@ -10,9 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ClipboardList, Check, Clock, AlertCircle } from "lucide-react";
 import AnimatedChevron from "@/components/ui/animated-chevron";
+import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-content";
 import { useToast } from "@/hooks/use-toast";
 import {
   mockQuestionnaireEntries,
@@ -172,7 +173,7 @@ const CheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
             <span className="text-[10px] text-muted-foreground">{statusLabel}</span>
           </div>
         </CollapsibleTrigger>
-        <CollapsibleContent>
+        <AnimatedCollapsibleContent open={open}>
           <div className="p-4 pt-0 space-y-4">
             {canFill ? (
               <>
@@ -213,7 +214,7 @@ const CheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
               </p>
             )}
           </div>
-        </CollapsibleContent>
+        </AnimatedCollapsibleContent>
       </div>
     </Collapsible>
   );
