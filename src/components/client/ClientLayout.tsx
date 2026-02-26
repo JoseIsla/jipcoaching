@@ -2,6 +2,7 @@ import { type ReactNode, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings, LogOut, Loader2 } from "lucide-react";
+import PullToRefresh from "./PullToRefresh";
 import { useClient } from "@/contexts/ClientContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -101,7 +102,9 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
           >
-            {children}
+            <PullToRefresh>
+              {children}
+            </PullToRefresh>
           </motion.div>
         </AnimatePresence>
       </main>
