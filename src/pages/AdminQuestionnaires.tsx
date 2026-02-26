@@ -9,253 +9,152 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import {
-  ClipboardList,
-  Utensils,
-  Dumbbell,
-  CheckCircle2,
-  Clock,
-  XCircle,
-  ChevronLeft,
-  ChevronRight,
-  Eye,
-  Settings2,
-  Plus,
-  Trash2,
-  GripVertical,
-} from "lucide-react";
-import {
-  nutritionTemplates,
-  trainingTemplate,
-  type QuestionnaireEntry,
-  type NutritionTemplate,
-} from "@/data/mockData";
+import { ClipboardList, Utensils, Dumbbell, CheckCircle2, Clock, XCircle, ChevronLeft, ChevronRight, Eye, Settings2, Plus, Trash2, GripVertical } from "lucide-react";
+import { nutritionTemplates, trainingTemplate, type QuestionnaireEntry, type NutritionTemplate } from "@/data/mockData";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
-
-const statusConfig: Record<string, { label: string; icon: typeof CheckCircle2; className: string }> = {
-  respondido: { label: "Respondido", icon: CheckCircle2, className: "bg-primary/15 text-primary border-primary/30" },
-  pendiente: { label: "Pendiente", icon: Clock, className: "bg-accent/15 text-accent border-accent/30" },
-  no_enviado: { label: "No enviado", icon: XCircle, className: "bg-muted text-muted-foreground border-border" },
-};
+import { useTranslation } from "@/i18n/useTranslation";
 
 const AdminQuestionnaires = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedEntry, setSelectedEntry] = useState<QuestionnaireEntry | null>(null);
-
   const allEntries = useQuestionnaireStore((s) => s.entries);
 
-  // Week navigation label
+  const statusConfig: Record<string, { label: string; icon: typeof CheckCircle2; className: string }> = {
+    respondido: { label: t("questionnaires.statusResponded"), icon: CheckCircle2, className: "bg-primary/15 text-primary border-primary/30" },
+    pendiente: { label: t("questionnaires.statusPending"), icon: Clock, className: "bg-accent/15 text-accent border-accent/30" },
+    no_enviado: { label: t("questionnaires.statusNotSent"), icon: XCircle, className: "bg-muted text-muted-foreground border-border" },
+  };
+
   const weekLabel = useMemo(() => {
-    if (weekOffset === 0) return "Esta semana";
-    if (weekOffset === -1) return "Semana pasada";
-    const d = new Date();
-    d.setDate(d.getDate() + weekOffset * 7);
-    return `Sem. ${d.getDate()} ${d.toLocaleString("es-ES", { month: "short" })}`;
-  }, [weekOffset]);
+    if (weekOffset === 0) return t("questionnaires.thisWeek");
+    if (weekOffset === -1) return t("questionnaires.lastWeek");
+    const d = new Date(); d.setDate(d.getDate() + weekOffset * 7);
+    return t("questionnaires.weekOf", { date: `${d.getDate()} ${d.toLocaleString("es-ES", { month: "short" })}` });
+  }, [weekOffset, t]);
 
-  // Filter entries (mock: only current week data)
   const entries = weekOffset === 0 ? allEntries : [];
-
   const nutritionEntries = entries.filter((e) => e.category === "nutrition");
   const trainingEntries = entries.filter((e) => e.category === "training");
+  const nutritionStats = { total: nutritionEntries.length, responded: nutritionEntries.filter((e) => e.status === "respondido").length };
+  const trainingStats = { total: trainingEntries.length, responded: trainingEntries.filter((e) => e.status === "respondido").length };
 
-  const nutritionStats = {
-    total: nutritionEntries.length,
-    responded: nutritionEntries.filter((e) => e.status === "respondido").length,
-    pending: nutritionEntries.filter((e) => e.status === "pendiente").length,
-  };
-  const trainingStats = {
-    total: trainingEntries.length,
-    responded: trainingEntries.filter((e) => e.status === "respondido").length,
-    pending: trainingEntries.filter((e) => e.status === "pendiente").length,
-  };
-
-  // Group nutrition by day
   const nutritionByDay = useMemo(() => {
     const map: Record<string, QuestionnaireEntry[]> = {};
-    nutritionEntries.forEach((e) => {
-      if (!map[e.dayLabel]) map[e.dayLabel] = [];
-      map[e.dayLabel].push(e);
-    });
+    nutritionEntries.forEach((e) => { if (!map[e.dayLabel]) map[e.dayLabel] = []; map[e.dayLabel].push(e); });
     return map;
   }, [nutritionEntries]);
 
   return (
     <AdminLayout>
       <div className="space-y-6 animate-fade-in">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Cuestionarios</h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              Timeline semanal de check-ins de nutrición y entrenamiento
-            </p>
+            <h1 className="text-2xl font-bold text-foreground">{t("questionnaires.title")}</h1>
+            <p className="text-muted-foreground text-sm mt-1">{t("questionnaires.subtitle")}</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={() => setWeekOffset((w) => w - 1)}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
+            <Button variant="outline" size="icon" onClick={() => setWeekOffset((w) => w - 1)}><ChevronLeft className="h-4 w-4" /></Button>
             <span className="text-sm font-medium text-foreground min-w-[120px] text-center">{weekLabel}</span>
-            <Button variant="outline" size="icon" onClick={() => setWeekOffset((w) => Math.min(w + 1, 0))}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+            <Button variant="outline" size="icon" onClick={() => setWeekOffset((w) => Math.min(w + 1, 0))}><ChevronRight className="h-4 w-4" /></Button>
           </div>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatMini icon={Utensils} label="Nutrición enviados" value={nutritionStats.total} />
-          <StatMini icon={CheckCircle2} label="Nutrición respondidos" value={nutritionStats.responded} accent />
-          <StatMini icon={Dumbbell} label="Entreno enviados" value={trainingStats.total} />
-          <StatMini icon={CheckCircle2} label="Entreno respondidos" value={trainingStats.responded} accent />
+          <StatMini icon={Utensils} label={t("questionnaires.nutritionSent")} value={nutritionStats.total} />
+          <StatMini icon={CheckCircle2} label={t("questionnaires.nutritionResponded")} value={nutritionStats.responded} accent />
+          <StatMini icon={Dumbbell} label={t("questionnaires.trainingSent")} value={trainingStats.total} />
+          <StatMini icon={CheckCircle2} label={t("questionnaires.trainingResponded")} value={trainingStats.responded} accent />
         </div>
 
-        {/* Tabs */}
         <Tabs defaultValue="nutrition" className="space-y-4">
           <TabsList className="bg-muted border border-border">
-            <TabsTrigger value="nutrition" className="data-[state=active]:bg-card data-[state=active]:text-primary">
-              <Utensils className="h-4 w-4 mr-1.5" /> Nutrición
-            </TabsTrigger>
-            <TabsTrigger value="training" className="data-[state=active]:bg-card data-[state=active]:text-primary">
-              <Dumbbell className="h-4 w-4 mr-1.5" /> Entrenamiento
-            </TabsTrigger>
+            <TabsTrigger value="nutrition" className="data-[state=active]:bg-card data-[state=active]:text-primary"><Utensils className="h-4 w-4 mr-1.5" /> {t("common.nutrition")}</TabsTrigger>
+            <TabsTrigger value="training" className="data-[state=active]:bg-card data-[state=active]:text-primary"><Dumbbell className="h-4 w-4 mr-1.5" /> {t("common.training")}</TabsTrigger>
           </TabsList>
 
-          {/* ========== NUTRITION TAB ========== */}
           <TabsContent value="nutrition" className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-foreground">Check-ins de Nutrición</h2>
+              <h2 className="text-lg font-semibold text-foreground">{t("questionnaires.nutritionCheckins")}</h2>
               <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Settings2 className="h-4 w-4 mr-1" /> Editar plantillas
-                  </Button>
-                </DialogTrigger>
+                <DialogTrigger asChild><Button variant="outline" size="sm"><Settings2 className="h-4 w-4 mr-1" /> {t("questionnaires.editTemplates")}</Button></DialogTrigger>
                 <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="text-foreground">Plantillas de Nutrición</DialogTitle>
-                  </DialogHeader>
+                  <DialogHeader><DialogTitle className="text-foreground">{t("questionnaires.nutritionTemplates")}</DialogTitle></DialogHeader>
                   <Tabs defaultValue={nutritionTemplates[0]?.id} className="mt-4">
-                    <TabsList className="bg-muted border border-border">
-                      {nutritionTemplates.map((t) => (
-                        <TabsTrigger key={t.id} value={t.id} className="data-[state=active]:bg-card data-[state=active]:text-primary">
-                          {t.dayLabel}
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
+                    <TabsList className="bg-muted border border-border">{nutritionTemplates.map((tp) => <TabsTrigger key={tp.id} value={tp.id} className="data-[state=active]:bg-card data-[state=active]:text-primary">{tp.dayLabel}</TabsTrigger>)}</TabsList>
                     {nutritionTemplates.map((template) => (
                       <TabsContent key={template.id} value={template.id} className="space-y-4 mt-4">
-                        <p className="text-sm text-muted-foreground">{template.name} — {template.questions.length} preguntas</p>
+                        <p className="text-sm text-muted-foreground">{template.name} — {template.questions.length} {t("questionnaires.questions")}</p>
                         <div className="space-y-3">
                           {template.questions.map((q) => (
                             <div key={q.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border">
                               <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm text-foreground truncate">{q.label}</p>
-                                <p className="text-xs text-muted-foreground capitalize">{q.type}{q.required ? " · Obligatoria" : ""}</p>
-                              </div>
-                              <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              <div className="flex-1 min-w-0"><p className="text-sm text-foreground truncate">{q.label}</p><p className="text-xs text-muted-foreground capitalize">{q.type}{q.required ? ` · ${t("questionnaires.required")}` : ""}</p></div>
+                              <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
                             </div>
                           ))}
                         </div>
-                        <Button variant="outline" size="sm" className="w-full border-dashed">
-                          <Plus className="h-4 w-4 mr-1" /> Añadir pregunta
-                        </Button>
+                        <Button variant="outline" size="sm" className="w-full border-dashed"><Plus className="h-4 w-4 mr-1" /> {t("questionnaires.addQuestion")}</Button>
                       </TabsContent>
                     ))}
                   </Tabs>
                 </DialogContent>
               </Dialog>
             </div>
-
             {Object.keys(nutritionByDay).length === 0 ? (
-              <EmptyState text="No hay cuestionarios de nutrición esta semana" />
+              <EmptyState text={t("questionnaires.noNutritionCheckins")} />
             ) : (
               Object.entries(nutritionByDay).map(([day, dayEntries]) => (
                 <Card key={day} className="bg-card border-border">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Utensils className="h-4 w-4 text-primary" /> {day}
-                      </CardTitle>
-                      <Badge variant="outline" className="text-xs border-border text-muted-foreground">
-                        {dayEntries.filter((e) => e.status === "respondido").length}/{dayEntries.length} respondidos
-                      </Badge>
+                      <CardTitle className="text-base flex items-center gap-2"><Utensils className="h-4 w-4 text-primary" /> {day}</CardTitle>
+                      <Badge variant="outline" className="text-xs border-border text-muted-foreground">{dayEntries.filter((e) => e.status === "respondido").length}/{dayEntries.length} {t("questionnaires.responded")}</Badge>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {dayEntries.map((entry) => (
-                        <EntryRow key={entry.id} entry={entry} onView={() => setSelectedEntry(entry)} />
-                      ))}
-                    </div>
-                  </CardContent>
+                  <CardContent><div className="space-y-2">{dayEntries.map((entry) => <EntryRow key={entry.id} entry={entry} onView={() => setSelectedEntry(entry)} statusConfig={statusConfig} />)}</div></CardContent>
                 </Card>
               ))
             )}
           </TabsContent>
 
-          {/* ========== TRAINING TAB ========== */}
           <TabsContent value="training" className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-foreground">Registros Semanales de Entrenamiento</h2>
+              <h2 className="text-lg font-semibold text-foreground">{t("questionnaires.weeklyTraining")}</h2>
               <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Settings2 className="h-4 w-4 mr-1" /> Editar ejercicios
-                  </Button>
-                </DialogTrigger>
+                <DialogTrigger asChild><Button variant="outline" size="sm"><Settings2 className="h-4 w-4 mr-1" /> {t("questionnaires.editExercises")}</Button></DialogTrigger>
                 <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="text-foreground">Ejercicios del Registro</DialogTitle>
-                  </DialogHeader>
+                  <DialogHeader><DialogTitle className="text-foreground">{t("questionnaires.exercisesOfRecord")}</DialogTitle></DialogHeader>
                   <div className="mt-4 space-y-4">
-                    {trainingTemplate.exercises
-                      .filter((e) => !e.isVariant)
-                      .map((mainLift) => (
-                        <div key={mainLift.id} className="space-y-2">
-                          <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                            <Dumbbell className="h-4 w-4 text-primary shrink-0" />
-                            <span className="text-sm font-medium text-foreground flex-1">{mainLift.name}</span>
-                            <Badge variant="outline" className="text-xs border-primary/30 text-primary">Básico</Badge>
-                          </div>
-                          {trainingTemplate.exercises
-                            .filter((e) => e.isVariant && e.parentExercise === mainLift.id)
-                            .map((variant) => (
-                              <div key={variant.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border ml-6">
-                                <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
-                                <span className="text-sm text-foreground flex-1">{variant.name}</span>
-                                <Badge variant="outline" className="text-xs border-border text-muted-foreground">Variante</Badge>
-                                <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ))}
-                          <Button variant="outline" size="sm" className="ml-6 border-dashed text-xs">
-                            <Plus className="h-3 w-3 mr-1" /> Añadir variante
-                          </Button>
+                    {trainingTemplate.exercises.filter((e) => !e.isVariant).map((mainLift) => (
+                      <div key={mainLift.id} className="space-y-2">
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                          <Dumbbell className="h-4 w-4 text-primary shrink-0" />
+                          <span className="text-sm font-medium text-foreground flex-1">{mainLift.name}</span>
+                          <Badge variant="outline" className="text-xs border-primary/30 text-primary">{t("questionnaires.basic")}</Badge>
                         </div>
-                      ))}
+                        {trainingTemplate.exercises.filter((e) => e.isVariant && e.parentExercise === mainLift.id).map((variant) => (
+                          <div key={variant.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border ml-6">
+                            <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <span className="text-sm text-foreground flex-1">{variant.name}</span>
+                            <Badge variant="outline" className="text-xs border-border text-muted-foreground">{t("questionnaires.variant")}</Badge>
+                            <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                          </div>
+                        ))}
+                        <Button variant="outline" size="sm" className="ml-6 border-dashed text-xs"><Plus className="h-3 w-3 mr-1" /> {t("questionnaires.addVariant")}</Button>
+                      </div>
+                    ))}
                     <Separator className="bg-border" />
-                    <Button variant="outline" size="sm" className="w-full border-dashed">
-                      <Plus className="h-4 w-4 mr-1" /> Añadir ejercicio básico
-                    </Button>
+                    <Button variant="outline" size="sm" className="w-full border-dashed"><Plus className="h-4 w-4 mr-1" /> {t("questionnaires.addBasicExercise")}</Button>
                     <Separator className="bg-border" />
-                    <p className="text-sm font-medium text-foreground">Preguntas del cuestionario</p>
+                    <p className="text-sm font-medium text-foreground">{t("questionnaires.questionnaireQuestions")}</p>
                     <div className="space-y-2">
                       {trainingTemplate.questions.map((q) => (
                         <div key={q.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border">
                           <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm text-foreground truncate">{q.label}</p>
-                            <p className="text-xs text-muted-foreground capitalize">{q.type}</p>
-                          </div>
-                          <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex-1 min-w-0"><p className="text-sm text-foreground truncate">{q.label}</p><p className="text-xs text-muted-foreground capitalize">{q.type}</p></div>
+                          <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
                         </div>
                       ))}
                     </div>
@@ -263,34 +162,22 @@ const AdminQuestionnaires = () => {
                 </DialogContent>
               </Dialog>
             </div>
-
             {trainingEntries.length === 0 ? (
-              <EmptyState text="No hay registros de entrenamiento esta semana" />
+              <EmptyState text={t("questionnaires.noTrainingRecords")} />
             ) : (
               <Card className="bg-card border-border">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Dumbbell className="h-4 w-4 text-primary" /> Registro Semanal
-                    </CardTitle>
-                    <Badge variant="outline" className="text-xs border-border text-muted-foreground">
-                      {trainingEntries.filter((e) => e.status === "respondido").length}/{trainingEntries.length} respondidos
-                    </Badge>
+                    <CardTitle className="text-base flex items-center gap-2"><Dumbbell className="h-4 w-4 text-primary" /> {t("questionnaires.weeklyRecord")}</CardTitle>
+                    <Badge variant="outline" className="text-xs border-border text-muted-foreground">{trainingEntries.filter((e) => e.status === "respondido").length}/{trainingEntries.length} {t("questionnaires.responded")}</Badge>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {trainingEntries.map((entry) => (
-                      <EntryRow key={entry.id} entry={entry} onView={() => setSelectedEntry(entry)} />
-                    ))}
-                  </div>
-                </CardContent>
+                <CardContent><div className="space-y-2">{trainingEntries.map((entry) => <EntryRow key={entry.id} entry={entry} onView={() => setSelectedEntry(entry)} statusConfig={statusConfig} />)}</div></CardContent>
               </Card>
             )}
           </TabsContent>
         </Tabs>
 
-        {/* Response Detail Dialog */}
         <Dialog open={!!selectedEntry} onOpenChange={(open) => !open && setSelectedEntry(null)}>
           <DialogContent className="bg-card border-border max-w-lg max-h-[80vh] overflow-y-auto">
             <DialogHeader>
@@ -303,20 +190,14 @@ const AdminQuestionnaires = () => {
               <div className="space-y-4 mt-2">
                 {selectedEntry.responses && (
                   <div className="space-y-3">
-                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Respuestas</p>
+                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("questionnaires.responses")}</p>
                     {Object.entries(selectedEntry.responses).map(([key, val]) => {
-                      const template = selectedEntry.category === "nutrition"
-                        ? nutritionTemplates.find((t) => t.id === selectedEntry.templateId)
-                        : null;
-                      const questionDef = template
-                        ? template.questions.find((q) => q.id === key)
-                        : trainingTemplate.questions.find((q) => q.id === key);
+                      const template = selectedEntry.category === "nutrition" ? nutritionTemplates.find((tp) => tp.id === selectedEntry.templateId) : null;
+                      const questionDef = template ? template.questions.find((q) => q.id === key) : trainingTemplate.questions.find((q) => q.id === key);
                       return (
                         <div key={key} className="flex justify-between items-start gap-4 py-2 border-b border-border/50">
                           <span className="text-sm text-muted-foreground">{questionDef?.label || key}</span>
-                          <span className="text-sm font-medium text-foreground text-right">
-                            {typeof val === "boolean" ? (val ? "Sí" : "No") : String(val)}
-                          </span>
+                          <span className="text-sm font-medium text-foreground text-right">{typeof val === "boolean" ? (val ? "Sí" : "No") : String(val)}</span>
                         </div>
                       );
                     })}
@@ -324,17 +205,15 @@ const AdminQuestionnaires = () => {
                 )}
                 {selectedEntry.liftLogs && selectedEntry.liftLogs.length > 0 && (
                   <div className="space-y-3">
-                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Registro de Pesos</p>
+                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("questionnaires.weightRecord")}</p>
                     <div className="rounded-lg border border-border overflow-hidden">
                       <table className="w-full">
-                        <thead>
-                          <tr className="bg-muted/50 text-left">
-                            <th className="px-3 py-2 text-xs font-medium text-muted-foreground">Ejercicio</th>
-                            <th className="px-3 py-2 text-xs font-medium text-muted-foreground">Series</th>
-                            <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-right">Peso (kg)</th>
-                            <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-right">RPE</th>
-                          </tr>
-                        </thead>
+                        <thead><tr className="bg-muted/50 text-left">
+                          <th className="px-3 py-2 text-xs font-medium text-muted-foreground">{t("progress.exercise")}</th>
+                          <th className="px-3 py-2 text-xs font-medium text-muted-foreground">Series</th>
+                          <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-right">{t("progress.weight")} (kg)</th>
+                          <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-right">RPE</th>
+                        </tr></thead>
                         <tbody>
                           {selectedEntry.liftLogs.map((log, i) => (
                             <tr key={i} className="border-t border-border/50">
@@ -351,10 +230,7 @@ const AdminQuestionnaires = () => {
                 )}
               </div>
             ) : (
-              <div className="py-8 text-center">
-                <Clock className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">Este cuestionario aún no ha sido respondido</p>
-              </div>
+              <div className="py-8 text-center"><Clock className="h-10 w-10 text-muted-foreground mx-auto mb-3" /><p className="text-sm text-muted-foreground">{t("questionnaires.statusPending")}</p></div>
             )}
           </DialogContent>
         </Dialog>
@@ -363,59 +239,34 @@ const AdminQuestionnaires = () => {
   );
 };
 
-// ---- Sub-components ----
-
 function StatMini({ icon: Icon, label, value, accent }: { icon: typeof ClipboardList; label: string; value: number; accent?: boolean }) {
   return (
     <Card className="bg-card border-border">
       <CardContent className="p-4 flex items-center gap-3">
-        <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${accent ? "bg-primary/10" : "bg-muted"}`}>
-          <Icon className={`h-4 w-4 ${accent ? "text-primary" : "text-muted-foreground"}`} />
-        </div>
-        <div>
-          <p className="text-xl font-bold text-foreground">{value}</p>
-          <p className="text-xs text-muted-foreground">{label}</p>
-        </div>
+        <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${accent ? "bg-primary/10" : "bg-muted"}`}><Icon className={`h-4 w-4 ${accent ? "text-primary" : "text-muted-foreground"}`} /></div>
+        <div><p className="text-xl font-bold text-foreground">{value}</p><p className="text-xs text-muted-foreground">{label}</p></div>
       </CardContent>
     </Card>
   );
 }
 
-function EntryRow({ entry, onView }: { entry: QuestionnaireEntry; onView: () => void }) {
+function EntryRow({ entry, onView, statusConfig }: { entry: QuestionnaireEntry; onView: () => void; statusConfig: Record<string, { label: string; icon: typeof CheckCircle2; className: string }> }) {
   const config = statusConfig[entry.status];
   const StatusIcon = config.icon;
   return (
-    <div
-      className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
-      onClick={onView}
-    >
+    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer" onClick={onView}>
       <div className="flex items-center gap-3 min-w-0">
         <StatusIcon className={`h-4 w-4 shrink-0 ${entry.status === "respondido" ? "text-primary" : entry.status === "pendiente" ? "text-accent" : "text-muted-foreground"}`} />
-        <div className="min-w-0">
-          <span className="text-sm font-medium text-foreground truncate block">
-            {entry.clientName}
-          </span>
-          <p className="text-xs text-muted-foreground">{entry.date}</p>
-        </div>
+        <div className="min-w-0"><span className="text-sm font-medium text-foreground truncate block">{entry.clientName}</span><p className="text-xs text-muted-foreground">{entry.date}</p></div>
       </div>
-      <div className="flex items-center gap-2">
-        <Badge variant="outline" className={`text-xs ${config.className}`}>
-          {config.label}
-        </Badge>
-        <Eye className="h-4 w-4 text-muted-foreground" />
-      </div>
+      <div className="flex items-center gap-2"><Badge variant="outline" className={`text-xs ${config.className}`}>{config.label}</Badge><Eye className="h-4 w-4 text-muted-foreground" /></div>
     </div>
   );
 }
 
 function EmptyState({ text }: { text: string }) {
   return (
-    <Card className="bg-card border-border">
-      <CardContent className="py-12 text-center">
-        <ClipboardList className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-        <p className="text-sm text-muted-foreground">{text}</p>
-      </CardContent>
-    </Card>
+    <Card className="bg-card border-border"><CardContent className="py-12 text-center"><ClipboardList className="h-10 w-10 text-muted-foreground mx-auto mb-3" /><p className="text-sm text-muted-foreground">{text}</p></CardContent></Card>
   );
 }
 
