@@ -21,10 +21,12 @@ import { type ClientDetail } from "@/data/clientStore";
 import { useClientStore } from "@/data/useClientStore";
 import { useClientDetailStore } from "@/data/useClientDetailStore";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/i18n/useTranslation";
 
 type FilterType = "all" | "nutrition" | "training" | "both";
 
 const AdminClients = () => {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
   const [addOpen, setAddOpen] = useState(false);
@@ -39,8 +41,8 @@ const AdminClients = () => {
     const result = toggleStatus(confirmToggle.id);
     if (result) {
       toast({
-        title: result.newStatus === "Inactivo" ? "Cliente desactivado" : "Cliente reactivado",
-        description: `${result.name} ahora está ${result.newStatus.toLowerCase()}.`,
+        title: result.newStatus === "Inactivo" ? t("clients.deactivated") : t("clients.reactivated"),
+        description: t("clients.nowStatus", { name: result.name, status: result.newStatus.toLowerCase() }),
       });
     }
     setConfirmToggle(null);
@@ -119,14 +121,14 @@ const AdminClients = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Clientes</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t("clients.title")}</h1>
             <p className="text-muted-foreground text-sm mt-1">
-              {clients.length} clientes registrados
+              {t("clients.registered", { n: clients.length })}
             </p>
           </div>
           <Button className="glow-primary-sm gap-2" onClick={() => setAddOpen(true)}>
             <Plus className="h-4 w-4" />
-            Añadir cliente
+            {t("clients.addClient")}
           </Button>
         </div>
 
@@ -135,7 +137,7 @@ const AdminClients = () => {
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por nombre o email..."
+              placeholder={t("clients.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 bg-card border-border"
@@ -143,10 +145,10 @@ const AdminClients = () => {
           </div>
           <div className="flex gap-2">
             {([
-              { value: "all", label: "Todos" },
-              { value: "nutrition", label: "Solo Nutrición" },
-              { value: "training", label: "Solo Entrenamiento" },
-              { value: "both", label: "Ambos" },
+              { value: "all", label: t("common.all") },
+              { value: "nutrition", label: t("clients.onlyNutrition") },
+              { value: "training", label: t("clients.onlyTraining") },
+              { value: "both", label: t("common.both") },
             ] as const).map((f) => (
               <Button
                 key={f.value}
@@ -166,12 +168,12 @@ const AdminClients = () => {
           <Table>
             <TableHeader>
               <TableRow className="border-border hover:bg-transparent">
-                <TableHead className="text-muted-foreground">Nombre</TableHead>
-                <TableHead className="text-muted-foreground">Email</TableHead>
-                <TableHead className="text-muted-foreground">Servicios</TableHead>
-                <TableHead className="text-muted-foreground">Plan</TableHead>
-                <TableHead className="text-muted-foreground">Estado</TableHead>
-                <TableHead className="text-muted-foreground">Inicio</TableHead>
+                <TableHead className="text-muted-foreground">{t("clients.tableHeaders.name")}</TableHead>
+                <TableHead className="text-muted-foreground">{t("clients.tableHeaders.email")}</TableHead>
+                <TableHead className="text-muted-foreground">{t("clients.tableHeaders.services")}</TableHead>
+                <TableHead className="text-muted-foreground">{t("clients.tableHeaders.plan")}</TableHead>
+                <TableHead className="text-muted-foreground">{t("clients.tableHeaders.status")}</TableHead>
+                <TableHead className="text-muted-foreground">{t("clients.tableHeaders.start")}</TableHead>
                 <TableHead className="text-muted-foreground w-10"></TableHead>
               </TableRow>
             </TableHeader>
@@ -185,13 +187,13 @@ const AdminClients = () => {
                       {client.services.includes("nutrition") && (
                         <Badge variant="outline" className="gap-1 border-primary/30 text-primary bg-primary/10 text-xs">
                           <Utensils className="h-3 w-3" />
-                          Nutrición
+                          {t("common.nutrition")}
                         </Badge>
                       )}
                       {client.services.includes("training") && (
                         <Badge variant="outline" className="gap-1 border-accent/30 text-accent bg-accent/10 text-xs">
                           <Dumbbell className="h-3 w-3" />
-                          Entrenamiento
+                          {t("common.training")}
                         </Badge>
                       )}
                     </div>
@@ -212,19 +214,19 @@ const AdminClients = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-card border-border">
                         <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/admin/clients/${client.id}`); }}>
-                          Ver perfil
+                          {t("common.viewProfile")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/admin/clients/${client.id}`); }}>
-                          Editar
+                          {t("common.edit")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={(e) => { e.stopPropagation(); setConfirmToggle(client); }}
                           className={client.status === "Inactivo" ? "text-primary focus:text-primary" : "text-destructive focus:text-destructive"}
                         >
                           {client.status === "Inactivo" ? (
-                            <><UserCheck className="h-4 w-4 mr-2" /> Reactivar</>
+                            <><UserCheck className="h-4 w-4 mr-2" /> {t("clients.reactivate")}</>
                           ) : (
-                            <><UserX className="h-4 w-4 mr-2" /> Desactivar</>
+                            <><UserX className="h-4 w-4 mr-2" /> {t("clients.deactivate")}</>
                           )}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -235,7 +237,7 @@ const AdminClients = () => {
               {filtered.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
-                    No se encontraron clientes
+                    {t("clients.noClients")}
                   </TableCell>
                 </TableRow>
               )}
@@ -250,21 +252,21 @@ const AdminClients = () => {
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center gap-2 text-foreground">
                 <AlertTriangle className="h-5 w-5 text-accent" />
-                {confirmToggle?.status === "Inactivo" ? "Reactivar cliente" : "Desactivar cliente"}
+                {confirmToggle?.status === "Inactivo" ? t("clients.reactivateClient") : t("clients.deactivateClient")}
               </AlertDialogTitle>
               <AlertDialogDescription className="text-muted-foreground">
                 {confirmToggle?.status === "Inactivo"
-                  ? `¿Estás seguro de que quieres reactivar a ${confirmToggle?.name}?`
-                  : `¿Estás seguro de que quieres desactivar a ${confirmToggle?.name}? El cliente pasará a estado inactivo.`}
+                  ? t("clients.confirmReactivate", { name: confirmToggle?.name || "" })
+                  : t("clients.confirmDeactivate", { name: confirmToggle?.name || "" })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="border-border">Cancelar</AlertDialogCancel>
+              <AlertDialogCancel className="border-border">{t("common.cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={confirmToggleStatus}
                 className={confirmToggle?.status === "Inactivo" ? "bg-primary hover:bg-primary/90" : "bg-destructive hover:bg-destructive/90"}
               >
-                {confirmToggle?.status === "Inactivo" ? "Reactivar" : "Desactivar"}
+                {confirmToggle?.status === "Inactivo" ? t("clients.reactivate") : t("clients.deactivate")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
