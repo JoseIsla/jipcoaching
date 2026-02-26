@@ -2,7 +2,7 @@ import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ResponsiveContainer, LineChart, Line, YAxis } from "recharts";
+import { ResponsiveContainer, LineChart, Line, YAxis, Tooltip } from "recharts";
 import {
   Utensils,
   Dumbbell,
@@ -138,13 +138,26 @@ const ClientHome = () => {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={weightHistory}>
                       <YAxis hide domain={["dataMin - 0.5", "dataMax + 0.5"]} />
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (!active || !payload?.[0]) return null;
+                          const d = payload[0].payload as { date: string; weight: number };
+                          return (
+                            <div className="bg-card border border-border rounded-lg px-2.5 py-1.5 shadow-lg">
+                              <p className="text-xs font-semibold text-foreground">{d.weight} kg</p>
+                              <p className="text-[10px] text-muted-foreground">{d.date}</p>
+                            </div>
+                          );
+                        }}
+                        cursor={false}
+                      />
                       <Line
                         type="monotone"
                         dataKey="weight"
                         stroke="hsl(110, 100%, 54%)"
                         strokeWidth={2}
                         dot={false}
-                        activeDot={false}
+                        activeDot={{ r: 3, fill: "hsl(110, 100%, 54%)", strokeWidth: 0 }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
