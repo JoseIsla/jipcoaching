@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import LoadingScreen from "@/components/LoadingScreen";
 import logoJip from "@/assets/logo-jip.png";
 import { useAuth } from "@/contexts/AuthContext";
+import { API_BASE_URL } from "@/services/api";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useLanguageStore, type Language } from "@/i18n/store";
 import { useToast } from "@/hooks/use-toast";
@@ -136,6 +137,9 @@ const LoginPage = () => {
           </form>
         </div>
         <p className="text-center text-xs text-muted-foreground mt-8">© 2026 JIP Performance Nutrition. {t("common.allRightsReserved")}</p>
+        <p className="text-center text-[10px] text-muted-foreground/50 mt-2 font-mono truncate px-4" title={API_BASE_URL}>
+          API: {API_BASE_URL}
+        </p>
       </div>
     </div>
   );
