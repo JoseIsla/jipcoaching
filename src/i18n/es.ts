@@ -579,6 +579,18 @@ const es = {
     noDetail: "Sin detalle",
   },
 
+  clientNotifications: {
+    title: "Notificaciones",
+    noNotifications: "Sin notificaciones pendientes",
+    markAll: "Marcar todo",
+    nutritionCheckinTitle: "📋 Check-in de nutrición",
+    nutritionCheckinDesc: "Hoy toca rellenar tu check-in de nutrición. ¡No te lo saltes!",
+    trainingCheckinTitle: "🏋️ Registro de entrenamiento",
+    trainingCheckinDesc: "Es hora de registrar tus pesos y RPE de esta semana.",
+    goToCheckins: "Ir a Check-ins",
+    pendingReminder: "Tienes {n} check-in(s) pendiente(s)",
+  },
+
   clientSettings: {
     title: "Configuración",
     subtitle: "Gestiona tu perfil y seguridad",

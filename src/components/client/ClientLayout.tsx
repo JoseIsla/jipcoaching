@@ -1,24 +1,107 @@
-import { type ReactNode, useState, useEffect } from "react";
+import { type ReactNode, useState, useEffect, useRef } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings, LogOut, Loader2 } from "lucide-react";
+import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings, LogOut, Loader2, Bell } from "lucide-react";
 import PullToRefresh from "./PullToRefresh";
 import { useClient } from "@/contexts/ClientContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useLanguageStore } from "@/i18n/store";
+import { useClientNotificationStore } from "@/data/useClientNotificationStore";
+import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
+import { useToast } from "@/hooks/use-toast";
 
 const ClientLayout = ({ children }: { children: ReactNode }) => {
   const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
   const { t } = useTranslation();
   const { client, setClientId, allClients } = useClient();
   const { logout, userId } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const toastShownRef = useRef(false);
+
   useEffect(() => { if (userId) setCurrentUser(userId); }, [setCurrentUser, userId]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
+
+  // Notification store
+  const notifications = useClientNotificationStore((s) => s.notifications);
+  const generateForClient = useClientNotificationStore((s) => s.generateForClient);
+  const markAllRead = useClientNotificationStore((s) => s.markAllRead);
+  const unreadCount = useClientNotificationStore((s) => s.getUnreadCount());
+
+  // Get pending check-in entries for this client
+  const allEntries = useQuestionnaireStore((s) => s.entries);
+  const pendingEntries = allEntries.filter(
+    (e) => e.clientId === client.id && e.status === "pendiente"
+  );
+  const pendingNutrition = pendingEntries.filter((e) => e.category === "nutrition");
+  const pendingTraining = pendingEntries.filter((e) => e.category === "training");
+
+  // Generate notifications based on services and pending check-ins
+  useEffect(() => {
+    const pendingIds = pendingEntries.map((e) => e.id);
+    // Only generate if there are actually pending check-ins
+    if (pendingIds.length > 0) {
+      // Build notifications based on what's actually pending
+      const notifs: import("@/data/useClientNotificationStore").ClientNotification[] = [];
+      const now = new Date();
+
+      if (pendingNutrition.length > 0 && client.services.includes("nutrition")) {
+        notifs.push({
+          id: `cn-${client.id}-nutrition-${now.getTime()}`,
+          type: "nutrition_checkin",
+          titleKey: "clientNotifications.nutritionCheckinTitle",
+          descriptionKey: "clientNotifications.nutritionCheckinDesc",
+          timestamp: now,
+          read: false,
+          link: "/client/checkins",
+        });
+      }
+
+      if (pendingTraining.length > 0 && client.services.includes("training")) {
+        notifs.push({
+          id: `cn-${client.id}-training-${now.getTime()}`,
+          type: "training_checkin",
+          titleKey: "clientNotifications.trainingCheckinTitle",
+          descriptionKey: "clientNotifications.trainingCheckinDesc",
+          timestamp: now,
+          read: false,
+          link: "/client/checkins",
+        });
+      }
+
+      // Only update if different count (avoid infinite loop)
+      if (notifs.length !== notifications.length) {
+        useClientNotificationStore.setState({ notifications: notifs });
+      }
+    } else if (notifications.length > 0) {
+      // No pending → clear notifications (auto-dismiss)
+      useClientNotificationStore.getState().clear();
+    }
+  }, [client.id, client.services, pendingEntries.length, pendingNutrition.length, pendingTraining.length]);
+
+  // Auto-toast on entry when there are pending check-ins
+  useEffect(() => {
+    if (toastShownRef.current) return;
+    if (pendingEntries.length > 0) {
+      toastShownRef.current = true;
+      toast({
+        title: t("clientNotifications.pendingReminder", { n: String(pendingEntries.length) }),
+        description: t("clientNotifications.goToCheckins"),
+        duration: 5000,
+      });
+    }
+  }, [client.id]);
+
+  // Reset toast flag when client changes
+  useEffect(() => {
+    toastShownRef.current = false;
+  }, [client.id]);
 
   const tabs = [
     { label: t("clientNav.home"), icon: Home, path: "/client" },
@@ -42,6 +125,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
+    useClientNotificationStore.getState().clear();
     await logout();
     navigate("/login", { replace: true });
     setIsLoggingOut(false);
@@ -72,6 +156,73 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
           </div>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
+          {/* Bell icon with notification badge */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="relative p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+                <Bell className="h-4 w-4" />
+                {unreadCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center"
+                  >
+                    {unreadCount}
+                  </motion.span>
+                )}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72 p-0 bg-card border-border" align="end" sideOffset={8}>
+              <div className="p-3 border-b border-border flex items-center justify-between">
+                <p className="text-sm font-semibold text-foreground">{t("clientNotifications.title")}</p>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllRead}
+                    className="text-[10px] text-primary hover:underline"
+                  >
+                    {t("clientNotifications.markAll")}
+                  </button>
+                )}
+              </div>
+              <div className="max-h-64 overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="p-4 text-center">
+                    <Bell className="h-6 w-6 text-muted-foreground mx-auto mb-1.5" />
+                    <p className="text-xs text-muted-foreground">{t("clientNotifications.noNotifications")}</p>
+                  </div>
+                ) : (
+                  notifications.map((notif) => (
+                    <button
+                      key={notif.id}
+                      onClick={() => {
+                        useClientNotificationStore.getState().markRead(notif.id);
+                        navigate(notif.link);
+                      }}
+                      className={`w-full text-left p-3 border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors ${
+                        notif.read ? "opacity-60" : ""
+                      }`}
+                    >
+                      <p className="text-sm font-medium text-foreground">{t(notif.titleKey, notif.titleVars)}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t(notif.descriptionKey, notif.descriptionVars)}</p>
+                    </button>
+                  ))
+                )}
+              </div>
+              {notifications.length > 0 && (
+                <div className="p-2 border-t border-border">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-xs text-primary"
+                    onClick={() => navigate("/client/checkins")}
+                  >
+                    {t("clientNotifications.goToCheckins")}
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+
           <Select value={client.id} onValueChange={setClientId}>
             <SelectTrigger className="w-28 sm:w-36 h-8 text-xs bg-background border-border">
               <SelectValue />
@@ -115,6 +266,8 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
         <div className="flex items-center justify-around py-1.5 max-w-lg mx-auto">
           {visibleTabs.map((tab) => {
             const isActive = location.pathname === tab.path;
+            // Show badge on checkins tab if there are pending entries
+            const showBadge = tab.path === "/client/checkins" && pendingEntries.length > 0;
             return (
               <NavLink
                 key={tab.path}
@@ -125,7 +278,14 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
                     : "text-muted-foreground active:scale-95"
                 }`}
               >
-                <tab.icon className={`h-5 w-5 ${isActive ? "text-primary" : ""}`} />
+                <div className="relative">
+                  <tab.icon className={`h-5 w-5 ${isActive ? "text-primary" : ""}`} />
+                  {showBadge && (
+                    <span className="absolute -top-1 -right-1.5 h-3.5 w-3.5 rounded-full bg-destructive text-destructive-foreground text-[8px] font-bold flex items-center justify-center">
+                      {pendingEntries.length}
+                    </span>
+                  )}
+                </div>
                 <span className={`text-[10px] font-medium ${isActive ? "text-primary" : ""}`}>{tab.label}</span>
                 {isActive && (
                   <motion.div
