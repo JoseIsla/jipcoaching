@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Utensils, Dumbbell, MoreHorizontal } from "lucide-react";
+import { Search, Plus, Utensils, Dumbbell, MoreHorizontal, UserX, UserCheck } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AddClientSheet, { type NewClientData } from "@/components/admin/AddClientSheet";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { mockClients, type Client, type ServiceType } from "@/data/mockData";
 import { addClientToStore, type ClientDetail } from "@/data/clientStore";
+import { useToast } from "@/hooks/use-toast";
 
 type FilterType = "all" | "nutrition" | "training" | "both";
 
@@ -23,6 +24,22 @@ const AdminClients = () => {
   const [addOpen, setAddOpen] = useState(false);
   const [clients, setClients] = useState<Client[]>(mockClients);
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const toggleClientStatus = (clientId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setClients((prev) =>
+      prev.map((c) => {
+        if (c.id !== clientId) return c;
+        const newStatus = c.status === "Inactivo" ? "Activo" : "Inactivo";
+        toast({
+          title: newStatus === "Inactivo" ? "Cliente desactivado" : "Cliente reactivado",
+          description: `${c.name} ahora está ${newStatus.toLowerCase()}.`,
+        });
+        return { ...c, status: newStatus as Client["status"] };
+      })
+    );
+  };
 
   const handleClientAdded = (data: NewClientData) => {
     const now = new Date();
@@ -189,9 +206,22 @@ const AdminClients = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-card border-border">
-                        <DropdownMenuItem onClick={() => navigate(`/admin/clients/${client.id}`)}>Ver perfil</DropdownMenuItem>
-                        <DropdownMenuItem>Editar</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/admin/clients/${client.id}`); }}>
+                          Ver perfil
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/admin/clients/${client.id}`); }}>
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => toggleClientStatus(client.id, e)}
+                          className={client.status === "Inactivo" ? "text-primary focus:text-primary" : "text-destructive focus:text-destructive"}
+                        >
+                          {client.status === "Inactivo" ? (
+                            <><UserCheck className="h-4 w-4 mr-2" /> Reactivar</>
+                          ) : (
+                            <><UserX className="h-4 w-4 mr-2" /> Desactivar</>
+                          )}
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

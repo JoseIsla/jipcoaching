@@ -4,6 +4,7 @@ import {
   ArrowLeft, Mail, Phone, Utensils, Dumbbell, CreditCard, CalendarDays,
   Scale, TrendingDown, TrendingUp, User, Pencil, Save, Eye, EyeOff, Shield, X,
   Target, Activity, AlertTriangle, Pill, Brain, Briefcase, Clock,
+  UserX, UserCheck,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -350,6 +351,7 @@ const AdminClientDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
+  const { toast } = useToast();
   const client = id ? mockClientsDetail[id] : null;
 
   if (!client) {
@@ -398,9 +400,30 @@ const AdminClientDetail = () => {
                 {hasTraining && <Badge variant="outline" className="gap-1 border-accent/30 text-accent bg-accent/10 text-xs"><Dumbbell className="h-3 w-3" /> Entrenamiento</Badge>}
               </div>
             </div>
-            <Button className="glow-primary-sm gap-2 self-start" onClick={() => setEditing(true)}>
-              <Pencil className="h-4 w-4" /> Editar cliente
-            </Button>
+            <div className="flex gap-2 self-start">
+              <Button
+                variant="outline"
+                className={`gap-2 ${client.status === "Inactivo" ? "border-primary/30 text-primary hover:bg-primary/10" : "border-destructive/30 text-destructive hover:bg-destructive/10"}`}
+                onClick={() => {
+                  const newStatus = client.status === "Inactivo" ? "Activo" : "Inactivo";
+                  client.status = newStatus as ClientDetail["status"];
+                  toast({
+                    title: newStatus === "Inactivo" ? "Cliente desactivado" : "Cliente reactivado",
+                    description: `${client.name} ahora está ${newStatus.toLowerCase()}.`,
+                  });
+                  navigate("/admin/clients");
+                }}
+              >
+                {client.status === "Inactivo" ? (
+                  <><UserCheck className="h-4 w-4" /> Reactivar</>
+                ) : (
+                  <><UserX className="h-4 w-4" /> Desactivar</>
+                )}
+              </Button>
+              <Button className="glow-primary-sm gap-2" onClick={() => setEditing(true)}>
+                <Pencil className="h-4 w-4" /> Editar cliente
+              </Button>
+            </div>
           </div>
         </div>
 
