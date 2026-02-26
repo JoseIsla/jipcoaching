@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,6 +59,12 @@ function QuestionEditorDialog({
   const [label, setLabel] = useState(question?.label || "");
   const [type, setType] = useState<QuestionType>(question?.type || "text");
   const [required, setRequired] = useState(question?.required ?? true);
+
+  useEffect(() => {
+    setLabel(question?.label || "");
+    setType(question?.type || "text");
+    setRequired(question?.required ?? true);
+  }, [question]);
 
   const handleSave = () => {
     if (!label.trim()) return;
