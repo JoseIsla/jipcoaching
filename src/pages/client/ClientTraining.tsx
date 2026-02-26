@@ -6,13 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight, Dumbbell, Lock, Calendar } from "lucide-react";
 import {
-  getTrainingPlanDetail,
-  trainingPlanList,
+  useTrainingPlanStore,
   TRAINING_METHOD_LABELS,
   type TrainingPlanFull,
   type TrainingWeek,
   type TrainingDay,
-} from "@/data/trainingPlanStore";
+} from "@/data/useTrainingPlanStore";
 
 const DayView = ({ day }: { day: TrainingDay }) => {
   const [open, setOpen] = useState(false);
@@ -102,20 +101,20 @@ const DayView = ({ day }: { day: TrainingDay }) => {
 
 const ClientTraining = () => {
   const { client } = useClient();
-  const [plan, setPlan] = useState<TrainingPlanFull | null>(null);
+  const plans = useTrainingPlanStore((s) => s.plans);
+  const getDetail = useTrainingPlanStore((s) => s.getDetail);
+  const details = useTrainingPlanStore((s) => s.details);
   const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
 
-  const activePlan = trainingPlanList.find((p) => p.clientId === client.id && p.active);
+  const activePlan = plans.find((p) => p.clientId === client.id && p.active);
+  const plan = activePlan ? (details[activePlan.id] || getDetail(activePlan.id)) : null;
 
   useEffect(() => {
-    if (!activePlan) { setPlan(null); return; }
-    const detail = getTrainingPlanDetail(activePlan.id);
-    setPlan(detail);
-    if (detail) {
-      const activeIdx = detail.weeks.findIndex((w) => w.status === "active");
-      setSelectedWeekIdx(activeIdx >= 0 ? activeIdx : detail.weeks.length - 1);
+    if (plan) {
+      const activeIdx = plan.weeks.findIndex((w) => w.status === "active");
+      setSelectedWeekIdx(activeIdx >= 0 ? activeIdx : plan.weeks.length - 1);
     }
-  }, [activePlan?.id]);
+  }, [plan?.id]);
 
   if (!activePlan || !plan) {
     return (

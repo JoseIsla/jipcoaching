@@ -18,13 +18,9 @@ import {
   Trophy,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { nutritionPlanList } from "@/data/nutritionPlanStore";
-import { trainingPlanList } from "@/data/trainingPlanStore";
-import {
-  mockQuestionnaireEntries,
-  clientWeightHistory,
-  getClientBestRMs,
-} from "@/data/mockData";
+import { useNutritionPlanStore } from "@/data/useNutritionPlanStore";
+import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
+import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 
 const ClientHome = () => {
   const { client } = useClient();
@@ -33,19 +29,25 @@ const ClientHome = () => {
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
 
+  const nutritionPlans = useNutritionPlanStore((s) => s.plans);
+  const trainingPlans = useTrainingPlanStore((s) => s.plans);
+  const entries = useQuestionnaireStore((s) => s.entries);
+  const getWeightHistory = useQuestionnaireStore((s) => s.getWeightHistory);
+  const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
+
   const activePlan = hasNutrition
-    ? nutritionPlanList.find((p) => p.clientId === client.id && p.active)
+    ? nutritionPlans.find((p) => p.clientId === client.id && p.active)
     : null;
   const activeTraining = hasTraining
-    ? trainingPlanList.find((p) => p.clientId === client.id && p.active)
+    ? trainingPlans.find((p) => p.clientId === client.id && p.active)
     : null;
 
-  const pendingCheckins = mockQuestionnaireEntries.filter(
+  const pendingCheckins = entries.filter(
     (e) => e.clientId === client.id && e.status === "pendiente"
   ).length;
 
   // Weight data
-  const weightHistory = clientWeightHistory[client.id] || [];
+  const weightHistory = getWeightHistory(client.id);
   const latestWeight = weightHistory.length > 0 ? weightHistory[weightHistory.length - 1] : null;
   const prevWeight = weightHistory.length > 1 ? weightHistory[weightHistory.length - 2] : null;
   const weightDiff = latestWeight && prevWeight ? +(latestWeight.weight - prevWeight.weight).toFixed(1) : null;
@@ -53,7 +55,7 @@ const ClientHome = () => {
   const totalDiff = latestWeight && firstWeight ? +(latestWeight.weight - firstWeight.weight).toFixed(1) : null;
 
   // Best RMs
-  const bestRMs = hasTraining ? getClientBestRMs(client.id) : [];
+  const bestRMs = hasTraining ? getBestRMs(client.id) : [];
   const mainLifts = bestRMs.filter((r) =>
     ["Sentadilla", "Press Banca", "Peso Muerto"].includes(r.exerciseName)
   );
@@ -65,7 +67,7 @@ const ClientHome = () => {
     : 0;
 
   // Next checkin
-  const nextCheckin = mockQuestionnaireEntries.find(
+  const nextCheckin = entries.find(
     (e) => e.clientId === client.id && e.status === "pendiente"
   );
 

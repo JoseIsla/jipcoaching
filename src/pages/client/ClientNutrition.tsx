@@ -4,9 +4,7 @@ import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight, Utensils, Apple, Leaf, Target, Flame, Droplets } from "lucide-react";
-import { nutritionPlanDetailStore, globalFruitTable, globalVegetableTable, macroCategoryLabels, type Meal, type MealOption } from "@/data/nutritionPlanStore";
-import { nutritionPlanList } from "@/data/nutritionPlanStore";
-import { globalSupplements } from "@/data/nutritionPlanStore";
+import { useNutritionPlanStore, globalFruitTable, globalVegetableTable, macroCategoryLabels, type Meal, type MealOption } from "@/data/useNutritionPlanStore";
 
 const OptionCard = ({ option, optionIdx }: { option: MealOption; optionIdx: number }) => (
   <div className="space-y-2">
@@ -66,10 +64,13 @@ const MealCard = ({ meal }: { meal: Meal }) => {
 
 const ClientNutrition = () => {
   const { client } = useClient();
+  const plans = useNutritionPlanStore((s) => s.plans);
+  const details = useNutritionPlanStore((s) => s.details);
+  const supplements = useNutritionPlanStore((s) => s.supplements);
 
   // Find active plan detail
-  const activePlanSummary = nutritionPlanList.find((p) => p.clientId === client.id && p.active);
-  const planDetail = activePlanSummary ? nutritionPlanDetailStore[activePlanSummary.id] : null;
+  const activePlanSummary = plans.find((p) => p.clientId === client.id && p.active);
+  const planDetail = activePlanSummary ? details[activePlanSummary.id] : null;
 
   if (!activePlanSummary) {
     return (
@@ -138,18 +139,18 @@ const ClientNutrition = () => {
         )}
 
         {/* Supplements */}
-        {globalSupplements.length > 0 && (
+        {supplements.length > 0 && (
           <Collapsible>
             <div className="bg-card border border-border rounded-xl overflow-hidden">
               <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-foreground">💊 Suplementación</span>
-                  <Badge variant="outline" className="text-[10px]">{globalSupplements.length}</Badge>
+                  <Badge variant="outline" className="text-[10px]">{supplements.length}</Badge>
                 </div>
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <div className="px-4 pb-4 space-y-2">
-                  {globalSupplements.map((s, i) => (
+                  {supplements.map((s, i) => (
                     <div key={i} className="bg-background/50 border border-border/40 rounded-lg p-3 flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-foreground">{s.name}</p>

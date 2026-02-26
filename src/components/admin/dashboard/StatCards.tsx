@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { Users, Utensils, Dumbbell, TrendingUp, type LucideIcon } from "lucide-react";
 import { useClientStore } from "@/data/useClientStore";
-import { nutritionPlanList } from "@/data/nutritionPlanStore";
-import { trainingPlanList } from "@/data/trainingPlanStore";
+import { useNutritionPlanStore } from "@/data/useNutritionPlanStore";
+import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
 
 const item = (delay: number) => ({
   initial: { opacity: 0, y: 16 },
@@ -23,8 +23,10 @@ const StatCards = () => {
   const { clients, getActiveClients, getNewClientsThisMonth, getRetentionRate } = useClientStore();
   const activeClients = getActiveClients();
   const newThisMonth = getNewClientsThisMonth();
-  const activeNutrition = nutritionPlanList.filter((p) => p.active);
-  const activeTraining = trainingPlanList.filter((p) => p.active);
+  const nutritionPlans = useNutritionPlanStore((s) => s.plans);
+  const trainingPlans = useTrainingPlanStore((s) => s.plans);
+  const activeNutrition = nutritionPlans.filter((p) => p.active);
+  const activeTraining = trainingPlans.filter((p) => p.active);
   const retention = getRetentionRate();
 
   const stats: Stat[] = [
