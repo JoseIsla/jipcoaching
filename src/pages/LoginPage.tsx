@@ -21,6 +21,7 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
   const [error, setError] = useState("");
+  const [selectedRole, setSelectedRole] = useState<"admin" | "client">("admin");
 
   const {
     register,
@@ -48,6 +49,16 @@ const LoginPage = () => {
     }, 900);
   };
 
+  const handleMockLogin = (role: "admin" | "client") => {
+    setShowLoadingScreen(true);
+    // Simulate setting auth state directly
+    localStorage.setItem("jip_auth_token", `mock_token_${role}`);
+    localStorage.setItem("jip_mock_role", role);
+    window.setTimeout(() => {
+      window.location.href = role === "admin" ? "/admin" : "/client";
+    }, 900);
+  };
+
   if (showLoadingScreen) {
     return <LoadingScreen message="Cargando panel..." />;
   }
@@ -72,8 +83,36 @@ const LoginPage = () => {
               Bienvenido
             </h1>
             <p className="text-sm text-muted-foreground">
-              Ingresa tus credenciales para acceder al panel
+              Acceso rápido de desarrollo
             </p>
+          </div>
+
+          {/* Mock role selector */}
+          <div className="space-y-3">
+            <Label className="text-muted-foreground text-sm">Acceder como:</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                type="button"
+                onClick={() => handleMockLogin("admin")}
+                className="h-12 bg-primary text-primary-foreground font-semibold hover:brightness-110 transition-all"
+              >
+                Admin
+              </Button>
+              <Button
+                type="button"
+                onClick={() => handleMockLogin("client")}
+                variant="outline"
+                className="h-12 border-primary text-primary font-semibold hover:bg-primary/10 transition-all"
+              >
+                Cliente
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground">o con credenciales reales</span>
+            <div className="h-px flex-1 bg-border" />
           </div>
 
           {error && (
@@ -152,13 +191,6 @@ const LoginPage = () => {
               )}
             </Button>
           </form>
-
-          <p className="text-center text-xs text-muted-foreground pt-2">
-            ¿Olvidaste tu contraseña?{" "}
-            <span className="text-primary cursor-pointer hover:underline">
-              Recuperar acceso
-            </span>
-          </p>
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-8">

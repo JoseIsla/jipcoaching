@@ -19,7 +19,14 @@ interface AuthContextValue {
 }
 
 const AUTH_TOKEN_KEY = "jip_auth_token";
+const MOCK_ROLE_KEY = "jip_mock_role";
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+const getMockRole = (): UserRole | null => {
+  const r = localStorage.getItem(MOCK_ROLE_KEY);
+  if (r === "admin" || r === "client") return r;
+  return null;
+};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [status, setStatus] = useState<AuthStatus>("checking");
@@ -28,6 +35,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const clearSession = useCallback(() => {
     localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(MOCK_ROLE_KEY);
     setToken(null);
     setRole(null);
     setStatus("unauthenticated");
@@ -36,6 +44,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const hydrateSession = useCallback(async () => {
     setStatus("checking");
     const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
+
+    // Check for mock session first
+    const mockRole = getMockRole();
+    if (storedToken && mockRole) {
+      setToken(storedToken);
+      setRole(mockRole);
+      setStatus("authenticated");
+      return;
+    }
+
+    // Real session validation
     const response = await fetchSessionRequest(storedToken);
 
     if (!response.success || !response.data) {
