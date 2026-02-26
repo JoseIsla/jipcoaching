@@ -40,16 +40,26 @@ const AdminDashboard = () => {
     (e) => e.status === "pendiente"
   ).length;
 
-  // Client evolution by month
-  const monthLabels = ["Sep", "Oct", "Nov", "Dic", "Ene", "Feb"];
-  const clientEvolution = [
-    { month: "Sep", total: 2, new: 1 },
-    { month: "Oct", total: 3, new: 1 },
-    { month: "Nov", total: 4, new: 1 },
-    { month: "Dic", total: 5, new: 1 },
-    { month: "Ene", total: 6, new: 2 },
-    { month: "Feb", total: 8, new: 3 },
-  ];
+  // Client evolution by month – computed from store
+  const clientEvolution = (() => {
+    const monthNames: Record<string, string> = {
+      "01": "Ene", "02": "Feb", "03": "Mar", "04": "Abr",
+      "05": "May", "06": "Jun", "07": "Jul", "08": "Ago",
+      "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dic",
+    };
+
+    // Collect all unique months from clients, sorted chronologically
+    const monthsSet = new Set(clients.map((c) => c.joinedMonth));
+    const sortedMonths = Array.from(monthsSet).sort();
+
+    let cumulative = 0;
+    return sortedMonths.map((m) => {
+      const newInMonth = clients.filter((c) => c.joinedMonth === m).length;
+      cumulative += newInMonth;
+      const label = monthNames[m.split("-")[1]] || m;
+      return { month: label, total: cumulative, new: newInMonth };
+    });
+  })();
 
   const stats = [
     {
