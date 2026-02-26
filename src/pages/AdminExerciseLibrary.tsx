@@ -31,7 +31,8 @@ const AddExerciseDialog = ({ mode }: { mode: "basico" | "variante" | "accesorio"
   const [parentId, setParentId] = useState("");
   const { toast } = useToast();
 
-  const basics = useExerciseLibraryStore((s) => s.exercises.filter((e) => e.category === "basico"));
+  const allExercises = useExerciseLibraryStore((s) => s.exercises);
+  const basics = allExercises.filter((e) => e.category === "basico");
   const addExercise = useExerciseLibraryStore((s) => s.addExercise);
 
   const handleAdd = () => {
@@ -101,7 +102,8 @@ const EditExerciseDialog = ({ exercise }: { exercise: ExerciseLibraryItem }) => 
   const [parentId, setParentId] = useState(exercise.parentExerciseId || "");
   const { toast } = useToast();
 
-  const basics = useExerciseLibraryStore((s) => s.exercises.filter((e) => e.category === "basico" && e.id !== exercise.id));
+  const allExercises = useExerciseLibraryStore((s) => s.exercises);
+  const basics = allExercises.filter((e) => e.category === "basico" && e.id !== exercise.id);
   const updateExercise = useExerciseLibraryStore((s) => s.updateExercise);
 
   const handleSave = () => {
