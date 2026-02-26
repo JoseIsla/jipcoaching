@@ -484,18 +484,42 @@ const AdminExerciseLibrary = () => {
                 title="Tabla 01 — Frutas"
                 items={fruits}
                 defaultOpen
-                onAdd={(name) => { addFruit(name); toast({ title: "Fruta añadida", description: `"${name}" añadida.` }); }}
+                onAdd={(name) => {
+                  if (fruits.some((f) => f.toLowerCase() === name.toLowerCase())) {
+                    toast({ title: "Duplicado", description: `"${name}" ya existe en frutas.`, variant: "destructive" });
+                    return;
+                  }
+                  addFruit(name); toast({ title: "Fruta añadida", description: `"${name}" añadida.` });
+                }}
                 onRemove={(idx) => { const name = fruits[idx]; removeFruit(idx); toast({ title: "Fruta eliminada", description: `"${name}" eliminada.` }); }}
-                onEdit={(idx, name) => editFruit(idx, name)}
+                onEdit={(idx, name) => {
+                  if (fruits.some((f, i) => i !== idx && f.toLowerCase() === name.toLowerCase())) {
+                    toast({ title: "Duplicado", description: `"${name}" ya existe en frutas.`, variant: "destructive" });
+                    return;
+                  }
+                  editFruit(idx, name);
+                }}
               />
               <FoodTableSection
                 icon={Leaf}
                 iconClass="text-accent"
                 title="Tabla 02 — Verduras"
                 items={vegetables}
-                onAdd={(name) => { addVegetable(name); toast({ title: "Verdura añadida", description: `"${name}" añadida.` }); }}
+                onAdd={(name) => {
+                  if (vegetables.some((v) => v.toLowerCase() === name.toLowerCase())) {
+                    toast({ title: "Duplicado", description: `"${name}" ya existe en verduras.`, variant: "destructive" });
+                    return;
+                  }
+                  addVegetable(name); toast({ title: "Verdura añadida", description: `"${name}" añadida.` });
+                }}
                 onRemove={(idx) => { const name = vegetables[idx]; removeVegetable(idx); toast({ title: "Verdura eliminada", description: `"${name}" eliminada.` }); }}
-                onEdit={(idx, name) => editVegetable(idx, name)}
+                onEdit={(idx, name) => {
+                  if (vegetables.some((v, i) => i !== idx && v.toLowerCase() === name.toLowerCase())) {
+                    toast({ title: "Duplicado", description: `"${name}" ya existe en verduras.`, variant: "destructive" });
+                    return;
+                  }
+                  editVegetable(idx, name);
+                }}
               />
             </div>
           </TabsContent>
