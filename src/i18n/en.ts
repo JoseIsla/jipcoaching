@@ -47,11 +47,7 @@ const en: Translations = {
   // ── Login ──
   login: {
     welcome: "Welcome",
-    quickAccess: "Quick development access",
-    accessAs: "Access as:",
-    admin: "Admin",
-    client: "Client",
-    orCredentials: "or with real credentials",
+    subtitle: "Sign in to your account to continue",
     emailLabel: "Email",
     emailPlaceholder: "you@email.com",
     emailRequired: "Email is required",

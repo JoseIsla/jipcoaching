@@ -45,11 +45,7 @@ const es = {
   // ── Login ──
   login: {
     welcome: "Bienvenido",
-    quickAccess: "Acceso rápido de desarrollo",
-    accessAs: "Acceder como:",
-    admin: "Admin",
-    client: "Cliente",
-    orCredentials: "o con credenciales reales",
+    subtitle: "Accede a tu cuenta para continuar",
     emailLabel: "Email",
     emailPlaceholder: "tu@email.com",
     emailRequired: "El email es obligatorio",
