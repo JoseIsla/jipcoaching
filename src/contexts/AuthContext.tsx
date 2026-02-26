@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { fetchSessionRequest, loginRequest, logoutRequest, type LoginPayload, type UserRole } from "@/services/authApi";
+import { fetchSessionRequest, loginRequest, type LoginPayload, type UserRole } from "@/services/authApi";
 
 type AuthStatus = "checking" | "authenticated" | "unauthenticated";
 
@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
 
   const clearSession = useCallback(() => {
-    sessionStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_TOKEN_KEY);
     setToken(null);
     setRole(null);
     setStatus("unauthenticated");
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const hydrateSession = useCallback(async () => {
     setStatus("checking");
-    const storedToken = sessionStorage.getItem(AUTH_TOKEN_KEY);
+    const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
     const response = await fetchSessionRequest(storedToken);
 
     if (!response.success || !response.data) {
@@ -42,14 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const nextToken = response.data.token ?? storedToken ?? null;
-    if (nextToken) {
-      sessionStorage.setItem(AUTH_TOKEN_KEY, nextToken);
-    } else {
-      sessionStorage.removeItem(AUTH_TOKEN_KEY);
-    }
-
-    setToken(nextToken);
+    setToken(response.data.token);
     setRole(response.data.role);
     setStatus("authenticated");
   }, [clearSession]);
@@ -69,26 +62,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       };
     }
 
-    if (response.data.token) {
-      sessionStorage.setItem(AUTH_TOKEN_KEY, response.data.token);
-    } else {
-      sessionStorage.removeItem(AUTH_TOKEN_KEY);
-    }
-
+    localStorage.setItem(AUTH_TOKEN_KEY, response.data.token);
     setToken(response.data.token);
     setRole(response.data.role);
     setStatus("authenticated");
 
-    return {
-      success: true,
-      role: response.data.role,
-    };
+    return { success: true, role: response.data.role };
   }, [clearSession]);
 
   const logout = useCallback(async () => {
-    await logoutRequest(token);
     clearSession();
-  }, [clearSession, token]);
+  }, [clearSession]);
 
   const value = useMemo(
     () => ({ status, role, token, login, logout }),
