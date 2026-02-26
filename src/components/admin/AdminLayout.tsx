@@ -12,8 +12,8 @@ interface AdminLayoutProps {
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const location = useLocation();
-  const setCurrentRole = useLanguageStore((s) => s.setCurrentRole);
-  useEffect(() => { setCurrentRole("admin"); }, [setCurrentRole]);
+  const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
+  useEffect(() => { setCurrentUser("admin"); }, [setCurrentUser]);
 
   return (
     <div className="flex min-h-screen bg-background">
