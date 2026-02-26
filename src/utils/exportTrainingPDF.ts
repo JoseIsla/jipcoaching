@@ -46,7 +46,8 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry) => {
       doc.text(`Día ${day.dayNumber}: ${day.dayName}`, margin, y);
       y += 2;
 
-      const tableBody = day.exercises.map((ex) => {
+      const filteredExercises = day.exercises.filter((ex) => ex.section !== "accessory");
+      const tableBody = filteredExercises.map((ex) => {
         const rpeDiff =
           ex.actualRPE && ex.plannedRPE
             ? ex.actualRPE - ex.plannedRPE
