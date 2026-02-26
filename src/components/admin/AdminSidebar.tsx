@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -27,6 +27,7 @@ const navItems = [
 const AdminSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   return (
     <aside
@@ -66,7 +67,10 @@ const AdminSidebar = () => {
 
       {/* Footer */}
       <div className="border-t border-sidebar-border p-2 space-y-1">
-        <button className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors w-full">
+        <button
+          onClick={() => navigate("/login")}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors w-full"
+        >
           <LogOut className="h-5 w-5 shrink-0" />
           {!collapsed && <span>Cerrar sesión</span>}
         </button>

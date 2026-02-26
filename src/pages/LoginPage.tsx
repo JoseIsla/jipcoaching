@@ -5,6 +5,7 @@ import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import LoadingScreen from "@/components/LoadingScreen";
 import logoJip from "@/assets/logo-jip.png";
 
 interface LoginFormData {
@@ -16,6 +17,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showLoadingScreen, setShowLoadingScreen] = useState(false);
   const [error, setError] = useState("");
 
   const {
@@ -30,9 +32,17 @@ const LoginPage = () => {
     // Simulate login — replace with real API call
     setTimeout(() => {
       setIsLoading(false);
-      navigate("/admin");
-    }, 1500);
+      setShowLoadingScreen(true);
+      // Show loading screen then navigate
+      setTimeout(() => {
+        navigate("/admin");
+      }, 1200);
+    }, 800);
   };
+
+  if (showLoadingScreen) {
+    return <LoadingScreen message="Cargando panel..." />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden px-4">
