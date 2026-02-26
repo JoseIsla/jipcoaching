@@ -11,7 +11,7 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { trainingPlanList, toggleTrainingPlanActive, getCurrentBlockForPlan } from "@/data/trainingPlanStore";
+import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
 import type { TrainingBlock } from "@/data/mockData";
 import CreateTrainingPlanSheet from "@/components/admin/CreateTrainingPlanSheet";
 
@@ -40,94 +40,100 @@ const PlanTable = ({ plans, navigate, onDeactivate }: {
   plans: PlanEntry[];
   navigate: ReturnType<typeof useNavigate>;
   onDeactivate?: (id: string) => void;
-}) => (
-  <div className="bg-card border border-border rounded-xl overflow-hidden">
-    <Table>
-      <TableHeader>
-        <TableRow className="border-border hover:bg-transparent">
-          <TableHead className="text-muted-foreground">Cliente</TableHead>
-          <TableHead className="text-muted-foreground">Plan</TableHead>
-          <TableHead className="text-muted-foreground">Modalidad</TableHead>
-          <TableHead className="text-muted-foreground">Bloque</TableHead>
-          <TableHead className="text-muted-foreground">Semanas</TableHead>
-          <TableHead className="text-muted-foreground">Inicio</TableHead>
-          <TableHead className="text-muted-foreground">Fin</TableHead>
-          <TableHead className="text-muted-foreground w-10"></TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {plans.map((plan) => (
-          <TableRow
-            key={plan.id}
-            className="border-border/50 hover:bg-muted/30 cursor-pointer"
-            onClick={() => navigate(`/admin/training/${plan.id}`)}
-          >
-            <TableCell className="font-medium text-foreground">{plan.clientName}</TableCell>
-            <TableCell className="font-medium text-foreground">{plan.planName}</TableCell>
-            <TableCell>
-              <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10 text-xs">
-                {plan.modality}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              {(() => {
-                const currentBlock = getCurrentBlockForPlan(plan.id) || plan.block;
-                return (
-                  <span className={`inline-flex text-xs font-medium px-2.5 py-1 rounded-full border ${blockColor[currentBlock] || ""}`}>
-                    {currentBlock}
-                  </span>
-                );
-              })()}
-            </TableCell>
-            <TableCell className="text-muted-foreground font-mono text-sm">
-              {plan.active && plan.currentWeek ? `${plan.currentWeek}/${plan.weeksDuration}` : plan.weeksDuration}
-            </TableCell>
-            <TableCell className="text-muted-foreground text-sm">{plan.startDate}</TableCell>
-            <TableCell className="text-muted-foreground text-sm">{plan.endDate ?? "—"}</TableCell>
-            <TableCell>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost" size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-card border-border">
-                  <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); navigate(`/admin/training/${plan.id}`); }}>
-                    <Eye className="h-4 w-4" />Ver plan
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); navigate(`/admin/training/${plan.id}/edit`); }}>
-                    <Pencil className="h-4 w-4" />Editar
-                  </DropdownMenuItem>
-                  {plan.active && onDeactivate && (
-                    <DropdownMenuItem className="text-destructive gap-2" onClick={(e) => { e.stopPropagation(); onDeactivate(plan.id); }}>
-                      <XCircle className="h-4 w-4" />Desactivar
+}) => {
+  const getCurrentBlock = useTrainingPlanStore((s) => s.getCurrentBlock);
+
+  return (
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="border-border hover:bg-transparent">
+            <TableHead className="text-muted-foreground">Cliente</TableHead>
+            <TableHead className="text-muted-foreground">Plan</TableHead>
+            <TableHead className="text-muted-foreground">Modalidad</TableHead>
+            <TableHead className="text-muted-foreground">Bloque</TableHead>
+            <TableHead className="text-muted-foreground">Semanas</TableHead>
+            <TableHead className="text-muted-foreground">Inicio</TableHead>
+            <TableHead className="text-muted-foreground">Fin</TableHead>
+            <TableHead className="text-muted-foreground w-10"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {plans.map((plan) => (
+            <TableRow
+              key={plan.id}
+              className="border-border/50 hover:bg-muted/30 cursor-pointer"
+              onClick={() => navigate(`/admin/training/${plan.id}`)}
+            >
+              <TableCell className="font-medium text-foreground">{plan.clientName}</TableCell>
+              <TableCell className="font-medium text-foreground">{plan.planName}</TableCell>
+              <TableCell>
+                <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10 text-xs">
+                  {plan.modality}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                {(() => {
+                  const currentBlock = getCurrentBlock(plan.id) || plan.block;
+                  return (
+                    <span className={`inline-flex text-xs font-medium px-2.5 py-1 rounded-full border ${blockColor[currentBlock] || ""}`}>
+                      {currentBlock}
+                    </span>
+                  );
+                })()}
+              </TableCell>
+              <TableCell className="text-muted-foreground font-mono text-sm">
+                {plan.active && plan.currentWeek ? `${plan.currentWeek}/${plan.weeksDuration}` : plan.weeksDuration}
+              </TableCell>
+              <TableCell className="text-muted-foreground text-sm">{plan.startDate}</TableCell>
+              <TableCell className="text-muted-foreground text-sm">{plan.endDate ?? "—"}</TableCell>
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost" size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-card border-border">
+                    <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); navigate(`/admin/training/${plan.id}`); }}>
+                      <Eye className="h-4 w-4" />Ver plan
                     </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
-          </TableRow>
-        ))}
-        {plans.length === 0 && (
-          <TableRow>
-            <TableCell colSpan={8} className="text-center text-muted-foreground py-12">
-              No se encontraron planes de entrenamiento
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
-  </div>
-);
+                    <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); navigate(`/admin/training/${plan.id}/edit`); }}>
+                      <Pencil className="h-4 w-4" />Editar
+                    </DropdownMenuItem>
+                    {plan.active && onDeactivate && (
+                      <DropdownMenuItem className="text-destructive gap-2" onClick={(e) => { e.stopPropagation(); onDeactivate(plan.id); }}>
+                        <XCircle className="h-4 w-4" />Desactivar
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+          {plans.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={8} className="text-center text-muted-foreground py-12">
+                No se encontraron planes de entrenamiento
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};
 
 const AdminTraining = () => {
   const [search, setSearch] = useState("");
-  const [, forceUpdate] = useState(0);
   const navigate = useNavigate();
+
+  const plans = useTrainingPlanStore((s) => s.plans);
+  const togglePlanActive = useTrainingPlanStore((s) => s.togglePlanActive);
 
   const matchesSearch = (p: PlanEntry) =>
     p.clientName.toLowerCase().includes(search.toLowerCase()) ||
@@ -135,13 +141,12 @@ const AdminTraining = () => {
     p.modality.toLowerCase().includes(search.toLowerCase()) ||
     p.block.toLowerCase().includes(search.toLowerCase());
 
-  const activePlans = trainingPlanList.filter((p) => p.active && matchesSearch(p));
-  const inactivePlans = trainingPlanList.filter((p) => !p.active && matchesSearch(p));
-  const uniqueClients = new Set(trainingPlanList.filter((p) => p.active).map((p) => p.clientId)).size;
+  const activePlans = plans.filter((p) => p.active && matchesSearch(p));
+  const inactivePlans = plans.filter((p) => !p.active && matchesSearch(p));
+  const uniqueClients = new Set(plans.filter((p) => p.active).map((p) => p.clientId)).size;
 
   const handleDeactivate = (id: string) => {
-    toggleTrainingPlanActive(id, false);
-    forceUpdate((n) => n + 1);
+    togglePlanActive(id, false);
   };
 
   return (
@@ -158,7 +163,7 @@ const AdminTraining = () => {
               Planes de entrenamiento de tus clientes
             </p>
           </div>
-          <CreateTrainingPlanSheet onCreated={() => forceUpdate((n) => n + 1)} />
+          <CreateTrainingPlanSheet />
         </div>
 
         {/* Stats */}
@@ -168,7 +173,7 @@ const AdminTraining = () => {
               <CheckCircle2 className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{trainingPlanList.filter((p) => p.active).length}</p>
+              <p className="text-2xl font-bold text-foreground">{plans.filter((p) => p.active).length}</p>
               <p className="text-xs text-muted-foreground">Planes activos</p>
             </div>
           </div>
@@ -177,7 +182,7 @@ const AdminTraining = () => {
               <XCircle className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{trainingPlanList.filter((p) => !p.active).length}</p>
+              <p className="text-2xl font-bold text-foreground">{plans.filter((p) => !p.active).length}</p>
               <p className="text-xs text-muted-foreground">Planes anteriores</p>
             </div>
           </div>

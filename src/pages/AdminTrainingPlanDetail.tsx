@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, Plus, Trash2, GripVertical, Dumbbell, ChevronDown, ChevronRight, Lock, Copy } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -13,18 +13,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import type { TrainingBlock } from "@/data/mockData";
 import {
-  getTrainingPlanDetail,
-  saveTrainingWeek,
-  addWeekToPlan,
-  exerciseLibrary,
+  useTrainingPlanStore,
   TRAINING_METHOD_LABELS,
+  exerciseLibrary,
   type TrainingPlanFull,
   type TrainingWeek,
   type TrainingDay,
   type TrainingExerciseEntry,
   type TrainingMethod,
   type IntensityMeasure,
-} from "@/data/trainingPlanStore";
+} from "@/data/useTrainingPlanStore";
 
 // ==================== EXERCISE FORM ====================
 
@@ -231,7 +229,7 @@ const DayEditor = ({
   onChange: (d: TrainingDay) => void;
   allDays: TrainingDay[];
 }) => {
-   const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(true);
   const [dragId, setDragId] = useState<string | null>(null);
   const basics = day.exercises.filter((e) => e.section === "basic");
   const accessories = day.exercises.filter((e) => e.section === "accessory");
@@ -263,7 +261,6 @@ const DayEditor = ({
     const reordered = [...sectionExercises];
     const [moved] = reordered.splice(fromIdx, 1);
     reordered.splice(toIdx, 0, moved);
-    // Rebuild full exercises list preserving the other section's order
     const otherSection = day.exercises.filter((e) => e.section !== section);
     const newExercises = section === "basic" ? [...reordered, ...otherSection] : [...otherSection, ...reordered];
     onChange({ ...day, exercises: newExercises });
@@ -290,7 +287,6 @@ const DayEditor = ({
           <Badge variant="outline" className="text-xs">{basics.length} básicos · {accessories.length} accesorios</Badge>
         </div>
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          {/* Duplicate from another day */}
           {allDays.filter((d) => d.id !== day.id && d.exercises.length > 0).length > 0 && (
             <Select
               value=""
@@ -399,21 +395,25 @@ const AdminTrainingPlanDetail = () => {
   const { planId } = useParams<{ planId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  const getDetail = useTrainingPlanStore((s) => s.getDetail);
+  const saveWeek = useTrainingPlanStore((s) => s.saveWeek);
+  const addWeek = useTrainingPlanStore((s) => s.addWeek);
+  
   const [plan, setPlan] = useState<TrainingPlanFull | null>(null);
   const [weekIdx, setWeekIdx] = useState(0);
   const [currentWeek, setCurrentWeek] = useState<TrainingWeek | null>(null);
 
   useEffect(() => {
     if (!planId) return;
-    const detail = getTrainingPlanDetail(planId);
+    const detail = getDetail(planId);
     if (!detail) { navigate("/admin/training"); return; }
     setPlan(detail);
-    // Show the latest week (active or last)
     const activeIdx = detail.weeks.findIndex((w) => w.status === "active");
     const idx = activeIdx >= 0 ? activeIdx : detail.weeks.length - 1;
     setWeekIdx(idx);
     setCurrentWeek(JSON.parse(JSON.stringify(detail.weeks[idx])));
-  }, [planId, navigate]);
+  }, [planId, navigate, getDetail]);
 
   if (!plan || !currentWeek) return null;
 
@@ -425,9 +425,23 @@ const AdminTrainingPlanDetail = () => {
   };
 
   const handleSave = () => {
-    saveTrainingWeek(plan.id, currentWeek);
+    saveWeek(plan.id, currentWeek);
     toast({ title: "Semana guardada", description: `Semana ${currentWeek.weekNumber} guardada correctamente.` });
     navigate("/admin/training");
+  };
+
+  const handleAddWeek = (block: TrainingBlock) => {
+    const newWeek = addWeek(plan.id, block);
+    if (newWeek) {
+      const updatedDetail = getDetail(plan.id);
+      if (updatedDetail) {
+        setPlan({ ...updatedDetail });
+        const newIdx = updatedDetail.weeks.length - 1;
+        setWeekIdx(newIdx);
+        setCurrentWeek(JSON.parse(JSON.stringify(updatedDetail.weeks[newIdx])));
+      }
+      toast({ title: "Semana añadida", description: `Semana ${newWeek.weekNumber} (${block}) creada.` });
+    }
   };
 
   return (
@@ -495,15 +509,7 @@ const AdminTrainingPlanDetail = () => {
           })()}
 
           {/* Add new week */}
-          <AddWeekDialog planId={plan.id} onAdded={(newWeek) => {
-            const updatedPlan = getTrainingPlanDetail(plan.id);
-            if (updatedPlan) {
-              setPlan({ ...updatedPlan });
-              const newIdx = updatedPlan.weeks.length - 1;
-              setWeekIdx(newIdx);
-              setCurrentWeek(JSON.parse(JSON.stringify(updatedPlan.weeks[newIdx])));
-            }
-          }} />
+          <AddWeekDialog onAdd={handleAddWeek} />
         </div>
 
         {/* Week notes */}
@@ -539,19 +545,9 @@ const AdminTrainingPlanDetail = () => {
 
 const BLOCKS: TrainingBlock[] = ["Hipertrofia", "Intensificación", "Peaking", "Tapering"];
 
-const AddWeekDialog = ({ planId, onAdded }: { planId: string; onAdded: (w: TrainingWeek) => void }) => {
+const AddWeekDialog = ({ onAdd }: { onAdd: (block: TrainingBlock) => void }) => {
   const [open, setOpen] = useState(false);
   const [block, setBlock] = useState<TrainingBlock>("Hipertrofia");
-  const { toast } = useToast();
-
-  const handleAdd = () => {
-    const newWeek = addWeekToPlan(planId, block);
-    if (newWeek) {
-      toast({ title: "Semana añadida", description: `Semana ${newWeek.weekNumber} (${block}) creada.` });
-      onAdded(newWeek);
-      setOpen(false);
-    }
-  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -583,7 +579,7 @@ const AddWeekDialog = ({ planId, onAdded }: { planId: string; onAdded: (w: Train
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={handleAdd}>Crear semana</Button>
+            <Button onClick={() => { onAdd(block); setOpen(false); }}>Crear semana</Button>
           </div>
         </div>
       </DialogContent>

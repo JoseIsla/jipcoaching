@@ -1,16 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Pencil, Dumbbell, Calendar, User, Info } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  getTrainingPlanDetail,
+  useTrainingPlanStore,
   TRAINING_METHOD_LABELS,
   type TrainingPlanFull,
   type TrainingWeek,
   type TrainingExerciseEntry,
-} from "@/data/trainingPlanStore";
+} from "@/data/useTrainingPlanStore";
 
 const ExerciseRow = ({ ex, section }: { ex: TrainingExerciseEntry; section: "basic" | "accessory" }) => (
   <div className="bg-background/40 border border-border/40 rounded-lg p-3 space-y-1">
@@ -89,19 +89,24 @@ const WeekView = ({ week }: { week: TrainingWeek }) => (
 const AdminTrainingPlanView = () => {
   const { planId } = useParams<{ planId: string }>();
   const navigate = useNavigate();
-  const [plan, setPlan] = useState<TrainingPlanFull | null>(null);
-  const [selectedWeek, setSelectedWeek] = useState(0);
+  const getDetail = useTrainingPlanStore((s) => s.getDetail);
+  const plan = planId ? getDetail(planId) : null;
+  const [selectedWeek, setSelectedWeek] = useState(() => {
+    if (!plan) return 0;
+    const activeIdx = plan.weeks.findIndex((w) => w.status === "active");
+    return activeIdx >= 0 ? activeIdx : plan.weeks.length - 1;
+  });
 
-  useEffect(() => {
-    if (!planId) return;
-    const detail = getTrainingPlanDetail(planId);
-    if (!detail) { navigate("/admin/training"); return; }
-    setPlan(detail);
-    const activeIdx = detail.weeks.findIndex((w) => w.status === "active");
-    setSelectedWeek(activeIdx >= 0 ? activeIdx : detail.weeks.length - 1);
-  }, [planId, navigate]);
-
-  if (!plan) return null;
+  if (!plan) {
+    return (
+      <AdminLayout>
+        <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+          <p className="text-muted-foreground">Plan no encontrado</p>
+          <Button variant="outline" onClick={() => navigate("/admin/training")}>Volver</Button>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>

@@ -7,19 +7,17 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import {
-  clientWeightHistory,
-  getClientBestRMs,
-  getClientTrainingProgress,
-  type Client,
-} from "@/data/mockData";
+import { type Client } from "@/data/mockData";
 import { useClientStore } from "@/data/useClientStore";
+import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 
 const ClientProgressCard = ({ client, onClick }: { client: Client; onClick: () => void }) => {
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
-  const wh = hasNutrition ? clientWeightHistory[client.id] || [] : [];
-  const bestRMs = hasTraining ? getClientBestRMs(client.id) : [];
+  const getWeightHistory = useQuestionnaireStore((s) => s.getWeightHistory);
+  const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
+  const wh = hasNutrition ? getWeightHistory(client.id) : [];
+  const bestRMs = hasTraining ? getBestRMs(client.id) : [];
   const sbdTotal = bestRMs.filter((r) => ["e1", "e4", "e7"].includes(r.exerciseId)).reduce((s, r) => s + r.estimated1RM, 0);
   const latestWeight = wh.length > 0 ? wh[wh.length - 1].weight : null;
 
@@ -64,9 +62,12 @@ const ClientProgressCard = ({ client, onClick }: { client: Client; onClick: () =
 const ClientDetail = ({ client, onBack }: { client: Client; onBack: () => void }) => {
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
-  const weightHistory = hasNutrition ? clientWeightHistory[client.id] || [] : [];
-  const bestRMs = hasTraining ? getClientBestRMs(client.id) : [];
-  const trainingProgress = hasTraining ? getClientTrainingProgress(client.id) : null;
+  const getWeightHistory = useQuestionnaireStore((s) => s.getWeightHistory);
+  const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
+  const getTrainingProgress = useQuestionnaireStore((s) => s.getTrainingProgress);
+  const weightHistory = hasNutrition ? getWeightHistory(client.id) : [];
+  const bestRMs = hasTraining ? getBestRMs(client.id) : [];
+  const trainingProgress = hasTraining ? getTrainingProgress(client.id) : null;
   const weightDelta = weightHistory.length >= 2
     ? (weightHistory[weightHistory.length - 1].weight - weightHistory[0].weight).toFixed(1)
     : null;

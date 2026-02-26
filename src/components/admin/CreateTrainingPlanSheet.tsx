@@ -11,11 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import type { TrainingBlock, TrainingModality } from "@/data/mockData";
-import {
-  addTrainingPlanToList,
-  getTrainingClientsWithService,
-  getActiveTrainingPlanForClient,
-} from "@/data/trainingPlanStore";
+import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
 
 const BLOCKS: TrainingBlock[] = ["Hipertrofia", "Intensificación", "Peaking", "Tapering"];
 const MODALITIES: TrainingModality[] = ["Powerlifting", "Powerbuilding"];
@@ -33,9 +29,12 @@ const CreateTrainingPlanSheet = ({ onCreated }: { onCreated?: () => void }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const clients = getTrainingClientsWithService();
+  const clients = useTrainingPlanStore((s) => s.getClientsWithService)();
+  const getActivePlanForClient = useTrainingPlanStore((s) => s.getActivePlanForClient);
+  const addPlan = useTrainingPlanStore((s) => s.addPlan);
+  
   const selectedClient = clients.find((c) => c.id === clientId);
-  const existingActive = clientId ? getActiveTrainingPlanForClient(clientId) : null;
+  const existingActive = clientId ? getActivePlanForClient(clientId) : null;
 
   const reset = () => {
     setClientId(""); setPlanName(""); setModality("Powerlifting");
@@ -50,7 +49,7 @@ const CreateTrainingPlanSheet = ({ onCreated }: { onCreated?: () => void }) => {
       return;
     }
 
-    const id = addTrainingPlanToList({
+    const id = addPlan({
       clientId,
       clientName: selectedClient?.name || "",
       planName: planName.trim(),

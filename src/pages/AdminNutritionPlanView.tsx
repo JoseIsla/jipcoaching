@@ -7,14 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  nutritionPlanDetailStore,
+  useNutritionPlanStore,
   globalFruitTable,
   globalVegetableTable,
-  globalSupplements,
   macroCategoryLabels,
-  type NutritionPlanDetail,
   type MacroCategory,
-} from "@/data/nutritionPlanStore";
+} from "@/data/useNutritionPlanStore";
 
 const macroCategoryColors: Record<MacroCategory, string> = {
   carbohidratos: "border-amber-500/40 text-amber-400 bg-amber-500/10",
@@ -28,7 +26,9 @@ const macroCategoryColors: Record<MacroCategory, string> = {
 const AdminNutritionPlanView = () => {
   const { planId } = useParams<{ planId: string }>();
   const navigate = useNavigate();
-  const plan = planId ? nutritionPlanDetailStore[planId] : undefined;
+  const details = useNutritionPlanStore((s) => s.details);
+  const supplements = useNutritionPlanStore((s) => s.supplements);
+  const plan = planId ? details[planId] : undefined;
 
   if (!plan) {
     return (
@@ -154,7 +154,7 @@ const AdminNutritionPlanView = () => {
                 </tr>
               </thead>
               <tbody>
-                {globalSupplements.map((sup, i) => (
+                {supplements.map((sup, i) => (
                   <tr key={i} className="border-b border-border/50 last:border-0">
                     <td className="p-3 text-foreground">{sup.name}</td>
                     <td className="p-3 text-muted-foreground">{sup.dose}</td>
