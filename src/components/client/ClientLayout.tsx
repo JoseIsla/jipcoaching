@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings, LogOut, Loader2 } from "lucide-react";
@@ -8,8 +8,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from "@/i18n/useTranslation";
+import { useLanguageStore } from "@/i18n/store";
 
 const ClientLayout = ({ children }: { children: ReactNode }) => {
+  const setCurrentRole = useLanguageStore((s) => s.setCurrentRole);
+  useEffect(() => { setCurrentRole("client"); }, [setCurrentRole]);
   const { t } = useTranslation();
   const { client, setClientId, allClients } = useClient();
   const { logout } = useAuth();
