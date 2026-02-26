@@ -401,6 +401,7 @@ const en: Translations = {
     confirm: "Confirm record",
     weekLabel: "Week {n}",
     dayLabel: "Day {n}: {name}",
+    exportPDF: "Export PDF",
   },
 
   // ── Admin Settings ──
