@@ -6,14 +6,13 @@ import {
   Dumbbell,
   TrendingUp,
   Activity,
-  ChevronRight,
   UserPlus,
   ClipboardList,
   BarChart3,
 } from "lucide-react";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   mockClients,
   mockQuestionnaireEntries,
@@ -43,7 +42,16 @@ const AdminDashboard = () => {
     (e) => e.status === "pendiente"
   ).length;
 
-  const recentClients = mockClients.slice(0, 5);
+  // Client evolution by month
+  const monthLabels = ["Sep", "Oct", "Nov", "Dic", "Ene", "Feb"];
+  const clientEvolution = [
+    { month: "Sep", total: 2, new: 1 },
+    { month: "Oct", total: 3, new: 1 },
+    { month: "Nov", total: 4, new: 1 },
+    { month: "Dic", total: 5, new: 1 },
+    { month: "Ene", total: 6, new: 2 },
+    { month: "Feb", total: 8, new: 3 },
+  ];
 
   const stats = [
     {
@@ -227,63 +235,97 @@ const AdminDashboard = () => {
           </motion.div>
         </div>
 
-        {/* Recent Clients */}
+        {/* Client Evolution Chart */}
         <motion.div
           {...item(0.42)}
-          className="bg-card border border-border rounded-xl overflow-hidden"
+          className="bg-card border border-border rounded-xl p-4"
         >
-          <div className="flex items-center justify-between p-4 border-b border-border">
-            <h2 className="text-sm font-semibold text-foreground">
-              Clientes Recientes
-            </h2>
-            <button
-              onClick={() => navigate("/admin/clients")}
-              className="flex items-center gap-1 text-xs text-primary hover:underline"
-            >
-              Ver todos
-              <ChevronRight className="h-3 w-3" />
-            </button>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center">
+                <TrendingUp className="h-4 w-4 text-primary" />
+              </div>
+              <h2 className="text-sm font-semibold text-foreground">
+                Evolución de Clientes
+              </h2>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <div className="h-2 w-2 rounded-full bg-primary" />
+                <span className="text-[10px] text-muted-foreground">Total</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="h-2 w-2 rounded-full bg-accent" />
+                <span className="text-[10px] text-muted-foreground">Nuevos</span>
+              </div>
+            </div>
           </div>
-          <div className="divide-y divide-border/50">
-            {recentClients.map((client, i) => {
-              const initials = client.name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .toUpperCase();
-              return (
-                <motion.button
-                  key={client.id}
-                  whileTap={{ scale: 0.99 }}
-                  onClick={() => navigate(`/admin/clients/${client.id}`)}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors text-left group"
-                >
-                  <Avatar className="h-8 w-8 border border-primary/20">
-                    <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-bold">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {client.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{client.plan}</p>
-                  </div>
-                  <span
-                    className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                      client.status === "Activo"
-                        ? "bg-primary/15 text-primary"
-                        : client.status === "Pendiente"
-                        ? "bg-accent/15 text-accent"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {client.status}
-                  </span>
-                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
-                </motion.button>
-              );
-            })}
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={clientEvolution} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="gradTotal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gradNew" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                  axisLine={false}
+                  tickLine={false}
+                  allowDecimals={false}
+                />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    return (
+                      <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-lg">
+                        <p className="text-xs font-semibold text-foreground mb-1">{label}</p>
+                        {payload.map((p) => (
+                          <p key={p.dataKey} className="text-[11px] text-muted-foreground">
+                            <span
+                              className="inline-block h-1.5 w-1.5 rounded-full mr-1.5"
+                              style={{ backgroundColor: p.color }}
+                            />
+                            {p.dataKey === "total" ? "Total" : "Nuevos"}: {p.value}
+                          </p>
+                        ))}
+                      </div>
+                    );
+                  }}
+                  cursor={{ stroke: "hsl(var(--border))" }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="total"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  fill="url(#gradTotal)"
+                  dot={{ r: 3, fill: "hsl(var(--primary))", strokeWidth: 0 }}
+                  activeDot={{ r: 4, fill: "hsl(var(--primary))", strokeWidth: 0 }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="new"
+                  stroke="hsl(var(--accent))"
+                  strokeWidth={2}
+                  fill="url(#gradNew)"
+                  dot={{ r: 3, fill: "hsl(var(--accent))", strokeWidth: 0 }}
+                  activeDot={{ r: 4, fill: "hsl(var(--accent))", strokeWidth: 0 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </motion.div>
       </div>
