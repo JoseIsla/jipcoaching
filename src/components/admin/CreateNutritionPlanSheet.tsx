@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, AlertTriangle } from "lucide-react";
-import { mockClients } from "@/data/mockData";
+import { useClientStore } from "@/data/useClientStore";
 import { clientDetailStore } from "@/data/clientStore";
 import { getActivePlanForClient } from "@/data/nutritionPlanStore";
 import { toast } from "sonner";
@@ -22,7 +22,8 @@ const CreateNutritionPlanSheet = ({ onCreated }: Props) => {
   const [objective, setObjective] = useState("");
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
 
-  const nutritionClients = mockClients.filter((c) => {
+  const allClients = useClientStore((s) => s.clients);
+  const nutritionClients = allClients.filter((c) => {
     const detail = clientDetailStore[c.id];
     return detail ? detail.services.includes("nutrition") : c.services.includes("nutrition");
   });
@@ -38,7 +39,7 @@ const CreateNutritionPlanSheet = ({ onCreated }: Props) => {
     if (existingActivePlan && !confirmDeactivate) {
       return;
     }
-    const client = mockClients.find((c) => c.id === clientId);
+    const client = allClients.find((c) => c.id === clientId);
     if (!client) return;
 
     onCreated({ planName: planName.trim(), clientId, clientName: client.name, objective: objective.trim() });

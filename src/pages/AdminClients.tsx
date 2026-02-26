@@ -16,8 +16,9 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { mockClients, type Client, type ServiceType } from "@/data/mockData";
+import { type Client, type ServiceType } from "@/data/mockData";
 import { addClientToStore, type ClientDetail } from "@/data/clientStore";
+import { useClientStore } from "@/data/useClientStore";
 import { useToast } from "@/hooks/use-toast";
 
 type FilterType = "all" | "nutrition" | "training" | "both";
@@ -26,25 +27,20 @@ const AdminClients = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
   const [addOpen, setAddOpen] = useState(false);
-  const [clients, setClients] = useState<Client[]>(mockClients);
-  const [confirmToggle, setConfirmToggle] = useState<Client | null>(null);
+  const [confirmToggle, setConfirmToggle] = useState<{ id: string; name: string; status: string } | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { clients, addClient, toggleStatus } = useClientStore();
 
   const confirmToggleStatus = () => {
     if (!confirmToggle) return;
-    const clientId = confirmToggle.id;
-    setClients((prev) =>
-      prev.map((c) => {
-        if (c.id !== clientId) return c;
-        const newStatus = c.status === "Inactivo" ? "Activo" : "Inactivo";
-        toast({
-          title: newStatus === "Inactivo" ? "Cliente desactivado" : "Cliente reactivado",
-          description: `${c.name} ahora está ${newStatus.toLowerCase()}.`,
-        });
-        return { ...c, status: newStatus as Client["status"] };
-      })
-    );
+    const result = toggleStatus(confirmToggle.id);
+    if (result) {
+      toast({
+        title: result.newStatus === "Inactivo" ? "Cliente desactivado" : "Cliente reactivado",
+        description: `${result.name} ahora está ${result.newStatus.toLowerCase()}.`,
+      });
+    }
     setConfirmToggle(null);
   };
 
@@ -66,7 +62,7 @@ const AdminClients = () => {
       startDate: today,
       joinedMonth: month,
     };
-    setClients((prev) => [client, ...prev]);
+    addClient(client);
 
     // Add full detail to shared store
     const detail: ClientDetail = {

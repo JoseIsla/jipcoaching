@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import { mockClients, type Client } from "@/data/mockData";
+import { type Client } from "@/data/mockData";
+import { useClientStore } from "@/data/useClientStore";
 
 interface ClientContextType {
   client: Client;
@@ -16,9 +17,10 @@ export const useClient = () => {
 };
 
 export const ClientProvider = ({ children }: { children: ReactNode }) => {
-  const activeClients = mockClients.filter((c) => c.status === "Activo");
+  const allStoreClients = useClientStore((s) => s.clients);
+  const activeClients = allStoreClients.filter((c) => c.status === "Activo");
   const [clientId, setClientId] = useState(activeClients[0]?.id || "1");
-  const client = mockClients.find((c) => c.id === clientId) || activeClients[0];
+  const client = allStoreClients.find((c) => c.id === clientId) || activeClients[0];
 
   return (
     <ClientContext.Provider value={{ client, setClientId, allClients: activeClients }}>

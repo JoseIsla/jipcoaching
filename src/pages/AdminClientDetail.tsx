@@ -23,6 +23,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useClientStore } from "@/data/useClientStore";
 import { clientDetailStore, type ClientDetail } from "@/data/clientStore";
 
 const mockClientsDetail = clientDetailStore;
@@ -357,6 +358,7 @@ const AdminClientDetail = () => {
   const [editing, setEditing] = useState(false);
   const [confirmToggle, setConfirmToggle] = useState(false);
   const { toast } = useToast();
+  const { toggleStatus } = useClientStore();
   const client = id ? mockClientsDetail[id] : null;
 
   if (!client) {
@@ -644,12 +646,13 @@ const AdminClientDetail = () => {
             <AlertDialogCancel className="border-border">Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                const newStatus = client.status === "Inactivo" ? "Activo" : "Inactivo";
-                client.status = newStatus as ClientDetail["status"];
-                toast({
-                  title: newStatus === "Inactivo" ? "Cliente desactivado" : "Cliente reactivado",
-                  description: `${client.name} ahora está ${newStatus.toLowerCase()}.`,
-                });
+                const result = toggleStatus(client.id);
+                if (result) {
+                  toast({
+                    title: result.newStatus === "Inactivo" ? "Cliente desactivado" : "Cliente reactivado",
+                    description: `${client.name} ahora está ${result.newStatus.toLowerCase()}.`,
+                  });
+                }
                 navigate("/admin/clients");
               }}
               className={client.status === "Inactivo" ? "bg-primary hover:bg-primary/90" : "bg-destructive hover:bg-destructive/90"}
