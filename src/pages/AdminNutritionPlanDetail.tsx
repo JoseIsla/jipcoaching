@@ -16,12 +16,9 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  nutritionPlanDetailStore,
+  useNutritionPlanStore,
   globalFruitTable,
   globalVegetableTable,
-  globalSupplements,
-  setGlobalSupplements,
-  syncPlanToList,
   createEmptyMeal,
   createEmptyOption,
   createEmptyRow,
@@ -33,7 +30,7 @@ import {
   type IngredientRow,
   type Supplement,
   type MacroCategory,
-} from "@/data/nutritionPlanStore";
+} from "@/data/useNutritionPlanStore";
 
 // ─── Macro category badge colors ───
 const macroCategoryColors: Record<MacroCategory, string> = {
@@ -402,22 +399,27 @@ const AddMealSection = ({ onAdd }: { onAdd: (name: string) => void }) => {
 const AdminNutritionPlanDetail = () => {
   const { planId } = useParams<{ planId: string }>();
   const navigate = useNavigate();
-  const stored = planId ? nutritionPlanDetailStore[planId] : undefined;
+  
+  const details = useNutritionPlanStore((s) => s.details);
+  const storeSupplements = useNutritionPlanStore((s) => s.supplements);
+  const updateDetail = useNutritionPlanStore((s) => s.updateDetail);
+  const syncPlanToList = useNutritionPlanStore((s) => s.syncPlanToList);
+  const setSupplements = useNutritionPlanStore((s) => s.setSupplements);
+  
+  const stored = planId ? details[planId] : undefined;
 
   const [plan, setPlan] = useState<NutritionPlanDetail | null>(stored ? { ...stored, meals: stored.meals.map((m) => ({ ...m })) } : null);
-  const [supplements, setSupplements] = useState<Supplement[]>([...globalSupplements]);
+  const [supplements, setLocalSupplements] = useState<Supplement[]>([...storeSupplements]);
 
   const save = useCallback(() => {
     if (!plan) return;
-    // Save to detail store
-    nutritionPlanDetailStore[plan.id] = { ...plan, meals: plan.meals.map(m => ({ ...m, options: m.options.map(o => ({ ...o, rows: [...o.rows] })) })) };
-    // Sync list store (calories, name, etc)
-    syncPlanToList(plan);
-    // Save global supplements
-    setGlobalSupplements(supplements);
+    const savedPlan = { ...plan, meals: plan.meals.map(m => ({ ...m, options: m.options.map(o => ({ ...o, rows: [...o.rows] })) })) };
+    updateDetail(savedPlan);
+    syncPlanToList(savedPlan);
+    setSupplements(supplements);
     toast.success("Plan guardado");
     navigate("/admin/nutrition");
-  }, [plan, supplements, navigate]);
+  }, [plan, supplements, navigate, updateDetail, syncPlanToList, setSupplements]);
 
   if (!plan) {
     return (
@@ -447,15 +449,15 @@ const AdminNutritionPlanDetail = () => {
   const updateSupplement = (idx: number, sup: Supplement) => {
     const updated = [...supplements];
     updated[idx] = sup;
-    setSupplements(updated);
+    setLocalSupplements(updated);
   };
 
   const deleteSupplement = (idx: number) => {
-    setSupplements(supplements.filter((_, i) => i !== idx));
+    setLocalSupplements(supplements.filter((_, i) => i !== idx));
   };
 
   const addSupplement = () => {
-    setSupplements([...supplements, { name: "", dose: "", timing: "" }]);
+    setLocalSupplements([...supplements, { name: "", dose: "", timing: "" }]);
   };
 
   return (

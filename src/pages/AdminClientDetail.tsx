@@ -24,9 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useClientStore } from "@/data/useClientStore";
-import { clientDetailStore, type ClientDetail } from "@/data/clientStore";
-
-const mockClientsDetail = clientDetailStore;
+import { useClientDetailStore, type ClientDetail } from "@/data/useClientDetailStore";
 
 const statusClass = (status: ClientDetail["status"]) => {
   switch (status) {
@@ -359,7 +357,8 @@ const AdminClientDetail = () => {
   const [confirmToggle, setConfirmToggle] = useState(false);
   const { toast } = useToast();
   const { toggleStatus } = useClientStore();
-  const client = id ? mockClientsDetail[id] : null;
+  const details = useClientDetailStore((s) => s.details);
+  const client = id ? details[id] : null;
 
   if (!client) {
     return (

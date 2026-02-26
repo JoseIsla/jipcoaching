@@ -7,8 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, AlertTriangle } from "lucide-react";
 import { useClientStore } from "@/data/useClientStore";
-import { clientDetailStore } from "@/data/clientStore";
-import { getActivePlanForClient } from "@/data/nutritionPlanStore";
+import { useClientDetailStore } from "@/data/useClientDetailStore";
+import { useNutritionPlanStore } from "@/data/useNutritionPlanStore";
 import { toast } from "sonner";
 
 interface Props {
@@ -23,12 +23,14 @@ const CreateNutritionPlanSheet = ({ onCreated }: Props) => {
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
 
   const allClients = useClientStore((s) => s.clients);
+  const details = useClientDetailStore((s) => s.details);
+  const getActivePlanForClient = useNutritionPlanStore((s) => s.getActivePlanForClient);
+
   const nutritionClients = allClients.filter((c) => {
-    const detail = clientDetailStore[c.id];
+    const detail = details[c.id];
     return detail ? detail.services.includes("nutrition") : c.services.includes("nutrition");
   });
 
-  // Dynamically check from the shared store
   const existingActivePlan = clientId ? getActivePlanForClient(clientId) : undefined;
 
   const handleCreate = () => {
@@ -92,7 +94,6 @@ const CreateNutritionPlanSheet = ({ onCreated }: Props) => {
             </Select>
           </div>
 
-          {/* Warning if client already has active plan */}
           {existingActivePlan && !confirmDeactivate && (
             <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 space-y-2">
               <div className="flex items-start gap-2">

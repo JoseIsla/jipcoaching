@@ -17,8 +17,9 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { type Client, type ServiceType } from "@/data/mockData";
-import { addClientToStore, type ClientDetail } from "@/data/clientStore";
+import { type ClientDetail } from "@/data/clientStore";
 import { useClientStore } from "@/data/useClientStore";
+import { useClientDetailStore } from "@/data/useClientDetailStore";
 import { useToast } from "@/hooks/use-toast";
 
 type FilterType = "all" | "nutrition" | "training" | "both";
@@ -31,6 +32,7 @@ const AdminClients = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { clients, addClient, toggleStatus } = useClientStore();
+  const addClientDetail = useClientDetailStore((s) => s.addDetail);
 
   const confirmToggleStatus = () => {
     if (!confirmToggle) return;
@@ -87,7 +89,7 @@ const AdminClients = () => {
       nutritionIntake: data.nutritionIntake,
       trainingIntake: data.trainingIntake,
     };
-    addClientToStore(detail);
+    addClientDetail(detail);
   };
 
   const filtered = clients.filter((c) => {

@@ -25,13 +25,12 @@ import {
   GripVertical,
 } from "lucide-react";
 import {
-  mockQuestionnaireEntries,
   nutritionTemplates,
   trainingTemplate,
   type QuestionnaireEntry,
   type NutritionTemplate,
-  type QuestionDefinition,
 } from "@/data/mockData";
+import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 
 const statusConfig: Record<string, { label: string; icon: typeof CheckCircle2; className: string }> = {
   respondido: { label: "Respondido", icon: CheckCircle2, className: "bg-primary/15 text-primary border-primary/30" },
@@ -43,7 +42,8 @@ const AdminQuestionnaires = () => {
   const navigate = useNavigate();
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedEntry, setSelectedEntry] = useState<QuestionnaireEntry | null>(null);
-  const [editingTemplate, setEditingTemplate] = useState<NutritionTemplate | null>(null);
+
+  const allEntries = useQuestionnaireStore((s) => s.entries);
 
   // Week navigation label
   const weekLabel = useMemo(() => {
@@ -55,7 +55,7 @@ const AdminQuestionnaires = () => {
   }, [weekOffset]);
 
   // Filter entries (mock: only current week data)
-  const entries = weekOffset === 0 ? mockQuestionnaireEntries : [];
+  const entries = weekOffset === 0 ? allEntries : [];
 
   const nutritionEntries = entries.filter((e) => e.category === "nutrition");
   const trainingEntries = entries.filter((e) => e.category === "training");
@@ -124,7 +124,6 @@ const AdminQuestionnaires = () => {
 
           {/* ========== NUTRITION TAB ========== */}
           <TabsContent value="nutrition" className="space-y-6">
-            {/* Templates config */}
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-foreground">Check-ins de Nutrición</h2>
               <Dialog>
@@ -149,7 +148,7 @@ const AdminQuestionnaires = () => {
                       <TabsContent key={template.id} value={template.id} className="space-y-4 mt-4">
                         <p className="text-sm text-muted-foreground">{template.name} — {template.questions.length} preguntas</p>
                         <div className="space-y-3">
-                          {template.questions.map((q, idx) => (
+                          {template.questions.map((q) => (
                             <div key={q.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border">
                               <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
                               <div className="flex-1 min-w-0">
@@ -172,7 +171,6 @@ const AdminQuestionnaires = () => {
               </Dialog>
             </div>
 
-            {/* Timeline by day */}
             {Object.keys(nutritionByDay).length === 0 ? (
               <EmptyState text="No hay cuestionarios de nutrición esta semana" />
             ) : (
@@ -215,7 +213,6 @@ const AdminQuestionnaires = () => {
                     <DialogTitle className="text-foreground">Ejercicios del Registro</DialogTitle>
                   </DialogHeader>
                   <div className="mt-4 space-y-4">
-                    {/* Group by main lift */}
                     {trainingTemplate.exercises
                       .filter((e) => !e.isVariant)
                       .map((mainLift) => (
@@ -304,7 +301,6 @@ const AdminQuestionnaires = () => {
             </DialogHeader>
             {selectedEntry?.status === "respondido" ? (
               <div className="space-y-4 mt-2">
-                {/* Responses */}
                 {selectedEntry.responses && (
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Respuestas</p>
@@ -326,7 +322,6 @@ const AdminQuestionnaires = () => {
                     })}
                   </div>
                 )}
-                {/* Lift logs */}
                 {selectedEntry.liftLogs && selectedEntry.liftLogs.length > 0 && (
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Registro de Pesos</p>

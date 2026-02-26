@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Utensils, MoreHorizontal, CheckCircle2, XCircle, Calendar, User, Power, Pencil, ChevronDown, ChevronUp, Eye } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -9,39 +9,31 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { type NutritionPlan } from "@/data/mockData";
-import {
-  nutritionPlanList,
-  nutritionPlanDetailStore,
-  addNutritionPlanDetail,
-  addNutritionPlanToList,
-  deactivateClientPlans,
-  togglePlanActive as togglePlanActiveStore,
-  getActivePlanForClient,
-  genId,
-  type NutritionPlanDetail,
-} from "@/data/nutritionPlanStore";
+import { useNutritionPlanStore, genId, type NutritionPlanDetail } from "@/data/useNutritionPlanStore";
 import CreateNutritionPlanSheet from "@/components/admin/CreateNutritionPlanSheet";
 import { toast } from "sonner";
 
 const AdminNutrition = () => {
   const [search, setSearch] = useState("");
-  // Force re-render counter since we mutate the shared array
-  const [, forceUpdate] = useState(0);
-  const rerender = useCallback(() => forceUpdate((n) => n + 1), []);
   const navigate = useNavigate();
+
+  const plans = useNutritionPlanStore((s) => s.plans);
+  const togglePlanActive = useNutritionPlanStore((s) => s.togglePlanActive);
+  const deactivateClientPlans = useNutritionPlanStore((s) => s.deactivateClientPlans);
+  const addPlan = useNutritionPlanStore((s) => s.addPlan);
+  const addDetail = useNutritionPlanStore((s) => s.addDetail);
 
   const matchesSearch = (p: NutritionPlan) =>
     p.clientName.toLowerCase().includes(search.toLowerCase()) ||
     p.planName.toLowerCase().includes(search.toLowerCase()) ||
     p.type.toLowerCase().includes(search.toLowerCase());
 
-  const activePlans = nutritionPlanList.filter((p) => p.active && matchesSearch(p));
-  const inactivePlans = nutritionPlanList.filter((p) => !p.active && matchesSearch(p));
-  const uniqueClients = new Set(nutritionPlanList.filter((p) => p.active).map((p) => p.clientId)).size;
+  const activePlans = plans.filter((p) => p.active && matchesSearch(p));
+  const inactivePlans = plans.filter((p) => !p.active && matchesSearch(p));
+  const uniqueClients = new Set(plans.filter((p) => p.active).map((p) => p.clientId)).size;
 
   const handleToggle = (planId: string, activate: boolean) => {
-    togglePlanActiveStore(planId, activate);
-    rerender();
+    togglePlanActive(planId, activate);
     toast.success(activate ? "Plan activado" : "Plan desactivado");
   };
 
@@ -49,11 +41,9 @@ const AdminNutrition = () => {
     const id = genId();
     const today = new Date().toISOString().split("T")[0];
 
-    // Deactivate existing active plans for this client
     deactivateClientPlans(data.clientId);
 
-    // Add to list
-    addNutritionPlanToList({
+    addPlan({
       id,
       clientId: data.clientId,
       clientName: data.clientName,
@@ -65,8 +55,7 @@ const AdminNutrition = () => {
       endDate: null,
     });
 
-    // Add detail
-    addNutritionPlanDetail({
+    addDetail({
       id,
       clientId: data.clientId,
       clientName: data.clientName,
@@ -106,7 +95,7 @@ const AdminNutrition = () => {
               <CheckCircle2 className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{nutritionPlanList.filter((p) => p.active).length}</p>
+              <p className="text-2xl font-bold text-foreground">{plans.filter((p) => p.active).length}</p>
               <p className="text-xs text-muted-foreground">Planes activos</p>
             </div>
           </div>
@@ -115,7 +104,7 @@ const AdminNutrition = () => {
               <XCircle className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{nutritionPlanList.filter((p) => !p.active).length}</p>
+              <p className="text-2xl font-bold text-foreground">{plans.filter((p) => !p.active).length}</p>
               <p className="text-xs text-muted-foreground">Planes anteriores</p>
             </div>
           </div>
