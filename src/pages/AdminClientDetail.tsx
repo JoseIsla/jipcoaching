@@ -356,7 +356,7 @@ const AdminClientDetail = () => {
   const [editing, setEditing] = useState(false);
   const [confirmToggle, setConfirmToggle] = useState(false);
   const { toast } = useToast();
-  const { toggleStatus } = useClientStore();
+  const clientStore = useClientStore();
   const details = useClientDetailStore((s) => s.details);
   const client = id ? details[id] : null;
 
@@ -645,13 +645,11 @@ const AdminClientDetail = () => {
             <AlertDialogCancel className="border-border">Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                const result = toggleStatus(client.id);
-                if (result) {
-                  toast({
-                    title: result.newStatus === "Inactivo" ? "Cliente desactivado" : "Cliente reactivado",
-                    description: `${client.name} ahora está ${result.newStatus.toLowerCase()}.`,
-                  });
-                }
+                // TODO: connect to backend toggle status endpoint when available
+                toast({
+                  title: "Funcionalidad pendiente",
+                  description: "El cambio de estado se conectará al backend próximamente.",
+                });
                 navigate("/admin/clients");
               }}
               className={client.status === "Inactivo" ? "bg-primary hover:bg-primary/90" : "bg-destructive hover:bg-destructive/90"}

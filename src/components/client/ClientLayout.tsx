@@ -51,7 +51,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
       const notifs: import("@/data/useClientNotificationStore").ClientNotification[] = [];
       const now = new Date();
 
-      if (pendingNutrition.length > 0 && client.services.includes("nutrition")) {
+      if (pendingNutrition.length > 0 && client.services?.includes("nutrition")) {
         notifs.push({
           id: `cn-${client.id}-nutrition-${now.getTime()}`,
           type: "nutrition_checkin",
@@ -63,7 +63,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
         });
       }
 
-      if (pendingTraining.length > 0 && client.services.includes("training")) {
+      if (pendingTraining.length > 0 && client.services?.includes("training")) {
         notifs.push({
           id: `cn-${client.id}-training-${now.getTime()}`,
           type: "training_checkin",
@@ -83,7 +83,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
       // No pending → clear notifications (auto-dismiss)
       useClientNotificationStore.getState().clear();
     }
-  }, [client.id, client.services, pendingEntries.length, pendingNutrition.length, pendingTraining.length]);
+  }, [client.id, client.services, pendingEntries.length, pendingNutrition.length, pendingTraining.length, notifications.length]);
 
   // Auto-toast on entry when there are pending check-ins
   useEffect(() => {
@@ -112,14 +112,14 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
     { label: t("clientNav.settings"), icon: Settings, path: "/client/settings" },
   ];
 
-  const initials = client.name
+  const initials = (client.name ?? "")
     .split(" ")
     .map((n) => n[0])
     .join("")
-    .toUpperCase();
+    .toUpperCase() || "?";
 
   const visibleTabs = tabs.filter(
-    (tab) => !tab.service || client.services.includes(tab.service)
+    (tab) => !tab.service || (client.services ?? []).includes(tab.service)
   );
 
   const handleLogout = async () => {
@@ -144,7 +144,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
           <div className="flex flex-col min-w-0">
             <span className="text-foreground font-semibold text-sm leading-tight truncate">{client.name}</span>
             <div className="flex items-center gap-1.5 mt-0.5">
-              {client.services.map((s) => (
+              {(client.services ?? []).map((s) => (
                 <span
                   key={s}
                   className="text-[10px] leading-tight text-primary/80 font-medium"
@@ -223,18 +223,6 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
             </PopoverContent>
           </Popover>
 
-          <Select value={client.id} onValueChange={setClientId}>
-            <SelectTrigger className="w-28 sm:w-36 h-8 text-xs bg-background border-border">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {allClients.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}

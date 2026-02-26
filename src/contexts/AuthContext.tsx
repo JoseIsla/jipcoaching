@@ -1,6 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { fetchSessionRequest, loginRequest, type LoginPayload, type UserRole } from "@/services/authApi";
-import { toast } from "@/hooks/use-toast";
+import { AUTH_TOKEN_KEY } from "@/services/api";
 
 type AuthStatus = "checking" | "authenticated" | "unauthenticated";
 
@@ -20,16 +20,7 @@ interface AuthContextValue {
   logout: () => Promise<void>;
 }
 
-const AUTH_TOKEN_KEY = "jip_auth_token";
-const MOCK_ROLE_KEY = "jip_mock_role";
-const MOCK_USERID_KEY = "jip_mock_userid";
 const AuthContext = createContext<AuthContextValue | null>(null);
-
-const getMockRole = (): UserRole | null => {
-  const r = localStorage.getItem(MOCK_ROLE_KEY);
-  if (r === "admin" || r === "client") return r;
-  return null;
-};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [status, setStatus] = useState<AuthStatus>("checking");
@@ -39,8 +30,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const clearSession = useCallback(() => {
     localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(MOCK_ROLE_KEY);
-    localStorage.removeItem(MOCK_USERID_KEY);
     setToken(null);
     setRole(null);
     setUserId(null);
@@ -51,18 +40,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setStatus("checking");
     const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
 
-    // Check for mock session first
-    const mockRole = getMockRole();
-    const mockUserId = localStorage.getItem(MOCK_USERID_KEY);
-    if (storedToken && mockRole && mockUserId) {
-      setToken(storedToken);
-      setRole(mockRole);
-      setUserId(mockUserId);
-      setStatus("authenticated");
+    if (!storedToken) {
+      clearSession();
       return;
     }
 
-    // Real session validation
     const response = await fetchSessionRequest(storedToken);
 
     if (!response.success || !response.data) {
@@ -75,26 +57,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUserId(response.data.userId);
     setStatus("authenticated");
   }, [clearSession]);
-
-  // Listen for 401 responses globally to handle token expiration
-  useEffect(() => {
-    const originalFetch = window.fetch;
-    window.fetch = async (...args) => {
-      const response = await originalFetch(...args);
-      if (response.status === 401 && status === "authenticated") {
-        clearSession();
-        toast({
-          title: "Sesión expirada",
-          description: "Tu sesión ha caducado. Por favor, inicia sesión de nuevo.",
-          variant: "destructive",
-        });
-      }
-      return response;
-    };
-    return () => {
-      window.fetch = originalFetch;
-    };
-  }, [status, clearSession]);
 
   useEffect(() => {
     hydrateSession();
@@ -111,7 +73,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       };
     }
 
-    localStorage.setItem(AUTH_TOKEN_KEY, response.data.token);
     setToken(response.data.token);
     setRole(response.data.role);
     setUserId(response.data.userId);

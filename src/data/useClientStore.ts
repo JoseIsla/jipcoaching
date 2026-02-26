@@ -1,48 +1,58 @@
 import { create } from "zustand";
-import { mockClients, type Client } from "./mockData";
+import { api } from "@/services/api";
+import type { ApiClient, CreateClientDto, ServiceType } from "@/types/api";
+import { isClientActive, getServicesFromPack } from "@/types/api";
+
+/** Enrich raw API response with computed `services` field */
+const enrichClient = (raw: any): ApiClient => ({
+  ...raw,
+  name: raw.name ?? "Sin nombre",
+  email: raw.email ?? "",
+  services: getServicesFromPack(raw.packType),
+});
 
 interface ClientStore {
-  clients: Client[];
-  addClient: (client: Client) => void;
-  toggleStatus: (clientId: string) => { name: string; newStatus: string } | null;
-  getActiveClients: () => Client[];
-  getNewClientsThisMonth: () => Client[];
+  clients: ApiClient[];
+  loading: boolean;
+  error: string | null;
+  fetchClients: () => Promise<void>;
+  addClient: (dto: CreateClientDto) => Promise<ApiClient>;
+  getClient: (id: string) => ApiClient | undefined;
+  getActiveClients: () => ApiClient[];
   getRetentionRate: () => number;
 }
 
-const getCurrentMonth = () => {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-};
-
 export const useClientStore = create<ClientStore>((set, get) => ({
-  clients: [...mockClients],
+  clients: [],
+  loading: false,
+  error: null,
 
-  addClient: (client) =>
-    set((state) => ({ clients: [client, ...state.clients] })),
-
-  toggleStatus: (clientId) => {
-    let result: { name: string; newStatus: string } | null = null;
-    set((state) => ({
-      clients: state.clients.map((c) => {
-        if (c.id !== clientId) return c;
-        const newStatus = c.status === "Inactivo" ? "Activo" : "Inactivo";
-        result = { name: c.name, newStatus };
-        return { ...c, status: newStatus as Client["status"] };
-      }),
-    }));
-    return result;
+  fetchClients: async () => {
+    set({ loading: true, error: null });
+    try {
+      const data = await api.get<any[]>("/clients");
+      set({ clients: (data ?? []).map(enrichClient), loading: false });
+    } catch (err: any) {
+      set({ error: err?.message ?? "Error al cargar clientes", loading: false });
+    }
   },
 
-  getActiveClients: () => get().clients.filter((c) => c.status === "Activo"),
+  addClient: async (dto: CreateClientDto) => {
+    const raw = await api.post<any>("/clients", dto);
+    const created = enrichClient(raw);
+    set((state) => ({ clients: [created, ...state.clients] }));
+    return created;
+  },
 
-  getNewClientsThisMonth: () =>
-    get().clients.filter((c) => c.joinedMonth === getCurrentMonth()),
+  getClient: (id) => get().clients.find((c) => c.id === id),
+
+  getActiveClients: () => get().clients.filter((c) => isClientActive(c.status)),
 
   getRetentionRate: () => {
     const all = get().clients;
     const total = all.length;
-    const active = all.filter((c) => c.status !== "Inactivo").length;
-    return total > 0 ? Math.round((active / total) * 100) : 0;
+    if (total === 0) return 0;
+    const active = all.filter((c) => isClientActive(c.status)).length;
+    return Math.round((active / total) * 100);
   },
 }));

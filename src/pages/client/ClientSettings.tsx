@@ -27,7 +27,7 @@ const ClientSettings = () => {
 
   // Profile
   const [name, setName] = useState(client.name);
-  const [phone, setPhone] = useState(client.phone);
+  const [phone, setPhone] = useState("");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   // Email change

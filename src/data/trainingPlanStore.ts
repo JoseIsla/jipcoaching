@@ -505,7 +505,7 @@ export const toggleTrainingPlanActive = (planId: string, active: boolean): void 
 };
 
 export const getTrainingClientsWithService = () =>
-  useClientStore.getState().clients.filter((c) => c.services.includes("training") && c.status !== "Inactivo");
+  useClientStore.getState().clients.filter((c) => c.services.includes("training") && String(c.status ?? "").toUpperCase() !== "PAUSED");
 
 export const getActiveTrainingPlanForClient = (clientId: string) =>
   trainingPlanList.find((p) => p.clientId === clientId && p.active) || null;

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Utensils, Dumbbell, MoreHorizontal, UserX, UserCheck, AlertTriangle } from "lucide-react";
+import { Search, Plus, Utensils, Dumbbell, MoreHorizontal, AlertTriangle } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AddClientSheet, { type NewClientData } from "@/components/admin/AddClientSheet";
 import { Input } from "@/components/ui/input";
@@ -12,16 +12,10 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { type Client, type ServiceType } from "@/data/mockData";
-import { type ClientDetail } from "@/data/clientStore";
 import { useClientStore } from "@/data/useClientStore";
-import { useClientDetailStore } from "@/data/useClientDetailStore";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/i18n/useTranslation";
+import { getStatusLabel, packTypeLabels } from "@/types/api";
 
 type FilterType = "all" | "nutrition" | "training" | "both";
 
@@ -30,68 +24,15 @@ const AdminClients = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
   const [addOpen, setAddOpen] = useState(false);
-  const [confirmToggle, setConfirmToggle] = useState<{ id: string; name: string; status: string } | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { clients, addClient, toggleStatus } = useClientStore();
-  const addClientDetail = useClientDetailStore((s) => s.addDetail);
+  const { clients, fetchClients, addClient } = useClientStore();
 
-  const confirmToggleStatus = () => {
-    if (!confirmToggle) return;
-    const result = toggleStatus(confirmToggle.id);
-    if (result) {
-      toast({
-        title: result.newStatus === "Inactivo" ? t("clients.deactivated") : t("clients.reactivated"),
-        description: t("clients.nowStatus", { name: result.name, status: result.newStatus.toLowerCase() }),
-      });
-    }
-    setConfirmToggle(null);
-  };
+  useEffect(() => { fetchClients(); }, [fetchClients]);
 
-  const handleClientAdded = (data: NewClientData) => {
-    const now = new Date();
-    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    const id = String(Date.now());
-    const today = now.toISOString().split("T")[0];
-
-    // Add to client list
-    const client: Client = {
-      id,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      services: data.services,
-      plan: "Sin asignar",
-      status: "Activo",
-      startDate: today,
-      joinedMonth: month,
-    };
-    addClient(client);
-
-    // Add full detail to shared store
-    const detail: ClientDetail = {
-      id,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      age: data.age,
-      sex: data.sex,
-      services: data.services,
-      plan: "Sin asignar",
-      status: "Activo",
-      startDate: today,
-      monthlyRate: data.monthlyRate || 0,
-      lastPaymentDate: "-",
-      nextPaymentDate: "-",
-      paymentMethod: data.paymentMethod || "-",
-      notes: data.notes || "",
-      currentWeight: data.currentWeight,
-      targetWeight: data.nutritionIntake?.targetWeight,
-      height: data.height,
-      nutritionIntake: data.nutritionIntake,
-      trainingIntake: data.trainingIntake,
-    };
-    addClientDetail(detail);
+  const handleClientAdded = async (data: NewClientData) => {
+    // The AddClientSheet now handles calling the API directly
+    // Just close and refresh
   };
 
   const filtered = clients.filter((c) => {
@@ -104,15 +45,11 @@ const AdminClients = () => {
     return matchesSearch && c.services.includes(filter) && c.services.length === 1;
   });
 
-  const statusClass = (status: Client["status"]) => {
-    switch (status) {
-      case "Activo":
-        return "bg-primary/15 text-primary border-primary/20";
-      case "Pendiente":
-        return "bg-accent/15 text-accent border-accent/20";
-      case "Inactivo":
-        return "bg-muted text-muted-foreground border-border";
-    }
+  const statusClass = (status?: string) => {
+    const s = String(status ?? "").toUpperCase();
+    if (s === "ACTIVE") return "bg-primary/15 text-primary border-primary/20";
+    if (s === "PAUSED") return "bg-muted text-muted-foreground border-border";
+    return "bg-muted text-muted-foreground border-border";
   };
 
   return (
@@ -171,9 +108,7 @@ const AdminClients = () => {
                 <TableHead className="text-muted-foreground">{t("clients.tableHeaders.name")}</TableHead>
                 <TableHead className="text-muted-foreground">{t("clients.tableHeaders.email")}</TableHead>
                 <TableHead className="text-muted-foreground">{t("clients.tableHeaders.services")}</TableHead>
-                <TableHead className="text-muted-foreground">{t("clients.tableHeaders.plan")}</TableHead>
                 <TableHead className="text-muted-foreground">{t("clients.tableHeaders.status")}</TableHead>
-                <TableHead className="text-muted-foreground">{t("clients.tableHeaders.start")}</TableHead>
                 <TableHead className="text-muted-foreground w-10"></TableHead>
               </TableRow>
             </TableHeader>
@@ -198,36 +133,21 @@ const AdminClients = () => {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{client.plan}</TableCell>
                   <TableCell>
                     <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${statusClass(client.status)}`}>
-                      {client.status}
+                      {getStatusLabel(client.status)}
                     </span>
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{client.startDate}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={(e) => e.stopPropagation()}>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-card border-border">
                         <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/admin/clients/${client.id}`); }}>
                           {t("common.viewProfile")}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/admin/clients/${client.id}`); }}>
-                          {t("common.edit")}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => { e.stopPropagation(); setConfirmToggle(client); }}
-                          className={client.status === "Inactivo" ? "text-primary focus:text-primary" : "text-destructive focus:text-destructive"}
-                        >
-                          {client.status === "Inactivo" ? (
-                            <><UserCheck className="h-4 w-4 mr-2" /> {t("clients.reactivate")}</>
-                          ) : (
-                            <><UserX className="h-4 w-4 mr-2" /> {t("clients.deactivate")}</>
-                          )}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -236,7 +156,7 @@ const AdminClients = () => {
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
+                  <TableCell colSpan={5} className="text-center text-muted-foreground py-12">
                     {t("clients.noClients")}
                   </TableCell>
                 </TableRow>
@@ -245,32 +165,6 @@ const AdminClients = () => {
           </Table>
         </div>
         <AddClientSheet open={addOpen} onClose={() => setAddOpen(false)} onClientAdded={handleClientAdded} />
-
-        {/* Confirm toggle status dialog */}
-        <AlertDialog open={!!confirmToggle} onOpenChange={(o) => !o && setConfirmToggle(null)}>
-          <AlertDialogContent className="bg-card border-border">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2 text-foreground">
-                <AlertTriangle className="h-5 w-5 text-accent" />
-                {confirmToggle?.status === "Inactivo" ? t("clients.reactivateClient") : t("clients.deactivateClient")}
-              </AlertDialogTitle>
-              <AlertDialogDescription className="text-muted-foreground">
-                {confirmToggle?.status === "Inactivo"
-                  ? t("clients.confirmReactivate", { name: confirmToggle?.name || "" })
-                  : t("clients.confirmDeactivate", { name: confirmToggle?.name || "" })}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="border-border">{t("common.cancel")}</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={confirmToggleStatus}
-                className={confirmToggle?.status === "Inactivo" ? "bg-primary hover:bg-primary/90" : "bg-destructive hover:bg-destructive/90"}
-              >
-                {confirmToggle?.status === "Inactivo" ? t("clients.reactivate") : t("clients.deactivate")}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </AdminLayout>
   );
