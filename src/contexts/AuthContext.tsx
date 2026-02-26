@@ -7,12 +7,14 @@ type AuthStatus = "checking" | "authenticated" | "unauthenticated";
 interface LoginResult {
   success: boolean;
   role?: UserRole;
+  userId?: string;
   error?: string;
 }
 
 interface AuthContextValue {
   status: AuthStatus;
   role: UserRole | null;
+  userId: string | null;
   token: string | null;
   login: (payload: LoginPayload) => Promise<LoginResult>;
   logout: () => Promise<void>;
@@ -20,6 +22,7 @@ interface AuthContextValue {
 
 const AUTH_TOKEN_KEY = "jip_auth_token";
 const MOCK_ROLE_KEY = "jip_mock_role";
+const MOCK_USERID_KEY = "jip_mock_userid";
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const getMockRole = (): UserRole | null => {
@@ -31,13 +34,16 @@ const getMockRole = (): UserRole | null => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [status, setStatus] = useState<AuthStatus>("checking");
   const [role, setRole] = useState<UserRole | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
   const clearSession = useCallback(() => {
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(MOCK_ROLE_KEY);
+    localStorage.removeItem(MOCK_USERID_KEY);
     setToken(null);
     setRole(null);
+    setUserId(null);
     setStatus("unauthenticated");
   }, []);
 
@@ -47,9 +53,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Check for mock session first
     const mockRole = getMockRole();
-    if (storedToken && mockRole) {
+    const mockUserId = localStorage.getItem(MOCK_USERID_KEY);
+    if (storedToken && mockRole && mockUserId) {
       setToken(storedToken);
       setRole(mockRole);
+      setUserId(mockUserId);
       setStatus("authenticated");
       return;
     }
@@ -64,6 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     setToken(response.data.token);
     setRole(response.data.role);
+    setUserId(response.data.userId);
     setStatus("authenticated");
   }, [clearSession]);
 
@@ -105,9 +114,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem(AUTH_TOKEN_KEY, response.data.token);
     setToken(response.data.token);
     setRole(response.data.role);
+    setUserId(response.data.userId);
     setStatus("authenticated");
 
-    return { success: true, role: response.data.role };
+    return { success: true, role: response.data.role, userId: response.data.userId };
   }, [clearSession]);
 
   const logout = useCallback(async () => {
@@ -115,8 +125,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [clearSession]);
 
   const value = useMemo(
-    () => ({ status, role, token, login, logout }),
-    [status, role, token, login, logout]
+    () => ({ status, role, userId, token, login, logout }),
+    [status, role, userId, token, login, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
