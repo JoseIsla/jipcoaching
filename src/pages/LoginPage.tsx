@@ -10,6 +10,7 @@ import logoJip from "@/assets/logo-jip.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useLanguageStore, type Language } from "@/i18n/store";
+import { useToast } from "@/hooks/use-toast";
 
 interface LoginFormData { email: string; password: string; }
 
@@ -43,10 +44,24 @@ const LoginPage = () => {
     try { localStorage.setItem(`app-language-${userKey}`, language); } catch {}
   };
 
+  const { toast } = useToast();
+
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     setError("");
-    const result = await login(data);
+    let result;
+    try {
+      result = await login(data);
+    } catch (err: any) {
+      setIsLoading(false);
+      const isNetwork = err?.message === "Failed to fetch" || err?.name === "TypeError";
+      if (isNetwork) {
+        toast({ variant: "destructive", title: t("login.networkErrorTitle"), description: t("login.networkErrorDesc") });
+      } else {
+        setError(err?.message || t("login.error"));
+      }
+      return;
+    }
     if (!result.success || !result.role || !result.userId) {
       setIsLoading(false);
       setError(result.error || t("login.error"));

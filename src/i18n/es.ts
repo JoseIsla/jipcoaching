@@ -55,6 +55,8 @@ const es = {
     passwordMinLength: "Mínimo 6 caracteres",
     submit: "Iniciar Sesión",
     error: "No se pudo iniciar sesión. Revisa tus credenciales.",
+    networkErrorTitle: "Sin conexión al servidor",
+    networkErrorDesc: "No se pudo conectar con el backend. Verifica que esté en funcionamiento.",
   },
 
   // ── Admin Sidebar ──
