@@ -47,6 +47,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setStatus("authenticated");
   }, [clearSession]);
 
+  // Listen for 401 responses globally to handle token expiration
+  useEffect(() => {
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+      if (response.status === 401 && status === "authenticated") {
+        clearSession();
+      }
+      return response;
+    };
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, [status, clearSession]);
+
   useEffect(() => {
     hydrateSession();
   }, [hydrateSession]);
