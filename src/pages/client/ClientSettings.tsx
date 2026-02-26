@@ -6,12 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Camera, Mail, Lock, User, Check, Eye, EyeOff } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Camera, Mail, Lock, User, Check, Eye, EyeOff, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/i18n/useTranslation";
+import { useLanguageStore, type Language } from "@/i18n/store";
 
 const ClientSettings = () => {
   const { client } = useClient();
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const setAppLanguage = useLanguageStore((s) => s.setLanguage);
+  const appLanguage = useLanguageStore((s) => s.language);
 
   const initials = client.name
     .split(" ")
@@ -45,34 +51,34 @@ const ClientSettings = () => {
   };
 
   const handleSaveProfile = () => {
-    toast({ title: "Perfil actualizado", description: "Tus datos se han guardado correctamente." });
+    toast({ title: t("clientSettings.profileUpdated"), description: t("clientSettings.profileUpdatedDesc") });
   };
 
   const handleChangeEmail = () => {
     if (!newEmail.includes("@")) {
-      toast({ title: "Email inválido", description: "Introduce un email válido.", variant: "destructive" });
+      toast({ title: t("clientSettings.invalidEmail"), description: t("clientSettings.invalidEmailDesc"), variant: "destructive" });
       return;
     }
     setEmailSent(true);
     toast({
-      title: "Verificación enviada",
-      description: `Se ha enviado un email de verificación a ${newEmail}. Revisa tu bandeja.`,
+      title: t("clientSettings.verificationSentTitle"),
+      description: t("clientSettings.verificationSentDesc", { email: newEmail }),
     });
   };
 
   const handleChangePassword = () => {
     if (newPassword.length < 6) {
-      toast({ title: "Contraseña muy corta", description: "Mínimo 6 caracteres.", variant: "destructive" });
+      toast({ title: t("clientSettings.passwordTooShort"), description: t("clientSettings.passwordTooShortDesc"), variant: "destructive" });
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast({ title: "No coinciden", description: "Las contraseñas no coinciden.", variant: "destructive" });
+      toast({ title: t("clientSettings.passwordMismatch"), description: t("clientSettings.passwordMismatchDesc"), variant: "destructive" });
       return;
     }
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
-    toast({ title: "Contraseña actualizada", description: "Tu contraseña se ha cambiado correctamente." });
+    toast({ title: t("clientSettings.passwordUpdated"), description: t("clientSettings.passwordUpdatedDesc") });
   };
 
   return (
@@ -81,14 +87,14 @@ const ClientSettings = () => {
         <div>
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
             <User className="h-5 w-5 text-primary" />
-            Configuración
+            {t("clientSettings.title")}
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Gestiona tu perfil y seguridad</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{t("clientSettings.subtitle")}</p>
         </div>
 
         {/* Avatar & Profile */}
         <div className="bg-card border border-border rounded-xl p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-foreground">Foto de perfil</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t("clientSettings.profilePicture")}</h2>
           <div className="flex items-center gap-4">
             <div className="relative">
               <Avatar className="h-20 w-20 border-2 border-primary/30">
@@ -121,7 +127,7 @@ const ClientSettings = () => {
 
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Nombre completo</Label>
+              <Label className="text-xs text-muted-foreground">{t("clientSettings.fullName")}</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -129,7 +135,7 @@ const ClientSettings = () => {
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Teléfono</Label>
+              <Label className="text-xs text-muted-foreground">{t("clientSettings.phone")}</Label>
               <Input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -137,7 +143,7 @@ const ClientSettings = () => {
               />
             </div>
             <Button onClick={handleSaveProfile} className="w-full glow-primary-sm">
-              Guardar cambios
+              {t("clientSettings.saveChanges")}
             </Button>
           </div>
         </div>
@@ -146,13 +152,13 @@ const ClientSettings = () => {
         <div className="bg-card border border-border rounded-xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Mail className="h-4 w-4 text-primary" />
-            Cambiar email
+            {t("clientSettings.changeEmail")}
           </h2>
           <p className="text-xs text-muted-foreground">
-            Se enviará un enlace de verificación al nuevo email antes de aplicar el cambio.
+            {t("clientSettings.changeEmailDesc")}
           </p>
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Nuevo email</Label>
+            <Label className="text-xs text-muted-foreground">{t("clientSettings.newEmail")}</Label>
             <Input
               type="email"
               value={newEmail}
@@ -164,11 +170,11 @@ const ClientSettings = () => {
           {emailSent ? (
             <div className="flex items-center gap-2 text-xs text-primary">
               <Check className="h-3.5 w-3.5" />
-              <span>Verificación enviada. Revisa tu bandeja de entrada.</span>
+              <span>{t("clientSettings.verificationSent")}</span>
             </div>
           ) : (
             <Button onClick={handleChangeEmail} variant="outline" className="w-full border-border">
-              Enviar verificación
+              {t("clientSettings.sendVerification")}
             </Button>
           )}
         </div>
@@ -177,11 +183,11 @@ const ClientSettings = () => {
         <div className="bg-card border border-border rounded-xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Lock className="h-4 w-4 text-primary" />
-            Cambiar contraseña
+            {t("clientSettings.changePassword")}
           </h2>
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Contraseña actual</Label>
+              <Label className="text-xs text-muted-foreground">{t("clientSettings.currentPassword")}</Label>
               <div className="relative">
                 <Input
                   type={showCurrentPw ? "text" : "password"}
@@ -199,7 +205,7 @@ const ClientSettings = () => {
               </div>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Nueva contraseña</Label>
+              <Label className="text-xs text-muted-foreground">{t("clientSettings.newPassword")}</Label>
               <div className="relative">
                 <Input
                   type={showNewPw ? "text" : "password"}
@@ -217,7 +223,7 @@ const ClientSettings = () => {
               </div>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Confirmar nueva contraseña</Label>
+              <Label className="text-xs text-muted-foreground">{t("clientSettings.confirmPassword")}</Label>
               <Input
                 type="password"
                 value={confirmPassword}
@@ -226,9 +232,26 @@ const ClientSettings = () => {
               />
             </div>
             <Button onClick={handleChangePassword} variant="outline" className="w-full border-border">
-              Cambiar contraseña
+              {t("clientSettings.changePasswordBtn")}
             </Button>
           </div>
+        </div>
+
+        {/* Language */}
+        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Globe className="h-4 w-4 text-primary" />
+            {t("settings.language")}
+          </h2>
+          <Select value={appLanguage} onValueChange={(val) => setAppLanguage(val as Language)}>
+            <SelectTrigger className="bg-background border-border h-10">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="es">{t("settings.spanish")}</SelectItem>
+              <SelectItem value="en">{t("settings.english")}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </ClientLayout>

@@ -125,8 +125,8 @@ const AdminSettings = () => {
 
   // Language change — update i18n store + save profile
   const handleLanguageChange = async (lang: string) => {
+    const appLang = lang as Language;
     setLanguage(lang);
-    const appLang: Language = lang === "English" ? "en" : "es";
     setAppLanguage(appLang);
     await saveProfile({ name, phone, timezone, language: lang, notifications });
   };
@@ -422,13 +422,13 @@ const AdminSettings = () => {
               </div>
               <div className="space-y-2">
                 <Label className="text-foreground">{t("settings.language")}</Label>
-                <Select value={language} onValueChange={handleLanguageChange}>
+                <Select value={appLanguage} onValueChange={handleLanguageChange}>
                   <SelectTrigger className="bg-muted border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border">
-                    <SelectItem value="Español">{t("settings.spanish")}</SelectItem>
-                    <SelectItem value="English">{t("settings.english")}</SelectItem>
+                    <SelectItem value="es">{t("settings.spanish")}</SelectItem>
+                    <SelectItem value="en">{t("settings.english")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
