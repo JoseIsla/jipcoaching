@@ -5,8 +5,10 @@ export type NotificationType = "checkin" | "client" | "plan" | "system";
 export interface Notification {
   id: string;
   type: NotificationType;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
+  titleVars?: Record<string, string | number>;
+  descriptionVars?: Record<string, string | number>;
   timestamp: Date;
   read: boolean;
   link?: string;
@@ -20,13 +22,13 @@ interface NotificationStore {
   removeNotification: (id: string) => void;
   addNotification: (notification: Omit<Notification, "id" | "timestamp" | "read">) => void;
 }
-
 const initialNotifications: Notification[] = [
   {
     id: "n1",
     type: "checkin",
-    title: "Nuevo check-in recibido",
-    description: "Carlos Martínez ha completado su check-in semanal de nutrición.",
+    titleKey: "header.notifCheckinTitle",
+    descriptionKey: "header.notifCheckinDesc",
+    descriptionVars: { name: "Carlos Martínez" },
     timestamp: new Date(Date.now() - 1000 * 60 * 12),
     read: false,
     link: "/admin/questionnaires",
@@ -34,8 +36,9 @@ const initialNotifications: Notification[] = [
   {
     id: "n2",
     type: "client",
-    title: "Nuevo cliente registrado",
-    description: "Sofía Ruiz se ha unido con el plan Recomposición.",
+    titleKey: "header.notifNewClientTitle",
+    descriptionKey: "header.notifNewClientDesc",
+    descriptionVars: { name: "Sofía Ruiz", plan: "Recomposición" },
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
     read: false,
     link: "/admin/clients/6",
@@ -43,8 +46,9 @@ const initialNotifications: Notification[] = [
   {
     id: "n3",
     type: "checkin",
-    title: "Check-in pendiente",
-    description: "Ana López no ha enviado su check-in del viernes.",
+    titleKey: "header.notifCheckinPendingTitle",
+    descriptionKey: "header.notifCheckinPendingDesc",
+    descriptionVars: { name: "Ana López" },
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5),
     read: false,
     link: "/admin/questionnaires",
@@ -52,8 +56,9 @@ const initialNotifications: Notification[] = [
   {
     id: "n4",
     type: "plan",
-    title: "Plan próximo a finalizar",
-    description: "El plan de María Jiménez (Peaking Meet) termina en 1 semana.",
+    titleKey: "header.notifPlanEndingTitle",
+    descriptionKey: "header.notifPlanEndingDesc",
+    descriptionVars: { name: "María Jiménez", plan: "Peaking Meet", days: 1 },
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8),
     read: false,
     link: "/admin/training/t9",
@@ -61,8 +66,8 @@ const initialNotifications: Notification[] = [
   {
     id: "n5",
     type: "system",
-    title: "Actualización del sistema",
-    description: "Se han añadido nuevas métricas al panel de progreso.",
+    titleKey: "header.notifSystemUpdateTitle",
+    descriptionKey: "header.notifSystemUpdateDesc",
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
     read: true,
   },

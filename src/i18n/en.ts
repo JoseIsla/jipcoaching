@@ -85,6 +85,17 @@ const en: Translations = {
     minutesAgo: "{n}m ago",
     hoursAgo: "{n}h ago",
     daysAgo: "{n}d ago",
+    // Notification content
+    notifCheckinTitle: "New check-in received",
+    notifCheckinDesc: "{name} has completed their weekly nutrition check-in.",
+    notifNewClientTitle: "New client registered",
+    notifNewClientDesc: "{name} has joined with the {plan} plan.",
+    notifCheckinPendingTitle: "Pending check-in",
+    notifCheckinPendingDesc: "{name} hasn't submitted their Friday check-in.",
+    notifPlanEndingTitle: "Plan ending soon",
+    notifPlanEndingDesc: "{name}'s plan ({plan}) ends in {days} week.",
+    notifSystemUpdateTitle: "System update",
+    notifSystemUpdateDesc: "New metrics have been added to the progress panel.",
   },
 
   // ── Dashboard ──

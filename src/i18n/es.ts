@@ -83,6 +83,17 @@ const es = {
     minutesAgo: "Hace {n}m",
     hoursAgo: "Hace {n}h",
     daysAgo: "Hace {n}d",
+    // Notification content
+    notifCheckinTitle: "Nuevo check-in recibido",
+    notifCheckinDesc: "{name} ha completado su check-in semanal de nutrición.",
+    notifNewClientTitle: "Nuevo cliente registrado",
+    notifNewClientDesc: "{name} se ha unido con el plan {plan}.",
+    notifCheckinPendingTitle: "Check-in pendiente",
+    notifCheckinPendingDesc: "{name} no ha enviado su check-in del viernes.",
+    notifPlanEndingTitle: "Plan próximo a finalizar",
+    notifPlanEndingDesc: "El plan de {name} ({plan}) termina en {days} semana.",
+    notifSystemUpdateTitle: "Actualización del sistema",
+    notifSystemUpdateDesc: "Se han añadido nuevas métricas al panel de progreso.",
   },
 
   // ── Dashboard ──
