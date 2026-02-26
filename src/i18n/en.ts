@@ -57,6 +57,8 @@ const en: Translations = {
     passwordMinLength: "Minimum 6 characters",
     submit: "Sign In",
     error: "Could not sign in. Check your credentials.",
+    networkErrorTitle: "Server unreachable",
+    networkErrorDesc: "Could not connect to the backend. Please check it's running.",
   },
 
   // ── Admin Sidebar ──
