@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { mockTrainingPlans, type TrainingBlock, type TrainingModality } from "./mockData";
+import { api } from "@/services/api";
+import type { ApiTrainingPlan } from "@/types/api";
 import { useClientStore } from "./useClientStore";
 
 // Re-export types
@@ -27,8 +28,8 @@ import type {
   TrainingDay,
 } from "@/data/trainingPlanStore";
 
-// Import the pre-built demo detail
-import { getTrainingPlanDetail as getOriginalDetail } from "@/data/trainingPlanStore";
+export type TrainingBlock = "Hipertrofia" | "Intensificación" | "Peaking" | "Tapering";
+export type TrainingModality = "Powerlifting" | "Powerbuilding";
 
 interface TrainingPlanListEntry {
   id: string;
@@ -62,6 +63,12 @@ const buildEmptyWeek = (planId: string, weekNum: number, daysPerWeek: number, bl
 interface TrainingPlanState {
   plans: TrainingPlanListEntry[];
   details: Record<string, TrainingPlanFull>;
+  loading: boolean;
+  error: string | null;
+
+  // API actions
+  fetchPlans: (clientId?: string) => Promise<void>;
+  fetchPlanDetail: (planId: string) => Promise<TrainingPlanFull | null>;
 
   // List operations
   togglePlanActive: (planId: string, active: boolean) => void;
@@ -87,16 +94,93 @@ interface TrainingPlanState {
   getActivePlanForClient: (clientId: string) => TrainingPlanListEntry | null;
 }
 
-// Seed the details with the demo plan from the old store
-const seedDetails = (): Record<string, TrainingPlanFull> => {
-  const detail = getOriginalDetail("t1");
-  if (detail) return { t1: detail };
-  return {};
-};
+/** Map API plan to our list entry format */
+const mapApiPlanToListEntry = (apiPlan: ApiTrainingPlan): TrainingPlanListEntry => ({
+  id: apiPlan.id,
+  clientId: apiPlan.clientId,
+  clientName: "", // API may not include this; will be enriched
+  planName: apiPlan.title,
+  modality: "Powerlifting" as TrainingModality,
+  block: "Hipertrofia" as TrainingBlock,
+  weeksDuration: apiPlan.weeks?.length ?? 0,
+  currentWeek: apiPlan.weeks?.length ?? null,
+  active: true,
+  startDate: new Date().toISOString().split("T")[0],
+  endDate: null,
+});
 
 export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
-  plans: [...mockTrainingPlans],
-  details: seedDetails(),
+  plans: [],
+  details: {},
+  loading: false,
+  error: null,
+
+  fetchPlans: async (clientId) => {
+    set({ loading: true, error: null });
+    try {
+      const query = clientId ? `?clientId=${clientId}` : "";
+      const data = await api.get<ApiTrainingPlan[]>(`/training/plans${query}`);
+      const plans = (data ?? []).map(mapApiPlanToListEntry);
+      set({ plans, loading: false });
+    } catch (err: any) {
+      set({ error: err?.message ?? "Error al cargar planes", loading: false });
+    }
+  },
+
+  fetchPlanDetail: async (planId) => {
+    set({ loading: true, error: null });
+    try {
+      const apiPlan = await api.get<ApiTrainingPlan>(`/training/plans/${planId}`);
+      if (!apiPlan) {
+        set({ loading: false });
+        return null;
+      }
+
+      const detail: TrainingPlanFull = {
+        id: apiPlan.id,
+        clientId: apiPlan.clientId,
+        clientName: "",
+        planName: apiPlan.title,
+        modality: "Powerlifting" as TrainingModality,
+        block: "Hipertrofia" as TrainingBlock,
+        weeksDuration: apiPlan.weeks?.length ?? 0,
+        currentWeek: apiPlan.weeks?.length ?? null,
+        active: true,
+        startDate: new Date().toISOString().split("T")[0],
+        endDate: null,
+        daysPerWeek: apiPlan.weeks?.[0]?.days?.length ?? 4,
+        weeks: (apiPlan.weeks ?? []).map((w, wIdx) => ({
+          id: w.id,
+          planId: apiPlan.id,
+          weekNumber: wIdx + 1,
+          block: "Hipertrofia" as TrainingBlock,
+          status: wIdx === (apiPlan.weeks?.length ?? 1) - 1 ? "active" as const : "completed" as const,
+          days: (w.days ?? []).map((d, dIdx) => ({
+            id: d.id,
+            dayNumber: dIdx + 1,
+            name: d.title,
+            warmup: "",
+            exercises: (d.exercises ?? []).map((ex, eIdx) => ({
+              id: ex.id,
+              order: eIdx + 1,
+              section: "basic" as const,
+              exerciseName: ex.name,
+              ...ex,
+            })),
+          })),
+        })),
+      };
+
+      set((state) => ({
+        details: { ...state.details, [planId]: detail },
+        loading: false,
+      }));
+      return detail;
+    } catch (err: any) {
+      set({ error: err?.message ?? "Error al cargar plan", loading: false });
+      return null;
+    }
+  },
 
   togglePlanActive: (planId, active) =>
     set((state) => {
@@ -125,7 +209,6 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
     const startDate = new Date().toISOString().split("T")[0];
 
     set((state) => {
-      // Deactivate previous active plans for same client
       const plans = state.plans.map((p) =>
         p.clientId === plan.clientId && p.active
           ? { ...p, active: false, endDate: startDate }
@@ -172,7 +255,6 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
     const state = get();
     if (state.details[planId]) return state.details[planId];
 
-    // Auto-create from list entry
     const listEntry = state.plans.find((p) => p.id === planId);
     if (!listEntry) return null;
 
@@ -187,7 +269,6 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
         : [buildEmptyWeek(planId, 1, 4)],
     };
 
-    // Cache it
     set((state) => ({
       details: { ...state.details, [planId]: detail },
     }));

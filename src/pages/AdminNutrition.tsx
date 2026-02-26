@@ -8,8 +8,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { type NutritionPlan } from "@/data/mockData";
-import { useNutritionPlanStore, genId, type NutritionPlanDetail } from "@/data/useNutritionPlanStore";
+import { useNutritionPlanStore, genId, type NutritionPlanDetail, type NutritionPlanListEntry } from "@/data/useNutritionPlanStore";
 import CreateNutritionPlanSheet from "@/components/admin/CreateNutritionPlanSheet";
 import { toast } from "sonner";
 import { useTranslation } from "@/i18n/useTranslation";
@@ -25,10 +24,10 @@ const AdminNutrition = () => {
   const addPlan = useNutritionPlanStore((s) => s.addPlan);
   const addDetail = useNutritionPlanStore((s) => s.addDetail);
 
-  const matchesSearch = (p: NutritionPlan) =>
-    p.clientName.toLowerCase().includes(search.toLowerCase()) ||
-    p.planName.toLowerCase().includes(search.toLowerCase()) ||
-    p.type.toLowerCase().includes(search.toLowerCase());
+  const matchesSearch = (p: NutritionPlanListEntry) =>
+    (p.clientName ?? "").toLowerCase().includes(search.toLowerCase()) ||
+    (p.planName ?? "").toLowerCase().includes(search.toLowerCase()) ||
+    (p.type ?? "").toLowerCase().includes(search.toLowerCase());
 
   const activePlans = plans.filter((p) => p.active && matchesSearch(p));
   const inactivePlans = plans.filter((p) => !p.active && matchesSearch(p));
@@ -106,7 +105,7 @@ const AdminNutrition = () => {
 };
 
 const InactivePlansSection = ({ plans, navigate, onToggle, t }: {
-  plans: NutritionPlan[];
+  plans: NutritionPlanListEntry[];
   navigate: ReturnType<typeof import("react-router-dom").useNavigate>;
   onToggle: (id: string, activate: boolean) => void;
   t: (key: string, vars?: Record<string, string | number>) => string;
@@ -134,7 +133,7 @@ const InactivePlansSection = ({ plans, navigate, onToggle, t }: {
 };
 
 const PlanCard = ({ plan, navigate, onToggle, t }: {
-  plan: NutritionPlan;
+  plan: NutritionPlanListEntry;
   navigate: ReturnType<typeof import("react-router-dom").useNavigate>;
   onToggle: (id: string, activate: boolean) => void;
   t: (key: string, vars?: Record<string, string | number>) => string;

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { ServiceType } from "@/data/mockData";
+import type { ServiceType } from "@/types/api";
 
 export interface ClientNotification {
   id: string;

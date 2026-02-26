@@ -1,4 +1,4 @@
-import { type ServiceType } from "./mockData";
+import { type ServiceType } from "@/types/api";
 
 export interface NutritionIntake {
   goal: string;

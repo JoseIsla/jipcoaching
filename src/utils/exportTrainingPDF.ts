@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import type { QuestionnaireEntry } from "@/data/mockData";
-import { trainingTemplate, nutritionTemplates } from "@/data/mockData";
+import type { QuestionnaireEntry } from "@/data/useQuestionnaireStore";
+import { trainingTemplate, nutritionTemplates } from "@/data/questionnaireDefs";
 
 export const exportTrainingLogPDF = (entry: QuestionnaireEntry) => {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
