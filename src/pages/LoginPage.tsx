@@ -22,6 +22,7 @@ const LoginPage = () => {
   const language = useLanguageStore((s) => s.language);
 
   // Always reset login screen to Spanish by default
+  const [userChangedLang, setUserChangedLang] = useState(false);
   useState(() => {
     setCurrentUser("login");
     setLanguage("es");
@@ -34,11 +35,13 @@ const LoginPage = () => {
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>();
 
   const handleLanguageToggle = (lang: Language) => {
-    // Save for "login" context (default user) so the login page itself updates
+    setUserChangedLang(true);
     setLanguage(lang);
   };
 
   const persistLanguageForUser = (userKey: string) => {
+    // Only overwrite the user's saved preference if the user explicitly changed language on login
+    if (!userChangedLang) return;
     try { localStorage.setItem(`app-language-${userKey}`, language); } catch {}
   };
 
