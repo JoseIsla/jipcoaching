@@ -1,7 +1,8 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings, LogOut } from "lucide-react";
+import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings, LogOut, Loader2 } from "lucide-react";
 import { useClient } from "@/contexts/ClientContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -16,6 +17,8 @@ const tabs = [
 
 const ClientLayout = ({ children }: { children: ReactNode }) => {
   const { client, setClientId, allClients } = useClient();
+  const { logout } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -29,8 +32,13 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
     (t) => !t.service || client.services.includes(t.service)
   );
 
-  const handleLogout = () => {
-    navigate("/login");
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+    await logout();
+    navigate("/login", { replace: true });
+    setIsLoggingOut(false);
   };
 
   return (
@@ -64,10 +72,11 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
           </Select>
           <button
             onClick={handleLogout}
-            className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            disabled={isLoggingOut}
+            className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-70"
             title="Cerrar sesión"
           >
-            <LogOut className="h-4 w-4" />
+            {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
           </button>
         </div>
       </header>
@@ -104,3 +113,4 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
 };
 
 export default ClientLayout;
+

@@ -11,8 +11,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Library,
+  Loader2,
 } from "lucide-react";
 import logoJip from "@/assets/logo-jip.png";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
@@ -26,8 +28,19 @@ const navItems = [
 
 const AdminSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+    await logout();
+    navigate("/login", { replace: true });
+    setIsLoggingOut(false);
+  };
 
   return (
     <aside
@@ -68,11 +81,12 @@ const AdminSidebar = () => {
       {/* Footer */}
       <div className="border-t border-sidebar-border p-2 space-y-1">
         <button
-          onClick={() => navigate("/login")}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors w-full"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors w-full disabled:opacity-70"
         >
-          <LogOut className="h-5 w-5 shrink-0" />
-          {!collapsed && <span>Cerrar sesión</span>}
+          {isLoggingOut ? <Loader2 className="h-5 w-5 shrink-0 animate-spin" /> : <LogOut className="h-5 w-5 shrink-0" />}
+          {!collapsed && <span>{isLoggingOut ? "Cerrando..." : "Cerrar sesión"}</span>}
         </button>
         <button
           onClick={() => setCollapsed(!collapsed)}
@@ -86,3 +100,4 @@ const AdminSidebar = () => {
 };
 
 export default AdminSidebar;
+

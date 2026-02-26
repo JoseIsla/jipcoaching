@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import LoadingScreen from "@/components/LoadingScreen";
 import logoJip from "@/assets/logo-jip.png";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface LoginFormData {
   email: string;
@@ -15,6 +16,7 @@ interface LoginFormData {
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
@@ -29,15 +31,21 @@ const LoginPage = () => {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     setError("");
-    // Simulate login — replace with real API call
-    setTimeout(() => {
+
+    const result = await login(data);
+
+    if (!result.success || !result.role) {
       setIsLoading(false);
-      setShowLoadingScreen(true);
-      // Show loading screen then navigate
-      setTimeout(() => {
-        navigate("/admin");
-      }, 1200);
-    }, 800);
+      setError(result.error || "No se pudo iniciar sesión. Revisa tus credenciales.");
+      return;
+    }
+
+    setShowLoadingScreen(true);
+    const targetPath = result.role === "admin" ? "/admin" : "/client";
+
+    window.setTimeout(() => {
+      navigate(targetPath, { replace: true });
+    }, 900);
   };
 
   if (showLoadingScreen) {
@@ -162,3 +170,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
