@@ -54,7 +54,16 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
           </Avatar>
           <div className="flex flex-col">
             <span className="text-foreground font-semibold text-sm leading-tight truncate">{client.name}</span>
-            <span className="text-muted-foreground text-[10px] leading-tight">{client.plan}</span>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              {client.services.map((s) => (
+                <span
+                  key={s}
+                  className="text-[10px] leading-tight text-primary/80 font-medium"
+                >
+                  {s === "nutrition" ? "🍎 Nutrición" : "🏋️ Entreno"}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2">

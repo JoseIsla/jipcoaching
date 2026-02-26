@@ -107,14 +107,6 @@ const ClientHome = () => {
           </button>
         </div>
 
-        {/* Services badges */}
-        <div className="flex gap-2">
-          {client.services.map((s) => (
-            <Badge key={s} variant="outline" className="text-xs capitalize">
-              {s === "nutrition" ? "🍎 Nutrición" : "🏋️ Entrenamiento"}
-            </Badge>
-          ))}
-        </div>
       </div>
     </ClientLayout>
   );
