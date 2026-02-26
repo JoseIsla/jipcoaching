@@ -4,7 +4,8 @@ import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, Dumbbell, Lock, Calendar } from "lucide-react";
+import { ChevronDown, Dumbbell, Lock, Calendar } from "lucide-react";
+import AnimatedChevron from "@/components/ui/animated-chevron";
 import {
   useTrainingPlanStore,
   TRAINING_METHOD_LABELS,
@@ -23,7 +24,7 @@ const DayView = ({ day }: { day: TrainingDay }) => {
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <CollapsibleTrigger className="w-full flex items-center justify-between p-3 hover:bg-muted/30 transition-colors">
           <div className="flex items-center gap-2">
-            {open ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+            <AnimatedChevron open={open} />
             <span className="font-semibold text-sm text-foreground">Día {day.dayNumber}</span>
             <span className="text-xs text-muted-foreground">— {day.name}</span>
           </div>
