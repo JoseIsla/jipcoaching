@@ -189,7 +189,7 @@ const AdminQuestionnaires = () => {
                   <CardContent>
                     <div className="space-y-2">
                       {dayEntries.map((entry) => (
-                        <EntryRow key={entry.id} entry={entry} onView={() => setSelectedEntry(entry)} onNavigate={() => navigate(`/admin/clients/${entry.clientId}`)} />
+                        <EntryRow key={entry.id} entry={entry} onView={() => setSelectedEntry(entry)} />
                       ))}
                     </div>
                   </CardContent>
@@ -281,7 +281,7 @@ const AdminQuestionnaires = () => {
                 <CardContent>
                   <div className="space-y-2">
                     {trainingEntries.map((entry) => (
-                      <EntryRow key={entry.id} entry={entry} onView={() => setSelectedEntry(entry)} onNavigate={() => navigate(`/admin/clients/${entry.clientId}`)} />
+                      <EntryRow key={entry.id} entry={entry} onView={() => setSelectedEntry(entry)} />
                     ))}
                   </div>
                 </CardContent>
@@ -381,17 +381,20 @@ function StatMini({ icon: Icon, label, value, accent }: { icon: typeof Clipboard
   );
 }
 
-function EntryRow({ entry, onView, onNavigate }: { entry: QuestionnaireEntry; onView: () => void; onNavigate: () => void }) {
+function EntryRow({ entry, onView }: { entry: QuestionnaireEntry; onView: () => void }) {
   const config = statusConfig[entry.status];
   const StatusIcon = config.icon;
   return (
-    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+    <div
+      className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
+      onClick={onView}
+    >
       <div className="flex items-center gap-3 min-w-0">
         <StatusIcon className={`h-4 w-4 shrink-0 ${entry.status === "respondido" ? "text-primary" : entry.status === "pendiente" ? "text-accent" : "text-muted-foreground"}`} />
         <div className="min-w-0">
-          <button onClick={onNavigate} className="text-sm font-medium text-foreground hover:text-primary transition-colors truncate block">
+          <span className="text-sm font-medium text-foreground truncate block">
             {entry.clientName}
-          </button>
+          </span>
           <p className="text-xs text-muted-foreground">{entry.date}</p>
         </div>
       </div>
@@ -399,11 +402,7 @@ function EntryRow({ entry, onView, onNavigate }: { entry: QuestionnaireEntry; on
         <Badge variant="outline" className={`text-xs ${config.className}`}>
           {config.label}
         </Badge>
-        {entry.status === "respondido" && (
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={onView}>
-            <Eye className="h-4 w-4" />
-          </Button>
-        )}
+        <Eye className="h-4 w-4 text-muted-foreground" />
       </div>
     </div>
   );

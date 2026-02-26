@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Dumbbell, MoreHorizontal, CheckCircle2, XCircle, Calendar, Eye, User, Pencil } from "lucide-react";
+import { Search, Dumbbell, MoreHorizontal, CheckCircle2, XCircle, Calendar, Eye, User, Pencil, ChevronDown, ChevronUp } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -218,18 +218,42 @@ const AdminTraining = () => {
           <PlanTable plans={activePlans} navigate={navigate} onDeactivate={handleDeactivate} />
         </div>
 
-        {/* Inactive Plans */}
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <XCircle className="h-5 w-5 text-muted-foreground" />
-            Planes Anteriores
-            <span className="text-xs font-normal text-muted-foreground ml-1">({inactivePlans.length})</span>
-          </h2>
-          <PlanTable plans={inactivePlans} navigate={navigate} />
-        </div>
+        {/* Inactive Plans - Collapsible */}
+        <InactivePlansSection plans={inactivePlans} navigate={navigate} />
       </div>
     </AdminLayout>
   );
 };
+
+const InactivePlansSection = ({ plans, navigate }: { plans: PlanEntry[]; navigate: ReturnType<typeof useNavigate> }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="space-y-3">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-2 text-lg font-semibold text-foreground hover:text-primary transition-colors w-full text-left"
+      >
+        <XCircle className="h-5 w-5 text-muted-foreground" />
+        Planes Anteriores
+        <span className="text-xs font-normal text-muted-foreground ml-1">({plans.length})</span>
+        <span className="ml-auto">
+          {expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+        </span>
+      </button>
+      {expanded && (
+        plans.length === 0 ? (
+          <div className="border border-dashed border-border rounded-xl p-8 text-center text-muted-foreground text-sm">
+            No hay planes anteriores
+          </div>
+        ) : (
+          <PlanTable plans={plans} navigate={navigate} />
+        )
+      )}
+    </div>
+  );
+};
+
+
 
 export default AdminTraining;
