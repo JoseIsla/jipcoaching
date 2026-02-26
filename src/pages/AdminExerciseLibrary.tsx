@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Library, Dumbbell, Target, Plus, Trash2, Search, Pencil, ChevronDown, ChevronRight, Layers, Apple, Leaf } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Library, Dumbbell, Target, Plus, Trash2, Search, Pencil, ChevronDown, Layers, Apple, Leaf } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -256,7 +257,9 @@ const ExerciseSection = ({
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
           <div className="flex items-center gap-3">
-            {open ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+            <motion.div animate={{ rotate: open ? 0 : -90 }} transition={{ duration: 0.2, ease: "easeInOut" }}>
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </motion.div>
             <Icon className={`h-5 w-5 ${iconClass}`} />
             <h2 className="text-base font-semibold text-foreground">{title}</h2>
             <Badge variant="outline" className="text-xs">{items.length}</Badge>
@@ -265,11 +268,21 @@ const ExerciseSection = ({
             <AddExerciseDialog mode={mode} />
           </div>
         </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="border-t border-border">
-            <ExerciseTable items={items} onRemove={onRemove} showParent={showParent} />
-          </div>
-        </CollapsibleContent>
+        <AnimatePresence initial={false}>
+          {open && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="border-t border-border">
+                <ExerciseTable items={items} onRemove={onRemove} showParent={showParent} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </Collapsible>
   );
@@ -306,63 +319,75 @@ const FoodTableSection = ({
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
           <div className="flex items-center gap-3">
-            {open ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+            <motion.div animate={{ rotate: open ? 0 : -90 }} transition={{ duration: 0.2, ease: "easeInOut" }}>
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </motion.div>
             <Icon className={`h-5 w-5 ${iconClass}`} />
             <h2 className="text-base font-semibold text-foreground">{title}</h2>
             <Badge variant="outline" className="text-xs">{items.length}</Badge>
           </div>
         </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="border-t border-border p-4 space-y-3">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Nuevo alimento..."
-                value={newItem}
-                onChange={(e) => setNewItem(e.target.value)}
-                className="bg-background border-border text-sm h-8"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && newItem.trim()) {
-                    onAdd(newItem.trim());
-                    setNewItem("");
-                  }
-                }}
-              />
-              <Button
-                size="sm" variant="outline" className="h-8 text-xs gap-1"
-                disabled={!newItem.trim()}
-                onClick={() => { onAdd(newItem.trim()); setNewItem(""); }}
-              >
-                <Plus className="h-3 w-3" /> Añadir
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5 max-h-[400px] overflow-y-auto">
-              {items.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-1.5 bg-background/50 border border-border/50 rounded-lg px-3 py-1.5 text-sm group">
-                  {editIdx === idx ? (
-                    <Input
-                      value={editVal}
-                      onChange={(e) => setEditVal(e.target.value)}
-                      className="h-6 text-xs bg-background border-border flex-1"
-                      autoFocus
-                      onBlur={() => { if (editVal.trim()) onEdit(idx, editVal.trim()); setEditIdx(null); }}
-                      onKeyDown={(e) => { if (e.key === "Enter") { if (editVal.trim()) onEdit(idx, editVal.trim()); setEditIdx(null); } }}
-                    />
-                  ) : (
-                    <>
-                      <span className="flex-1 text-foreground truncate">{item}</span>
-                      <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground" onClick={() => { setEditIdx(idx); setEditVal(item); }}>
-                        <Pencil className="h-3 w-3" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 text-destructive/60 hover:text-destructive" onClick={() => onRemove(idx)}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </>
-                  )}
+        <AnimatePresence initial={false}>
+          {open && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="border-t border-border p-4 space-y-3">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Nuevo alimento..."
+                    value={newItem}
+                    onChange={(e) => setNewItem(e.target.value)}
+                    className="bg-background border-border text-sm h-8"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newItem.trim()) {
+                        onAdd(newItem.trim());
+                        setNewItem("");
+                      }
+                    }}
+                  />
+                  <Button
+                    size="sm" variant="outline" className="h-8 text-xs gap-1"
+                    disabled={!newItem.trim()}
+                    onClick={() => { onAdd(newItem.trim()); setNewItem(""); }}
+                  >
+                    <Plus className="h-3 w-3" /> Añadir
+                  </Button>
                 </div>
-              ))}
-            </div>
-          </div>
-        </CollapsibleContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5 max-h-[400px] overflow-y-auto">
+                  {items.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-1.5 bg-background/50 border border-border/50 rounded-lg px-3 py-1.5 text-sm group">
+                      {editIdx === idx ? (
+                        <Input
+                          value={editVal}
+                          onChange={(e) => setEditVal(e.target.value)}
+                          className="h-6 text-xs bg-background border-border flex-1"
+                          autoFocus
+                          onBlur={() => { if (editVal.trim()) onEdit(idx, editVal.trim()); setEditIdx(null); }}
+                          onKeyDown={(e) => { if (e.key === "Enter") { if (editVal.trim()) onEdit(idx, editVal.trim()); setEditIdx(null); } }}
+                        />
+                      ) : (
+                        <>
+                          <span className="flex-1 text-foreground truncate">{item}</span>
+                          <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground" onClick={() => { setEditIdx(idx); setEditVal(item); }}>
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 text-destructive/60 hover:text-destructive" onClick={() => onRemove(idx)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </Collapsible>
   );
