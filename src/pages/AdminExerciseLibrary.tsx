@@ -37,13 +37,18 @@ const AddExerciseDialog = ({ mode }: { mode: "basico" | "variante" | "accesorio"
 
   const handleAdd = () => {
     if (!name.trim()) return;
+    const trimmed = name.trim();
+    if (allExercises.some((e) => e.category === mode && e.name.toLowerCase() === trimmed.toLowerCase())) {
+      toast({ title: "Duplicado", description: `"${trimmed}" ya existe en esta categoría.`, variant: "destructive" });
+      return;
+    }
     addExercise({
-      name: name.trim(),
+      name: trimmed,
       category: mode,
       muscleGroup: muscleGroup || undefined,
       parentExerciseId: mode === "variante" && parentId ? parentId : undefined,
     });
-    toast({ title: "Ejercicio añadido", description: `"${name.trim()}" añadido a la biblioteca.` });
+    toast({ title: "Ejercicio añadido", description: `"${trimmed}" añadido a la biblioteca.` });
     setName(""); setMuscleGroup(""); setParentId(""); setOpen(false);
   };
 
@@ -108,12 +113,17 @@ const EditExerciseDialog = ({ exercise }: { exercise: ExerciseLibraryItem }) => 
 
   const handleSave = () => {
     if (!name.trim()) return;
+    const trimmed = name.trim();
+    if (allExercises.some((e) => e.id !== exercise.id && e.category === exercise.category && e.name.toLowerCase() === trimmed.toLowerCase())) {
+      toast({ title: "Duplicado", description: `"${trimmed}" ya existe en esta categoría.`, variant: "destructive" });
+      return;
+    }
     updateExercise(exercise.id, {
-      name: name.trim(),
+      name: trimmed,
       muscleGroup: muscleGroup || undefined,
       parentExerciseId: exercise.category === "variante" && parentId ? parentId : undefined,
     });
-    toast({ title: "Ejercicio actualizado", description: `"${name.trim()}" guardado.` });
+    toast({ title: "Ejercicio actualizado", description: `"${trimmed}" guardado.` });
     setOpen(false);
   };
 
