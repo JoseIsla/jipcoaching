@@ -2,6 +2,7 @@ import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { motion } from "framer-motion";
 
 import {
   Utensils,
@@ -70,22 +71,30 @@ const ClientHome = () => {
 
   return (
     <ClientLayout>
-      <div className="space-y-5 max-w-lg mx-auto animate-fade-in">
+      <div className="space-y-5 max-w-lg mx-auto">
         {/* Greeting */}
-        <div>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+        >
           <h1 className="text-2xl font-bold text-foreground">
             Hola, {client.name.split(" ")[0]} 👋
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Tu resumen de hoy
           </p>
-        </div>
+        </motion.div>
 
         {/* Weight card — only if nutrition */}
         {hasNutrition && latestWeight && (
-          <button
+          <motion.button
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.08, ease: "easeOut" }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => navigate("/client/progress")}
-            className="w-full bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-all group"
+            className="w-full bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-colors group"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -129,15 +138,19 @@ const ClientHome = () => {
                 </span>
               )}
             </div>
-          </button>
+          </motion.button>
         )}
 
         {/* Main service cards */}
         <div className="grid grid-cols-2 gap-3">
           {hasNutrition && (
-            <button
+            <motion.button
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.16, ease: "easeOut" }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => navigate("/client/nutrition")}
-              className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-all group"
+              className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-colors group"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="h-9 w-9 rounded-lg bg-primary/15 flex items-center justify-center">
@@ -157,13 +170,17 @@ const ClientHome = () => {
                   </span>
                 </div>
               )}
-            </button>
+            </motion.button>
           )}
 
           {hasTraining && (
-            <button
+            <motion.button
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.22, ease: "easeOut" }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => navigate("/client/training")}
-              className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-all group"
+              className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-colors group"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="h-9 w-9 rounded-lg bg-accent/15 flex items-center justify-center">
@@ -186,15 +203,19 @@ const ClientHome = () => {
                   <Progress value={trainingWeekProgress} className="h-1.5" />
                 </div>
               )}
-            </button>
+            </motion.button>
           )}
         </div>
 
         {/* Best lifts — only if training */}
         {hasTraining && mainLifts.length > 0 && (
-          <button
+          <motion.button
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.28, ease: "easeOut" }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => navigate("/client/progress")}
-            className="w-full bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-all group"
+            className="w-full bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-colors group"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -229,14 +250,18 @@ const ClientHome = () => {
                 </div>
               ))}
             </div>
-          </button>
+          </motion.button>
         )}
 
         {/* Bottom row: Check-ins + Progress */}
         <div className="grid grid-cols-2 gap-3">
-          <button
+          <motion.button
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.34, ease: "easeOut" }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => navigate("/client/checkins")}
-            className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-all group"
+            className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-colors group"
           >
             <div className="flex items-center justify-between mb-2">
               <div className="h-9 w-9 rounded-lg bg-secondary flex items-center justify-center">
@@ -259,11 +284,15 @@ const ClientHome = () => {
             ) : (
               <p className="text-xs text-muted-foreground mt-0.5">Todo al día ✓</p>
             )}
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.4, ease: "easeOut" }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => navigate("/client/progress")}
-            className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-all group"
+            className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-colors group"
           >
             <div className="flex items-center justify-between mb-2">
               <div className="h-9 w-9 rounded-lg bg-secondary flex items-center justify-center">
@@ -277,7 +306,7 @@ const ClientHome = () => {
                 ? `${weightHistory.length} registros`
                 : "Ver métricas"}
             </p>
-          </button>
+          </motion.button>
         </div>
       </div>
     </ClientLayout>
