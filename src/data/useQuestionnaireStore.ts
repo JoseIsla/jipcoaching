@@ -80,9 +80,9 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   getOrCreateTrainingEntry: (clientId, clientName) => {
     const state = get();
 
-    // Check if there's already a training entry for this week
+    // Check if there's already a training log entry (with trainingLog data) for this week
     const existing = state.entries.find(
-      (e) => e.clientId === clientId && e.category === "training" && e.weekLabel === thisWeekLabel
+      (e) => e.clientId === clientId && e.category === "training" && e.weekLabel === thisWeekLabel && e.trainingLog && e.trainingLog.length > 0
     );
     if (existing) return existing;
 
@@ -93,12 +93,18 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
     const detail = useTrainingPlanStore.getState().getDetail(activePlan.id);
     if (!detail) return null;
 
-    // Find active week
+    // Find active week, prefer one with exercises
     const activeWeek = detail.weeks.find((w) => w.status === "active");
     if (!activeWeek) return null;
 
+    // If active week has no exercises, fallback to first week that has them (template)
+    const hasExercises = activeWeek.days.some((d) => d.exercises.length > 0);
+    const sourceWeek = hasExercises
+      ? activeWeek
+      : detail.weeks.find((w) => w.days.some((d) => d.exercises.length > 0)) || activeWeek;
+
     // Build training log from the week's exercises
-    const trainingLog: TrainingLogDay[] = activeWeek.days.map((day) => ({
+    const trainingLog: TrainingLogDay[] = sourceWeek.days.map((day) => ({
       dayNumber: day.dayNumber,
       dayName: day.name,
       exercises: day.exercises.map((ex): TrainingLogExercise => ({
