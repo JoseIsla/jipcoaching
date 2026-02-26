@@ -26,10 +26,9 @@ const CreateNutritionPlanSheet = ({ onCreated }: Props) => {
   const details = useClientDetailStore((s) => s.details);
   const getActivePlanForClient = useNutritionPlanStore((s) => s.getActivePlanForClient);
 
-  const nutritionClients = allClients.filter((c) => {
-    const detail = details[c.id];
-    return detail ? detail.services.includes("nutrition") : c.services.includes("nutrition");
-  });
+  const nutritionClients = allClients.filter((c) =>
+    c.services.includes("nutrition")
+  );
 
   const existingActivePlan = clientId ? getActivePlanForClient(clientId) : undefined;
 

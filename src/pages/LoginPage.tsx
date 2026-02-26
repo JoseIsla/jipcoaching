@@ -21,7 +21,6 @@ const LoginPage = () => {
   const setLanguage = useLanguageStore((s) => s.setLanguage);
   const language = useLanguageStore((s) => s.language);
 
-  // Always reset login screen to Spanish by default
   const [userChangedLang, setUserChangedLang] = useState(false);
   useState(() => {
     setCurrentUser("login");
@@ -40,7 +39,6 @@ const LoginPage = () => {
   };
 
   const persistLanguageForUser = (userKey: string) => {
-    // Only overwrite the user's saved preference if the user explicitly changed language on login
     if (!userChangedLang) return;
     try { localStorage.setItem(`app-language-${userKey}`, language); } catch {}
   };
@@ -60,16 +58,6 @@ const LoginPage = () => {
     window.setTimeout(() => { navigate(targetPath, { replace: true }); }, 900);
   };
 
-  const handleMockLogin = (role: "admin" | "client") => {
-    const mockUserId = role === "admin" ? "mock-admin-001" : "mock-client-001";
-    persistLanguageForUser(mockUserId);
-    setShowLoadingScreen(true);
-    localStorage.setItem("jip_auth_token", `mock_token_${role}`);
-    localStorage.setItem("jip_mock_role", role);
-    localStorage.setItem("jip_mock_userid", mockUserId);
-    window.setTimeout(() => { window.location.href = role === "admin" ? "/admin" : "/client"; }, 900);
-  };
-
   if (showLoadingScreen) return <LoadingScreen />;
 
   return (
@@ -78,7 +66,7 @@ const LoginPage = () => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[120px]" />
       </div>
 
-      {/* Language toggle - top right */}
+      {/* Language toggle */}
       <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5">
         <Globe className="h-4 w-4 text-muted-foreground" />
         <button
@@ -102,19 +90,7 @@ const LoginPage = () => {
         <div className="bg-card border border-border rounded-2xl p-8 space-y-6">
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("login.welcome")}</h1>
-            <p className="text-sm text-muted-foreground">{t("login.quickAccess")}</p>
-          </div>
-          <div className="space-y-3">
-            <Label className="text-muted-foreground text-sm">{t("login.accessAs")}</Label>
-            <div className="grid grid-cols-2 gap-3">
-              <Button type="button" onClick={() => handleMockLogin("admin")} className="h-12 bg-primary text-primary-foreground font-semibold hover:brightness-110 transition-all">{t("login.admin")}</Button>
-              <Button type="button" onClick={() => handleMockLogin("client")} variant="outline" className="h-12 border-primary text-primary font-semibold hover:bg-primary/10 transition-all">{t("login.client")}</Button>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-xs text-muted-foreground">{t("login.orCredentials")}</span>
-            <div className="h-px flex-1 bg-border" />
+            <p className="text-sm text-muted-foreground">{t("login.subtitle")}</p>
           </div>
           {error && <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-lg p-3 text-center">{error}</div>}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">

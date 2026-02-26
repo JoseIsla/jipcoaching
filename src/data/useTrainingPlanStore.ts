@@ -263,7 +263,7 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
 
   getClientsWithService: () =>
     useClientStore.getState().clients.filter(
-      (c) => c.services.includes("training") && c.status !== "Inactivo"
+      (c) => c.services.includes("training") && String(c.status ?? "").toUpperCase() !== "PAUSED"
     ),
 
   getActivePlanForClient: (clientId) =>

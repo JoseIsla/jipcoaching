@@ -15,7 +15,8 @@ const item = (delay: number) => ({
 const QuickActions = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { clients, getRetentionRate } = useClientStore();
+  const { clients, getActiveClients, getRetentionRate } = useClientStore();
+  const activeClients = getActiveClients();
   const retention = getRetentionRate();
 
   const getPendingCount = useQuestionnaireStore((s) => s.getPendingCount);
@@ -96,7 +97,7 @@ const QuickActions = () => {
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">
                 {t("dashboard.ofClients", {
-                  active: clients.filter((c) => c.status !== "Inactivo").length,
+                  active: activeClients.length,
                   total: clients.length,
                 })}
               </span>

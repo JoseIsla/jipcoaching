@@ -1,12 +1,21 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
-import { type Client } from "@/data/mockData";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import type { ApiClient } from "@/types/api";
+import { isClientActive } from "@/types/api";
 import { useClientStore } from "@/data/useClientStore";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ClientContextType {
-  client: Client;
+  client: ApiClient;
   setClientId: (id: string) => void;
-  allClients: Client[];
+  allClients: ApiClient[];
 }
+
+const FALLBACK_CLIENT: ApiClient = {
+  id: "unknown",
+  name: "Cargando…",
+  email: "",
+  services: [],
+};
 
 const ClientContext = createContext<ClientContextType | null>(null);
 
@@ -17,10 +26,29 @@ export const useClient = () => {
 };
 
 export const ClientProvider = ({ children }: { children: ReactNode }) => {
+  const { role, userId } = useAuth();
   const allStoreClients = useClientStore((s) => s.clients);
-  const activeClients = allStoreClients.filter((c) => c.status === "Activo");
-  const [clientId, setClientId] = useState(activeClients[0]?.id || "1");
-  const client = allStoreClients.find((c) => c.id === clientId) || activeClients[0];
+  const fetchClients = useClientStore((s) => s.fetchClients);
+  const activeClients = allStoreClients.filter((c) => isClientActive(c.status));
+  const [clientId, setClientId] = useState<string | null>(null);
+
+  // For CLIENT role, the user IS the client
+  useEffect(() => {
+    if (role === "client" && userId) {
+      setClientId(userId);
+    }
+  }, [role, userId]);
+
+  // For ADMIN role, fetch all clients
+  useEffect(() => {
+    if (role === "admin") {
+      fetchClients();
+    }
+  }, [role, fetchClients]);
+
+  const client = clientId
+    ? allStoreClients.find((c) => c.id === clientId) ?? FALLBACK_CLIENT
+    : activeClients[0] ?? FALLBACK_CLIENT;
 
   return (
     <ClientContext.Provider value={{ client, setClientId, allClients: activeClients }}>

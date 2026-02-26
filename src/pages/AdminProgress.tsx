@@ -7,12 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { type Client } from "@/data/mockData";
+import type { ApiClient } from "@/types/api";
+import { packTypeLabels } from "@/types/api";
 import { useClientStore } from "@/data/useClientStore";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
 
-const ClientProgressCard = ({ client, onClick, t }: { client: Client; onClick: () => void; t: (k: string) => string }) => {
+const ClientProgressCard = ({ client, onClick, t }: { client: ApiClient; onClick: () => void; t: (k: string) => string }) => {
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
   const getWeightHistory = useQuestionnaireStore((s) => s.getWeightHistory);
@@ -21,13 +22,14 @@ const ClientProgressCard = ({ client, onClick, t }: { client: Client; onClick: (
   const bestRMs = hasTraining ? getBestRMs(client.id) : [];
   const sbdTotal = bestRMs.filter((r) => ["e1", "e4", "e7"].includes(r.exerciseId)).reduce((s, r) => s + r.estimated1RM, 0);
   const latestWeight = wh.length > 0 ? wh[wh.length - 1].weight : null;
+  const packLabel = client.packType ? (packTypeLabels[String(client.packType)] ?? String(client.packType)) : "";
 
   return (
     <button onClick={onClick} className="w-full bg-card border border-border rounded-xl p-5 hover:border-primary/30 transition-all text-left group">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary group-hover:bg-primary/20 transition-colors">{client.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}</div>
-          <div><p className="font-medium text-foreground">{client.name}</p><p className="text-xs text-muted-foreground">{client.plan}</p></div>
+          <div><p className="font-medium text-foreground">{client.name}</p><p className="text-xs text-muted-foreground">{packLabel}</p></div>
         </div>
         <div className="flex gap-1.5">
           {hasNutrition && <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10 text-[10px] px-1.5 py-0.5">Nutri</Badge>}
@@ -42,7 +44,7 @@ const ClientProgressCard = ({ client, onClick, t }: { client: Client; onClick: (
   );
 };
 
-const ClientDetail = ({ client, onBack, t }: { client: Client; onBack: () => void; t: (k: string) => string }) => {
+const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => void; t: (k: string) => string }) => {
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
   const getWeightHistory = useQuestionnaireStore((s) => s.getWeightHistory);
@@ -152,16 +154,6 @@ const ClientDetail = ({ client, onBack, t }: { client: Client; onBack: () => voi
               ) : (
                 <p className="text-sm text-muted-foreground py-8 text-center">{t("progress.noRMData")}</p>
               )}
-              {bestRMs.filter((r) => !["e1", "e4", "e7"].includes(r.exerciseId)).length > 0 && (
-                <div className="space-y-2 pt-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("progress.variants")}</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {bestRMs.filter((r) => !["e1", "e4", "e7"].includes(r.exerciseId)).map((rm) => (
-                      <div key={rm.exerciseId} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30 border border-border/50"><span className="text-sm text-foreground">{rm.exerciseName}</span><span className="text-sm font-mono font-medium text-muted-foreground">{rm.estimated1RM} kg</span></div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
             {trainingProgress && (
               <div className="bg-card border border-border rounded-xl p-6 space-y-4">
@@ -188,11 +180,10 @@ const ClientDetail = ({ client, onBack, t }: { client: Client; onBack: () => voi
 
 const AdminProgress = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedClient, setSelectedClient] = useState<ApiClient | null>(null);
   const [search, setSearch] = useState("");
   const activeClients = useClientStore((s) => s.getActiveClients)();
-  const filtered = activeClients.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()) || c.plan.toLowerCase().includes(search.toLowerCase()));
+  const filtered = activeClients.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <AdminLayout>

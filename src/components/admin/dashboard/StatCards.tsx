@@ -13,9 +13,8 @@ const item = (delay: number) => ({
 
 const StatCards = () => {
   const { t } = useTranslation();
-  const { clients, getActiveClients, getNewClientsThisMonth, getRetentionRate } = useClientStore();
+  const { clients, getActiveClients, getRetentionRate } = useClientStore();
   const activeClients = getActiveClients();
-  const newThisMonth = getNewClientsThisMonth();
   const nutritionPlans = useNutritionPlanStore((s) => s.plans);
   const trainingPlans = useTrainingPlanStore((s) => s.plans);
   const activeNutrition = nutritionPlans.filter((p) => p.active);
@@ -26,7 +25,7 @@ const StatCards = () => {
     {
       title: t("dashboard.activeClients"),
       value: activeClients.length,
-      sub: t("dashboard.thisMonth", { n: newThisMonth.length }),
+      sub: `${clients.length} ${t("common.total").toLowerCase()}`,
       icon: Users,
       color: "primary" as const,
       positive: true,
@@ -50,7 +49,7 @@ const StatCards = () => {
     {
       title: t("dashboard.retention"),
       value: `${retention}%`,
-      sub: `${clients.filter((c) => c.status !== "Inactivo").length}/${clients.length}`,
+      sub: `${activeClients.length}/${clients.length}`,
       icon: TrendingUp,
       color: (retention >= 80 ? "primary" : "destructive") as "primary" | "destructive",
       positive: retention >= 80,
