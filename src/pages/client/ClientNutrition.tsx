@@ -4,7 +4,8 @@ import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight, Utensils, Apple, Leaf, Target, Flame, Droplets } from "lucide-react";
-import { useNutritionPlanStore, globalFruitTable, globalVegetableTable, macroCategoryLabels, type Meal, type MealOption } from "@/data/useNutritionPlanStore";
+import { useNutritionPlanStore, macroCategoryLabels, type Meal, type MealOption } from "@/data/useNutritionPlanStore";
+import { useExerciseLibraryStore } from "@/data/useExerciseLibraryStore";
 
 const OptionCard = ({ option, optionIdx }: { option: MealOption; optionIdx: number }) => (
   <div className="space-y-2">
@@ -67,6 +68,8 @@ const ClientNutrition = () => {
   const plans = useNutritionPlanStore((s) => s.plans);
   const details = useNutritionPlanStore((s) => s.details);
   const supplements = useNutritionPlanStore((s) => s.supplements);
+  const fruits = useExerciseLibraryStore((s) => s.fruits);
+  const vegetables = useExerciseLibraryStore((s) => s.vegetables);
 
   // Find active plan detail
   const activePlanSummary = plans.find((p) => p.clientId === client.id && p.active);
@@ -185,14 +188,14 @@ const ClientNutrition = () => {
             <div className="bg-card border border-border rounded-xl overflow-hidden">
               <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
                 <div className="flex items-center gap-2">
-                  <Apple className="h-4 w-4 text-green-500" />
+                  <Apple className="h-4 w-4 text-primary" />
                   <span className="font-semibold text-foreground text-sm">Tabla 01 — Frutas</span>
-                  <Badge variant="outline" className="text-[10px]">{globalFruitTable.length}</Badge>
+                  <Badge variant="outline" className="text-[10px]">{fruits.length}</Badge>
                 </div>
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <div className="px-4 pb-4 flex flex-wrap gap-1.5">
-                  {globalFruitTable.map((f, i) => (
+                  {fruits.map((f, i) => (
                     <span key={i} className="text-xs bg-muted/50 text-muted-foreground px-2 py-1 rounded-full">{f}</span>
                   ))}
                 </div>
@@ -204,14 +207,14 @@ const ClientNutrition = () => {
             <div className="bg-card border border-border rounded-xl overflow-hidden">
               <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
                 <div className="flex items-center gap-2">
-                  <Leaf className="h-4 w-4 text-emerald-500" />
+                  <Leaf className="h-4 w-4 text-accent" />
                   <span className="font-semibold text-foreground text-sm">Tabla 02 — Verduras</span>
-                  <Badge variant="outline" className="text-[10px]">{globalVegetableTable.length}</Badge>
+                  <Badge variant="outline" className="text-[10px]">{vegetables.length}</Badge>
                 </div>
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <div className="px-4 pb-4 flex flex-wrap gap-1.5">
-                  {globalVegetableTable.map((v, i) => (
+                  {vegetables.map((v, i) => (
                     <span key={i} className="text-xs bg-muted/50 text-muted-foreground px-2 py-1 rounded-full">{v}</span>
                   ))}
                 </div>
