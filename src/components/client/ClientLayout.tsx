@@ -1,36 +1,60 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Utensils, Dumbbell, ClipboardList, BarChart3, User } from "lucide-react";
+import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings } from "lucide-react";
 import { useClient } from "@/contexts/ClientContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const tabs = [
-  { label: "Inicio", icon: User, path: "/client" },
+  { label: "Inicio", icon: Home, path: "/client" },
   { label: "Nutrición", icon: Utensils, path: "/client/nutrition", service: "nutrition" as const },
   { label: "Entreno", icon: Dumbbell, path: "/client/training", service: "training" as const },
   { label: "Check-in", icon: ClipboardList, path: "/client/checkins" },
   { label: "Progreso", icon: BarChart3, path: "/client/progress" },
+  { label: "Ajustes", icon: Settings, path: "/client/settings" },
 ];
 
 const ClientLayout = ({ children }: { children: ReactNode }) => {
   const { client, setClientId, allClients } = useClient();
   const location = useLocation();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const initials = client.name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
 
   const visibleTabs = tabs.filter(
     (t) => !t.service || client.services.includes(t.service)
   );
 
+  if (loading) return <LoadingScreen message="Cargando panel de cliente..." />;
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Top bar — client selector (dev mode) */}
+      {/* Top bar */}
       <header className="bg-card border-b border-border px-4 py-3 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="text-primary font-black text-lg">JIP</span>
-          <span className="text-muted-foreground text-xs">·</span>
-          <span className="text-foreground font-semibold text-sm truncate">{client.name}</span>
+        <div className="flex items-center gap-2.5">
+          <Avatar className="h-8 w-8 border border-primary/30">
+            <AvatarImage src={undefined} />
+            <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <span className="text-foreground font-semibold text-sm leading-tight truncate">{client.name}</span>
+            <span className="text-muted-foreground text-[10px] leading-tight">{client.plan}</span>
+          </div>
         </div>
         <Select value={client.id} onValueChange={setClientId}>
-          <SelectTrigger className="w-40 h-8 text-xs bg-background border-border">
+          <SelectTrigger className="w-36 h-8 text-xs bg-background border-border">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -57,7 +81,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
               <NavLink
                 key={tab.path}
                 to={tab.path}
-                className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors ${
+                className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors ${
                   isActive
                     ? "text-primary"
                     : "text-muted-foreground"

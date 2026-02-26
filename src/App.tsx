@@ -24,6 +24,7 @@ import ClientNutrition from "./pages/client/ClientNutrition";
 import ClientTraining from "./pages/client/ClientTraining";
 import ClientCheckins from "./pages/client/ClientCheckins";
 import ClientProgress from "./pages/client/ClientProgress";
+import ClientSettings from "./pages/client/ClientSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +60,7 @@ const App = () => (
               <Route path="/client/training" element={<ClientTraining />} />
               <Route path="/client/checkins" element={<ClientCheckins />} />
               <Route path="/client/progress" element={<ClientProgress />} />
+              <Route path="/client/settings" element={<ClientSettings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
