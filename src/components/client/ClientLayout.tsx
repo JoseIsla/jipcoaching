@@ -14,8 +14,8 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
   const { t } = useTranslation();
   const { client, setClientId, allClients } = useClient();
-  useEffect(() => { setCurrentUser(`client-${client.id}`); }, [setCurrentUser, client.id]);
-  const { logout } = useAuth();
+  const { logout, userId } = useAuth();
+  useEffect(() => { if (userId) setCurrentUser(userId); }, [setCurrentUser, userId]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();

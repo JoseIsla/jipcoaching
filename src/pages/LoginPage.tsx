@@ -39,7 +39,6 @@ const LoginPage = () => {
   };
 
   const persistLanguageForUser = (userKey: string) => {
-    // Copy current login language to the user-specific key so it carries over
     try { localStorage.setItem(`app-language-${userKey}`, language); } catch {}
   };
 
@@ -47,26 +46,24 @@ const LoginPage = () => {
     setIsLoading(true);
     setError("");
     const result = await login(data);
-    if (!result.success || !result.role) {
+    if (!result.success || !result.role || !result.userId) {
       setIsLoading(false);
       setError(result.error || t("login.error"));
       return;
     }
-    // Persist the login-selected language to the user's key
-    const userKey = result.role === "admin" ? "admin" : "client-default";
-    persistLanguageForUser(userKey);
+    persistLanguageForUser(result.userId);
     setShowLoadingScreen(true);
     const targetPath = result.role === "admin" ? "/admin" : "/client";
     window.setTimeout(() => { navigate(targetPath, { replace: true }); }, 900);
   };
 
   const handleMockLogin = (role: "admin" | "client") => {
-    // Persist the login-selected language to the mock user's key
-    const userKey = role === "admin" ? "admin" : "client-1";
-    persistLanguageForUser(userKey);
+    const mockUserId = role === "admin" ? "mock-admin-001" : "mock-client-001";
+    persistLanguageForUser(mockUserId);
     setShowLoadingScreen(true);
     localStorage.setItem("jip_auth_token", `mock_token_${role}`);
     localStorage.setItem("jip_mock_role", role);
+    localStorage.setItem("jip_mock_userid", mockUserId);
     window.setTimeout(() => { window.location.href = role === "admin" ? "/admin" : "/client"; }, 900);
   };
 

@@ -5,6 +5,7 @@ import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
 import AnimatedPage from "@/components/admin/AnimatedPage";
 import { useLanguageStore } from "@/i18n/store";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -12,8 +13,9 @@ interface AdminLayoutProps {
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const location = useLocation();
+  const { userId } = useAuth();
   const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
-  useEffect(() => { setCurrentUser("admin"); }, [setCurrentUser]);
+  useEffect(() => { if (userId) setCurrentUser(userId); }, [setCurrentUser, userId]);
 
   return (
     <div className="flex min-h-screen bg-background">

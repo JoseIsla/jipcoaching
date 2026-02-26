@@ -8,6 +8,7 @@ export interface LoginPayload {
 export interface AuthSession {
   token: string;
   role: UserRole;
+  userId: string;
 }
 
 export interface ApiResponse<T = void> {
@@ -59,11 +60,13 @@ export const loginRequest = async (payload: LoginPayload): Promise<ApiResponse<A
     const role = normalizeRole(data?.role);
     const token = typeof data?.accessToken === "string" ? data.accessToken : null;
 
-    if (!role || !token) {
+    const userId = typeof data?.userId === "string" ? data.userId : (typeof data?.id === "string" ? data.id : null);
+
+    if (!role || !token || !userId) {
       return { success: false, error: "Respuesta inesperada del servidor." };
     }
 
-    return { success: true, data: { token, role } };
+    return { success: true, data: { token, role, userId } };
   } catch {
     return { success: false, error: "No se pudo conectar con el servidor." };
   }
@@ -85,9 +88,10 @@ export const fetchSessionRequest = async (token: string | null): Promise<ApiResp
     }
 
     const role = normalizeRole(data?.role);
-    if (!role) return { success: false, error: "Rol no válido." };
+    const userId = typeof data?.userId === "string" ? data.userId : (typeof data?.id === "string" ? data.id : null);
+    if (!role || !userId) return { success: false, error: "Rol no válido." };
 
-    return { success: true, data: { token, role } };
+    return { success: true, data: { token, role, userId } };
   } catch {
     return { success: false, error: "No se pudo validar la sesión." };
   }
