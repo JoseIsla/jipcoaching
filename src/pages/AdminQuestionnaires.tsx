@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,18 +9,199 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { ClipboardList, Utensils, Dumbbell, CheckCircle2, Clock, XCircle, ChevronLeft, ChevronRight, Eye, Settings2, Plus, Trash2, GripVertical, Download } from "lucide-react";
-import { nutritionTemplates, trainingTemplate, type QuestionnaireEntry, type NutritionTemplate } from "@/data/mockData";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ClipboardList, Utensils, Dumbbell, CheckCircle2, Clock, XCircle, ChevronLeft, ChevronRight, Eye, Settings2, Plus, Trash2, GripVertical, Download, Pencil } from "lucide-react";
+import { type QuestionnaireEntry, type QuestionDefinition, type QuestionType } from "@/data/mockData";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
+import { useTemplateStore } from "@/data/useTemplateStore";
 import { useTranslation } from "@/i18n/useTranslation";
 import { exportTrainingLogPDF } from "@/utils/exportTrainingPDF";
 
+// ─── Drag helpers ───
+function useDragReorder(items: { id: string }[], onReorder: (ids: string[]) => void) {
+  const dragItem = useRef<number | null>(null);
+  const dragOver = useRef<number | null>(null);
+
+  const onDragStart = (idx: number) => { dragItem.current = idx; };
+  const onDragEnter = (idx: number) => { dragOver.current = idx; };
+  const onDragEnd = () => {
+    if (dragItem.current === null || dragOver.current === null || dragItem.current === dragOver.current) {
+      dragItem.current = null;
+      dragOver.current = null;
+      return;
+    }
+    const ids = items.map((i) => i.id);
+    const [removed] = ids.splice(dragItem.current, 1);
+    ids.splice(dragOver.current, 0, removed);
+    onReorder(ids);
+    dragItem.current = null;
+    dragOver.current = null;
+  };
+
+  return { onDragStart, onDragEnter, onDragEnd };
+}
+
+// ─── Add / Edit question dialog ───
+function QuestionEditorDialog({
+  question,
+  open,
+  onOpenChange,
+  onSave,
+}: {
+  question?: QuestionDefinition;
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  onSave: (q: QuestionDefinition) => void;
+}) {
+  const { t } = useTranslation();
+  const isNew = !question;
+  const [label, setLabel] = useState(question?.label || "");
+  const [type, setType] = useState<QuestionType>(question?.type || "text");
+  const [required, setRequired] = useState(question?.required ?? true);
+
+  const handleSave = () => {
+    if (!label.trim()) return;
+    onSave({
+      id: question?.id || `q-${Date.now()}`,
+      label: label.trim(),
+      type,
+      required,
+    });
+    onOpenChange(false);
+    if (isNew) { setLabel(""); setType("text"); setRequired(true); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-card border-border max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-foreground">{isNew ? t("questionnaires.addQuestion") : t("questionnaires.editQuestionLabel")}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div className="space-y-2">
+            <Label className="text-foreground">{t("questionnaires.questionLabel")}</Label>
+            <Input value={label} onChange={(e) => setLabel(e.target.value)} className="bg-muted border-border" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-foreground">Tipo</Label>
+            <Select value={type} onValueChange={(v) => setType(v as QuestionType)}>
+              <SelectTrigger className="bg-muted border-border"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="text">Texto</SelectItem>
+                <SelectItem value="number">Número</SelectItem>
+                <SelectItem value="scale">Escala (1-10)</SelectItem>
+                <SelectItem value="yesno">Sí/No</SelectItem>
+                <SelectItem value="select">Selección</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <input type="checkbox" checked={required} onChange={(e) => setRequired(e.target.checked)} className="accent-primary" id="q-required" />
+            <Label htmlFor="q-required" className="text-foreground text-sm">{t("questionnaires.required")}</Label>
+          </div>
+          <Button onClick={handleSave} className="w-full" disabled={!label.trim()}>
+            {isNew ? t("questionnaires.addQuestion") : "Guardar"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Question row ───
+function QuestionRow({
+  question,
+  index,
+  onEdit,
+  onDelete,
+  dragHandlers,
+}: {
+  question: QuestionDefinition;
+  index: number;
+  onEdit: () => void;
+  onDelete: () => void;
+  dragHandlers: { onDragStart: (i: number) => void; onDragEnter: (i: number) => void; onDragEnd: () => void };
+}) {
+  const { t } = useTranslation();
+  return (
+    <div
+      className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border"
+      draggable
+      onDragStart={() => dragHandlers.onDragStart(index)}
+      onDragEnter={() => dragHandlers.onDragEnter(index)}
+      onDragEnd={dragHandlers.onDragEnd}
+      onDragOver={(e) => e.preventDefault()}
+    >
+      <GripVertical className="h-4 w-4 text-muted-foreground shrink-0 cursor-grab active:cursor-grabbing" />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-foreground truncate">{question.label}</p>
+        <p className="text-xs text-muted-foreground capitalize">
+          {question.type}{question.required ? ` · ${t("questionnaires.required")}` : ""}
+        </p>
+      </div>
+      <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-primary" onClick={onEdit}>
+        <Pencil className="h-4 w-4" />
+      </Button>
+      <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={onDelete}>
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+// ─── Main component ───
 const AdminQuestionnaires = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedEntry, setSelectedEntry] = useState<QuestionnaireEntry | null>(null);
   const allEntries = useQuestionnaireStore((s) => s.entries);
+
+  // Template store
+  const nutritionTemplates = useTemplateStore((s) => s.nutritionTemplates);
+  const trainingTemplate = useTemplateStore((s) => s.trainingTemplate);
+  const {
+    updateNutritionQuestion, deleteNutritionQuestion, addNutritionQuestion, reorderNutritionQuestions,
+    updateTrainingQuestion, deleteTrainingQuestion, addTrainingQuestion, reorderTrainingQuestions,
+  } = useTemplateStore();
+
+  // Edit/add question state
+  const [editingQuestion, setEditingQuestion] = useState<QuestionDefinition | undefined>();
+  const [editContext, setEditContext] = useState<{ type: "nutrition" | "training"; templateId?: string } | null>(null);
+  const [addContext, setAddContext] = useState<{ type: "nutrition" | "training"; templateId?: string } | null>(null);
+
+  // Delete confirmation
+  const [deleteTarget, setDeleteTarget] = useState<{ type: "nutrition" | "training"; templateId?: string; questionId: string } | null>(null);
+
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    if (deleteTarget.type === "nutrition" && deleteTarget.templateId) {
+      deleteNutritionQuestion(deleteTarget.templateId, deleteTarget.questionId);
+    } else {
+      deleteTrainingQuestion(deleteTarget.questionId);
+    }
+    setDeleteTarget(null);
+  };
+
+  const handleSaveQuestion = (q: QuestionDefinition) => {
+    if (editContext) {
+      if (editContext.type === "nutrition" && editContext.templateId) {
+        updateNutritionQuestion(editContext.templateId, q.id, q);
+      } else {
+        updateTrainingQuestion(q.id, q);
+      }
+      setEditContext(null);
+      setEditingQuestion(undefined);
+    } else if (addContext) {
+      if (addContext.type === "nutrition" && addContext.templateId) {
+        addNutritionQuestion(addContext.templateId, q);
+      } else {
+        addTrainingQuestion(q);
+      }
+      setAddContext(null);
+    }
+  };
 
   const statusConfig: Record<string, { label: string; icon: typeof CheckCircle2; className: string }> = {
     respondido: { label: t("questionnaires.statusResponded"), icon: CheckCircle2, className: "bg-primary/15 text-primary border-primary/30" },
@@ -75,6 +256,7 @@ const AdminQuestionnaires = () => {
             <TabsTrigger value="training" className="data-[state=active]:bg-card data-[state=active]:text-primary"><Dumbbell className="h-4 w-4 mr-1.5" /> {t("common.training")}</TabsTrigger>
           </TabsList>
 
+          {/* ═══ NUTRITION TAB ═══ */}
           <TabsContent value="nutrition" className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-foreground">{t("questionnaires.nutritionCheckins")}</h2>
@@ -83,21 +265,21 @@ const AdminQuestionnaires = () => {
                 <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] overflow-y-auto">
                   <DialogHeader><DialogTitle className="text-foreground">{t("questionnaires.nutritionTemplates")}</DialogTitle></DialogHeader>
                   <Tabs defaultValue={nutritionTemplates[0]?.id} className="mt-4">
-                    <TabsList className="bg-muted border border-border">{nutritionTemplates.map((tp) => <TabsTrigger key={tp.id} value={tp.id} className="data-[state=active]:bg-card data-[state=active]:text-primary">{tp.dayLabel}</TabsTrigger>)}</TabsList>
+                    <TabsList className="bg-muted border border-border">
+                      {nutritionTemplates.map((tp) => (
+                        <TabsTrigger key={tp.id} value={tp.id} className="data-[state=active]:bg-card data-[state=active]:text-primary">{tp.dayLabel}</TabsTrigger>
+                      ))}
+                    </TabsList>
                     {nutritionTemplates.map((template) => (
-                      <TabsContent key={template.id} value={template.id} className="space-y-4 mt-4">
-                        <p className="text-sm text-muted-foreground">{template.name} — {template.questions.length} {t("questionnaires.questions")}</p>
-                        <div className="space-y-3">
-                          {template.questions.map((q) => (
-                            <div key={q.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border">
-                              <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
-                              <div className="flex-1 min-w-0"><p className="text-sm text-foreground truncate">{q.label}</p><p className="text-xs text-muted-foreground capitalize">{q.type}{q.required ? ` · ${t("questionnaires.required")}` : ""}</p></div>
-                              <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
-                            </div>
-                          ))}
-                        </div>
-                        <Button variant="outline" size="sm" className="w-full border-dashed"><Plus className="h-4 w-4 mr-1" /> {t("questionnaires.addQuestion")}</Button>
-                      </TabsContent>
+                      <NutritionTemplateEditor
+                        key={template.id}
+                        template={template}
+                        onEdit={(q) => { setEditingQuestion(q); setEditContext({ type: "nutrition", templateId: template.id }); }}
+                        onDelete={(qId) => setDeleteTarget({ type: "nutrition", templateId: template.id, questionId: qId })}
+                        onReorder={(ids) => reorderNutritionQuestions(template.id, ids)}
+                        onAdd={() => setAddContext({ type: "nutrition", templateId: template.id })}
+                        t={t}
+                      />
                     ))}
                   </Tabs>
                 </DialogContent>
@@ -120,46 +302,22 @@ const AdminQuestionnaires = () => {
             )}
           </TabsContent>
 
+          {/* ═══ TRAINING TAB ═══ */}
           <TabsContent value="training" className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-foreground">{t("questionnaires.weeklyTraining")}</h2>
               <Dialog>
-                <DialogTrigger asChild><Button variant="outline" size="sm"><Settings2 className="h-4 w-4 mr-1" /> {t("questionnaires.editExercises")}</Button></DialogTrigger>
+                <DialogTrigger asChild><Button variant="outline" size="sm"><Settings2 className="h-4 w-4 mr-1" /> {t("questionnaires.editTemplate")}</Button></DialogTrigger>
                 <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader><DialogTitle className="text-foreground">{t("questionnaires.exercisesOfRecord")}</DialogTitle></DialogHeader>
-                  <div className="mt-4 space-y-4">
-                    {trainingTemplate.exercises.filter((e) => !e.isVariant).map((mainLift) => (
-                      <div key={mainLift.id} className="space-y-2">
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                          <Dumbbell className="h-4 w-4 text-primary shrink-0" />
-                          <span className="text-sm font-medium text-foreground flex-1">{mainLift.name}</span>
-                          <Badge variant="outline" className="text-xs border-primary/30 text-primary">{t("questionnaires.basic")}</Badge>
-                        </div>
-                        {trainingTemplate.exercises.filter((e) => e.isVariant && e.parentExercise === mainLift.id).map((variant) => (
-                          <div key={variant.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border ml-6">
-                            <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
-                            <span className="text-sm text-foreground flex-1">{variant.name}</span>
-                            <Badge variant="outline" className="text-xs border-border text-muted-foreground">{t("questionnaires.variant")}</Badge>
-                            <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
-                          </div>
-                        ))}
-                        <Button variant="outline" size="sm" className="ml-6 border-dashed text-xs"><Plus className="h-3 w-3 mr-1" /> {t("questionnaires.addVariant")}</Button>
-                      </div>
-                    ))}
-                    <Separator className="bg-border" />
-                    <Button variant="outline" size="sm" className="w-full border-dashed"><Plus className="h-4 w-4 mr-1" /> {t("questionnaires.addBasicExercise")}</Button>
-                    <Separator className="bg-border" />
-                    <p className="text-sm font-medium text-foreground">{t("questionnaires.questionnaireQuestions")}</p>
-                    <div className="space-y-2">
-                      {trainingTemplate.questions.map((q) => (
-                        <div key={q.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border">
-                          <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
-                          <div className="flex-1 min-w-0"><p className="text-sm text-foreground truncate">{q.label}</p><p className="text-xs text-muted-foreground capitalize">{q.type}</p></div>
-                          <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <DialogHeader><DialogTitle className="text-foreground">{t("questionnaires.questionnaireQuestions")}</DialogTitle></DialogHeader>
+                  <TrainingTemplateEditor
+                    questions={trainingTemplate.questions}
+                    onEdit={(q) => { setEditingQuestion(q); setEditContext({ type: "training" }); }}
+                    onDelete={(qId) => setDeleteTarget({ type: "training", questionId: qId })}
+                    onReorder={(ids) => reorderTrainingQuestions(ids)}
+                    onAdd={() => setAddContext({ type: "training" })}
+                    t={t}
+                  />
                 </DialogContent>
               </Dialog>
             </div>
@@ -179,6 +337,7 @@ const AdminQuestionnaires = () => {
           </TabsContent>
         </Tabs>
 
+        {/* ═══ ENTRY PREVIEW DIALOG ═══ */}
         <Dialog open={!!selectedEntry} onOpenChange={(open) => !open && setSelectedEntry(null)}>
           <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
@@ -187,15 +346,9 @@ const AdminQuestionnaires = () => {
                 {selectedEntry?.clientName} — {selectedEntry?.templateName}
               </DialogTitle>
             </DialogHeader>
-            {/* Export button for responded training entries */}
             {selectedEntry?.status === "respondido" && selectedEntry.category === "training" && (
               <div className="flex justify-end -mt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => selectedEntry && exportTrainingLogPDF(selectedEntry)}
-                  className="gap-1.5"
-                >
+                <Button variant="outline" size="sm" onClick={() => selectedEntry && exportTrainingLogPDF(selectedEntry)} className="gap-1.5">
                   <Download className="h-4 w-4" />
                   {t("questionnaires.exportPDF")}
                 </Button>
@@ -203,7 +356,6 @@ const AdminQuestionnaires = () => {
             )}
             {selectedEntry?.status === "respondido" ? (
               <div className="space-y-4 mt-2">
-                {/* Training log comparison view */}
                 {selectedEntry.trainingLog && selectedEntry.trainingLog.length > 0 && (
                   <div className="space-y-4">
                     <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("questionnaires.trainingLogReview")}</p>
@@ -227,7 +379,7 @@ const AdminQuestionnaires = () => {
                                   <tr key={i} className="border-t border-border/50">
                                     <td className="px-3 py-2">
                                       <p className="text-sm font-medium text-foreground">{ex.exerciseName}</p>
-                                      <p className="text-[10px] text-muted-foreground">{ex.section === "basic" ? "Básico" : "Accesorio"}</p>
+                                      <p className="text-[10px] text-muted-foreground">{ex.section === "basic" ? "Básico" : "Variante"}</p>
                                     </td>
                                     <td className="px-3 py-2 text-center">
                                       <p className="text-xs text-muted-foreground">{ex.plannedSets}×{ex.plannedReps}</p>
@@ -261,7 +413,6 @@ const AdminQuestionnaires = () => {
                     <Separator className="bg-border" />
                   </div>
                 )}
-                {/* Legacy lift logs */}
                 {(!selectedEntry.trainingLog || selectedEntry.trainingLog.length === 0) && selectedEntry.liftLogs && selectedEntry.liftLogs.length > 0 && (
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("questionnaires.weightRecord")}</p>
@@ -287,7 +438,6 @@ const AdminQuestionnaires = () => {
                     </div>
                   </div>
                 )}
-                {/* Responses */}
                 {selectedEntry.responses && (
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("questionnaires.responses")}</p>
@@ -309,11 +459,125 @@ const AdminQuestionnaires = () => {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* ═══ EDIT QUESTION DIALOG ═══ */}
+        <QuestionEditorDialog
+          question={editingQuestion}
+          open={!!editContext}
+          onOpenChange={(o) => { if (!o) { setEditContext(null); setEditingQuestion(undefined); } }}
+          onSave={handleSaveQuestion}
+        />
+
+        {/* ═══ ADD QUESTION DIALOG ═══ */}
+        <QuestionEditorDialog
+          open={!!addContext}
+          onOpenChange={(o) => { if (!o) setAddContext(null); }}
+          onSave={handleSaveQuestion}
+        />
+
+        {/* ═══ DELETE CONFIRMATION ═══ */}
+        <AlertDialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
+          <AlertDialogContent className="bg-card border-border">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-foreground">{t("questionnaires.confirmDeleteQuestion")}</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                Esta acción no se puede deshacer.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );
 };
 
+// ─── Nutrition template editor (per tab) ───
+function NutritionTemplateEditor({
+  template,
+  onEdit,
+  onDelete,
+  onReorder,
+  onAdd,
+  t,
+}: {
+  template: { id: string; name: string; questions: QuestionDefinition[]; dayLabel: string };
+  onEdit: (q: QuestionDefinition) => void;
+  onDelete: (qId: string) => void;
+  onReorder: (ids: string[]) => void;
+  onAdd: () => void;
+  t: (key: string) => string;
+}) {
+  const drag = useDragReorder(template.questions, onReorder);
+
+  return (
+    <TabsContent value={template.id} className="space-y-4 mt-4">
+      <p className="text-sm text-muted-foreground">{template.name} — {template.questions.length} {t("questionnaires.questions")}</p>
+      <div className="space-y-3">
+        {template.questions.map((q, idx) => (
+          <QuestionRow
+            key={q.id}
+            question={q}
+            index={idx}
+            onEdit={() => onEdit(q)}
+            onDelete={() => onDelete(q.id)}
+            dragHandlers={drag}
+          />
+        ))}
+      </div>
+      <Button variant="outline" size="sm" className="w-full border-dashed" onClick={onAdd}>
+        <Plus className="h-4 w-4 mr-1" /> {t("questionnaires.addQuestion")}
+      </Button>
+    </TabsContent>
+  );
+}
+
+// ─── Training template editor (questions only, no exercises) ───
+function TrainingTemplateEditor({
+  questions,
+  onEdit,
+  onDelete,
+  onReorder,
+  onAdd,
+  t,
+}: {
+  questions: QuestionDefinition[];
+  onEdit: (q: QuestionDefinition) => void;
+  onDelete: (qId: string) => void;
+  onReorder: (ids: string[]) => void;
+  onAdd: () => void;
+  t: (key: string) => string;
+}) {
+  const drag = useDragReorder(questions, onReorder);
+
+  return (
+    <div className="mt-4 space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Los ejercicios del registro se generan automáticamente desde el plan de entrenamiento activo.
+      </p>
+      <div className="space-y-3">
+        {questions.map((q, idx) => (
+          <QuestionRow
+            key={q.id}
+            question={q}
+            index={idx}
+            onEdit={() => onEdit(q)}
+            onDelete={() => onDelete(q.id)}
+            dragHandlers={drag}
+          />
+        ))}
+      </div>
+      <Button variant="outline" size="sm" className="w-full border-dashed" onClick={onAdd}>
+        <Plus className="h-4 w-4 mr-1" /> {t("questionnaires.addQuestion")}
+      </Button>
+    </div>
+  );
+}
+
+// ─── Small helpers ───
 function StatMini({ icon: Icon, label, value, accent }: { icon: typeof ClipboardList; label: string; value: number; accent?: boolean }) {
   return (
     <Card className="bg-card border-border">
