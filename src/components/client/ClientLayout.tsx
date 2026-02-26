@@ -46,15 +46,15 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Top bar */}
-      <header className="bg-card border-b border-border px-4 py-3 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2.5">
-          <Avatar className="h-8 w-8 border border-primary/30">
+      <header className="bg-card border-b border-border px-3 sm:px-4 py-2.5 flex items-center justify-between shrink-0 safe-area-top">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <Avatar className="h-8 w-8 border border-primary/30 shrink-0">
             <AvatarImage src={undefined} />
             <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
               {initials}
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-0">
             <span className="text-foreground font-semibold text-sm leading-tight truncate">{client.name}</span>
             <div className="flex items-center gap-1.5 mt-0.5">
               {client.services.map((s) => (
@@ -68,9 +68,9 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           <Select value={client.id} onValueChange={setClientId}>
-            <SelectTrigger className="w-36 h-8 text-xs bg-background border-border">
+            <SelectTrigger className="w-28 sm:w-36 h-8 text-xs bg-background border-border">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -84,7 +84,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-70"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-70"
             title="Cerrar sesión"
           >
             {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
@@ -93,7 +93,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
       </header>
 
       {/* Content */}
-      <main className="flex-1 overflow-y-auto pb-20 px-4 py-5">
+      <main className="flex-1 overflow-y-auto pb-24 px-3 sm:px-4 py-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -110,22 +110,29 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
       </main>
 
       {/* Bottom tab bar */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border z-50">
-        <div className="flex items-center justify-around py-2 max-w-lg mx-auto">
+      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border z-50 safe-area-bottom">
+        <div className="flex items-center justify-around py-1.5 max-w-lg mx-auto">
           {visibleTabs.map((tab) => {
             const isActive = location.pathname === tab.path;
             return (
               <NavLink
                 key={tab.path}
                 to={tab.path}
-                className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors ${
+                className={`relative flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg transition-all ${
                   isActive
                     ? "text-primary"
-                    : "text-muted-foreground"
+                    : "text-muted-foreground active:scale-95"
                 }`}
               >
                 <tab.icon className={`h-5 w-5 ${isActive ? "text-primary" : ""}`} />
-                <span className="text-[10px] font-medium">{tab.label}</span>
+                <span className={`text-[10px] font-medium ${isActive ? "text-primary" : ""}`}>{tab.label}</span>
+                {isActive && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute -top-px left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full"
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                  />
+                )}
               </NavLink>
             );
           })}
