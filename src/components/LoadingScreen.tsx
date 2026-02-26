@@ -1,11 +1,14 @@
 import logoJip from "@/assets/logo-jip.png";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "@/i18n/useTranslation";
 
 interface LoadingScreenProps {
   message?: string;
 }
 
-const LoadingScreen = ({ message = "Cargando panel..." }: LoadingScreenProps) => {
+const LoadingScreen = ({ message }: LoadingScreenProps) => {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-6">
       <div className="animate-fade-in flex flex-col items-center gap-6">
@@ -16,7 +19,7 @@ const LoadingScreen = ({ message = "Cargando panel..." }: LoadingScreenProps) =>
         />
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin text-primary" />
-          <span className="text-sm font-medium">{message}</span>
+          <span className="text-sm font-medium">{message || t("common.loadingPanel")}</span>
         </div>
       </div>
     </div>

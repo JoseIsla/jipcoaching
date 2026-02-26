@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useNotificationStore, type NotificationType } from "@/data/notificationStore";
 import { MobileMenuButton } from "@/components/admin/AdminSidebar";
+import { useTranslation } from "@/i18n/useTranslation";
 
 const typeIcon: Record<NotificationType, typeof Bell> = {
   checkin: ClipboardList,
@@ -26,23 +27,28 @@ const typeColor: Record<NotificationType, string> = {
   system: "bg-secondary text-muted-foreground",
 };
 
-function timeAgo(date: Date): string {
-  const diff = Date.now() - date.getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "Ahora";
-  if (mins < 60) return `Hace ${mins}m`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `Hace ${hours}h`;
-  const days = Math.floor(hours / 24);
-  return `Hace ${days}d`;
+function useTimeAgo() {
+  const { t } = useTranslation();
+  return (date: Date): string => {
+    const diff = Date.now() - date.getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return t("header.now");
+    if (mins < 60) return t("header.minutesAgo", { n: mins });
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return t("header.hoursAgo", { n: hours });
+    const days = Math.floor(hours / 24);
+    return t("header.daysAgo", { n: days });
+  };
 }
 
 const AdminHeader = () => {
+  const { t } = useTranslation();
   const { profile, loading } = useAdminProfile();
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const timeAgo = useTimeAgo();
 
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } =
     useNotificationStore();
@@ -78,14 +84,13 @@ const AdminHeader = () => {
         <div className="relative w-48 sm:w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar clientes, planes..."
+            placeholder={t("header.searchPlaceholder")}
             className="pl-10 bg-muted border-border h-9 text-sm text-foreground placeholder:text-muted-foreground"
           />
         </div>
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Notifications */}
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <button className="relative text-muted-foreground hover:text-foreground transition-colors">
@@ -111,7 +116,7 @@ const AdminHeader = () => {
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-foreground">Notificaciones</h3>
+                <h3 className="text-sm font-semibold text-foreground">{t("header.notifications")}</h3>
                 {unreadCount > 0 && (
                   <span className="h-5 min-w-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
                     {unreadCount}
@@ -124,7 +129,7 @@ const AdminHeader = () => {
                   className="flex items-center gap-1 text-[11px] text-primary hover:underline"
                 >
                   <CheckCheck className="h-3 w-3" />
-                  Marcar todo
+                  {t("header.markAll")}
                 </button>
               )}
             </div>
@@ -132,7 +137,7 @@ const AdminHeader = () => {
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                   <Bell className="h-8 w-8 mb-2 opacity-30" />
-                  <p className="text-sm">Sin notificaciones</p>
+                  <p className="text-sm">{t("header.noNotifications")}</p>
                 </div>
               ) : (
                 <AnimatePresence initial={false}>
@@ -177,7 +182,7 @@ const AdminHeader = () => {
                                   className="flex items-center gap-0.5 text-[10px] text-primary hover:underline"
                                 >
                                   <Check className="h-2.5 w-2.5" />
-                                  Leída
+                                  {t("header.read")}
                                 </button>
                               )}
                             </div>
@@ -193,7 +198,6 @@ const AdminHeader = () => {
           </PopoverContent>
         </Popover>
 
-        {/* Profile dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-muted/50 transition-colors cursor-pointer">
@@ -224,7 +228,7 @@ const AdminHeader = () => {
           <DropdownMenuContent align="end" className="w-48 bg-card border-border">
             <DropdownMenuItem onClick={() => navigate("/admin/settings")} className="gap-2 cursor-pointer">
               <Settings className="h-4 w-4" />
-              Configuración
+              {t("common.settings")}
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-border" />
             <DropdownMenuItem
@@ -233,7 +237,7 @@ const AdminHeader = () => {
               className="gap-2 cursor-pointer text-destructive focus:text-destructive"
             >
               {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
-              {isLoggingOut ? "Cerrando..." : "Cerrar sesión"}
+              {isLoggingOut ? t("common.loggingOut") : t("common.logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

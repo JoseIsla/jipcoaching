@@ -4,6 +4,7 @@ import { UserPlus, Utensils, Dumbbell, Activity, ClipboardList, BarChart3 } from
 import { Progress } from "@/components/ui/progress";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useClientStore } from "@/data/useClientStore";
+import { useTranslation } from "@/i18n/useTranslation";
 
 const item = (delay: number) => ({
   initial: { opacity: 0, y: 16 },
@@ -11,14 +12,8 @@ const item = (delay: number) => ({
   transition: { duration: 0.4, delay, ease: "easeOut" as const },
 });
 
-const quickActions = [
-  { icon: UserPlus, label: "Añadir cliente", path: "/admin/clients" },
-  { icon: Utensils, label: "Plan nutricional", path: "/admin/nutrition" },
-  { icon: Dumbbell, label: "Plan de entreno", path: "/admin/training" },
-  { icon: Activity, label: "Ver progreso", path: "/admin/progress" },
-];
-
 const QuickActions = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { clients, getRetentionRate } = useClientStore();
   const retention = getRetentionRate();
@@ -26,15 +21,21 @@ const QuickActions = () => {
   const getPendingCount = useQuestionnaireStore((s) => s.getPendingCount);
   const pendingCheckins = getPendingCount();
 
+  const quickActions = [
+    { icon: UserPlus, label: t("dashboard.addClient"), path: "/admin/clients" },
+    { icon: Utensils, label: t("dashboard.nutritionPlan"), path: "/admin/nutrition" },
+    { icon: Dumbbell, label: t("dashboard.trainingPlan"), path: "/admin/training" },
+    { icon: Activity, label: t("dashboard.viewProgress"), path: "/admin/progress" },
+  ];
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      {/* Quick Actions */}
       <motion.div
         {...item(0.3)}
         className="lg:col-span-1 bg-card border border-border rounded-xl p-4"
       >
         <h2 className="text-sm font-semibold text-foreground mb-3">
-          Acciones Rápidas
+          {t("dashboard.quickActions")}
         </h2>
         <div className="grid grid-cols-2 gap-2">
           {quickActions.map((action) => (
@@ -55,12 +56,10 @@ const QuickActions = () => {
         </div>
       </motion.div>
 
-      {/* Overview cards */}
       <motion.div
         {...item(0.36)}
         className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3"
       >
-        {/* Checkins pendientes */}
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={() => navigate("/admin/questionnaires")}
@@ -77,28 +76,29 @@ const QuickActions = () => {
             )}
           </div>
           <p className="text-sm font-semibold text-foreground">
-            Check-ins pendientes
+            {t("dashboard.pendingCheckins")}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
             {pendingCheckins > 0
-              ? `${pendingCheckins} por revisar`
-              : "Todo al día ✓"}
+              ? t("dashboard.toReview", { n: pendingCheckins })
+              : t("dashboard.allCaughtUp")}
           </p>
         </motion.button>
 
-        {/* Retention progress */}
         <div className="bg-card border border-border rounded-xl p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="h-9 w-9 rounded-lg bg-primary/15 flex items-center justify-center">
               <BarChart3 className="h-4 w-4 text-primary" />
             </div>
           </div>
-          <p className="text-sm font-semibold text-foreground">Retención</p>
+          <p className="text-sm font-semibold text-foreground">{t("dashboard.retentionLabel")}</p>
           <div className="mt-2 space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">
-                {clients.filter((c) => c.status !== "Inactivo").length} de{" "}
-                {clients.length} clientes
+                {t("dashboard.ofClients", {
+                  active: clients.filter((c) => c.status !== "Inactivo").length,
+                  total: clients.length,
+                })}
               </span>
               <span className="text-xs font-medium text-primary">
                 {retention}%
