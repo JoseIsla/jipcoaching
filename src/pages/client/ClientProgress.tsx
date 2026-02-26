@@ -42,7 +42,7 @@ const ClientProgress = () => {
             <TabsContent value="nutrition" className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-card border border-border rounded-xl p-4 text-center"><Weight className="h-5 w-5 text-primary mx-auto mb-1" /><p className="text-2xl font-bold text-foreground">{latestWeight ?? "—"}</p><p className="text-[10px] text-muted-foreground">{t("clientProgress.currentWeight")}</p></div>
-                <div className="bg-card border border-border rounded-xl p-4 text-center">{weightDelta && Number(weightDelta) < 0 ? <TrendingDown className="h-5 w-5 text-green-500 mx-auto mb-1" /> : <TrendingUp className="h-5 w-5 text-amber-500 mx-auto mb-1" />}<p className="text-2xl font-bold text-foreground">{weightDelta ?? "—"} kg</p><p className="text-[10px] text-muted-foreground">{t("clientProgress.totalDelta")}</p></div>
+                <div className="bg-card border border-border rounded-xl p-4 text-center">{weightDelta && Number(weightDelta) < 0 ? <TrendingDown className="h-5 w-5 text-primary mx-auto mb-1" /> : <TrendingUp className="h-5 w-5 text-primary mx-auto mb-1" />}<p className="text-2xl font-bold text-foreground">{weightDelta ?? "—"} kg</p><p className="text-[10px] text-muted-foreground">{t("clientProgress.totalDelta")}</p></div>
               </div>
               {weightData.length > 1 && (
                 <div className="bg-card border border-border rounded-xl p-4">
