@@ -17,8 +17,15 @@ const LoginPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { login } = useAuth();
+  const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
   const setLanguage = useLanguageStore((s) => s.setLanguage);
   const language = useLanguageStore((s) => s.language);
+
+  // Always reset login screen to Spanish by default
+  useState(() => {
+    setCurrentUser("login");
+    setLanguage("es");
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
