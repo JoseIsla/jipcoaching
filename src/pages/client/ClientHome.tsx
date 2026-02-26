@@ -2,7 +2,7 @@ import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ResponsiveContainer, LineChart, Line, YAxis, Tooltip } from "recharts";
+
 import {
   Utensils,
   Dumbbell,
@@ -96,72 +96,37 @@ const ClientHome = () => {
               </div>
               <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
             </div>
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <p className="text-3xl font-bold text-foreground tracking-tight">
-                  {latestWeight.weight}
-                  <span className="text-base font-normal text-muted-foreground ml-1">kg</span>
-                </p>
-                <div className="flex gap-3 mt-1">
-                  {weightDiff !== null && (
-                    <div className="flex items-center gap-1">
-                      {weightDiff < 0 ? (
-                        <TrendingDown className="h-3.5 w-3.5 text-primary" />
-                      ) : weightDiff > 0 ? (
-                        <TrendingUp className="h-3.5 w-3.5 text-destructive" />
-                      ) : null}
-                      <span
-                        className={`text-xs font-medium ${
-                          weightDiff < 0
-                            ? "text-primary"
-                            : weightDiff > 0
-                            ? "text-destructive"
-                            : "text-muted-foreground"
-                        }`}
-                      >
-                        {weightDiff > 0 ? "+" : ""}
-                        {weightDiff} sem
-                      </span>
-                    </div>
-                  )}
-                  {totalDiff !== null && (
-                    <span className="text-xs text-muted-foreground">
-                      {totalDiff > 0 ? "+" : ""}
-                      {totalDiff} total
-                    </span>
-                  )}
+            <p className="text-3xl font-bold text-foreground tracking-tight">
+              {latestWeight.weight}
+              <span className="text-base font-normal text-muted-foreground ml-1">kg</span>
+            </p>
+            <div className="flex gap-3 mt-1.5">
+              {weightDiff !== null && (
+                <div className="flex items-center gap-1">
+                  {weightDiff < 0 ? (
+                    <TrendingDown className="h-3.5 w-3.5 text-primary" />
+                  ) : weightDiff > 0 ? (
+                    <TrendingUp className="h-3.5 w-3.5 text-destructive" />
+                  ) : null}
+                  <span
+                    className={`text-xs font-medium ${
+                      weightDiff < 0
+                        ? "text-primary"
+                        : weightDiff > 0
+                        ? "text-destructive"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    {weightDiff > 0 ? "+" : ""}
+                    {weightDiff} sem
+                  </span>
                 </div>
-              </div>
-              {/* Sparkline */}
-              {weightHistory.length >= 3 && (
-                <div className="w-28 h-12 flex-shrink-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={weightHistory}>
-                      <YAxis hide domain={["dataMin - 0.5", "dataMax + 0.5"]} />
-                      <Tooltip
-                        content={({ active, payload }) => {
-                          if (!active || !payload?.[0]) return null;
-                          const d = payload[0].payload as { date: string; weight: number };
-                          return (
-                            <div className="bg-card border border-border rounded-lg px-2.5 py-1.5 shadow-lg">
-                              <p className="text-xs font-semibold text-foreground">{d.weight} kg</p>
-                              <p className="text-[10px] text-muted-foreground">{d.date}</p>
-                            </div>
-                          );
-                        }}
-                        cursor={false}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="weight"
-                        stroke="hsl(110, 100%, 54%)"
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 3, fill: "hsl(110, 100%, 54%)", strokeWidth: 0 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+              )}
+              {totalDiff !== null && (
+                <span className="text-xs text-muted-foreground">
+                  {totalDiff > 0 ? "+" : ""}
+                  {totalDiff} total
+                </span>
               )}
             </div>
           </button>
