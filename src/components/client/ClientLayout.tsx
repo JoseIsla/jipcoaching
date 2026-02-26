@@ -1,10 +1,9 @@
-import { type ReactNode, useState, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings } from "lucide-react";
+import { type ReactNode } from "react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings, LogOut } from "lucide-react";
 import { useClient } from "@/contexts/ClientContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import LoadingScreen from "@/components/LoadingScreen";
 
 const tabs = [
   { label: "Inicio", icon: Home, path: "/client" },
@@ -18,12 +17,7 @@ const tabs = [
 const ClientLayout = ({ children }: { children: ReactNode }) => {
   const { client, setClientId, allClients } = useClient();
   const location = useLocation();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
+  const navigate = useNavigate();
 
   const initials = client.name
     .split(" ")
@@ -35,7 +29,9 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
     (t) => !t.service || client.services.includes(t.service)
   );
 
-  if (loading) return <LoadingScreen message="Cargando panel de cliente..." />;
+  const handleLogout = () => {
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -53,18 +49,27 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
             <span className="text-muted-foreground text-[10px] leading-tight">{client.plan}</span>
           </div>
         </div>
-        <Select value={client.id} onValueChange={setClientId}>
-          <SelectTrigger className="w-36 h-8 text-xs bg-background border-border">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {allClients.map((c) => (
-              <SelectItem key={c.id} value={c.id}>
-                {c.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select value={client.id} onValueChange={setClientId}>
+            <SelectTrigger className="w-36 h-8 text-xs bg-background border-border">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {allClients.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <button
+            onClick={handleLogout}
+            className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            title="Cerrar sesión"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
+        </div>
       </header>
 
       {/* Content */}
