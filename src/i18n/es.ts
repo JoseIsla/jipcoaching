@@ -401,6 +401,7 @@ const es = {
     confirm: "Confirmar registro",
     weekLabel: "Semana {n}",
     dayLabel: "Día {n}: {name}",
+    exportPDF: "Exportar PDF",
   },
 
   // ── Admin Settings ──

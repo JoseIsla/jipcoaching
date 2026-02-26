@@ -9,10 +9,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { ClipboardList, Utensils, Dumbbell, CheckCircle2, Clock, XCircle, ChevronLeft, ChevronRight, Eye, Settings2, Plus, Trash2, GripVertical } from "lucide-react";
+import { ClipboardList, Utensils, Dumbbell, CheckCircle2, Clock, XCircle, ChevronLeft, ChevronRight, Eye, Settings2, Plus, Trash2, GripVertical, Download } from "lucide-react";
 import { nutritionTemplates, trainingTemplate, type QuestionnaireEntry, type NutritionTemplate } from "@/data/mockData";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
+import { exportTrainingLogPDF } from "@/utils/exportTrainingPDF";
 
 const AdminQuestionnaires = () => {
   const { t } = useTranslation();
@@ -186,6 +187,20 @@ const AdminQuestionnaires = () => {
                 {selectedEntry?.clientName} — {selectedEntry?.templateName}
               </DialogTitle>
             </DialogHeader>
+            {/* Export button for responded training entries */}
+            {selectedEntry?.status === "respondido" && selectedEntry.category === "training" && (
+              <div className="flex justify-end -mt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => selectedEntry && exportTrainingLogPDF(selectedEntry)}
+                  className="gap-1.5"
+                >
+                  <Download className="h-4 w-4" />
+                  {t("questionnaires.exportPDF")}
+                </Button>
+              </div>
+            )}
             {selectedEntry?.status === "respondido" ? (
               <div className="space-y-4 mt-2">
                 {/* Training log comparison view */}
