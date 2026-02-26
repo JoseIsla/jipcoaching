@@ -1,34 +1,33 @@
 import { create } from "zustand";
 
 export type Language = "es" | "en";
-export type AppRole = "admin" | "client";
 
 const STORAGE_PREFIX = "app-language-";
 
-function getSavedLanguage(role: AppRole): Language {
+function getSavedLanguage(userId: string): Language {
   try {
-    const saved = localStorage.getItem(STORAGE_PREFIX + role);
+    const saved = localStorage.getItem(STORAGE_PREFIX + userId);
     if (saved === "es" || saved === "en") return saved;
   } catch {}
   return "es";
 }
 
 interface LanguageState {
-  currentRole: AppRole;
+  currentUserId: string;
   language: Language;
-  setCurrentRole: (role: AppRole) => void;
+  setCurrentUser: (userId: string) => void;
   setLanguage: (lang: Language) => void;
 }
 
 export const useLanguageStore = create<LanguageState>((set, get) => ({
-  currentRole: "admin",
-  language: getSavedLanguage("admin"),
-  setCurrentRole: (role) => {
-    set({ currentRole: role, language: getSavedLanguage(role) });
+  currentUserId: "default",
+  language: getSavedLanguage("default"),
+  setCurrentUser: (userId) => {
+    set({ currentUserId: userId, language: getSavedLanguage(userId) });
   },
   setLanguage: (language) => {
-    const role = get().currentRole;
-    try { localStorage.setItem(STORAGE_PREFIX + role, language); } catch {}
+    const userId = get().currentUserId;
+    try { localStorage.setItem(STORAGE_PREFIX + userId, language); } catch {}
     set({ language });
   },
 }));

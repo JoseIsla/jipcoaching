@@ -11,10 +11,10 @@ import { useTranslation } from "@/i18n/useTranslation";
 import { useLanguageStore } from "@/i18n/store";
 
 const ClientLayout = ({ children }: { children: ReactNode }) => {
-  const setCurrentRole = useLanguageStore((s) => s.setCurrentRole);
-  useEffect(() => { setCurrentRole("client"); }, [setCurrentRole]);
+  const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
   const { t } = useTranslation();
   const { client, setClientId, allClients } = useClient();
+  useEffect(() => { setCurrentUser(`client-${client.id}`); }, [setCurrentUser, client.id]);
   const { logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
