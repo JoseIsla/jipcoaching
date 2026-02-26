@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
-import { type AdminProfile } from "@/data/mockData";
+import { type AdminProfile } from "@/services/adminProfileApi";
 import {
   fetchAdminProfile,
   updateAdminProfile,

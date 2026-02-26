@@ -10,7 +10,7 @@ import {
   Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
-import type { TrainingBlock, TrainingModality } from "@/data/mockData";
+import type { TrainingBlock, TrainingModality } from "@/data/useTrainingPlanStore";
 import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
 
 const BLOCKS: TrainingBlock[] = ["Hipertrofia", "Intensificación", "Peaking", "Tapering"];

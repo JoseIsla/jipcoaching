@@ -15,7 +15,8 @@ import { ClipboardList, Check, Clock, AlertCircle, Dumbbell } from "lucide-react
 import AnimatedChevron from "@/components/ui/animated-chevron";
 import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-content";
 import { useToast } from "@/hooks/use-toast";
-import { nutritionTemplates, trainingTemplate, type QuestionnaireEntry, type QuestionDefinition, type TrainingLogDay } from "@/data/mockData";
+import { type QuestionnaireEntry, type TrainingLogDay } from "@/data/useQuestionnaireStore";
+import { nutritionTemplates, trainingTemplate, type QuestionDefinition } from "@/data/questionnaireDefs";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
 

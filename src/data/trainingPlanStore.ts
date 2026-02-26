@@ -1,5 +1,7 @@
-import { mockTrainingPlans, type TrainingBlock, type TrainingModality } from "./mockData";
 import { useClientStore } from "./useClientStore";
+
+export type TrainingBlock = "Hipertrofia" | "Intensificación" | "Peaking" | "Tapering";
+export type TrainingModality = "Powerlifting" | "Powerbuilding";
 
 // ==================== TYPES ====================
 
@@ -161,8 +163,8 @@ export const addExerciseToLibrary = (item: Omit<ExerciseLibraryItem, "id">): Exe
 
 // ==================== PLAN STORE ====================
 
-// Convert mock list to mutable
-export const trainingPlanList = [...mockTrainingPlans];
+// Plan list — initialized empty (populated from API)
+export const trainingPlanList: any[] = [];
 
 // Detailed plans store (keyed by plan id)
 const trainingPlanDetails: Record<string, TrainingPlanFull> = {};
@@ -183,196 +185,8 @@ const buildEmptyWeek = (planId: string, weekNum: number, daysPerWeek: number, bl
   })),
 });
 
-// Pre-populate demo detail for t1 (Carlos's plan) with sample exercises from the doc
-const buildDemoPlan = (): void => {
-  const day1Exercises: TrainingExerciseEntry[] = [
-    {
-      id: "te-1", order: 1, section: "basic", exerciseId: "ex-ssb",
-      exerciseName: "Safety Bar Squat (SSB)", exerciseType: "Básico/Variante",
-      method: "load_drop", topSetReps: 6, topSetRPE: 7, fatiguePercent: 7.5,
-      backoffRule: "-7,5% y repetir x6 hasta volver a @7 (parar)", estimatedSeries: "2-5",
-      plannedLoad: "Autoreg.", technicalNotes: "Brace 360°, control lumbar neutro",
-    },
-    {
-      id: "te-2", order: 2, section: "basic", exerciseId: "ex-bp-pausa",
-      exerciseName: "Banca Comp. Pausa", exerciseType: "Básico",
-      method: "load_drop", topSetReps: 8, topSetRPE: 7, fatiguePercent: 7.5,
-      backoffRule: "-7,5% y repetir x8 hasta volver a @7 (parar)", estimatedSeries: "2-5",
-      plannedLoad: "Autoreg.", technicalNotes: "Pausa real, leg drive estable",
-    },
-    {
-      id: "te-3", order: 3, section: "accessory", exerciseId: "ex-prensa",
-      exerciseName: "Prensa Inclinada", exerciseType: "Bilateral accesorio",
-      sets: "3-4", reps: "10-15", intensityType: "RIR", intensityValue: 2,
-      technicalNotes: "Rango completo sin despegar lumbar",
-    },
-    {
-      id: "te-4", order: 4, section: "accessory", exerciseId: "ex-remo-pecho",
-      exerciseName: "Remo Pecho Apoyado", exerciseType: "Espalda",
-      sets: "4", reps: "8-12", intensityType: "RIR", intensityValue: 2,
-      technicalNotes: "Pausa 1s en contracción",
-    },
-    {
-      id: "te-5", order: 5, section: "accessory", exerciseId: "ex-curl-fem",
-      exerciseName: "Curl Femoral Sentado", exerciseType: "Posterior pierna",
-      sets: "3", reps: "10-15", intensityType: "RIR", intensityValue: 2,
-      technicalNotes: "Control excéntrica",
-    },
-    {
-      id: "te-6", order: 6, section: "accessory", exerciseId: "ex-dead-bug",
-      exerciseName: "Core anti-extensión (Dead Bug / Ab Wheel)", exerciseType: "Core",
-      sets: "3-4", reps: "—", intensityType: "RIR", intensityValue: 2,
-      technicalNotes: "Sin dolor lumbar",
-    },
-  ];
-
-  const week1: TrainingWeek = {
-    id: "tw-t1-w1",
-    planId: "t1",
-    weekNumber: 1,
-    block: "Intensificación",
-    status: "completed",
-    generalNotes: "Objetivo: volver a meter patrón S/B/D con técnica sólida, RPE moderado, y controlar volumen con %fatiga.",
-    days: [
-      {
-        id: "td-t1-w1-d1", dayNumber: 1, name: "SSB + Banca",
-        warmup: "McGill Big 3 (curl-up mod., side plank, bird dog) 1-2 rondas + movilidad cadera suave",
-        exercises: day1Exercises,
-      },
-      {
-        id: "td-t1-w1-d2", dayNumber: 2, name: "Bisagra + Torso",
-        warmup: "Respiración/brace 2-3 min + bird dog 2x6/lado + bisagra con palo 2x8",
-        exercises: [
-          {
-            id: "te-7", order: 1, section: "basic", exerciseId: "ex-dl-bloques",
-            exerciseName: "Peso Muerto Bloques", exerciseType: "Básico/Variante",
-            method: "load_drop", topSetReps: 5, topSetRPE: 6, fatiguePercent: 5,
-            backoffRule: "-5% y repetir x5 hasta volver a @6 (parar)", estimatedSeries: "1-4",
-            technicalNotes: "Bar pegada, empuja desde el suelo, cero prisa",
-          },
-          {
-            id: "te-8", order: 2, section: "accessory", exerciseId: "ex-press-incl",
-            exerciseName: "Press Inclinado", sets: "4", reps: "8-12",
-            intensityType: "RIR", intensityValue: 2,
-          },
-          {
-            id: "te-9", order: 3, section: "accessory", exerciseId: "ex-jalon",
-            exerciseName: "Jalón Polea / Dominadas Asist.", sets: "4", reps: "8-12",
-            intensityType: "RIR", intensityValue: 2, technicalNotes: "Depresión escapular",
-          },
-          {
-            id: "te-10", order: 4, section: "accessory", exerciseId: "ex-remo-punta",
-            exerciseName: "Remo en Punta / Yates", sets: "3", reps: "8-12",
-            intensityType: "RIR", intensityValue: 2,
-          },
-          {
-            id: "te-11", order: 5, section: "accessory", exerciseId: "ex-hiper-ext",
-            exerciseName: "Hiperextensiones Suaves", sets: "2-3", reps: "12-15",
-            intensityType: "RIR", intensityValue: 3,
-            technicalNotes: "Solo bombeo, cero dolor",
-          },
-          {
-            id: "te-12", order: 6, section: "accessory", exerciseId: "ex-pallof",
-            exerciseName: "Pallof Press", sets: "3", reps: "10-15/lado",
-            intensityType: "RIR", intensityValue: 2,
-          },
-        ],
-      },
-      {
-        id: "td-t1-w1-d3", dayNumber: 3, name: "Banca énfasis + Pierna",
-        warmup: "Movilidad hombro/escápula + Big 3 1 ronda",
-        exercises: [
-          {
-            id: "te-13", order: 1, section: "basic", exerciseId: "ex-bp-pausa",
-            exerciseName: "Banca Comp. Pausa", exerciseType: "Básico",
-            method: "load_drop", topSetReps: 6, topSetRPE: 7, fatiguePercent: 7.5,
-            backoffRule: "-7,5% y repetir x6 hasta volver a @7 (parar)", estimatedSeries: "2-4",
-            technicalNotes: "Misma técnica, todas las reps con pausa",
-          },
-          {
-            id: "te-14", order: 2, section: "accessory", exerciseId: "ex-hack",
-            exerciseName: "Hack Squat / Baja carga axial", sets: "4", reps: "8-12",
-            intensityType: "RIR", intensityValue: 2, technicalNotes: "Profundidad cómoda",
-          },
-          {
-            id: "te-15", order: 3, section: "accessory", exerciseId: "ex-elev-lat",
-            exerciseName: "Elevaciones Laterales", sets: "4", reps: "12-20",
-            intensityType: "RIR", intensityValue: 2,
-          },
-          {
-            id: "te-16", order: 4, section: "accessory", exerciseId: "ex-triceps",
-            exerciseName: "Tríceps Polea (cuerda)", sets: "3-4", reps: "10-15",
-            intensityType: "RIR", intensityValue: 1,
-          },
-          {
-            id: "te-17", order: 5, section: "accessory", exerciseId: "ex-face-pull",
-            exerciseName: "Face Pull / Pájaros", sets: "3", reps: "15-25",
-            intensityType: "RIR", intensityValue: 2,
-          },
-          {
-            id: "te-18", order: 6, section: "accessory", exerciseId: "ex-crunch-polea",
-            exerciseName: "Crunch Polea Alta", sets: "3-4", reps: "12-20",
-            intensityType: "RIR", intensityValue: 2,
-          },
-        ],
-      },
-      {
-        id: "td-t1-w1-d4", dayNumber: 4, name: "Posterior + Torso",
-        warmup: "Bisagra ligera + activación glúteo (puentes 2x10)",
-        exercises: [
-          {
-            id: "te-19", order: 1, section: "basic", exerciseId: "ex-dl-rumano",
-            exerciseName: "Peso Muerto Rumano (RDL)", exerciseType: "Bisagra",
-            method: "straight_sets", sets: "4", reps: "8-10",
-            intensityType: "RIR", intensityValue: 2,
-            technicalNotes: "Espalda larga, control excéntrica",
-          },
-          {
-            id: "te-20", order: 2, section: "accessory", exerciseId: "ex-ghd",
-            exerciseName: "GHD / Curl Femoral", sets: "3", reps: "8-12",
-            intensityType: "RIR", intensityValue: 2,
-          },
-          {
-            id: "te-21", order: 3, section: "accessory", exerciseId: "ex-press-maq",
-            exerciseName: "Press Máquina Pecho Inclinado", sets: "3-4", reps: "10-15",
-            intensityType: "RIR", intensityValue: 2,
-          },
-          {
-            id: "te-22", order: 4, section: "accessory", exerciseId: "ex-remo-polea",
-            exerciseName: "Remo Polea Baja / Pecho Apoyado", sets: "4", reps: "10-15",
-            intensityType: "RIR", intensityValue: 2,
-          },
-          {
-            id: "te-23", order: 5, section: "accessory", exerciseId: "ex-gemelos",
-            exerciseName: "Gemelos", sets: "3-4", reps: "10-20",
-            intensityType: "RIR", intensityValue: 1,
-          },
-          {
-            id: "te-24", order: 6, section: "accessory", exerciseId: "ex-farmer",
-            exerciseName: "Farmer Carry", sets: "—", reps: "6-10 min total",
-            technicalNotes: "Sin dolor lumbar",
-          },
-        ],
-      },
-    ],
-  };
-
-  trainingPlanDetails["t1"] = {
-    id: "t1", clientId: "1", clientName: "Carlos Martínez",
-    planName: "PL Comp Prep", modality: "Powerlifting", block: "Intensificación",
-    weeksDuration: 6, currentWeek: 4, active: true,
-    startDate: "2025-02-03", endDate: null, daysPerWeek: 4,
-    blockVariants: "SSB, Banca comp. pausa, DL desde bloques (3-5cm)",
-    weeks: [
-      week1,
-      { ...buildEmptyWeek("t1", 2, 4, "Intensificación"), status: "completed" },
-      { ...buildEmptyWeek("t1", 3, 4, "Intensificación"), status: "completed" },
-      { ...buildEmptyWeek("t1", 4, 4, "Intensificación"), status: "active" },
-    ],
-  };
-};
-
-buildDemoPlan();
+// Details store — initialized empty (populated from API)
+// No demo data.
 
 // ==================== CRUD HELPERS ====================
 

@@ -16,7 +16,37 @@
  *   PUT    /api/admin/profile/password → change password
  */
 
-import { adminProfile, type AdminProfile } from "@/data/mockData";
+export interface AdminProfile {
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  avatarUrl: string | null;
+  timezone: string;
+  language: string;
+  notifications: {
+    email: boolean;
+    push: boolean;
+    newClient: boolean;
+    paymentReminder: boolean;
+  };
+}
+
+const adminProfile: AdminProfile = {
+  name: "Javier Ibáñez",
+  email: "javier@jipcoaching.com",
+  phone: "+34 600 123 456",
+  role: "Coach",
+  avatarUrl: null,
+  timezone: "Europe/Madrid",
+  language: "Español",
+  notifications: {
+    email: true,
+    push: true,
+    newClient: true,
+    paymentReminder: true,
+  },
+};
 
 // Simulated network delay
 const delay = (ms = 600) => new Promise((res) => setTimeout(res, ms));

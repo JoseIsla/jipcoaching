@@ -5,7 +5,7 @@ import {
   type NutritionTemplate,
   type TrainingTemplate,
   type QuestionDefinition,
-} from "@/data/mockData";
+} from "@/data/questionnaireDefs";
 
 interface TemplateState {
   nutritionTemplates: NutritionTemplate[];

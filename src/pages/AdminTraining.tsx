@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
-import type { TrainingBlock } from "@/data/mockData";
+import type { TrainingBlock } from "@/data/useTrainingPlanStore";
 import CreateTrainingPlanSheet from "@/components/admin/CreateTrainingPlanSheet";
 import { useTranslation } from "@/i18n/useTranslation";
 

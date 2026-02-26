@@ -1,8 +1,6 @@
 import { create } from "zustand";
-import {
-  mockNutritionPlans,
-  type NutritionPlan,
-} from "@/data/mockData";
+import { api } from "@/services/api";
+import type { ApiNutritionPlan } from "@/types/api";
 import {
   type NutritionPlanDetail,
   type Meal,
@@ -26,25 +24,37 @@ export {
   createEmptyRow,
 } from "@/data/nutritionPlanStore";
 
-// Import the mock detail for seeding
-import {
-  nutritionPlanDetailStore as mockDetailStore,
-  globalSupplements as initialSupplements,
-} from "@/data/nutritionPlanStore";
+/** Lightweight list entry for admin views (derived from API or local cache) */
+export interface NutritionPlanListEntry {
+  id: string;
+  clientId: string;
+  clientName: string;
+  planName: string;
+  type: string;
+  calories: number;
+  active: boolean;
+  startDate: string;
+  endDate: string | null;
+}
 
 let nextId = 200;
 export const genId = () => `np-${++nextId}`;
 
 interface NutritionPlanState {
-  plans: NutritionPlan[];
+  plans: NutritionPlanListEntry[];
   details: Record<string, NutritionPlanDetail>;
   supplements: Supplement[];
+  loading: boolean;
+  error: string | null;
 
-  // Plan list
-  addPlan: (plan: NutritionPlan) => void;
+  // Fetch from API
+  fetchActiveClientPlan: () => Promise<ApiNutritionPlan | null>;
+
+  // Plan list (local for admin — backend doesn't have admin list endpoint yet)
+  addPlan: (plan: NutritionPlanListEntry) => void;
   togglePlanActive: (planId: string, activate: boolean) => void;
   deactivateClientPlans: (clientId: string) => void;
-  getActivePlanForClient: (clientId: string) => NutritionPlan | undefined;
+  getActivePlanForClient: (clientId: string) => NutritionPlanListEntry | undefined;
 
   // Plan details
   addDetail: (detail: NutritionPlanDetail) => void;
@@ -56,9 +66,28 @@ interface NutritionPlanState {
 }
 
 export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
-  plans: [...mockNutritionPlans],
-  details: { ...mockDetailStore },
-  supplements: [...initialSupplements],
+  plans: [],
+  details: {},
+  supplements: [],
+  loading: false,
+  error: null,
+
+  fetchActiveClientPlan: async () => {
+    set({ loading: true, error: null });
+    try {
+      const plan = await api.get<ApiNutritionPlan>("/nutrition/me/active");
+      set({ loading: false });
+      return plan;
+    } catch (err: any) {
+      // 404 means no active plan — not an error
+      if (err?.status === 404) {
+        set({ loading: false });
+        return null;
+      }
+      set({ error: err?.message ?? "Error al cargar plan nutricional", loading: false });
+      return null;
+    }
+  },
 
   addPlan: (plan) =>
     set((state) => ({ plans: [plan, ...state.plans] })),
@@ -70,7 +99,6 @@ export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
       const plan = plans.find((p) => p.id === planId);
 
       if (activate && plan) {
-        // Deactivate other plans for same client first
         plans = plans.map((p) =>
           p.clientId === plan.clientId && p.active
             ? { ...p, active: false, endDate: today }
@@ -86,7 +114,6 @@ export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
 
       const details = { ...state.details };
       if (activate && plan) {
-        // Deactivate other details for same client
         Object.keys(details).forEach((k) => {
           if (details[k].clientId === plan.clientId && details[k].active) {
             details[k] = { ...details[k], active: false, endDate: today };
