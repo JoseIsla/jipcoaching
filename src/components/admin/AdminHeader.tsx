@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useNotificationStore, type NotificationType } from "@/data/notificationStore";
+import { MobileMenuButton } from "@/components/admin/AdminSidebar";
 
 const typeIcon: Record<NotificationType, typeof Bell> = {
   checkin: ClipboardList,
@@ -71,13 +72,16 @@ const AdminHeader = () => {
   };
 
   return (
-    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 lg:px-8 shrink-0">
-      <div className="relative w-72">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar clientes, planes..."
-          className="pl-10 bg-muted border-border h-9 text-sm text-foreground placeholder:text-muted-foreground"
-        />
+    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 lg:px-8 shrink-0">
+      <div className="flex items-center gap-3">
+        <MobileMenuButton />
+        <div className="relative w-48 sm:w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar clientes, planes..."
+            className="pl-10 bg-muted border-border h-9 text-sm text-foreground placeholder:text-muted-foreground"
+          />
+        </div>
       </div>
 
       <div className="flex items-center gap-4">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -10,8 +10,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Library,
+  Menu,
+  X,
 } from "lucide-react";
 import logoJip from "@/assets/logo-jip.png";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
@@ -23,58 +26,131 @@ const navItems = [
   { label: "Configuración", icon: Settings, path: "/admin/settings" },
 ];
 
-const AdminSidebar = () => {
-  const [collapsed, setCollapsed] = useState(false);
-  const location = useLocation();
+export const MobileMenuButton = () => {
+  const isMobile = useIsMobile();
+  if (!isMobile) return null;
 
   return (
-    <aside
-      className={`${
-        collapsed ? "w-[72px]" : "w-64"
-      } bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 shrink-0`}
+    <button
+      onClick={() => window.dispatchEvent(new CustomEvent("toggle-admin-sidebar"))}
+      className="text-muted-foreground hover:text-foreground transition-colors lg:hidden"
     >
-      {/* Logo */}
-      <div className="flex items-center justify-center h-20 border-b border-sidebar-border px-4">
-        {!collapsed ? (
-          <img src={logoJip} alt="JIP" className="h-12 w-auto" />
-        ) : (
-          <span className="text-primary font-black text-xl">J</span>
-        )}
-      </div>
+      <Menu className="h-5 w-5" />
+    </button>
+  );
+};
 
-      {/* Nav */}
-      <nav className="flex-1 py-4 space-y-1 px-2">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                isActive
-                  ? "bg-sidebar-accent text-primary"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              }`}
-            >
-              <item.icon className={`h-5 w-5 shrink-0 ${isActive ? "text-primary" : ""}`} />
-              {!collapsed && <span>{item.label}</span>}
-            </NavLink>
-          );
-        })}
-      </nav>
+const AdminSidebar = () => {
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+  const isMobile = useIsMobile();
 
-      {/* Footer */}
-      <div className="border-t border-sidebar-border p-2">
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="flex items-center justify-center w-full py-2 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </button>
-      </div>
-    </aside>
+  // Listen for toggle event from header
+  useEffect(() => {
+    const handler = () => setMobileOpen((v) => !v);
+    window.addEventListener("toggle-admin-sidebar", handler);
+    return () => window.removeEventListener("toggle-admin-sidebar", handler);
+  }, []);
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  // Desktop sidebar
+  if (!isMobile) {
+    return (
+      <aside
+        className={`${
+          collapsed ? "w-[72px]" : "w-64"
+        } bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 shrink-0`}
+      >
+        <div className="flex items-center justify-center h-20 border-b border-sidebar-border px-4">
+          {!collapsed ? (
+            <img src={logoJip} alt="JIP" className="h-12 w-auto" />
+          ) : (
+            <span className="text-primary font-black text-xl">J</span>
+          )}
+        </div>
+        <nav className="flex-1 py-4 space-y-1 px-2">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  isActive
+                    ? "bg-sidebar-accent text-primary"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                }`}
+              >
+                <item.icon className={`h-5 w-5 shrink-0 ${isActive ? "text-primary" : ""}`} />
+                {!collapsed && <span>{item.label}</span>}
+              </NavLink>
+            );
+          })}
+        </nav>
+        <div className="border-t border-sidebar-border p-2">
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="flex items-center justify-center w-full py-2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </button>
+        </div>
+      </aside>
+    );
+  }
+
+  // Mobile sidebar (overlay)
+  return (
+    <>
+      {/* Backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+      {/* Drawer */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border flex flex-col transition-transform duration-300 lg:hidden ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between h-16 border-b border-sidebar-border px-4">
+          <img src={logoJip} alt="JIP" className="h-10 w-auto" />
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  isActive
+                    ? "bg-sidebar-accent text-primary"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                }`}
+              >
+                <item.icon className={`h-5 w-5 shrink-0 ${isActive ? "text-primary" : ""}`} />
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
+        </nav>
+      </aside>
+    </>
   );
 };
 
 export default AdminSidebar;
-
