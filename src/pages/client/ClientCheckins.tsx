@@ -22,12 +22,14 @@ import {
 } from "@/data/mockData";
 
 // Time window: the questionnaire day + 2 days after
-const isWithinWindow = (entry: QuestionnaireEntry): boolean => {
+const getEntryWindowStatus = (entry: QuestionnaireEntry): "within" | "future" | "expired" => {
   const entryDate = new Date(entry.date);
   const now = new Date();
   const windowEnd = new Date(entryDate);
   windowEnd.setDate(windowEnd.getDate() + 2);
-  return now >= entryDate && now <= windowEnd;
+  if (now < entryDate) return "future";
+  if (now <= windowEnd) return "within";
+  return "expired";
 };
 
 const QuestionField = ({
@@ -116,8 +118,8 @@ const CheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const [submitted, setSubmitted] = useState(entry.status === "respondido");
   const { toast } = useToast();
 
-  const withinWindow = isWithinWindow(entry);
-  const canFill = !submitted && withinWindow;
+  const windowStatus = getEntryWindowStatus(entry);
+  const canFill = !submitted && windowStatus === "within";
 
   const template = entry.category === "nutrition"
     ? nutritionTemplates.find((t) => t.id === entry.templateId)
@@ -139,15 +141,19 @@ const CheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
 
   const statusIcon = submitted
     ? <Check className="h-3.5 w-3.5 text-green-500" />
-    : withinWindow
+    : windowStatus === "within"
       ? <Clock className="h-3.5 w-3.5 text-yellow-500" />
-      : <AlertCircle className="h-3.5 w-3.5 text-muted-foreground" />;
+      : windowStatus === "future"
+        ? <Clock className="h-3.5 w-3.5 text-blue-400" />
+        : <AlertCircle className="h-3.5 w-3.5 text-muted-foreground" />;
 
   const statusLabel = submitted
     ? "Respondido"
-    : withinWindow
+    : windowStatus === "within"
       ? "Pendiente"
-      : "Fuera de plazo";
+      : windowStatus === "future"
+        ? "Próximamente"
+        : "Fuera de plazo";
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -196,6 +202,10 @@ const CheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                   </div>
                 ))}
               </div>
+            ) : windowStatus === "future" ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Este check-in estará disponible el <strong>{entry.dayLabel}</strong>.
+              </p>
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
                 Este check-in ya no está disponible para rellenar.
