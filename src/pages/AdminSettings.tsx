@@ -9,11 +9,40 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Camera, Save, Shield, Bell, Globe, User, Trash2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/i18n/useTranslation";
+import { useLanguageStore, type Language } from "@/i18n/store";
+
+const TIMEZONES = [
+  "Europe/Madrid",
+  "Europe/London",
+  "Europe/Paris",
+  "Europe/Berlin",
+  "Europe/Rome",
+  "Europe/Lisbon",
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "America/Mexico_City",
+  "America/Buenos_Aires",
+  "America/Sao_Paulo",
+  "America/Bogota",
+  "Asia/Tokyo",
+  "Asia/Shanghai",
+  "Asia/Dubai",
+  "Australia/Sydney",
+  "Pacific/Auckland",
+];
 
 const AdminSettings = () => {
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const setAppLanguage = useLanguageStore((s) => s.setLanguage);
+  const appLanguage = useLanguageStore((s) => s.language);
+
   const {
     profile,
     loading,
@@ -25,7 +54,6 @@ const AdminSettings = () => {
     handleChangePassword,
   } = useAdminProfile();
 
-  // Local form state (initialized from profile context)
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [timezone, setTimezone] = useState("");
@@ -43,7 +71,6 @@ const AdminSettings = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync local state when profile loads/changes
   useEffect(() => {
     if (profile) {
       setName(profile.name);
@@ -55,20 +82,14 @@ const AdminSettings = () => {
     }
   }, [profile]);
 
-  // Track dirty state
+  // Track dirty state (only for name/phone, not notifications which auto-save)
   useEffect(() => {
     if (!profile) return;
     const dirty =
       name !== profile.name ||
-      phone !== profile.phone ||
-      timezone !== profile.timezone ||
-      language !== profile.language ||
-      notifications.email !== profile.notifications.email ||
-      notifications.push !== profile.notifications.push ||
-      notifications.newClient !== profile.notifications.newClient ||
-      notifications.paymentReminder !== profile.notifications.paymentReminder;
+      phone !== profile.phone;
     setIsDirty(dirty);
-  }, [name, phone, timezone, language, notifications, profile]);
+  }, [name, phone, profile]);
 
   const initials = name
     .split(" ")
@@ -79,10 +100,35 @@ const AdminSettings = () => {
   const handleSaveProfile = async () => {
     const res = await saveProfile({ name, phone, timezone, language, notifications });
     if (res.success) {
-      toast({ title: "Perfil actualizado", description: "Los cambios se han guardado en la base de datos." });
+      toast({ title: t("settings.profileUpdated"), description: t("settings.profileUpdatedDesc") });
     } else {
-      toast({ title: "Error", description: res.error || "No se pudo guardar.", variant: "destructive" });
+      toast({ title: "Error", description: res.error || "", variant: "destructive" });
     }
+  };
+
+  // Auto-save notification toggle
+  const handleNotificationToggle = async (key: keyof typeof notifications, checked: boolean) => {
+    const updated = { ...notifications, [key]: checked };
+    setNotifications(updated);
+    const res = await saveProfile({ name, phone, timezone, language, notifications: updated });
+    if (res.success) {
+      toast({ title: t("settings.notificationSaved"), description: t("settings.notificationSavedDesc") });
+    }
+  };
+
+  // Timezone change — auto-save
+  const handleTimezoneChange = async (tz: string) => {
+    setTimezone(tz);
+    await saveProfile({ name, phone, timezone: tz, language, notifications });
+    toast({ title: t("settings.profileUpdated"), description: t("settings.profileUpdatedDesc") });
+  };
+
+  // Language change — update i18n store + save profile
+  const handleLanguageChange = async (lang: string) => {
+    setLanguage(lang);
+    const appLang: Language = lang === "English" ? "en" : "es";
+    setAppLanguage(appLang);
+    await saveProfile({ name, phone, timezone, language: lang, notifications });
   };
 
   const handleAvatarSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,32 +136,31 @@ const AdminSettings = () => {
     if (!file) return;
     const res = await handleUploadAvatar(file);
     if (res.success) {
-      toast({ title: "Avatar actualizado", description: "La foto anterior ha sido reemplazada." });
+      toast({ title: t("settings.avatarUpdated"), description: t("settings.avatarUpdatedDesc") });
     } else {
-      toast({ title: "Error", description: res.error || "No se pudo subir la imagen.", variant: "destructive" });
+      toast({ title: "Error", description: res.error || "", variant: "destructive" });
     }
-    // Reset input so same file can be re-selected
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleRemoveAvatar = async () => {
     const res = await handleDeleteAvatar();
     if (res.success) {
-      toast({ title: "Avatar eliminado", description: "Se ha eliminado tu foto de perfil." });
+      toast({ title: t("settings.avatarDeleted"), description: t("settings.avatarDeletedDesc") });
     }
   };
 
   const onChangePassword = async () => {
     if (!passwords.current || !passwords.new || !passwords.confirm) {
-      toast({ title: "Error", description: "Completa todos los campos de contraseña.", variant: "destructive" });
+      toast({ title: "Error", description: t("settings.fillAllPassword"), variant: "destructive" });
       return;
     }
     if (passwords.new !== passwords.confirm) {
-      toast({ title: "Error", description: "Las contraseñas no coinciden.", variant: "destructive" });
+      toast({ title: "Error", description: t("settings.passwordMismatch"), variant: "destructive" });
       return;
     }
     if (passwords.new.length < 8) {
-      toast({ title: "Error", description: "La contraseña debe tener al menos 8 caracteres.", variant: "destructive" });
+      toast({ title: "Error", description: t("settings.passwordTooShort"), variant: "destructive" });
       return;
     }
     const res = await handleChangePassword({
@@ -123,21 +168,21 @@ const AdminSettings = () => {
       newPassword: passwords.new,
     });
     if (res.success) {
-      toast({ title: "Contraseña actualizada", description: "Tu contraseña se ha actualizado en la base de datos." });
+      toast({ title: t("settings.passwordUpdated"), description: t("settings.passwordUpdatedDesc") });
       setPasswords({ current: "", new: "", confirm: "" });
     } else {
-      toast({ title: "Error", description: res.error || "No se pudo cambiar la contraseña.", variant: "destructive" });
+      toast({ title: "Error", description: res.error || "", variant: "destructive" });
     }
   };
 
   const onChangeEmail = async () => {
     if (!emailChange.newEmail || !emailChange.password) {
-      toast({ title: "Error", description: "Completa todos los campos.", variant: "destructive" });
+      toast({ title: "Error", description: t("settings.fillAllFields"), variant: "destructive" });
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(emailChange.newEmail)) {
-      toast({ title: "Error", description: "Introduce un correo válido.", variant: "destructive" });
+      toast({ title: "Error", description: t("settings.invalidEmail"), variant: "destructive" });
       return;
     }
     const res = await handleChangeEmail({
@@ -146,12 +191,12 @@ const AdminSettings = () => {
     });
     if (res.success) {
       toast({
-        title: "Verificación enviada",
-        description: `Se ha enviado un enlace de verificación a ${emailChange.newEmail}. El email se actualizará en la base de datos tras la verificación.`,
+        title: t("settings.verificationSent"),
+        description: t("settings.verificationSentDesc", { email: emailChange.newEmail }),
       });
       setEmailChange({ newEmail: "", password: "" });
     } else {
-      toast({ title: "Error", description: res.error || "No se pudo procesar.", variant: "destructive" });
+      toast({ title: "Error", description: res.error || "", variant: "destructive" });
     }
   };
 
@@ -177,12 +222,19 @@ const AdminSettings = () => {
     );
   }
 
+  const notificationItems = [
+    { key: "email" as const, label: t("settings.emailNotifications"), desc: t("settings.emailNotificationsDesc") },
+    { key: "push" as const, label: t("settings.pushNotifications"), desc: t("settings.pushNotificationsDesc") },
+    { key: "newClient" as const, label: t("settings.newClient"), desc: t("settings.newClientDesc") },
+    { key: "paymentReminder" as const, label: t("settings.paymentReminder"), desc: t("settings.paymentReminderDesc") },
+  ];
+
   return (
     <AdminLayout>
       <div className="space-y-8 animate-fade-in max-w-4xl">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Configuración</h1>
-          <p className="text-muted-foreground text-sm mt-1">Gestiona tu perfil y preferencias</p>
+          <h1 className="text-2xl font-bold text-foreground">{t("settings.title")}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{t("settings.subtitle")}</p>
         </div>
 
         {/* Profile Info */}
@@ -190,12 +242,11 @@ const AdminSettings = () => {
           <CardHeader className="flex flex-row items-center gap-2">
             <User className="h-5 w-5 text-primary" />
             <div>
-              <CardTitle className="text-lg">Perfil</CardTitle>
-              <CardDescription>Tu información personal y avatar</CardDescription>
+              <CardTitle className="text-lg">{t("settings.profile")}</CardTitle>
+              <CardDescription>{t("settings.profileDesc")}</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Avatar */}
             <div className="flex items-center gap-6">
               <div className="relative group">
                 <Avatar className="h-20 w-20">
@@ -212,70 +263,42 @@ const AdminSettings = () => {
                 </button>
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-medium text-foreground">Foto de perfil</p>
-                <p className="text-xs text-muted-foreground">JPG, PNG o WebP. Máx 2MB.</p>
+                <p className="text-sm font-medium text-foreground">{t("settings.profilePicture")}</p>
+                <p className="text-xs text-muted-foreground">{t("settings.photoFormats")}</p>
                 <div className="flex gap-2 mt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={saving}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={saving}>
                     {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Camera className="h-4 w-4 mr-1" />}
-                    Cambiar foto
+                    {t("settings.changePhoto")}
                   </Button>
                   {profile?.avatarUrl && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleRemoveAvatar}
-                      disabled={saving}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+                    <Button variant="outline" size="sm" onClick={handleRemoveAvatar} disabled={saving} className="text-destructive hover:text-destructive">
+                      <Trash2 className="h-4 w-4 mr-1" /> {t("settings.deletePhoto")}
                     </Button>
                   )}
                 </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="hidden"
-                  onChange={handleAvatarSelect}
-                />
+                <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatarSelect} />
               </div>
             </div>
 
             <Separator className="bg-border" />
 
-            {/* Name & Phone */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-foreground">Nombre completo</Label>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="bg-muted border-border text-foreground"
-                />
+                <Label className="text-foreground">{t("settings.fullName")}</Label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} className="bg-muted border-border text-foreground" />
               </div>
               <div className="space-y-2">
-                <Label className="text-foreground">Teléfono</Label>
-                <Input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="bg-muted border-border text-foreground"
-                />
+                <Label className="text-foreground">{t("settings.phone")}</Label>
+                <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-muted border-border text-foreground" />
               </div>
             </div>
 
             <div className="flex items-center justify-between">
-              {isDirty && (
-                <p className="text-xs text-accent">Tienes cambios sin guardar</p>
-              )}
+              {isDirty && <p className="text-xs text-accent">{t("settings.unsavedChanges")}</p>}
               <div className="ml-auto">
                 <Button onClick={handleSaveProfile} disabled={!isDirty || saving}>
                   {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
-                  Guardar cambios
+                  {t("common.save")}
                 </Button>
               </div>
             </div>
@@ -287,41 +310,29 @@ const AdminSettings = () => {
           <CardHeader className="flex flex-row items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
             <div>
-              <CardTitle className="text-lg">Correo electrónico</CardTitle>
-              <CardDescription>Cambia tu email con verificación</CardDescription>
+              <CardTitle className="text-lg">{t("settings.emailTitle")}</CardTitle>
+              <CardDescription>{t("settings.emailDesc")}</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Email actual:</span>
+              <span className="text-muted-foreground">{t("settings.currentEmail")}</span>
               <span className="text-foreground font-medium">{profile?.email}</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-foreground">Nuevo correo</Label>
-                <Input
-                  type="email"
-                  placeholder="nuevo@email.com"
-                  value={emailChange.newEmail}
-                  onChange={(e) => setEmailChange({ ...emailChange, newEmail: e.target.value })}
-                  className="bg-muted border-border text-foreground"
-                />
+                <Label className="text-foreground">{t("settings.newEmail")}</Label>
+                <Input type="email" placeholder={t("settings.newEmailPlaceholder")} value={emailChange.newEmail} onChange={(e) => setEmailChange({ ...emailChange, newEmail: e.target.value })} className="bg-muted border-border text-foreground" />
               </div>
               <div className="space-y-2">
-                <Label className="text-foreground">Contraseña actual</Label>
-                <Input
-                  type="password"
-                  placeholder="••••••••"
-                  value={emailChange.password}
-                  onChange={(e) => setEmailChange({ ...emailChange, password: e.target.value })}
-                  className="bg-muted border-border text-foreground"
-                />
+                <Label className="text-foreground">{t("settings.currentPasswordLabel")}</Label>
+                <Input type="password" placeholder="••••••••" value={emailChange.password} onChange={(e) => setEmailChange({ ...emailChange, password: e.target.value })} className="bg-muted border-border text-foreground" />
               </div>
             </div>
             <div className="flex justify-end">
               <Button variant="outline" onClick={onChangeEmail} disabled={saving}>
                 {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
-                Enviar verificación
+                {t("settings.sendVerification")}
               </Button>
             </div>
           </CardContent>
@@ -332,68 +343,45 @@ const AdminSettings = () => {
           <CardHeader className="flex flex-row items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
             <div>
-              <CardTitle className="text-lg">Contraseña</CardTitle>
-              <CardDescription>Actualiza tu contraseña de acceso</CardDescription>
+              <CardTitle className="text-lg">{t("settings.passwordTitle")}</CardTitle>
+              <CardDescription>{t("settings.passwordDesc")}</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-foreground">Contraseña actual</Label>
-              <Input
-                type="password"
-                placeholder="••••••••"
-                value={passwords.current}
-                onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
-                className="bg-muted border-border text-foreground"
-              />
+              <Label className="text-foreground">{t("settings.currentPassword")}</Label>
+              <Input type="password" placeholder="••••••••" value={passwords.current} onChange={(e) => setPasswords({ ...passwords, current: e.target.value })} className="bg-muted border-border text-foreground" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-foreground">Nueva contraseña</Label>
-                <Input
-                  type="password"
-                  placeholder="Mínimo 8 caracteres"
-                  value={passwords.new}
-                  onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
-                  className="bg-muted border-border text-foreground"
-                />
+                <Label className="text-foreground">{t("settings.newPassword")}</Label>
+                <Input type="password" placeholder={t("settings.newPasswordPlaceholder")} value={passwords.new} onChange={(e) => setPasswords({ ...passwords, new: e.target.value })} className="bg-muted border-border text-foreground" />
               </div>
               <div className="space-y-2">
-                <Label className="text-foreground">Confirmar contraseña</Label>
-                <Input
-                  type="password"
-                  placeholder="••••••••"
-                  value={passwords.confirm}
-                  onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
-                  className="bg-muted border-border text-foreground"
-                />
+                <Label className="text-foreground">{t("settings.confirmPassword")}</Label>
+                <Input type="password" placeholder="••••••••" value={passwords.confirm} onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })} className="bg-muted border-border text-foreground" />
               </div>
             </div>
             <div className="flex justify-end">
               <Button variant="outline" onClick={onChangePassword} disabled={saving}>
                 {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
-                Cambiar contraseña
+                {t("settings.changePassword")}
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Notifications */}
+        {/* Notifications — auto-save */}
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center gap-2">
             <Bell className="h-5 w-5 text-primary" />
             <div>
-              <CardTitle className="text-lg">Notificaciones</CardTitle>
-              <CardDescription>Configura cómo recibes alertas</CardDescription>
+              <CardTitle className="text-lg">{t("settings.notificationsTitle")}</CardTitle>
+              <CardDescription>{t("settings.notificationsDesc")}</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {([
-              { key: "email" as const, label: "Notificaciones por email", desc: "Recibe resúmenes y alertas en tu correo" },
-              { key: "push" as const, label: "Notificaciones push", desc: "Alertas en tiempo real en el navegador" },
-              { key: "newClient" as const, label: "Nuevo cliente", desc: "Aviso cuando un cliente se registra" },
-              { key: "paymentReminder" as const, label: "Recordatorio de pago", desc: "Alerta cuando un pago está próximo" },
-            ]).map((item) => (
+            {notificationItems.map((item) => (
               <div key={item.key} className="flex items-center justify-between py-2">
                 <div>
                   <p className="text-sm font-medium text-foreground">{item.label}</p>
@@ -401,9 +389,7 @@ const AdminSettings = () => {
                 </div>
                 <Switch
                   checked={notifications[item.key]}
-                  onCheckedChange={(checked) =>
-                    setNotifications((prev) => ({ ...prev, [item.key]: checked }))
-                  }
+                  onCheckedChange={(checked) => handleNotificationToggle(item.key, checked)}
                 />
               </div>
             ))}
@@ -415,27 +401,36 @@ const AdminSettings = () => {
           <CardHeader className="flex flex-row items-center gap-2">
             <Globe className="h-5 w-5 text-primary" />
             <div>
-              <CardTitle className="text-lg">Preferencias</CardTitle>
-              <CardDescription>Zona horaria e idioma</CardDescription>
+              <CardTitle className="text-lg">{t("settings.preferencesTitle")}</CardTitle>
+              <CardDescription>{t("settings.preferencesDesc")}</CardDescription>
             </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-foreground">Zona horaria</Label>
-                <Input
-                  value={timezone}
-                  onChange={(e) => setTimezone(e.target.value)}
-                  className="bg-muted border-border text-foreground"
-                />
+                <Label className="text-foreground">{t("settings.timezone")}</Label>
+                <Select value={timezone} onValueChange={handleTimezoneChange}>
+                  <SelectTrigger className="bg-muted border-border text-foreground">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border">
+                    {TIMEZONES.map((tz) => (
+                      <SelectItem key={tz} value={tz}>{tz}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-foreground">Idioma</Label>
-                <Input
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
-                  className="bg-muted border-border text-foreground"
-                />
+                <Label className="text-foreground">{t("settings.language")}</Label>
+                <Select value={language} onValueChange={handleLanguageChange}>
+                  <SelectTrigger className="bg-muted border-border text-foreground">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border">
+                    <SelectItem value="Español">{t("settings.spanish")}</SelectItem>
+                    <SelectItem value="English">{t("settings.english")}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardContent>

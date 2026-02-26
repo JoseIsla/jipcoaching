@@ -15,15 +15,16 @@ import {
 } from "lucide-react";
 import logoJip from "@/assets/logo-jip.png";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTranslation } from "@/i18n/useTranslation";
 
-const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
-  { label: "Clientes", icon: Users, path: "/admin/clients" },
-  { label: "Nutrición", icon: Utensils, path: "/admin/nutrition" },
-  { label: "Entrenamiento", icon: Dumbbell, path: "/admin/training" },
-  { label: "Biblioteca", icon: Library, path: "/admin/exercises" },
-  { label: "Cuestionarios", icon: ClipboardList, path: "/admin/questionnaires" },
-  { label: "Configuración", icon: Settings, path: "/admin/settings" },
+const navKeys = [
+  { key: "sidebar.dashboard", icon: LayoutDashboard, path: "/admin" },
+  { key: "sidebar.clients", icon: Users, path: "/admin/clients" },
+  { key: "sidebar.nutrition", icon: Utensils, path: "/admin/nutrition" },
+  { key: "sidebar.training", icon: Dumbbell, path: "/admin/training" },
+  { key: "sidebar.library", icon: Library, path: "/admin/exercises" },
+  { key: "sidebar.questionnaires", icon: ClipboardList, path: "/admin/questionnaires" },
+  { key: "sidebar.settings", icon: Settings, path: "/admin/settings" },
 ];
 
 export const MobileMenuButton = () => {
@@ -45,20 +46,37 @@ const AdminSidebar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
 
-  // Listen for toggle event from header
   useEffect(() => {
     const handler = () => setMobileOpen((v) => !v);
     window.addEventListener("toggle-admin-sidebar", handler);
     return () => window.removeEventListener("toggle-admin-sidebar", handler);
   }, []);
 
-  // Close mobile sidebar on route change
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  // Desktop sidebar
+  const renderNavItems = (showLabel: boolean) =>
+    navKeys.map((item) => {
+      const isActive = location.pathname === item.path;
+      return (
+        <NavLink
+          key={item.path}
+          to={item.path}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            isActive
+              ? "bg-sidebar-accent text-primary"
+              : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          }`}
+        >
+          <item.icon className={`h-5 w-5 shrink-0 ${isActive ? "text-primary" : ""}`} />
+          {showLabel && <span>{t(item.key)}</span>}
+        </NavLink>
+      );
+    });
+
   if (!isMobile) {
     return (
       <aside
@@ -74,23 +92,7 @@ const AdminSidebar = () => {
           )}
         </div>
         <nav className="flex-1 py-4 space-y-1 px-2">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  isActive
-                    ? "bg-sidebar-accent text-primary"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                }`}
-              >
-                <item.icon className={`h-5 w-5 shrink-0 ${isActive ? "text-primary" : ""}`} />
-                {!collapsed && <span>{item.label}</span>}
-              </NavLink>
-            );
-          })}
+          {renderNavItems(!collapsed)}
         </nav>
         <div className="border-t border-sidebar-border p-2">
           <button
@@ -104,17 +106,14 @@ const AdminSidebar = () => {
     );
   }
 
-  // Mobile sidebar (overlay)
   return (
     <>
-      {/* Backdrop */}
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/60 z-40 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
-      {/* Drawer */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border flex flex-col transition-transform duration-300 lg:hidden ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
@@ -130,23 +129,7 @@ const AdminSidebar = () => {
           </button>
         </div>
         <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  isActive
-                    ? "bg-sidebar-accent text-primary"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                }`}
-              >
-                <item.icon className={`h-5 w-5 shrink-0 ${isActive ? "text-primary" : ""}`} />
-                <span>{item.label}</span>
-              </NavLink>
-            );
-          })}
+          {renderNavItems(true)}
         </nav>
       </aside>
     </>

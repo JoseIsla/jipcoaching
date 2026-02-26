@@ -7,22 +7,24 @@ import { useClient } from "@/contexts/ClientContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-const tabs = [
-  { label: "Inicio", icon: Home, path: "/client" },
-  { label: "Nutrición", icon: Utensils, path: "/client/nutrition", service: "nutrition" as const },
-  { label: "Entreno", icon: Dumbbell, path: "/client/training", service: "training" as const },
-  { label: "Check-in", icon: ClipboardList, path: "/client/checkins" },
-  { label: "Progreso", icon: BarChart3, path: "/client/progress" },
-  { label: "Ajustes", icon: Settings, path: "/client/settings" },
-];
+import { useTranslation } from "@/i18n/useTranslation";
 
 const ClientLayout = ({ children }: { children: ReactNode }) => {
+  const { t } = useTranslation();
   const { client, setClientId, allClients } = useClient();
   const { logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const tabs = [
+    { label: t("clientNav.home"), icon: Home, path: "/client" },
+    { label: t("clientNav.nutrition"), icon: Utensils, path: "/client/nutrition", service: "nutrition" as const },
+    { label: t("clientNav.training"), icon: Dumbbell, path: "/client/training", service: "training" as const },
+    { label: t("clientNav.checkins"), icon: ClipboardList, path: "/client/checkins" },
+    { label: t("clientNav.progress"), icon: BarChart3, path: "/client/progress" },
+    { label: t("clientNav.settings"), icon: Settings, path: "/client/settings" },
+  ];
 
   const initials = client.name
     .split(" ")
@@ -31,12 +33,11 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
     .toUpperCase();
 
   const visibleTabs = tabs.filter(
-    (t) => !t.service || client.services.includes(t.service)
+    (tab) => !tab.service || client.services.includes(tab.service)
   );
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
-
     setIsLoggingOut(true);
     await logout();
     navigate("/login", { replace: true });
@@ -45,7 +46,6 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Top bar */}
       <header className="bg-card border-b border-border px-3 sm:px-4 py-2.5 flex items-center justify-between shrink-0 safe-area-top">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <Avatar className="h-8 w-8 border border-primary/30 shrink-0">
@@ -62,7 +62,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
                   key={s}
                   className="text-[10px] leading-tight text-primary/80 font-medium"
                 >
-                  {s === "nutrition" ? "🍎 Nutrición" : "🏋️ Entreno"}
+                  {s === "nutrition" ? `🍎 ${t("common.nutrition")}` : `🏋️ ${t("common.training")}`}
                 </span>
               ))}
             </div>
@@ -85,14 +85,13 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
             onClick={handleLogout}
             disabled={isLoggingOut}
             className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-70"
-            title="Cerrar sesión"
+            title={t("common.logout")}
           >
             {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
           </button>
         </div>
       </header>
 
-      {/* Content */}
       <main className="flex-1 overflow-y-auto pb-24 px-3 sm:px-4 py-4">
         <AnimatePresence mode="wait">
           <motion.div
@@ -109,7 +108,6 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
         </AnimatePresence>
       </main>
 
-      {/* Bottom tab bar */}
       <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border z-50 safe-area-bottom">
         <div className="flex items-center justify-around py-1.5 max-w-lg mx-auto">
           {visibleTabs.map((tab) => {
@@ -143,4 +141,3 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
 };
 
 export default ClientLayout;
-

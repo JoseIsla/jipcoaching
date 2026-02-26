@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { es as esLocale } from "date-fns/locale";
 import { TrendingUp, CalendarIcon } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useClientStore } from "@/data/useClientStore";
+import { useTranslation } from "@/i18n/useTranslation";
 
 const item = (delay: number) => ({
   initial: { opacity: 0, y: 16 },
@@ -23,6 +24,7 @@ const monthNames: Record<string, string> = {
 };
 
 const ClientEvolutionChart = () => {
+  const { t } = useTranslation();
   const { clients } = useClientStore();
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
@@ -60,11 +62,10 @@ const ClientEvolutionChart = () => {
             <TrendingUp className="h-4 w-4 text-primary" />
           </div>
           <h2 className="text-sm font-semibold text-foreground">
-            Evolución de Clientes
+            {t("dashboard.clientEvolution")}
           </h2>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Date From */}
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -76,7 +77,7 @@ const ClientEvolutionChart = () => {
                 )}
               >
                 <CalendarIcon className="h-3.5 w-3.5" />
-                {dateFrom ? format(dateFrom, "MMM yyyy", { locale: es }) : "Desde"}
+                {dateFrom ? format(dateFrom, "MMM yyyy", { locale: esLocale }) : t("common.from")}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
@@ -89,7 +90,6 @@ const ClientEvolutionChart = () => {
               />
             </PopoverContent>
           </Popover>
-          {/* Date To */}
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -101,7 +101,7 @@ const ClientEvolutionChart = () => {
                 )}
               >
                 <CalendarIcon className="h-3.5 w-3.5" />
-                {dateTo ? format(dateTo, "MMM yyyy", { locale: es }) : "Hasta"}
+                {dateTo ? format(dateTo, "MMM yyyy", { locale: esLocale }) : t("common.to")}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
@@ -121,17 +121,17 @@ const ClientEvolutionChart = () => {
               className="h-8 text-xs text-muted-foreground"
               onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}
             >
-              Limpiar
+              {t("common.clear")}
             </Button>
           )}
           <div className="flex items-center gap-3 ml-2">
             <div className="flex items-center gap-1.5">
               <div className="h-2 w-2 rounded-full bg-primary" />
-              <span className="text-[10px] text-muted-foreground">Total</span>
+              <span className="text-[10px] text-muted-foreground">{t("common.total")}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="h-2 w-2 rounded-full bg-accent" />
-              <span className="text-[10px] text-muted-foreground">Nuevos</span>
+              <span className="text-[10px] text-muted-foreground">{t("common.new")}</span>
             </div>
           </div>
         </div>
@@ -174,7 +174,7 @@ const ClientEvolutionChart = () => {
                           className="inline-block h-1.5 w-1.5 rounded-full mr-1.5"
                           style={{ backgroundColor: p.color }}
                         />
-                        {p.dataKey === "total" ? "Total" : "Nuevos"}: {p.value}
+                        {p.dataKey === "total" ? t("common.total") : t("common.new")}: {p.value}
                       </p>
                     ))}
                   </div>

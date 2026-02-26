@@ -3,6 +3,7 @@ import { Users, Utensils, Dumbbell, TrendingUp, type LucideIcon } from "lucide-r
 import { useClientStore } from "@/data/useClientStore";
 import { useNutritionPlanStore } from "@/data/useNutritionPlanStore";
 import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
+import { useTranslation } from "@/i18n/useTranslation";
 
 const item = (delay: number) => ({
   initial: { opacity: 0, y: 16 },
@@ -10,16 +11,8 @@ const item = (delay: number) => ({
   transition: { duration: 0.4, delay, ease: "easeOut" as const },
 });
 
-interface Stat {
-  title: string;
-  value: string | number;
-  sub: string;
-  icon: LucideIcon;
-  color: "primary" | "accent" | "destructive";
-  positive: boolean;
-}
-
 const StatCards = () => {
+  const { t } = useTranslation();
   const { clients, getActiveClients, getNewClientsThisMonth, getRetentionRate } = useClientStore();
   const activeClients = getActiveClients();
   const newThisMonth = getNewClientsThisMonth();
@@ -29,37 +22,37 @@ const StatCards = () => {
   const activeTraining = trainingPlans.filter((p) => p.active);
   const retention = getRetentionRate();
 
-  const stats: Stat[] = [
+  const stats = [
     {
-      title: "Clientes Activos",
+      title: t("dashboard.activeClients"),
       value: activeClients.length,
-      sub: `+${newThisMonth.length} este mes`,
+      sub: t("dashboard.thisMonth", { n: newThisMonth.length }),
       icon: Users,
-      color: "primary",
+      color: "primary" as const,
       positive: true,
     },
     {
-      title: "Planes Nutrición",
+      title: t("dashboard.nutritionPlans"),
       value: activeNutrition.length,
-      sub: "activos",
+      sub: t("dashboard.activePlural"),
       icon: Utensils,
-      color: "primary",
+      color: "primary" as const,
       positive: true,
     },
     {
-      title: "Entrenamientos",
+      title: t("dashboard.trainings"),
       value: activeTraining.length,
-      sub: "activos",
+      sub: t("dashboard.activePlural"),
       icon: Dumbbell,
-      color: "accent",
+      color: "accent" as const,
       positive: true,
     },
     {
-      title: "Retención",
+      title: t("dashboard.retention"),
       value: `${retention}%`,
       sub: `${clients.filter((c) => c.status !== "Inactivo").length}/${clients.length}`,
       icon: TrendingUp,
-      color: retention >= 80 ? "primary" : "destructive",
+      color: (retention >= 80 ? "primary" : "destructive") as "primary" | "destructive",
       positive: retention >= 80,
     },
   ];
@@ -68,7 +61,7 @@ const StatCards = () => {
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       {stats.map((stat, i) => (
         <motion.div
-          key={stat.title}
+          key={i}
           {...item(0.06 * (i + 1))}
           whileTap={{ scale: 0.97 }}
           className="bg-card border border-border rounded-xl p-4 hover:border-primary/40 transition-colors group cursor-default"
