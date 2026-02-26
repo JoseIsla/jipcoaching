@@ -3,13 +3,17 @@ import {
   mockQuestionnaireEntries,
   clientWeightHistory,
   clientRMRecords,
+  trainingTemplate,
   type QuestionnaireEntry,
   type WeightEntry,
   type RMRecord,
+  type TrainingLogDay,
+  type TrainingLogExercise,
 } from "@/data/mockData";
+import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
 
 // Re-export types
-export type { QuestionnaireEntry, WeightEntry, RMRecord };
+export type { QuestionnaireEntry, WeightEntry, RMRecord, TrainingLogDay, TrainingLogExercise };
 
 interface QuestionnaireState {
   entries: QuestionnaireEntry[];
@@ -17,9 +21,12 @@ interface QuestionnaireState {
   rmRecords: Record<string, RMRecord[]>;
 
   // Questionnaire operations
-  submitEntry: (entryId: string, responses: Record<string, string | number | boolean>) => void;
+  submitEntry: (entryId: string, responses: Record<string, string | number | boolean>, trainingLog?: TrainingLogDay[]) => void;
   getPendingCount: (clientId?: string) => number;
   getEntriesForClient: (clientId: string) => QuestionnaireEntry[];
+
+  // Auto-generate training log entry from active plan
+  getOrCreateTrainingEntry: (clientId: string, clientName: string) => QuestionnaireEntry | null;
 
   // Progress helpers
   getWeightHistory: (clientId: string) => WeightEntry[];
@@ -33,16 +40,28 @@ interface QuestionnaireState {
   };
 }
 
+const thisWeekLabel = (() => {
+  const now = new Date();
+  const day = now.getDate();
+  const month = now.toLocaleString("es-ES", { month: "short" });
+  return `Sem ${day} ${month}`;
+})();
+
 export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   entries: [...mockQuestionnaireEntries],
   weightHistory: { ...clientWeightHistory },
   rmRecords: { ...clientRMRecords },
 
-  submitEntry: (entryId, responses) =>
+  submitEntry: (entryId, responses, trainingLog) =>
     set((state) => ({
       entries: state.entries.map((e) =>
         e.id === entryId
-          ? { ...e, status: "respondido" as const, responses }
+          ? {
+              ...e,
+              status: "respondido" as const,
+              responses,
+              ...(trainingLog ? { trainingLog } : {}),
+            }
           : e
       ),
     })),
@@ -57,6 +76,63 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
 
   getEntriesForClient: (clientId) =>
     get().entries.filter((e) => e.clientId === clientId),
+
+  getOrCreateTrainingEntry: (clientId, clientName) => {
+    const state = get();
+
+    // Check if there's already a training entry for this week
+    const existing = state.entries.find(
+      (e) => e.clientId === clientId && e.category === "training" && e.weekLabel === thisWeekLabel
+    );
+    if (existing) return existing;
+
+    // Get active training plan
+    const activePlan = useTrainingPlanStore.getState().getActivePlanForClient(clientId);
+    if (!activePlan) return null;
+
+    const detail = useTrainingPlanStore.getState().getDetail(activePlan.id);
+    if (!detail) return null;
+
+    // Find active week
+    const activeWeek = detail.weeks.find((w) => w.status === "active");
+    if (!activeWeek) return null;
+
+    // Build training log from the week's exercises
+    const trainingLog: TrainingLogDay[] = activeWeek.days.map((day) => ({
+      dayNumber: day.dayNumber,
+      dayName: day.name,
+      exercises: day.exercises.map((ex): TrainingLogExercise => ({
+        exerciseId: ex.exerciseId || ex.id,
+        exerciseName: ex.exerciseName,
+        section: ex.section,
+        plannedSets: ex.sets || ex.estimatedSeries || "—",
+        plannedReps: ex.reps || (ex.topSetReps ? `${ex.topSetReps}` : "—"),
+        plannedLoad: ex.plannedLoad || "—",
+        plannedRPE: ex.intensityValue || ex.topSetRPE,
+      })),
+    }));
+
+    const todayStr = new Date().toISOString().split("T")[0];
+    const newEntry: QuestionnaireEntry = {
+      id: `qe-tlog-${clientId}-${Date.now()}`,
+      clientId,
+      clientName,
+      templateId: "tt-weekly",
+      templateName: `Registro Semana ${activeWeek.weekNumber}`,
+      category: "training",
+      weekLabel: thisWeekLabel,
+      date: todayStr,
+      dayLabel: "Semanal",
+      status: "pendiente",
+      trainingLog,
+      planId: activePlan.id,
+      weekNumber: activeWeek.weekNumber,
+    };
+
+    // Add to store
+    set((s) => ({ entries: [...s.entries, newEntry] }));
+    return newEntry;
+  },
 
   getWeightHistory: (clientId) =>
     get().weightHistory[clientId] || [],

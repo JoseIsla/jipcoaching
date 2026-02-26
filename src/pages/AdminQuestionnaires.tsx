@@ -179,7 +179,7 @@ const AdminQuestionnaires = () => {
         </Tabs>
 
         <Dialog open={!!selectedEntry} onOpenChange={(open) => !open && setSelectedEntry(null)}>
-          <DialogContent className="bg-card border-border max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-foreground flex items-center gap-2">
                 {selectedEntry?.category === "nutrition" ? <Utensils className="h-5 w-5 text-primary" /> : <Dumbbell className="h-5 w-5 text-primary" />}
@@ -188,22 +188,66 @@ const AdminQuestionnaires = () => {
             </DialogHeader>
             {selectedEntry?.status === "respondido" ? (
               <div className="space-y-4 mt-2">
-                {selectedEntry.responses && (
-                  <div className="space-y-3">
-                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("questionnaires.responses")}</p>
-                    {Object.entries(selectedEntry.responses).map(([key, val]) => {
-                      const template = selectedEntry.category === "nutrition" ? nutritionTemplates.find((tp) => tp.id === selectedEntry.templateId) : null;
-                      const questionDef = template ? template.questions.find((q) => q.id === key) : trainingTemplate.questions.find((q) => q.id === key);
-                      return (
-                        <div key={key} className="flex justify-between items-start gap-4 py-2 border-b border-border/50">
-                          <span className="text-sm text-muted-foreground">{questionDef?.label || key}</span>
-                          <span className="text-sm font-medium text-foreground text-right">{typeof val === "boolean" ? (val ? "Sí" : "No") : String(val)}</span>
+                {/* Training log comparison view */}
+                {selectedEntry.trainingLog && selectedEntry.trainingLog.length > 0 && (
+                  <div className="space-y-4">
+                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("questionnaires.trainingLogReview")}</p>
+                    {selectedEntry.trainingLog.map((day, dayIdx) => (
+                      <div key={dayIdx} className="space-y-2">
+                        <p className="text-sm font-semibold text-foreground">{t("questionnaires.dayLabel", { n: String(day.dayNumber), name: day.dayName })}</p>
+                        <div className="rounded-lg border border-border overflow-hidden">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="bg-muted/50 text-left">
+                                <th className="px-3 py-2 text-xs font-medium text-muted-foreground">{t("progress.exercise")}</th>
+                                <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-center">{t("questionnaires.planned")}</th>
+                                <th className="px-3 py-2 text-xs font-medium text-primary text-center">{t("questionnaires.actual")}</th>
+                                <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-center">{t("questionnaires.rpe")}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {day.exercises.map((ex, i) => {
+                                const rpeDiff = ex.actualRPE && ex.plannedRPE ? ex.actualRPE - ex.plannedRPE : null;
+                                return (
+                                  <tr key={i} className="border-t border-border/50">
+                                    <td className="px-3 py-2">
+                                      <p className="text-sm font-medium text-foreground">{ex.exerciseName}</p>
+                                      <p className="text-[10px] text-muted-foreground">{ex.section === "basic" ? "Básico" : "Accesorio"}</p>
+                                    </td>
+                                    <td className="px-3 py-2 text-center">
+                                      <p className="text-xs text-muted-foreground">{ex.plannedSets}×{ex.plannedReps}</p>
+                                      <p className="text-[10px] text-muted-foreground">{ex.plannedLoad}</p>
+                                    </td>
+                                    <td className="px-3 py-2 text-center">
+                                      <p className="text-sm font-mono font-medium text-foreground">{ex.actualWeight ? `${ex.actualWeight}kg` : "—"}</p>
+                                      <p className="text-[10px] text-muted-foreground">{ex.actualSets ? `${ex.actualSets}×${ex.actualReps || "?"}` : "—"}</p>
+                                    </td>
+                                    <td className="px-3 py-2 text-center">
+                                      <div className="flex flex-col items-center">
+                                        <span className="text-xs text-muted-foreground">{ex.plannedRPE ?? "—"}</span>
+                                        <span className={`text-sm font-mono font-bold ${rpeDiff && rpeDiff > 1 ? "text-destructive" : rpeDiff && rpeDiff < -1 ? "text-primary" : "text-foreground"}`}>
+                                          {ex.actualRPE ?? "—"}
+                                        </span>
+                                        {rpeDiff !== null && (
+                                          <span className={`text-[10px] ${rpeDiff > 0 ? "text-destructive" : rpeDiff < 0 ? "text-primary" : "text-muted-foreground"}`}>
+                                            {rpeDiff > 0 ? `+${rpeDiff}` : rpeDiff === 0 ? "=" : rpeDiff}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
+                    <Separator className="bg-border" />
                   </div>
                 )}
-                {selectedEntry.liftLogs && selectedEntry.liftLogs.length > 0 && (
+                {/* Legacy lift logs */}
+                {(!selectedEntry.trainingLog || selectedEntry.trainingLog.length === 0) && selectedEntry.liftLogs && selectedEntry.liftLogs.length > 0 && (
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("questionnaires.weightRecord")}</p>
                     <div className="rounded-lg border border-border overflow-hidden">
@@ -226,6 +270,22 @@ const AdminQuestionnaires = () => {
                         </tbody>
                       </table>
                     </div>
+                  </div>
+                )}
+                {/* Responses */}
+                {selectedEntry.responses && (
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("questionnaires.responses")}</p>
+                    {Object.entries(selectedEntry.responses).map(([key, val]) => {
+                      const template = selectedEntry.category === "nutrition" ? nutritionTemplates.find((tp) => tp.id === selectedEntry.templateId) : null;
+                      const questionDef = template ? template.questions.find((q) => q.id === key) : trainingTemplate.questions.find((q) => q.id === key);
+                      return (
+                        <div key={key} className="flex justify-between items-start gap-4 py-2 border-b border-border/50">
+                          <span className="text-sm text-muted-foreground">{questionDef?.label || key}</span>
+                          <span className="text-sm font-medium text-foreground text-right">{typeof val === "boolean" ? (val ? "Sí" : "No") : String(val)}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
