@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -7,14 +7,11 @@ import {
   Dumbbell,
   ClipboardList,
   Settings,
-  LogOut,
   ChevronLeft,
   ChevronRight,
   Library,
-  Loader2,
 } from "lucide-react";
 import logoJip from "@/assets/logo-jip.png";
-import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
@@ -28,19 +25,7 @@ const navItems = [
 
 const AdminSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const { logout } = useAuth();
-
-  const handleLogout = async () => {
-    if (isLoggingOut) return;
-
-    setIsLoggingOut(true);
-    await logout();
-    navigate("/login", { replace: true });
-    setIsLoggingOut(false);
-  };
 
   return (
     <aside
@@ -79,15 +64,7 @@ const AdminSidebar = () => {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-sidebar-border p-2 space-y-1">
-        <button
-          onClick={handleLogout}
-          disabled={isLoggingOut}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors w-full disabled:opacity-70"
-        >
-          {isLoggingOut ? <Loader2 className="h-5 w-5 shrink-0 animate-spin" /> : <LogOut className="h-5 w-5 shrink-0" />}
-          {!collapsed && <span>{isLoggingOut ? "Cerrando..." : "Cerrar sesión"}</span>}
-        </button>
+      <div className="border-t border-sidebar-border p-2">
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="flex items-center justify-center w-full py-2 text-muted-foreground hover:text-foreground transition-colors"
