@@ -19,6 +19,7 @@ interface ClientStore {
   error: string | null;
   fetchClients: () => Promise<void>;
   addClient: (dto: CreateClientDto) => Promise<ApiClient>;
+  updateClient: (id: string, updates: Partial<ApiClient>) => void;
   updateClientStatus: (id: string, status: string) => void;
   deleteClient: (id: string) => void;
   getClient: (id: string) => ApiClient | undefined;
@@ -59,6 +60,13 @@ export const useClientStore = create<ClientStore>((set, get) => ({
     set((state) => ({ clients: [created, ...state.clients] }));
     return created;
   },
+
+  updateClient: (id, updates) =>
+    set((state) => ({
+      clients: state.clients.map((c) =>
+        c.id === id ? { ...c, ...updates } : c
+      ),
+    })),
 
   updateClientStatus: (id, status) =>
     set((state) => ({
