@@ -70,6 +70,38 @@ export interface QuestionnaireEntry {
   weekNumber?: number;
 }
 
+// ── Window status helper ──
+
+/** Publication hour for nutrition check-ins (8:00 AM) */
+export const NUTRITION_PUBLISH_HOUR = 8;
+
+/** Determine whether a check-in entry's fill window is active, future, or expired. */
+export const getEntryWindowStatus = (entry: QuestionnaireEntry): "within" | "future" | "expired" => {
+  const now = new Date();
+  if (entry.category === "nutrition") {
+    const publishDate = new Date(entry.date + "T00:00:00");
+    publishDate.setHours(NUTRITION_PUBLISH_HOUR, 0, 0, 0);
+    const windowEnd = new Date(publishDate.getTime() + 48 * 60 * 60 * 1000);
+    if (now < publishDate) return "future";
+    if (now <= windowEnd) return "within";
+    return "expired";
+  }
+  const entryDate = new Date(entry.date);
+  const windowEnd = new Date(entryDate);
+  windowEnd.setDate(windowEnd.getDate() + 2);
+  if (now < entryDate) return "future";
+  if (now <= windowEnd) return "within";
+  return "expired";
+};
+
+/** Returns true if a pending entry can actually be filled right now. */
+export const isActionablePending = (entry: QuestionnaireEntry): boolean => {
+  if (entry.status !== "pendiente") return false;
+  // Training entries are always fillable while pending (no expiration window in client UI)
+  if (entry.category === "training") return true;
+  return getEntryWindowStatus(entry) === "within";
+};
+
 // ── Store ──
 
 interface QuestionnaireState {

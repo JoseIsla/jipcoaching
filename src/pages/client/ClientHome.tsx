@@ -7,7 +7,7 @@ import { Utensils, Dumbbell, ClipboardList, TrendingUp, TrendingDown, Scale, Tar
 import { useNavigate } from "react-router-dom";
 import { useNutritionPlanStore } from "@/data/useNutritionPlanStore";
 import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
-import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
+import { useQuestionnaireStore, isActionablePending } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
 
 const ClientHome = () => {
@@ -23,7 +23,7 @@ const ClientHome = () => {
   const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
   const activePlan = hasNutrition ? nutritionPlans.find((p) => p.clientId === client.id && p.active) : null;
   const activeTraining = hasTraining ? trainingPlans.find((p) => p.clientId === client.id && p.active) : null;
-  const pendingCheckins = entries.filter((e) => e.clientId === client.id && e.status === "pendiente").length;
+  const pendingCheckins = entries.filter((e) => e.clientId === client.id && isActionablePending(e)).length;
   const weightHistory = getWeightHistory(client.id);
   const latestWeight = weightHistory.length > 0 ? weightHistory[weightHistory.length - 1] : null;
   const prevWeight = weightHistory.length > 1 ? weightHistory[weightHistory.length - 2] : null;
