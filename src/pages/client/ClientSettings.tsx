@@ -1,19 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
+import { useClientStore } from "@/data/useClientStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Camera, Mail, Lock, User, Check, Eye, EyeOff, Globe } from "lucide-react";
+import { Camera, Mail, Lock, User, Check, Eye, EyeOff, Globe, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useLanguageStore, type Language } from "@/i18n/store";
 
 const ClientSettings = () => {
   const { client } = useClient();
+  const updateClient = useClientStore((s) => s.updateClient);
   const { toast } = useToast();
   const { t } = useTranslation();
   const setAppLanguage = useLanguageStore((s) => s.setLanguage);
@@ -30,6 +32,12 @@ const ClientSettings = () => {
   const [phone, setPhone] = useState("");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
+  // Sync name when client changes
+  useEffect(() => {
+    setName(client.name);
+    setAvatarPreview(client.avatarUrl ?? null);
+  }, [client.id, client.name, client.avatarUrl]);
+
   // Email change
   const [newEmail, setNewEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
@@ -45,12 +53,29 @@ const ClientSettings = () => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => setAvatarPreview(reader.result as string);
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        setAvatarPreview(dataUrl);
+        // Persist avatar to store immediately
+        updateClient(client.id, { avatarUrl: dataUrl });
+        toast({ title: t("clientSettings.profilePicture"), description: t("clientSettings.profileUpdatedDesc") });
+      };
       reader.readAsDataURL(file);
     }
   };
 
+  const handleRemoveAvatar = () => {
+    setAvatarPreview(null);
+    updateClient(client.id, { avatarUrl: null });
+    toast({ title: t("clientSettings.profilePicture"), description: t("clientSettings.profileUpdatedDesc") });
+  };
+
   const handleSaveProfile = () => {
+    if (!name.trim()) {
+      toast({ title: t("clientSettings.invalidEmail"), description: "El nombre no puede estar vacío.", variant: "destructive" });
+      return;
+    }
+    updateClient(client.id, { name: name.trim() });
     toast({ title: t("clientSettings.profileUpdated"), description: t("clientSettings.profileUpdatedDesc") });
   };
 
@@ -98,7 +123,7 @@ const ClientSettings = () => {
           <div className="flex items-center gap-4">
             <div className="relative">
               <Avatar className="h-20 w-20 border-2 border-primary/30">
-                <AvatarImage src={avatarPreview || undefined} />
+                <AvatarImage src={avatarPreview || client.avatarUrl || undefined} />
                 <AvatarFallback className="bg-primary/10 text-primary text-lg font-bold">
                   {initials}
                 </AvatarFallback>
@@ -117,9 +142,18 @@ const ClientSettings = () => {
                 onChange={handleAvatarChange}
               />
             </div>
-            <div>
-              <p className="text-sm font-medium text-foreground">{client.name}</p>
-              <p className="text-xs text-muted-foreground">{client.email}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">{client.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{client.email}</p>
+              {(avatarPreview || client.avatarUrl) && (
+                <button
+                  onClick={handleRemoveAvatar}
+                  className="mt-1.5 flex items-center gap-1 text-[11px] text-destructive hover:underline"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Eliminar foto
+                </button>
+              )}
             </div>
           </div>
 
