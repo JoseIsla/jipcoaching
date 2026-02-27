@@ -11,7 +11,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ClipboardList, Check, Clock, AlertCircle, Dumbbell, History, Video, Upload, Trash2, Film, Loader2 } from "lucide-react";
+import { ClipboardList, Check, Clock, AlertCircle, Dumbbell, History, Video, Upload, Trash2, Film, Loader2, MessageSquare } from "lucide-react";
 import AnimatedChevron from "@/components/ui/animated-chevron";
 import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-content";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +22,8 @@ import { useTranslation } from "@/i18n/useTranslation";
 import { MAX_VIDEO_SIZE_MB } from "@/types/media";
 import { compressVideo } from "@/utils/compressMedia";
 import ClientMediaComments from "@/components/client/ClientMediaComments";
+import { useMediaStore } from "@/data/useMediaStore";
+import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 
 /** Publication hour for nutrition check-ins (8:00 AM) */
 const NUTRITION_PUBLISH_HOUR = 8;
@@ -168,6 +170,24 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
 
   const videos = entry.techniqueVideos || [];
 
+  // Unseen comments logic
+  const getComments = useMediaStore((s) => s.getComments);
+  const seenCommentIds = useClientPreferencesStore((s) => s.seenCommentIds);
+  const markCommentsSeen = useClientPreferencesStore((s) => s.markCommentsSeen);
+
+  const videoComments = videos.flatMap((v) => getComments("video", v.id));
+  const unseenCount = videoComments.filter((c) => !seenCommentIds.has(c.id)).length;
+
+  // Mark comments as seen when expanded
+  useEffect(() => {
+    if (open && videoComments.length > 0) {
+      const unseenIds = videoComments.filter((c) => !seenCommentIds.has(c.id)).map((c) => c.id);
+      if (unseenIds.length > 0) {
+        markCommentsSeen(unseenIds);
+      }
+    }
+  }, [open]);
+
   const handleVideoFileSelect = async (file: File | null) => {
     if (!file) return;
     if (!file.type.startsWith("video/")) {
@@ -252,6 +272,12 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
             </div>
           </div>
           <div className="flex items-center gap-1.5">
+            {unseenCount > 0 && (
+              <span className="flex items-center gap-0.5 text-[9px] font-semibold text-accent bg-accent/15 px-1.5 py-0.5 rounded-full animate-pulse">
+                <MessageSquare className="h-2.5 w-2.5" />
+                {unseenCount}
+              </span>
+            )}
             {countdown && <span className="text-[9px] font-mono text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded">⏳ {countdown}</span>}
             {statusIcon}<span className="text-[10px] text-muted-foreground">{statusLabel}</span>
           </div>
