@@ -7,6 +7,8 @@ import {
   UserX, UserCheck,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
+import AdminPhotoComparison from "@/components/admin/AdminPhotoComparison";
+import AdminVideoReview from "@/components/admin/AdminVideoReview";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -621,6 +623,17 @@ const AdminClientDetail = () => {
                   </CardContent>
                 </Card>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* ── Media Section ── */}
+        {(hasNutrition || hasTraining) && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-foreground">Media del Cliente</h2>
+            <div className={`grid grid-cols-1 ${hasNutrition && hasTraining ? "lg:grid-cols-2" : ""} gap-6`}>
+              {hasNutrition && <AdminPhotoComparison clientId={client.id} />}
+              {hasTraining && <AdminVideoReview clientId={client.id} />}
             </div>
           </div>
         )}
