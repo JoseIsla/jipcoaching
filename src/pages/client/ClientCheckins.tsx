@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ClipboardList, Check, Clock, AlertCircle, Dumbbell } from "lucide-react";
+import { ClipboardList, Check, Clock, AlertCircle, Dumbbell, History } from "lucide-react";
 import AnimatedChevron from "@/components/ui/animated-chevron";
 import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-content";
 import { useToast } from "@/hooks/use-toast";
@@ -309,6 +309,30 @@ const isInCurrentWeek = (dateStr: string): boolean => {
   return d >= monday && d <= sunday;
 };
 
+const HistorySection = ({ weeks, renderCard, formatShortDate, t }: { weeks: { start: Date; end: Date; entries: QuestionnaireEntry[] }[]; renderCard: (entry: QuestionnaireEntry) => React.ReactNode; formatShortDate: (d: Date) => string; t: (key: string, params?: Record<string, string>) => string }) => {
+  const [open, setOpen] = useState(false);
+  if (weeks.length === 0) return null;
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger className="w-full flex items-center gap-2 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+        <History className="h-4 w-4" />
+        <span className="flex-1 text-left">{t("clientCheckins.history")}</span>
+        <AnimatedChevron open={open} />
+      </CollapsibleTrigger>
+      <AnimatedCollapsibleContent open={open}>
+        <div className="space-y-4 pb-2">
+          {weeks.map((week) => (
+            <div key={week.start.toISOString()} className="space-y-2">
+              <p className="text-[11px] font-medium text-muted-foreground">{t("clientCheckins.weekOf", { start: formatShortDate(week.start), end: formatShortDate(week.end) })}</p>
+              {week.entries.map((entry) => renderCard(entry))}
+            </div>
+          ))}
+        </div>
+      </AnimatedCollapsibleContent>
+    </Collapsible>
+  );
+};
+
 const ClientCheckins = () => {
   const { t } = useTranslation();
   const { client } = useClient();
@@ -329,6 +353,27 @@ const ClientCheckins = () => {
     (e) => e.category === "training" && e.trainingLog && e.trainingLog.length > 0 && isInCurrentWeek(e.date)
   );
 
+  // Past week entries grouped by week
+  const pastNutrition = myEntries.filter((e) => e.category === "nutrition" && !isInCurrentWeek(e.date));
+  const pastTraining = myEntries.filter((e) => e.category === "training" && e.trainingLog && e.trainingLog.length > 0 && !isInCurrentWeek(e.date));
+
+  const groupByWeek = (entries: QuestionnaireEntry[]) => {
+    const groups: Record<string, { start: Date; end: Date; entries: QuestionnaireEntry[] }> = {};
+    entries.forEach((e) => {
+      const d = new Date(e.date + "T12:00:00");
+      const [mon, sun] = getCurrentWeekRange(d);
+      const key = mon.toISOString();
+      if (!groups[key]) groups[key] = { start: mon, end: sun, entries: [] };
+      groups[key].entries.push(e);
+    });
+    return Object.values(groups).sort((a, b) => b.start.getTime() - a.start.getTime());
+  };
+
+  const pastNutritionWeeks = groupByWeek(pastNutrition);
+  const pastTrainingWeeks = groupByWeek(pastTraining);
+
+  const formatShortDate = (d: Date) => `${d.getDate()}/${d.getMonth() + 1}`;
+
   const defaultTab = hasNutrition ? "nutrition" : "training";
 
   return (
@@ -348,6 +393,7 @@ const ClientCheckins = () => {
               <p className="text-xs text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("clientCheckins.nutritionSchedule") }} />
               {nutritionEntries.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">{t("clientCheckins.noNutrition")}</p>}
               {nutritionEntries.map((entry) => <NutritionCheckinCard key={entry.id} entry={entry} />)}
+              <HistorySection weeks={pastNutritionWeeks} renderCard={(entry) => <NutritionCheckinCard key={entry.id} entry={entry} />} formatShortDate={formatShortDate} t={t} />
             </TabsContent>
           )}
           {hasTraining && (
@@ -360,6 +406,7 @@ const ClientCheckins = () => {
                 </div>
               )}
               {trainingEntries.map((entry) => <TrainingLogCard key={entry.id} entry={entry} />)}
+              <HistorySection weeks={pastTrainingWeeks} renderCard={(entry) => <TrainingLogCard key={entry.id} entry={entry} />} formatShortDate={formatShortDate} t={t} />
             </TabsContent>
           )}
         </Tabs>

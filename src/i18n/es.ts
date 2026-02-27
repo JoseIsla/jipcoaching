@@ -561,6 +561,9 @@ const es = {
     actualReps: "Reps reales",
     generalQuestions: "Preguntas generales",
     exerciseLog: "Registro de ejercicios",
+    history: "Historial de semanas anteriores",
+    weekOf: "Semana del {start} al {end}",
+    noHistory: "No hay check-ins de semanas anteriores.",
   },
 
   clientProgress: {
