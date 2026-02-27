@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { api } from "@/services/api";
 import type { ApiClient, CreateClientDto, ServiceType } from "@/types/api";
 import { isClientActive, getServicesFromPack } from "@/types/api";
+import { DEV_MOCK } from "@/config/devMode";
+import { mockClients } from "@/data/mockClients";
 
 /** Enrich raw API response with computed `services` field */
 const enrichClient = (raw: any): ApiClient => ({
@@ -29,6 +31,13 @@ export const useClientStore = create<ClientStore>((set, get) => ({
 
   fetchClients: async () => {
     set({ loading: true, error: null });
+
+    if (DEV_MOCK) {
+      await new Promise((r) => setTimeout(r, 300));
+      set({ clients: mockClients, loading: false });
+      return;
+    }
+
     try {
       const data = await api.get<any[]>("/clients");
       set({ clients: (data ?? []).map(enrichClient), loading: false });

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { api } from "@/services/api";
 import type { ApiTrainingPlan, ApiExercisePrescription } from "@/types/api";
 import { useClientStore } from "./useClientStore";
+import { DEV_MOCK } from "@/config/devMode";
 
 // Re-export types
 export type {
@@ -133,6 +134,14 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
 
   fetchPlans: async (clientId) => {
     set({ loading: true, error: null });
+
+    if (DEV_MOCK) {
+      await new Promise((r) => setTimeout(r, 300));
+      // In dev mode, plans start empty — create them via the UI
+      set({ plans: [], loading: false });
+      return;
+    }
+
     try {
       const query = clientId ? `?clientId=${clientId}` : "";
       const data = await api.get<ApiTrainingPlan[]>(`/training/plans${query}`);
@@ -144,6 +153,13 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
   },
 
   fetchPlanDetail: async (planId) => {
+    if (DEV_MOCK) {
+      // In dev mode, return from local details cache
+      const cached = get().details[planId];
+      if (cached) return cached;
+      return null;
+    }
+
     set({ loading: true, error: null });
     try {
       const apiPlan = await api.get<ApiTrainingPlan>(`/training/plans/${planId}`);

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { api } from "@/services/api";
 import type { ApiNutritionPlan } from "@/types/api";
+import { DEV_MOCK } from "@/config/devMode";
 import {
   type NutritionPlanDetail,
   type Meal,
@@ -73,13 +74,17 @@ export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
   error: null,
 
   fetchActiveClientPlan: async () => {
+    if (DEV_MOCK) {
+      await new Promise((r) => setTimeout(r, 200));
+      return null; // No active plan in dev mode by default
+    }
+
     set({ loading: true, error: null });
     try {
       const plan = await api.get<ApiNutritionPlan>("/nutrition/me/active");
       set({ loading: false });
       return plan;
     } catch (err: any) {
-      // 404 means no active plan — not an error
       if (err?.status === 404) {
         set({ loading: false });
         return null;
