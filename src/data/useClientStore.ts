@@ -31,6 +31,11 @@ export const useClientStore = create<ClientStore>((set, get) => ({
   error: null,
 
   fetchClients: async () => {
+    // If already loaded, skip re-fetch (preserves in-memory changes in dev mode)
+    if (get().clients.length > 0) {
+      return;
+    }
+
     set({ loading: true, error: null });
 
     if (DEV_MOCK) {
