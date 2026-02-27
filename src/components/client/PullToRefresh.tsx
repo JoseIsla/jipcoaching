@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, type ReactNode } from "react";
+import { useState, useRef, useCallback, forwardRef, type ReactNode } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { Loader2 } from "lucide-react";
 
@@ -10,7 +10,7 @@ interface PullToRefreshProps {
   onRefresh?: () => Promise<void>;
 }
 
-const PullToRefresh = ({ children, onRefresh }: PullToRefreshProps) => {
+const PullToRefresh = forwardRef<HTMLDivElement, PullToRefreshProps>(({ children, onRefresh }, ref) => {
   const [refreshing, setRefreshing] = useState(false);
   const pullY = useMotionValue(0);
   const isDragging = useRef(false);
@@ -99,6 +99,8 @@ const PullToRefresh = ({ children, onRefresh }: PullToRefreshProps) => {
       </motion.div>
     </div>
   );
-};
+});
+
+PullToRefresh.displayName = "PullToRefresh";
 
 export default PullToRefresh;
