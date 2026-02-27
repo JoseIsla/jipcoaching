@@ -19,6 +19,7 @@ interface ClientStore {
   error: string | null;
   fetchClients: () => Promise<void>;
   addClient: (dto: CreateClientDto) => Promise<ApiClient>;
+  updateClientStatus: (id: string, status: string) => void;
   getClient: (id: string) => ApiClient | undefined;
   getActiveClients: () => ApiClient[];
   getRetentionRate: () => number;
@@ -52,6 +53,13 @@ export const useClientStore = create<ClientStore>((set, get) => ({
     set((state) => ({ clients: [created, ...state.clients] }));
     return created;
   },
+
+  updateClientStatus: (id, status) =>
+    set((state) => ({
+      clients: state.clients.map((c) =>
+        c.id === id ? { ...c, status } : c
+      ),
+    })),
 
   getClient: (id) => get().clients.find((c) => c.id === id),
 
