@@ -557,6 +557,9 @@ const en: Translations = {
     actualReps: "Actual reps",
     generalQuestions: "General questions",
     exerciseLog: "Exercise log",
+    history: "Previous weeks history",
+    weekOf: "Week of {start} to {end}",
+    noHistory: "No check-ins from previous weeks.",
   },
 
   clientProgress: {
