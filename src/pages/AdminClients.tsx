@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Utensils, Dumbbell, MoreHorizontal, AlertTriangle } from "lucide-react";
+import { Search, Plus, Utensils, Dumbbell, MoreHorizontal, UserX, UserCheck } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AddClientSheet, { type NewClientData } from "@/components/admin/AddClientSheet";
 import { Input } from "@/components/ui/input";
@@ -10,9 +10,14 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useClientStore } from "@/data/useClientStore";
+import { useClientDetailStore } from "@/data/useClientDetailStore";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/i18n/useTranslation";
 import { getStatusLabel, packTypeLabels } from "@/types/api";
@@ -24,9 +29,10 @@ const AdminClients = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
   const [addOpen, setAddOpen] = useState(false);
+  const [toggleClient, setToggleClient] = useState<{ id: string; name: string; isActive: boolean } | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { clients, fetchClients, addClient } = useClientStore();
+  const { clients, fetchClients, addClient, updateClientStatus } = useClientStore();
 
   useEffect(() => { fetchClients(); }, [fetchClients]);
 
@@ -145,11 +151,26 @@ const AdminClients = () => {
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-card border-border">
-                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/admin/clients/${client.id}`); }}>
-                          {t("common.viewProfile")}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
+                        <DropdownMenuContent align="end" className="bg-card border-border">
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/admin/clients/${client.id}`); }}>
+                            {t("common.viewProfile")}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const isActive = String(client.status ?? "").toUpperCase() !== "PAUSED";
+                              setToggleClient({ id: client.id, name: client.name, isActive });
+                            }}
+                            className={String(client.status ?? "").toUpperCase() !== "PAUSED" ? "text-destructive focus:text-destructive" : "text-primary focus:text-primary"}
+                          >
+                            {String(client.status ?? "").toUpperCase() !== "PAUSED" ? (
+                              <><UserX className="h-4 w-4 mr-2" /> Desactivar</>
+                            ) : (
+                              <><UserCheck className="h-4 w-4 mr-2" /> Reactivar</>
+                            )}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
@@ -165,6 +186,41 @@ const AdminClients = () => {
           </Table>
         </div>
         <AddClientSheet open={addOpen} onClose={() => setAddOpen(false)} onClientAdded={handleClientAdded} />
+
+        <AlertDialog open={!!toggleClient} onOpenChange={(open) => !open && setToggleClient(null)}>
+          <AlertDialogContent className="bg-card border-border">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-foreground">
+                {toggleClient?.isActive ? "Desactivar cliente" : "Reactivar cliente"}
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                {toggleClient?.isActive
+                  ? `¿Estás seguro de que quieres desactivar a ${toggleClient?.name}? El cliente pasará a estado inactivo.`
+                  : `¿Estás seguro de que quieres reactivar a ${toggleClient?.name}?`}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="border-border">Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (!toggleClient) return;
+                  const newApiStatus = toggleClient.isActive ? "PAUSED" : "ACTIVE";
+                  const newDetailStatus = toggleClient.isActive ? "Inactivo" : "Activo";
+                  updateClientStatus(toggleClient.id, newApiStatus);
+                  useClientDetailStore.getState().updateDetail(toggleClient.id, { status: newDetailStatus as any });
+                  toast({
+                    title: toggleClient.isActive ? "Cliente desactivado" : "Cliente reactivado",
+                    description: `${toggleClient.name} ahora está ${newDetailStatus.toLowerCase()}.`,
+                  });
+                  setToggleClient(null);
+                }}
+                className={toggleClient?.isActive ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"}
+              >
+                {toggleClient?.isActive ? "Desactivar" : "Reactivar"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );
