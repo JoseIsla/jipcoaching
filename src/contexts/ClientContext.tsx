@@ -39,9 +39,9 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [role, userId]);
 
-  // For ADMIN role, fetch all clients
+  // Fetch clients for admin, or for client in dev mode (to populate store)
   useEffect(() => {
-    if (role === "admin") {
+    if (role === "admin" || role === "client") {
       fetchClients();
     }
   }, [role, fetchClients]);
