@@ -83,23 +83,65 @@ export const getStatusLabel = (status?: ClientStatus | string): string => {
   return status as string;
 };
 
-// ── Nutrition ──
-export interface ApiNutritionMeal {
-  id: string;
-  name: string;
+// ── Enums matching Prisma ──
+
+export enum BillingStatus {
+  PENDING = "PENDING",
+  PAID = "PAID",
 }
 
-export interface ApiNutritionSection {
-  id: string;
-  name: string;
-  meals: ApiNutritionMeal[];
+export enum PaymentMethod {
+  CASH = "CASH",
+  BIZUM = "BIZUM",
+  TRANSFER = "TRANSFER",
+  OTHER = "OTHER",
 }
 
-export interface ApiNutritionPlan {
-  id: string;
-  title: string;
-  isActive: boolean;
-  sections: ApiNutritionSection[];
+export enum ApiTrainingMethod {
+  STRAIGHT_SETS = "STRAIGHT_SETS",
+  RIR_SETS = "RIR_SETS",
+  LOAD_DROP = "LOAD_DROP",
+  REPEATS = "REPEATS",
+  REPS_DROP = "REPS_DROP",
+  LOAD_REPS_DROP = "LOAD_REPS_DROP",
+}
+
+export enum ExerciseType {
+  BASIC = "BASIC",
+  VARIANT = "VARIANT",
+  ACCESSORY = "ACCESSORY",
+}
+
+export enum QuestionType {
+  SCALE_0_10 = "SCALE_0_10",
+  YES_NO = "YES_NO",
+  NUMBER = "NUMBER",
+  TEXT = "TEXT",
+  SELECT = "SELECT",
+}
+
+export enum QuestionnaireScope {
+  GLOBAL = "GLOBAL",
+  CLIENT = "CLIENT",
+}
+
+export enum FoodCategory {
+  CARB = "CARB",
+  PROTEIN = "PROTEIN",
+  FAT = "FAT",
+  FRUIT = "FRUIT",
+  VEG = "VEG",
+  SUPPLEMENT = "SUPPLEMENT",
+  OTHER = "OTHER",
+}
+
+export enum MealBlockType {
+  CARB = "CARB",
+  PROTEIN = "PROTEIN",
+  FAT = "FAT",
+  FRUIT = "FRUIT",
+  VEG = "VEG",
+  TEXT = "TEXT",
 }
 
 // ── Exercise Library ──
@@ -151,31 +193,240 @@ export const exerciseCategoryFromApi = (cat: ExerciseCategory | string): "basico
 };
 
 // ── Training ──
-export interface ApiTrainingExercise {
+
+export interface ApiExercisePrescription {
   id: string;
+  dayId: string;
   name: string;
-  [key: string]: unknown;
+  type: ExerciseType;
+  method: ApiTrainingMethod;
+  topSetReps?: number;
+  topSetRpe?: number;
+  fatiguePct?: number;
+  dropLoadPct?: number;
+  dropReps?: number;
+  setsMin?: number;
+  setsMax?: number;
+  rirMin?: number;
+  rirMax?: number;
+  restSec?: number;
+  notes?: string;
+  videoRequired: boolean;
+  order: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ApiTrainingDay {
   id: string;
-  title: string;
-  exercises: ApiTrainingExercise[];
+  weekId: string;
+  dayNumber: number;
+  title?: string;
+  notes?: string;
+  exercises: ApiExercisePrescription[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ApiTrainingWeek {
   id: string;
+  planId: string;
+  weekNumber: number;
+  notes?: string;
   days: ApiTrainingDay[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ApiTrainingPlan {
   id: string;
   clientId: string;
   title: string;
+  isActive: boolean;
   weeks: ApiTrainingWeek[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-// ── Sessions ──
+// ── Training Session Logs ──
+
+export interface ApiExerciseLog {
+  id: string;
+  prescriptionId: string;
+  sessionId: string;
+  topKg?: number;
+  topReps?: number;
+  topRpe?: number;
+  backoffKg?: number;
+  backoffReps?: number;
+  backoffRpe?: number;
+  backoffSetsCount?: number;
+  notes?: string;
+  createdAt?: string;
+}
+
+export interface ApiTrainingSessionLog {
+  id: string;
+  clientId: string;
+  weekId?: string;
+  dayId?: string;
+  date: string;
+  sleepHours?: number;
+  sleepQuality?: number;
+  stress?: number;
+  fatigue?: number;
+  pain?: number;
+  painArea?: string;
+  notes?: string;
+  exerciseLogs: ApiExerciseLog[];
+  questionnaireResponses?: ApiQuestionnaireResponse[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// ── Nutrition ──
+
+export interface ApiNutritionBlockItem {
+  id: string;
+  blockId: string;
+  portionId?: string;
+  freeText?: string;
+  order: number;
+  createdAt?: string;
+}
+
+export interface ApiNutritionMealBlock {
+  id: string;
+  optionId: string;
+  type: MealBlockType;
+  title?: string;
+  notes?: string;
+  order: number;
+  useTable: boolean;
+  tableCategory?: FoodCategory;
+  items: ApiNutritionBlockItem[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ApiNutritionMealOption {
+  id: string;
+  mealId: string;
+  name: string;
+  notes?: string;
+  order: number;
+  blocks: ApiNutritionMealBlock[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ApiNutritionMeal {
+  id: string;
+  planId: string;
+  name: string;
+  order: number;
+  notes?: string;
+  options: ApiNutritionMealOption[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ApiNutritionSection {
+  id: string;
+  planId: string;
+  title: string;
+  content: string;
+  order: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ApiFoodPortion {
+  id: string;
+  planId: string;
+  foodItemId: string;
+  grams?: number;
+  quantity?: number;
+  unit?: string;
+  label?: string;
+  createdAt?: string;
+}
+
+export interface ApiFoodItem {
+  id: string;
+  planId: string;
+  category: FoodCategory;
+  name: string;
+  portions: ApiFoodPortion[];
+  createdAt?: string;
+}
+
+export interface ApiNutritionPlan {
+  id: string;
+  clientId: string;
+  title: string;
+  isActive: boolean;
+  kcalMin?: number;
+  kcalMax?: number;
+  proteinG?: number;
+  carbsG?: number;
+  fatsG?: number;
+  version: number;
+  sections: ApiNutritionSection[];
+  meals: ApiNutritionMeal[];
+  foodItems?: ApiFoodItem[];
+  portions?: ApiFoodPortion[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// ── Nutrition Selection (Client) ──
+
+export interface ApiNutritionSelectionChoice {
+  id: string;
+  selectionId: string;
+  mealId: string;
+  optionId: string;
+  blockId: string;
+  portionId?: string;
+  createdAt?: string;
+}
+
+export interface ApiNutritionSelectionDay {
+  id: string;
+  clientId: string;
+  date: string;
+  isCompleted: boolean;
+  choices: ApiNutritionSelectionChoice[];
+  createdAt?: string;
+}
+
+// ── Billing ──
+
+export interface ApiBillingMonth {
+  id: string;
+  billingAccountId: string;
+  month: string;
+  amount: number;
+  status: BillingStatus;
+  method: PaymentMethod;
+  paidAt?: string;
+  notes?: string;
+  createdAt?: string;
+}
+
+export interface ApiBillingAccount {
+  id: string;
+  payerUserId: string;
+  monthlyFee: number;
+  notes?: string;
+  members?: ApiClient[];
+  billings?: ApiBillingMonth[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// ── Sessions (legacy — now TrainingSessionLog) ──
 export interface ApiSession {
   id: string;
   date: string;
@@ -184,12 +435,42 @@ export interface ApiSession {
 }
 
 // ── Questionnaires ──
+
 export interface ApiQuestionnaireQuestion {
   id: string;
-  type: string;
-  text: string;
+  templateId: string;
+  type: QuestionType;
+  label: string;
+  required: boolean;
+  order: number;
+  optionsJson?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
+export interface ApiQuestionnaireTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  scope: QuestionnaireScope;
+  clientId?: string;
+  version: number;
+  questions: ApiQuestionnaireQuestion[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ApiQuestionnaireResponse {
+  id: string;
+  sessionId: string;
+  templateId: string;
+  questionId: string;
+  value: string;
+  createdAt?: string;
+}
+
+/** @deprecated Use ApiQuestionnaireTemplate instead */
 export interface ApiQuestionnaire {
   id: string;
   templateId: string;
@@ -210,4 +491,32 @@ export const packTypeLabels: Record<string, string> = {
 export const clientStatusLabels: Record<string, string> = {
   [ClientStatus.ACTIVE]: "Activo",
   [ClientStatus.PAUSED]: "Pausado",
+};
+
+export const trainingMethodLabels: Record<ApiTrainingMethod, string> = {
+  [ApiTrainingMethod.STRAIGHT_SETS]: "Series fijas",
+  [ApiTrainingMethod.RIR_SETS]: "Series RIR/RPE",
+  [ApiTrainingMethod.LOAD_DROP]: "Load Drop",
+  [ApiTrainingMethod.REPEATS]: "Repeticiones",
+  [ApiTrainingMethod.REPS_DROP]: "Reps Drop",
+  [ApiTrainingMethod.LOAD_REPS_DROP]: "Load + Reps Drop",
+};
+
+export const foodCategoryLabels: Record<FoodCategory, string> = {
+  [FoodCategory.CARB]: "Carbohidratos",
+  [FoodCategory.PROTEIN]: "Proteínas",
+  [FoodCategory.FAT]: "Grasas",
+  [FoodCategory.FRUIT]: "Frutas",
+  [FoodCategory.VEG]: "Verduras",
+  [FoodCategory.SUPPLEMENT]: "Suplementos",
+  [FoodCategory.OTHER]: "Otros",
+};
+
+export const mealBlockTypeLabels: Record<MealBlockType, string> = {
+  [MealBlockType.CARB]: "🍚 Carbohidratos",
+  [MealBlockType.PROTEIN]: "🥩 Proteínas",
+  [MealBlockType.FAT]: "🥑 Grasas",
+  [MealBlockType.FRUIT]: "🍎 Frutas",
+  [MealBlockType.VEG]: "🥦 Verduras",
+  [MealBlockType.TEXT]: "📝 Texto",
 };

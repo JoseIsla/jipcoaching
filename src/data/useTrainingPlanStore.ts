@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { api } from "@/services/api";
-import type { ApiTrainingPlan } from "@/types/api";
+import type { ApiTrainingPlan, ApiExercisePrescription } from "@/types/api";
 import { useClientStore } from "./useClientStore";
 
 // Re-export types
@@ -94,18 +94,34 @@ interface TrainingPlanState {
   getActivePlanForClient: (clientId: string) => TrainingPlanListEntry | null;
 }
 
+/** Map an API exercise prescription to our frontend TrainingExerciseEntry */
+const mapApiExerciseToEntry = (ex: ApiExercisePrescription, idx: number) => ({
+  id: ex.id,
+  order: ex.order ?? idx + 1,
+  section: (ex.type === "BASIC" || ex.type === "VARIANT" ? "basic" : "accessory") as "basic" | "accessory",
+  exerciseName: ex.name,
+  exerciseType: ex.type,
+  method: undefined, // frontend uses its own TrainingMethod type
+  topSetReps: ex.topSetReps,
+  topSetRPE: ex.topSetRpe,
+  fatiguePercent: ex.fatiguePct,
+  sets: ex.setsMin != null && ex.setsMax != null ? `${ex.setsMin}-${ex.setsMax}` : undefined,
+  intensityValue: ex.rirMin,
+  technicalNotes: ex.notes,
+});
+
 /** Map API plan to our list entry format */
 const mapApiPlanToListEntry = (apiPlan: ApiTrainingPlan): TrainingPlanListEntry => ({
   id: apiPlan.id,
   clientId: apiPlan.clientId,
-  clientName: "", // API may not include this; will be enriched
+  clientName: "",
   planName: apiPlan.title,
   modality: "Powerlifting" as TrainingModality,
   block: "Hipertrofia" as TrainingBlock,
   weeksDuration: apiPlan.weeks?.length ?? 0,
   currentWeek: apiPlan.weeks?.length ?? null,
-  active: true,
-  startDate: new Date().toISOString().split("T")[0],
+  active: apiPlan.isActive ?? true,
+  startDate: apiPlan.createdAt?.split("T")[0] ?? new Date().toISOString().split("T")[0],
   endDate: null,
 });
 
@@ -145,28 +161,23 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
         block: "Hipertrofia" as TrainingBlock,
         weeksDuration: apiPlan.weeks?.length ?? 0,
         currentWeek: apiPlan.weeks?.length ?? null,
-        active: true,
-        startDate: new Date().toISOString().split("T")[0],
+        active: apiPlan.isActive ?? true,
+        startDate: apiPlan.createdAt?.split("T")[0] ?? new Date().toISOString().split("T")[0],
         endDate: null,
         daysPerWeek: apiPlan.weeks?.[0]?.days?.length ?? 4,
-        weeks: (apiPlan.weeks ?? []).map((w, wIdx) => ({
+        weeks: (apiPlan.weeks ?? []).map((w) => ({
           id: w.id,
           planId: apiPlan.id,
-          weekNumber: wIdx + 1,
+          weekNumber: w.weekNumber,
           block: "Hipertrofia" as TrainingBlock,
-          status: wIdx === (apiPlan.weeks?.length ?? 1) - 1 ? "active" as const : "completed" as const,
-          days: (w.days ?? []).map((d, dIdx) => ({
+          status: w.weekNumber === (apiPlan.weeks?.length ?? 1) ? "active" as const : "completed" as const,
+          generalNotes: w.notes,
+          days: (w.days ?? []).map((d) => ({
             id: d.id,
-            dayNumber: dIdx + 1,
-            name: d.title,
+            dayNumber: d.dayNumber,
+            name: d.title ?? `Día ${d.dayNumber}`,
             warmup: "",
-            exercises: (d.exercises ?? []).map((ex, eIdx) => ({
-              id: ex.id,
-              order: eIdx + 1,
-              section: "basic" as const,
-              exerciseName: ex.name,
-              ...ex,
-            })),
+            exercises: (d.exercises ?? []).map((ex, eIdx) => mapApiExerciseToEntry(ex, eIdx)),
           })),
         })),
       };
