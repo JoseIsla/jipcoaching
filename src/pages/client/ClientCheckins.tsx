@@ -289,6 +289,26 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   );
 };
 
+/** Get Monday 00:00 and Sunday 23:59:59 of the ISO week containing `ref`. */
+const getCurrentWeekRange = (ref: Date = new Date()): [Date, Date] => {
+  const d = new Date(ref);
+  const day = d.getDay(); // 0=Sun … 6=Sat
+  const diffToMon = day === 0 ? -6 : 1 - day;
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + diffToMon);
+  monday.setHours(0, 0, 0, 0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
+  return [monday, sunday];
+};
+
+const isInCurrentWeek = (dateStr: string): boolean => {
+  const [monday, sunday] = getCurrentWeekRange();
+  const d = new Date(dateStr + "T12:00:00"); // noon to avoid TZ edge cases
+  return d >= monday && d <= sunday;
+};
+
 const ClientCheckins = () => {
   const { t } = useTranslation();
   const { client } = useClient();
@@ -302,11 +322,12 @@ const ClientCheckins = () => {
   const trainingEntry = hasTraining ? getOrCreateTrainingEntry(client.id, client.name) : null;
 
   const myEntries = allEntries.filter((e) => e.clientId === client.id);
-  const nutritionEntries = myEntries.filter((e) => e.category === "nutrition");
-  // For training, show only entries with trainingLog (auto-generated from plan)
-  const trainingEntries = myEntries.filter((e) => e.category === "training" && e.trainingLog && e.trainingLog.length > 0);
-  // Also keep legacy training entries (without trainingLog)
-  const legacyTrainingEntries = myEntries.filter((e) => e.category === "training" && (!e.trainingLog || e.trainingLog.length === 0));
+
+  // Only show current week entries
+  const nutritionEntries = myEntries.filter((e) => e.category === "nutrition" && isInCurrentWeek(e.date));
+  const trainingEntries = myEntries.filter(
+    (e) => e.category === "training" && e.trainingLog && e.trainingLog.length > 0 && isInCurrentWeek(e.date)
+  );
 
   const defaultTab = hasNutrition ? "nutrition" : "training";
 
@@ -332,13 +353,12 @@ const ClientCheckins = () => {
           {hasTraining && (
             <TabsContent value="training" className="space-y-3">
               <p className="text-xs text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("clientCheckins.trainingSchedule") }} />
-              {!trainingEntry && trainingEntries.length === 0 && legacyTrainingEntries.length === 0 && (
+              {trainingEntries.length === 0 && (
                 <div className="text-center py-8">
                   <Dumbbell className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                   <p className="text-sm text-muted-foreground">{t("clientCheckins.noActivePlan")}</p>
                 </div>
               )}
-              {/* Show auto-generated training log entries */}
               {trainingEntries.map((entry) => <TrainingLogCard key={entry.id} entry={entry} />)}
             </TabsContent>
           )}
