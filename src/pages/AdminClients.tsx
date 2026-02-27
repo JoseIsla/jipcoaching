@@ -234,7 +234,7 @@ const AdminClients = () => {
         </AlertDialog>
 
         {/* Delete – Double Confirmation */}
-        <AlertDialog open={deleteClient?.step === 1} onOpenChange={(open) => !open && setDeleteClient(null)}>
+        <AlertDialog open={deleteClient?.step === 1} onOpenChange={(open) => { if (!open && deleteClient?.step === 1) setDeleteClient(null); }}>
           <AlertDialogContent className="bg-card border-border">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-foreground flex items-center gap-2">
@@ -248,7 +248,10 @@ const AdminClients = () => {
             <AlertDialogFooter>
               <AlertDialogCancel className="border-border">Cancelar</AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => deleteClient && setDeleteClient({ ...deleteClient, step: 2 })}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (deleteClient) setDeleteClient({ ...deleteClient, step: 2 });
+                }}
                 className="bg-destructive hover:bg-destructive/90"
               >
                 Sí, continuar
