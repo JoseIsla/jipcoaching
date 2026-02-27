@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useLanguageStore } from "@/i18n/store";
 import { useClientNotificationStore } from "@/data/useClientNotificationStore";
-import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
+import { useQuestionnaireStore, isActionablePending } from "@/data/useQuestionnaireStore";
 import { useToast } from "@/hooks/use-toast";
 import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 
@@ -71,10 +71,10 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
     prevUnreadRef.current = unreadCount;
   }, [unreadCount]);
 
-  // Get pending check-in entries for this client
+  // Get pending check-in entries for this client (only actionable — not expired/future)
   const allEntries = useQuestionnaireStore((s) => s.entries);
   const pendingEntries = allEntries.filter(
-    (e) => e.clientId === client.id && e.status === "pendiente"
+    (e) => e.clientId === client.id && isActionablePending(e)
   );
   const pendingNutrition = pendingEntries.filter((e) => e.category === "nutrition");
   const pendingTraining = pendingEntries.filter((e) => e.category === "training");
