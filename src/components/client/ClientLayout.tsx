@@ -15,6 +15,18 @@ import { useClientNotificationStore } from "@/data/useClientNotificationStore";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useToast } from "@/hooks/use-toast";
 
+const formatRelativeTime = (date: Date) => {
+  const now = Date.now();
+  const diff = now - new Date(date).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "ahora";
+  if (mins < 60) return `hace ${mins} min`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `hace ${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `hace ${days}d`;
+};
+
 const ClientLayout = ({ children }: { children: ReactNode }) => {
   const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
   const { t } = useTranslation();
@@ -230,7 +242,10 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
                           )}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-foreground">{t(notif.titleKey, notif.titleVars)}</p>
+                          <div className="flex items-baseline justify-between gap-2">
+                            <p className="text-sm font-medium text-foreground">{t(notif.titleKey, notif.titleVars)}</p>
+                            <span className="text-[10px] text-muted-foreground shrink-0">{formatRelativeTime(notif.timestamp)}</span>
+                          </div>
                           <p className="text-xs text-muted-foreground mt-0.5">{t(notif.descriptionKey, notif.descriptionVars)}</p>
                         </div>
                         {!notif.read && (
