@@ -43,6 +43,14 @@ export interface TrainingLogDay {
 
 export type QuestionnaireStatus = "pendiente" | "respondido" | "no_enviado";
 
+export interface CheckinVideo {
+  id: string;
+  exerciseName: string;
+  url: string;
+  notes?: string;
+  uploadedAt: string;
+}
+
 export interface QuestionnaireEntry {
   id: string;
   clientId: string;
@@ -57,6 +65,7 @@ export interface QuestionnaireEntry {
   responses?: Record<string, string | number | boolean>;
   liftLogs?: { exerciseId: string; exerciseName: string; sets: string; weight: number; rpe?: number }[];
   trainingLog?: TrainingLogDay[];
+  techniqueVideos?: CheckinVideo[];
   planId?: string;
   weekNumber?: number;
 }
@@ -80,6 +89,8 @@ interface QuestionnaireState {
 
   // Legacy local actions (kept for UI compat until backend supports full questionnaire flow)
   submitEntry: (entryId: string, responses: Record<string, string | number | boolean>, trainingLog?: TrainingLogDay[]) => void;
+  addVideoToEntry: (entryId: string, video: CheckinVideo) => void;
+  removeVideoFromEntry: (entryId: string, videoId: string) => void;
   getPendingCount: (clientId?: string) => number;
   getEntriesForClient: (clientId: string) => QuestionnaireEntry[];
   getOrCreateTrainingEntry: (clientId: string, clientName: string) => QuestionnaireEntry | null;
@@ -160,6 +171,24 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
               responses,
               ...(trainingLog ? { trainingLog } : {}),
             }
+          : e
+      ),
+    })),
+
+  addVideoToEntry: (entryId, video) =>
+    set((state) => ({
+      entries: state.entries.map((e) =>
+        e.id === entryId
+          ? { ...e, techniqueVideos: [...(e.techniqueVideos || []), video] }
+          : e
+      ),
+    })),
+
+  removeVideoFromEntry: (entryId, videoId) =>
+    set((state) => ({
+      entries: state.entries.map((e) =>
+        e.id === entryId
+          ? { ...e, techniqueVideos: (e.techniqueVideos || []).filter((v) => v.id !== videoId) }
           : e
       ),
     })),

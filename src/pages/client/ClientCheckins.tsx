@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
@@ -11,14 +11,16 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ClipboardList, Check, Clock, AlertCircle, Dumbbell, History } from "lucide-react";
+import { ClipboardList, Check, Clock, AlertCircle, Dumbbell, History, Video, Upload, Trash2, Film, Loader2 } from "lucide-react";
 import AnimatedChevron from "@/components/ui/animated-chevron";
 import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-content";
 import { useToast } from "@/hooks/use-toast";
-import { type QuestionnaireEntry, type TrainingLogDay } from "@/data/useQuestionnaireStore";
+import { type QuestionnaireEntry, type TrainingLogDay, type CheckinVideo } from "@/data/useQuestionnaireStore";
 import { nutritionTemplates, trainingTemplate, type QuestionDefinition } from "@/data/questionnaireDefs";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
+import { MAX_VIDEO_SIZE_MB } from "@/types/media";
+import { compressVideo } from "@/utils/compressMedia";
 
 /** Publication hour for nutrition check-ins (8:00 AM) */
 const NUTRITION_PUBLISH_HOUR = 8;
@@ -151,7 +153,63 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const [activeDay, setActiveDay] = useState(0);
   const { toast } = useToast();
   const submitEntry = useQuestionnaireStore((s) => s.submitEntry);
+  const addVideoToEntry = useQuestionnaireStore((s) => s.addVideoToEntry);
+  const removeVideoFromEntry = useQuestionnaireStore((s) => s.removeVideoFromEntry);
   const questions = trainingTemplate.questions;
+
+  // Video upload state
+  const [showVideoUpload, setShowVideoUpload] = useState(false);
+  const [videoExerciseName, setVideoExerciseName] = useState("");
+  const [videoNotes, setVideoNotes] = useState("");
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [compressingVideo, setCompressingVideo] = useState(false);
+  const videoFileRef = useRef<HTMLInputElement>(null);
+
+  const videos = entry.techniqueVideos || [];
+
+  const handleVideoFileSelect = async (file: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith("video/")) {
+      toast({ title: "Formato no válido", description: "Solo se permiten videos", variant: "destructive" });
+      return;
+    }
+    let processedFile = file;
+    if (file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
+      setCompressingVideo(true);
+      try {
+        processedFile = await compressVideo(file, { maxSizeMB: MAX_VIDEO_SIZE_MB });
+        const savedMB = ((file.size - processedFile.size) / (1024 * 1024)).toFixed(1);
+        toast({ title: "Video comprimido ✅", description: `Se redujo ${savedMB}MB automáticamente` });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : `El video excede ${MAX_VIDEO_SIZE_MB}MB`;
+        toast({ title: "No se pudo comprimir", description: msg, variant: "destructive" });
+        setCompressingVideo(false);
+        return;
+      }
+      setCompressingVideo(false);
+    }
+    setVideoFile(processedFile);
+  };
+
+  const handleAddVideo = () => {
+    if (!videoFile || !videoExerciseName.trim()) {
+      toast({ title: "Campos requeridos", description: "Indica el ejercicio y selecciona un video", variant: "destructive" });
+      return;
+    }
+    const newVideo: CheckinVideo = {
+      id: `cv-${Date.now()}`,
+      exerciseName: videoExerciseName.trim(),
+      url: URL.createObjectURL(videoFile),
+      notes: videoNotes.trim() || undefined,
+      uploadedAt: new Date().toISOString(),
+    };
+    addVideoToEntry(entry.id, newVideo);
+    toast({ title: "Video añadido ✅" });
+    setVideoFile(null);
+    setVideoExerciseName("");
+    setVideoNotes("");
+    setShowVideoUpload(false);
+  };
 
   const updateExercise = (dayIdx: number, exIdx: number, field: string, value: string | number) => {
     const updated = trainingLog.map((day, di) =>
@@ -295,6 +353,105 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                   ))}
                 </div>
 
+                {/* ── Optional Technique Videos ── */}
+                <div className="border-t border-border pt-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <Video className="h-3 w-3 text-primary" />
+                      Videos de técnica (opcional)
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-[10px] gap-1 h-7 border-primary/30 text-primary hover:bg-primary/10"
+                      onClick={() => setShowVideoUpload(!showVideoUpload)}
+                    >
+                      <Upload className="h-3 w-3" />
+                      Añadir video
+                    </Button>
+                  </div>
+
+                  {showVideoUpload && (
+                    <div className="space-y-2 bg-muted/30 rounded-lg p-3">
+                      <Input
+                        value={videoExerciseName}
+                        onChange={(e) => setVideoExerciseName(e.target.value)}
+                        placeholder="Nombre del ejercicio (ej: Sentadilla)"
+                        className="bg-background border-border text-sm h-8"
+                      />
+                      <Input
+                        value={videoNotes}
+                        onChange={(e) => setVideoNotes(e.target.value)}
+                        placeholder="Notas (opcional)"
+                        className="bg-background border-border text-sm h-8"
+                      />
+                      <input
+                        ref={videoFileRef}
+                        type="file"
+                        accept="video/*"
+                        className="hidden"
+                        onChange={(e) => handleVideoFileSelect(e.target.files?.[0] ?? null)}
+                      />
+                      <button
+                        onClick={() => videoFileRef.current?.click()}
+                        disabled={compressingVideo}
+                        className={`w-full py-4 rounded-lg border-2 border-dashed flex flex-col items-center gap-1.5 transition-colors ${
+                          compressingVideo
+                            ? "border-primary/50 bg-primary/5 animate-pulse"
+                            : videoFile
+                            ? "border-primary/50 bg-primary/5"
+                            : "border-border hover:border-primary/30 hover:bg-muted/50"
+                        }`}
+                      >
+                        {compressingVideo ? (
+                          <>
+                            <Loader2 className="h-5 w-5 text-primary animate-spin" />
+                            <span className="text-[10px] text-primary font-medium">Comprimiendo…</span>
+                          </>
+                        ) : (
+                          <>
+                            <Film className="h-5 w-5 text-muted-foreground" />
+                            <span className="text-[10px] text-muted-foreground">
+                              {videoFile ? videoFile.name : "Seleccionar video (se comprime automáticamente)"}
+                            </span>
+                          </>
+                        )}
+                      </button>
+                      <Button
+                        size="sm"
+                        className="w-full h-8 text-xs"
+                        onClick={handleAddVideo}
+                        disabled={compressingVideo || !videoFile || !videoExerciseName.trim()}
+                      >
+                        Añadir video
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Attached videos list */}
+                  {videos.length > 0 && (
+                    <div className="space-y-2">
+                      {videos.map((v) => (
+                        <div key={v.id} className="bg-muted/30 rounded-lg overflow-hidden">
+                          <video src={v.url} controls preload="metadata" className="w-full max-h-36 bg-black rounded-t-lg" />
+                          <div className="p-2 flex items-center justify-between">
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-foreground truncate">{v.exerciseName}</p>
+                              {v.notes && <p className="text-[10px] text-muted-foreground truncate">{v.notes}</p>}
+                            </div>
+                            <button
+                              onClick={() => removeVideoFromEntry(entry.id, v.id)}
+                              className="text-muted-foreground hover:text-destructive transition-colors p-1 shrink-0"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <Button onClick={handleSubmit} className="w-full glow-primary-sm">{t("clientCheckins.submitCheckin")}</Button>
               </>
             ) : (
@@ -361,6 +518,24 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                     </div>
                   ))}
                 </div>
+                {/* Submitted videos */}
+                {videos.length > 0 && (
+                  <div className="border-t border-border pt-3 space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <Video className="h-3 w-3 text-primary" />
+                      Videos de técnica ({videos.length})
+                    </p>
+                    {videos.map((v) => (
+                      <div key={v.id} className="bg-muted/30 rounded-lg overflow-hidden">
+                        <video src={v.url} controls preload="metadata" className="w-full max-h-36 bg-black rounded-t-lg" />
+                        <div className="p-2">
+                          <p className="text-xs font-semibold text-foreground">{v.exerciseName}</p>
+                          {v.notes && <p className="text-[10px] text-muted-foreground">{v.notes}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
