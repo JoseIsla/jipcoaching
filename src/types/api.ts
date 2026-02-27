@@ -102,6 +102,54 @@ export interface ApiNutritionPlan {
   sections: ApiNutritionSection[];
 }
 
+// ── Exercise Library ──
+export enum ExerciseCategory {
+  BASIC = "BASIC",
+  VARIANT = "VARIANT",
+  ACCESSORY = "ACCESSORY",
+}
+
+export interface ApiExercise {
+  id: string;
+  name: string;
+  category: ExerciseCategory;
+  muscleGroup?: string;
+  videoUrl?: string;
+  notes?: string;
+  parentExerciseId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateExerciseDto {
+  name: string;
+  category: ExerciseCategory;
+  muscleGroup?: string;
+  videoUrl?: string;
+  notes?: string;
+  parentExerciseId?: string;
+}
+
+/** Map frontend category to API enum */
+export const exerciseCategoryToApi = (cat: "basico" | "variante" | "accesorio"): ExerciseCategory => {
+  const map: Record<string, ExerciseCategory> = {
+    basico: ExerciseCategory.BASIC,
+    variante: ExerciseCategory.VARIANT,
+    accesorio: ExerciseCategory.ACCESSORY,
+  };
+  return map[cat] ?? ExerciseCategory.BASIC;
+};
+
+/** Map API enum to frontend category */
+export const exerciseCategoryFromApi = (cat: ExerciseCategory | string): "basico" | "variante" | "accesorio" => {
+  const map: Record<string, "basico" | "variante" | "accesorio"> = {
+    BASIC: "basico",
+    VARIANT: "variante",
+    ACCESSORY: "accesorio",
+  };
+  return map[String(cat).toUpperCase()] ?? "basico";
+};
+
 // ── Training ──
 export interface ApiTrainingExercise {
   id: string;
