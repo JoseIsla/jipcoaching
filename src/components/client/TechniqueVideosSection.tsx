@@ -4,7 +4,7 @@
  * Videos auto-expire after 7 days.
  */
 import { useState, useRef } from "react";
-import { Video, Upload, Clock, Trash2, Film } from "lucide-react";
+import { Video, Upload, Clock, Trash2, Film, Loader2 } from "lucide-react";
 import ClientMediaComments from "./ClientMediaComments";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useMediaStore } from "@/data/useMediaStore";
 import { MAX_VIDEO_SIZE_MB, VIDEO_EXPIRY_DAYS, type TechniqueVideo } from "@/types/media";
+import { compressVideo } from "@/utils/compressMedia";
 
 interface Props {
   clientId: string;
@@ -31,23 +32,38 @@ const TechniqueVideosSection = ({ clientId }: Props) => {
   const activeVideos = getActiveVideosFn(clientId);
 
   const [showUpload, setShowUpload] = useState(false);
+  const [compressingVideo, setCompressingVideo] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [exerciseName, setExerciseName] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (file: File | null) => {
+  const handleFileSelect = async (file: File | null) => {
     if (!file) return;
-    if (file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
-      toast({ title: "Video muy grande", description: `Máximo ${MAX_VIDEO_SIZE_MB}MB`, variant: "destructive" });
-      return;
-    }
     if (!file.type.startsWith("video/")) {
       toast({ title: "Formato no válido", description: "Solo se permiten videos", variant: "destructive" });
       return;
     }
-    setSelectedFile(file);
+
+    // Auto-compress if over size limit
+    let processedFile = file;
+    if (file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
+      setCompressingVideo(true);
+      try {
+        processedFile = await compressVideo(file, { maxSizeMB: MAX_VIDEO_SIZE_MB });
+        const savedMB = ((file.size - processedFile.size) / (1024 * 1024)).toFixed(1);
+        toast({ title: "Video comprimido ✅", description: `Se redujo ${savedMB}MB automáticamente` });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : `El video excede ${MAX_VIDEO_SIZE_MB}MB y no se pudo comprimir`;
+        toast({ title: "No se pudo comprimir", description: msg, variant: "destructive" });
+        setCompressingVideo(false);
+        return;
+      }
+      setCompressingVideo(false);
+    }
+
+    setSelectedFile(processedFile);
   };
 
   const handleUpload = async () => {
@@ -135,23 +151,35 @@ const TechniqueVideosSection = ({ clientId }: Props) => {
 
           <button
             onClick={() => fileRef.current?.click()}
+            disabled={compressingVideo}
             className={`w-full py-6 rounded-lg border-2 border-dashed flex flex-col items-center gap-2 transition-colors ${
-              selectedFile
+              compressingVideo
+                ? "border-primary/50 bg-primary/5 animate-pulse"
+                : selectedFile
                 ? "border-primary/50 bg-primary/5"
                 : "border-border hover:border-primary/30 hover:bg-muted/50"
             }`}
           >
-            <Film className="h-6 w-6 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">
-              {selectedFile ? selectedFile.name : `Seleccionar video (máx. ${MAX_VIDEO_SIZE_MB}MB)`}
-            </span>
+            {compressingVideo ? (
+              <>
+                <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                <span className="text-xs text-primary font-medium">Comprimiendo video…</span>
+              </>
+            ) : (
+              <>
+                <Film className="h-6 w-6 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {selectedFile ? selectedFile.name : `Seleccionar video (se comprime automáticamente)`}
+                </span>
+              </>
+            )}
           </button>
 
           <Button
             size="sm"
             className="w-full gap-2"
             onClick={handleUpload}
-            disabled={uploading || !selectedFile || !exerciseName.trim()}
+            disabled={uploading || compressingVideo || !selectedFile || !exerciseName.trim()}
           >
             {uploading ? "Subiendo..." : "Subir video"}
           </Button>

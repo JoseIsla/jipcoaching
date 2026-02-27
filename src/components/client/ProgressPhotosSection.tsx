@@ -3,13 +3,14 @@
  * Shows in Progress tab for nutrition clients.
  */
 import { useState, useRef } from "react";
-import { Camera, Upload, Clock, CheckCircle2, ImageIcon } from "lucide-react";
+import { Camera, Upload, Clock, CheckCircle2, ImageIcon, Loader2 } from "lucide-react";
 import ClientMediaComments from "./ClientMediaComments";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useMediaStore } from "@/data/useMediaStore";
 import { PHOTO_ANGLES, MAX_PHOTO_SIZE_MB, MIN_PHOTO_WIDTH, MIN_PHOTO_HEIGHT, getImageDimensions, type PhotoAngle, type ProgressPhoto } from "@/types/media";
+import { compressImage } from "@/utils/compressMedia";
 
 interface Props {
   clientId: string;
@@ -27,6 +28,7 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
   const nextDate = getNextPhotoDateFn(clientId);
 
   const [uploading, setUploading] = useState(false);
+  const [compressing, setCompressing] = useState<PhotoAngle | null>(null);
   const [pendingFiles, setPendingFiles] = useState<Record<PhotoAngle, File | null>>({
     front: null,
     side: null,
@@ -47,10 +49,6 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
 
   const handleFileSelect = async (angle: PhotoAngle, file: File | null) => {
     if (!file) return;
-    if (file.size > MAX_PHOTO_SIZE_MB * 1024 * 1024) {
-      toast({ title: "Archivo muy grande", description: `Máximo ${MAX_PHOTO_SIZE_MB}MB por foto`, variant: "destructive" });
-      return;
-    }
     if (!file.type.startsWith("image/")) {
       toast({ title: "Formato no válido", description: "Solo se permiten imágenes", variant: "destructive" });
       return;
@@ -69,8 +67,25 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
       toast({ title: "Error", description: "No se pudo leer la imagen", variant: "destructive" });
       return;
     }
-    setPendingFiles((prev) => ({ ...prev, [angle]: file }));
-    const url = URL.createObjectURL(file);
+
+    // Auto-compress if over size limit
+    let processedFile = file;
+    if (file.size > MAX_PHOTO_SIZE_MB * 1024 * 1024) {
+      setCompressing(angle);
+      try {
+        processedFile = await compressImage(file, { maxSizeMB: MAX_PHOTO_SIZE_MB });
+        const savedMB = ((file.size - processedFile.size) / (1024 * 1024)).toFixed(1);
+        toast({ title: "Foto comprimida ✅", description: `Se redujo ${savedMB}MB para cumplir el límite` });
+      } catch {
+        toast({ title: "No se pudo comprimir", description: `La foto excede ${MAX_PHOTO_SIZE_MB}MB y no se pudo reducir`, variant: "destructive" });
+        setCompressing(null);
+        return;
+      }
+      setCompressing(null);
+    }
+
+    setPendingFiles((prev) => ({ ...prev, [angle]: processedFile }));
+    const url = URL.createObjectURL(processedFile);
     setPreviews((prev) => ({ ...prev, [angle]: url }));
   };
 
@@ -140,7 +155,7 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
       {showUpload && canUpload && (
         <div className="space-y-3 bg-muted/30 rounded-lg p-3">
           <p className="text-xs text-muted-foreground">
-            Sube hasta 3 fotos: frente, lateral y espalda. Máximo {MAX_PHOTO_SIZE_MB}MB por foto. Resolución mínima: {MIN_PHOTO_WIDTH}×{MIN_PHOTO_HEIGHT}px.
+            Sube hasta 3 fotos: frente, lateral y espalda. Las fotos grandes se comprimen automáticamente. Resolución mínima: {MIN_PHOTO_WIDTH}×{MIN_PHOTO_HEIGHT}px.
           </p>
           <div className="grid grid-cols-3 gap-2">
             {PHOTO_ANGLES.map(({ key, label, emoji }) => (
@@ -154,13 +169,21 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
                 />
                 <button
                   onClick={() => fileRefs[key].current?.click()}
+                  disabled={compressing === key}
                   className={`w-full aspect-[3/4] rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-colors ${
-                    previews[key]
+                    compressing === key
+                      ? "border-primary/50 bg-primary/5 animate-pulse"
+                      : previews[key]
                       ? "border-primary/50 bg-primary/5"
                       : "border-border hover:border-primary/30 hover:bg-muted/50"
                   }`}
                 >
-                  {previews[key] ? (
+                  {compressing === key ? (
+                    <div className="flex flex-col items-center gap-1">
+                      <Loader2 className="h-5 w-5 text-primary animate-spin" />
+                      <span className="text-[9px] text-primary font-medium">Comprimiendo…</span>
+                    </div>
+                  ) : previews[key] ? (
                     <img src={previews[key]!} alt={label} className="w-full h-full object-cover rounded-lg" />
                   ) : (
                     <>
