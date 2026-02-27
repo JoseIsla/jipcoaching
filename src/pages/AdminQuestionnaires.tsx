@@ -479,7 +479,7 @@ const AdminQuestionnaires = () => {
                             <p className="text-[10px] text-muted-foreground mt-1">
                               {new Date(v.uploadedAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                             </p>
-                            <MediaCommentThread targetType="video" targetId={v.id} clientId={selectedEntry.clientId} compact />
+                            <MediaCommentThread targetType="video" targetId={v.id} clientId={selectedEntry.clientId} exerciseName={v.exerciseName} compact />
                           </div>
                         </div>
                       ))}

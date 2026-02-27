@@ -588,6 +588,8 @@ const en: Translations = {
     nutritionCheckinDesc: "Time to fill in your nutrition check-in today. Don't skip it!",
     trainingCheckinTitle: "🏋️ Training record",
     trainingCheckinDesc: "Time to log your weights and RPE for this week.",
+    videoCommentTitle: "💬 New coach comment",
+    videoCommentDesc: "Your coach left feedback on your {exercise} video.",
     goToCheckins: "Go to Check-ins",
     pendingReminder: "You have {n} pending check-in(s)",
   },

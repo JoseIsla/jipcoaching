@@ -592,6 +592,8 @@ const es = {
     nutritionCheckinDesc: "Hoy toca rellenar tu check-in de nutrición. ¡No te lo saltes!",
     trainingCheckinTitle: "🏋️ Registro de entrenamiento",
     trainingCheckinDesc: "Es hora de registrar tus pesos y RPE de esta semana.",
+    videoCommentTitle: "💬 Nuevo comentario del coach",
+    videoCommentDesc: "Tu coach ha dejado feedback en tu video de {exercise}.",
     goToCheckins: "Ir a Check-ins",
     pendingReminder: "Tienes {n} check-in(s) pendiente(s)",
   },
