@@ -19,6 +19,7 @@ import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTemplateStore } from "@/data/useTemplateStore";
 import { useTranslation } from "@/i18n/useTranslation";
 import { exportTrainingLogPDF } from "@/utils/exportTrainingPDF";
+import MediaCommentThread from "@/components/admin/MediaCommentThread";
 
 // ─── Drag helpers ───
 function useDragReorder(items: { id: string }[], onReorder: (ids: string[]) => void) {
@@ -472,12 +473,13 @@ const AdminQuestionnaires = () => {
                       {selectedEntry.techniqueVideos.map((v) => (
                         <div key={v.id} className="bg-muted/30 rounded-lg overflow-hidden border border-border">
                           <video src={v.url} controls preload="metadata" className="w-full max-h-48 bg-black rounded-t-lg" />
-                          <div className="p-2.5">
+                          <div className="p-2.5 space-y-2">
                             <p className="text-sm font-semibold text-foreground">{v.exerciseName}</p>
                             {v.notes && <p className="text-xs text-muted-foreground mt-0.5">{v.notes}</p>}
                             <p className="text-[10px] text-muted-foreground mt-1">
                               {new Date(v.uploadedAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                             </p>
+                            <MediaCommentThread targetType="video" targetId={v.id} clientId={selectedEntry.clientId} compact />
                           </div>
                         </div>
                       ))}
