@@ -3,6 +3,7 @@ import { api } from "@/services/api";
 import type { ApiTrainingPlan, ApiExercisePrescription } from "@/types/api";
 import { useClientStore } from "./useClientStore";
 import { DEV_MOCK } from "@/config/devMode";
+import { mockTrainingPlans, mockTrainingDetails } from "@/data/mockPlans";
 
 // Re-export types
 export type {
@@ -127,8 +128,8 @@ const mapApiPlanToListEntry = (apiPlan: ApiTrainingPlan): TrainingPlanListEntry 
 });
 
 export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
-  plans: [],
-  details: {},
+  plans: DEV_MOCK ? (mockTrainingPlans as any[]) : [],
+  details: DEV_MOCK ? (mockTrainingDetails as any) : {},
   loading: false,
   error: null,
 
@@ -137,8 +138,13 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
 
     if (DEV_MOCK) {
       await new Promise((r) => setTimeout(r, 300));
-      // In dev mode, plans start empty — create them via the UI
-      set({ plans: [], loading: false });
+      // Seed with mock plans if store is empty
+      const current = get().plans;
+      if (current.length === 0) {
+        set({ plans: mockTrainingPlans as any[], details: mockTrainingDetails as any, loading: false });
+      } else {
+        set({ loading: false });
+      }
       return;
     }
 

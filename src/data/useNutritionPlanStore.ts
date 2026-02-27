@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { api } from "@/services/api";
 import type { ApiNutritionPlan } from "@/types/api";
 import { DEV_MOCK } from "@/config/devMode";
+import { mockNutritionPlanList, mockNutritionDetails, mockSupplements } from "@/data/mockPlans";
 import {
   type NutritionPlanDetail,
   type Meal,
@@ -67,9 +68,9 @@ interface NutritionPlanState {
 }
 
 export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
-  plans: [],
-  details: {},
-  supplements: [],
+  plans: DEV_MOCK ? mockNutritionPlanList : [],
+  details: DEV_MOCK ? mockNutritionDetails : {},
+  supplements: DEV_MOCK ? mockSupplements : [],
   loading: false,
   error: null,
 
