@@ -52,8 +52,6 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const toastShownRef = useRef(false);
-  const prevUnreadRef = useRef<number | null>(null);
-  const soundPlayedOnLoginRef = useRef(false);
 
   useEffect(() => { if (userId) setCurrentUser(userId); }, [setCurrentUser, userId]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -64,21 +62,12 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   const markAllRead = useClientNotificationStore((s) => s.markAllRead);
   const unreadCount = useClientNotificationStore((s) => s.getUnreadCount());
 
-  // Play feedback: once on login if there are unread, then only when count genuinely increases
+  // Play feedback: once on login if unread, then only when count genuinely increases
+  // State is tracked in the Zustand store so navigation doesn't re-trigger
   useEffect(() => {
-    if (prevUnreadRef.current === null) {
-      // First render: play once if there are unread notifications, then mark as handled
-      prevUnreadRef.current = unreadCount;
-      if (unreadCount > 0 && !soundPlayedOnLoginRef.current) {
-        soundPlayedOnLoginRef.current = true;
-        playNotificationFeedback();
-      }
-      return;
-    }
-    if (unreadCount > prevUnreadRef.current) {
+    if (useClientNotificationStore.getState().shouldPlaySound()) {
       playNotificationFeedback();
     }
-    prevUnreadRef.current = unreadCount;
   }, [unreadCount]);
 
   // Get pending check-in entries for this client (only actionable — not expired/future)

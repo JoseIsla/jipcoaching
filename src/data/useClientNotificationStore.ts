@@ -17,6 +17,10 @@ export interface ClientNotification {
 
 interface ClientNotificationState {
   notifications: ClientNotification[];
+  /** Tracks last known unread count to detect genuine new notifications */
+  _lastKnownUnread: number;
+  /** Whether the initial login sound has been played this session */
+  _loginSoundPlayed: boolean;
   /** Generates notifications based on client services and current day */
   generateForClient: (clientId: string, services: ServiceType[], pendingCheckinIds: string[]) => void;
   /** Add a single notification (e.g. from admin actions) */
@@ -29,16 +33,18 @@ interface ClientNotificationState {
   dismissByKey: (key: string) => void;
   /** Get unread count */
   getUnreadCount: () => number;
+  /** Check if sound should play and update tracking. Returns true if sound should play. */
+  shouldPlaySound: () => boolean;
   /** Clear all */
   clear: () => void;
 }
 
-const getDayOfWeek = () => new Date().getDay(); // 0=Sun, 1=Mon, 2=Tue, ...
+const getDayOfWeek = () => new Date().getDay();
 
 const isCheckinDay = (service: ServiceType): boolean => {
   const day = getDayOfWeek();
-  if (service === "nutrition") return day === 2 || day === 5; // Tue or Fri
-  if (service === "training") return day === 0; // Sun
+  if (service === "nutrition") return day === 2 || day === 5;
+  if (service === "training") return day === 0;
   return false;
 };
 
@@ -54,21 +60,20 @@ const getCheckinDayLabel = (service: ServiceType): string => {
 
 export const useClientNotificationStore = create<ClientNotificationState>((set, get) => ({
   notifications: [],
+  _lastKnownUnread: 0,
+  _loginSoundPlayed: false,
 
   generateForClient: (clientId, services, pendingCheckinIds) => {
     const existing = get().notifications;
-    // Don't regenerate if already generated for this client
     if (existing.length > 0 && existing[0].id.startsWith(`cn-${clientId}`)) return;
 
     const notifs: ClientNotification[] = [];
     const now = new Date();
 
     services.forEach((service) => {
-      // Always show if there are pending check-ins for this service
       const hasPending = pendingCheckinIds.length > 0;
 
       if (service === "nutrition") {
-        // Check if it's a nutrition day or there are pending nutrition check-ins
         const isDay = isCheckinDay("nutrition");
         if (isDay || hasPending) {
           notifs.push({
@@ -127,5 +132,28 @@ export const useClientNotificationStore = create<ClientNotificationState>((set, 
 
   getUnreadCount: () => get().notifications.filter((n) => !n.read).length,
 
-  clear: () => set({ notifications: [] }),
+  shouldPlaySound: () => {
+    const unread = get().getUnreadCount();
+    const { _lastKnownUnread, _loginSoundPlayed } = get();
+
+    // First call (login): play once if there are unread
+    if (!_loginSoundPlayed) {
+      set({ _loginSoundPlayed: true, _lastKnownUnread: unread });
+      return unread > 0;
+    }
+
+    // Subsequent: only play if unread genuinely increased
+    if (unread > _lastKnownUnread) {
+      set({ _lastKnownUnread: unread });
+      return true;
+    }
+
+    // Always sync the tracked count (e.g. if it decreased)
+    if (unread !== _lastKnownUnread) {
+      set({ _lastKnownUnread: unread });
+    }
+    return false;
+  },
+
+  clear: () => set({ notifications: [], _lastKnownUnread: 0, _loginSoundPlayed: false }),
 }));
