@@ -137,7 +137,7 @@ const ClientProgress = () => {
           {/* ── Nutrition Tab ── */}
           {hasNutrition && (
             <TabsContent value="nutrition" className="space-y-4">
-              {/* Stats cards */}
+              {/* Stats cards - full width */}
               <div className="grid grid-cols-3 gap-2">
                 <div className="bg-card border border-border rounded-xl p-3 text-center">
                   <Weight className="h-4 w-4 text-primary mx-auto mb-1" />
@@ -160,57 +160,60 @@ const ClientProgress = () => {
                 </div>
               </div>
 
-              {/* Weight evolution chart */}
-              {weightData.length > 1 && (
-                <div className="bg-card border border-border rounded-xl p-4">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">
-                    {t("clientProgress.weightEvolution")}
-                  </h3>
-                  <ResponsiveContainer width="100%" height={180}>
-                    <LineChart data={weightData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 16%)" />
-                      <XAxis
-                        dataKey="date"
-                        tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }}
-                        tickFormatter={(d) => { const dt = new Date(d); return `${dt.getDate()}/${dt.getMonth() + 1}`; }}
-                      />
-                      <YAxis domain={["dataMin - 1", "dataMax + 1"]} tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }} />
-                      <Tooltip
-                        contentStyle={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(0 0% 16%)", borderRadius: 8, fontSize: 12 }}
-                        labelFormatter={(d) => new Date(d).toLocaleDateString("es-ES")}
-                      />
-                      <Line type="monotone" dataKey="weight" stroke="hsl(110 100% 54%)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
+              {/* Charts in 2-column grid on desktop */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Weight evolution chart */}
+                {weightData.length > 1 && (
+                  <div className="bg-card border border-border rounded-xl p-4">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">
+                      {t("clientProgress.weightEvolution")}
+                    </h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <LineChart data={weightData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 16%)" />
+                        <XAxis
+                          dataKey="date"
+                          tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }}
+                          tickFormatter={(d) => { const dt = new Date(d); return `${dt.getDate()}/${dt.getMonth() + 1}`; }}
+                        />
+                        <YAxis domain={["dataMin - 1", "dataMax + 1"]} tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }} />
+                        <Tooltip
+                          contentStyle={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(0 0% 16%)", borderRadius: 8, fontSize: 12 }}
+                          labelFormatter={(d) => new Date(d).toLocaleDateString("es-ES")}
+                        />
+                        <Line type="monotone" dataKey="weight" stroke="hsl(110 100% 54%)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
 
-              {/* Weekly weight delta bar chart */}
-              {weightDeltas.length > 0 && (
-                <div className="bg-card border border-border rounded-xl p-4">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">
-                    Variación semanal de peso
-                  </h3>
-                  <ResponsiveContainer width="100%" height={140}>
-                    <BarChart data={weightDeltas}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 16%)" vertical={false} />
-                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}kg`} />
-                      <ReferenceLine y={0} stroke="hsl(0 0% 30%)" />
-                      <Tooltip
-                        contentStyle={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(0 0% 16%)", borderRadius: 8, fontSize: 12 }}
-                        formatter={(value: number) => [`${value > 0 ? "+" : ""}${value} kg`, "Variación"]}
-                        labelFormatter={(label) => `Semana ${label}`}
-                      />
-                      <Bar dataKey="delta" radius={[4, 4, 0, 0]}>
-                        {weightDeltas.map((entry, i) => (
-                          <Cell key={i} fill={entry.delta > 0 ? "hsl(110 100% 54%)" : entry.delta < 0 ? "hsl(0 70% 55%)" : "hsl(0 0% 40%)"} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
+                {/* Weekly weight delta bar chart */}
+                {weightDeltas.length > 0 && (
+                  <div className="bg-card border border-border rounded-xl p-4">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">
+                      Variación semanal de peso
+                    </h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <BarChart data={weightDeltas}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 16%)" vertical={false} />
+                        <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}kg`} />
+                        <ReferenceLine y={0} stroke="hsl(0 0% 30%)" />
+                        <Tooltip
+                          contentStyle={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(0 0% 16%)", borderRadius: 8, fontSize: 12 }}
+                          formatter={(value: number) => [`${value > 0 ? "+" : ""}${value} kg`, "Variación"]}
+                          labelFormatter={(label) => `Semana ${label}`}
+                        />
+                        <Bar dataKey="delta" radius={[4, 4, 0, 0]}>
+                          {weightDeltas.map((entry, i) => (
+                            <Cell key={i} fill={entry.delta > 0 ? "hsl(110 100% 54%)" : entry.delta < 0 ? "hsl(0 70% 55%)" : "hsl(0 0% 40%)"} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
 
               {weightData.length <= 1 && (
                 <div className="bg-card border border-border rounded-xl p-8 text-center">
@@ -230,56 +233,61 @@ const ClientProgress = () => {
                   <p className="text-xs text-muted-foreground">{t("clientProgress.sbdTotal")}</p>
                 </div>
               )}
-              <div className="space-y-2">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  {t("clientProgress.personalRecords")}
-                </h3>
-                {bestRMs.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">{t("clientProgress.noRecords")}</p>
-                )}
-                {bestRMs.map((rm) => (
-                  <div key={rm.exerciseId} className="bg-card border border-border rounded-xl p-3 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{rm.exerciseName}</p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {rm.weight}kg × {rm.reps} — {new Date(rm.date).toLocaleDateString("es-ES")}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-primary">{rm.estimated1RM} kg</p>
-                      <p className="text-[10px] text-muted-foreground">e1RM</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {trainingProgress.latestFatigue != null && (
-                <div className="bg-card border border-border rounded-xl p-4 space-y-3">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                    <Activity className="h-3.5 w-3.5" /> {t("clientProgress.lastReport")}
+
+              {/* 2-column grid on desktop */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {t("clientProgress.personalRecords")}
                   </h3>
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    <div>
-                      <p className="text-lg font-bold text-foreground">{trainingProgress.latestFatigue ?? "—"}/10</p>
-                      <p className="text-[10px] text-muted-foreground">{t("clientProgress.fatigueLabel")}</p>
-                    </div>
-                    <div>
-                      <p className="text-lg font-bold text-foreground">{trainingProgress.latestSleep ?? "—"}/10</p>
-                      <p className="text-[10px] text-muted-foreground">{t("clientProgress.sleepLabel")}</p>
-                    </div>
-                    <div>
-                      <p className="text-lg font-bold text-foreground">{trainingProgress.latestMotivation ?? "—"}/10</p>
-                      <p className="text-[10px] text-muted-foreground">{t("clientProgress.motivationLabel")}</p>
-                    </div>
-                  </div>
-                  {trainingProgress.hasInjury && (
-                    <div className="bg-destructive/10 rounded-lg p-2">
-                      <p className="text-xs text-destructive">
-                        {t("clientProgress.injuryReported", { detail: trainingProgress.injuryDetail || t("clientProgress.noDetail") })}
-                      </p>
-                    </div>
+                  {bestRMs.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">{t("clientProgress.noRecords")}</p>
                   )}
+                  {bestRMs.map((rm) => (
+                    <div key={rm.exerciseId} className="bg-card border border-border rounded-xl p-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{rm.exerciseName}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {rm.weight}kg × {rm.reps} — {new Date(rm.date).toLocaleDateString("es-ES")}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-primary">{rm.estimated1RM} kg</p>
+                        <p className="text-[10px] text-muted-foreground">e1RM</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
+
+                {trainingProgress.latestFatigue != null && (
+                  <div className="bg-card border border-border rounded-xl p-4 space-y-3 h-fit">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                      <Activity className="h-3.5 w-3.5" /> {t("clientProgress.lastReport")}
+                    </h3>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <p className="text-lg font-bold text-foreground">{trainingProgress.latestFatigue ?? "—"}/10</p>
+                        <p className="text-[10px] text-muted-foreground">{t("clientProgress.fatigueLabel")}</p>
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold text-foreground">{trainingProgress.latestSleep ?? "—"}/10</p>
+                        <p className="text-[10px] text-muted-foreground">{t("clientProgress.sleepLabel")}</p>
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold text-foreground">{trainingProgress.latestMotivation ?? "—"}/10</p>
+                        <p className="text-[10px] text-muted-foreground">{t("clientProgress.motivationLabel")}</p>
+                      </div>
+                    </div>
+                    {trainingProgress.hasInjury && (
+                      <div className="bg-destructive/10 rounded-lg p-2">
+                        <p className="text-xs text-destructive">
+                          {t("clientProgress.injuryReported", { detail: trainingProgress.injuryDetail || t("clientProgress.noDetail") })}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </TabsContent>
           )}
         </Tabs>
