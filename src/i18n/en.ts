@@ -623,6 +623,9 @@ const en: Translations = {
     passwordTooShortDesc: "Minimum 6 characters.",
     passwordMismatch: "Don't match",
     passwordMismatchDesc: "Passwords don't match.",
+    notifications: "Notifications",
+    notifSound: "Sound",
+    notifVibration: "Vibration",
   },
 
   // ── 404 ──

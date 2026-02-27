@@ -14,6 +14,7 @@ import { useLanguageStore } from "@/i18n/store";
 import { useClientNotificationStore } from "@/data/useClientNotificationStore";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useToast } from "@/hooks/use-toast";
+import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 
 const formatRelativeTime = (date: Date) => {
   const now = Date.now();
@@ -27,19 +28,18 @@ const formatRelativeTime = (date: Date) => {
   return `hace ${days}d`;
 };
 
-/** Trigger haptic vibration + notification sound. */
+/** Trigger haptic vibration + notification sound based on user prefs. */
 const playNotificationFeedback = () => {
-  // Vibration (mobile)
-  if (navigator.vibrate) {
+  const { notificationSound, notificationVibration } = useClientPreferencesStore.getState();
+  if (notificationVibration && navigator.vibrate) {
     navigator.vibrate([80, 50, 80]);
   }
-  // Sound
-  try {
-    const audio = new Audio("/sounds/notification.mp3");
-    audio.volume = 0.4;
-    audio.play().catch(() => {/* autoplay blocked – ignore */});
-  } catch {
-    /* no audio support */
+  if (notificationSound) {
+    try {
+      const audio = new Audio("/sounds/notification.mp3");
+      audio.volume = 0.4;
+      audio.play().catch(() => {});
+    } catch { /* */ }
   }
 };
 
