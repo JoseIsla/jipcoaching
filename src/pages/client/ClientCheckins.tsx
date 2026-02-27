@@ -403,8 +403,12 @@ const ClientCheckins = () => {
   const allEntries = useQuestionnaireStore((s) => s.entries);
   const getOrCreateTrainingEntry = useQuestionnaireStore((s) => s.getOrCreateTrainingEntry);
 
-  // Auto-generate training entry from active plan if needed
-  const trainingEntry = hasTraining ? getOrCreateTrainingEntry(client.id, client.name) : null;
+  // Auto-generate training entry from active plan on mount / client change
+  useEffect(() => {
+    if (hasTraining) {
+      getOrCreateTrainingEntry(client.id, client.name);
+    }
+  }, [client.id, hasTraining, getOrCreateTrainingEntry]);
 
   const myEntries = allEntries.filter((e) => e.clientId === client.id);
 

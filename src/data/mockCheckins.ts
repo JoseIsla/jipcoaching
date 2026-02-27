@@ -283,20 +283,5 @@ export const mockQuestionnaireEntries: QuestionnaireEntry[] = [
     planId: "t-mock-carlos",
     weekNumber: 4,
   },
-  // ── Current training week (pending) ──
-  {
-    id: "qe-t-w5",
-    clientId: "1",
-    clientName: "Carlos Martínez",
-    templateId: "tt-weekly",
-    templateName: "Registro Semanal de Entrenamiento",
-    category: "training",
-    weekLabel: "Semana 5",
-    date: "2026-02-23",
-    dayLabel: "Domingo",
-    status: "pendiente",
-    trainingLog: makeTrainingLog(4),
-    planId: "t-mock-carlos",
-    weekNumber: 5,
-  },
+  // Current training week is now auto-generated from the active plan — no mock needed.
 ];
