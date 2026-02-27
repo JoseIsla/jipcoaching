@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Library, Dumbbell, Target, Plus, Trash2, Search, Pencil, ChevronDown, Layers, Apple, Leaf } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -36,14 +36,14 @@ const AddExerciseDialog = ({ mode }: { mode: "basico" | "variante" | "accesorio"
   const basics = allExercises.filter((e) => e.category === "basico");
   const addExercise = useExerciseLibraryStore((s) => s.addExercise);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!name.trim()) return;
     const trimmed = name.trim();
     if (allExercises.some((e) => e.category === mode && e.name.toLowerCase() === trimmed.toLowerCase())) {
       toast({ title: "Duplicado", description: `"${trimmed}" ya existe en esta categoría.`, variant: "destructive" });
       return;
     }
-    addExercise({
+    await addExercise({
       name: trimmed,
       category: mode,
       muscleGroup: muscleGroup || undefined,
@@ -112,14 +112,14 @@ const EditExerciseDialog = ({ exercise }: { exercise: ExerciseLibraryItem }) => 
   const basics = allExercises.filter((e) => e.category === "basico" && e.id !== exercise.id);
   const updateExercise = useExerciseLibraryStore((s) => s.updateExercise);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) return;
     const trimmed = name.trim();
     if (allExercises.some((e) => e.id !== exercise.id && e.category === exercise.category && e.name.toLowerCase() === trimmed.toLowerCase())) {
       toast({ title: "Duplicado", description: `"${trimmed}" ya existe en esta categoría.`, variant: "destructive" });
       return;
     }
-    updateExercise(exercise.id, {
+    await updateExercise(exercise.id, {
       name: trimmed,
       muscleGroup: muscleGroup || undefined,
       parentExerciseId: exercise.category === "variante" && parentId ? parentId : undefined,
@@ -400,6 +400,7 @@ const AdminExerciseLibrary = () => {
   const { toast } = useToast();
 
   const exercises = useExerciseLibraryStore((s) => s.exercises);
+  const fetchExercises = useExerciseLibraryStore((s) => s.fetchExercises);
   const removeExercise = useExerciseLibraryStore((s) => s.removeExercise);
   const fruits = useExerciseLibraryStore((s) => s.fruits);
   const vegetables = useExerciseLibraryStore((s) => s.vegetables);
@@ -410,10 +411,14 @@ const AdminExerciseLibrary = () => {
   const removeVegetable = useExerciseLibraryStore((s) => s.removeVegetable);
   const editVegetable = useExerciseLibraryStore((s) => s.editVegetable);
 
-  const handleRemove = (id: string) => {
+  useEffect(() => {
+    fetchExercises();
+  }, [fetchExercises]);
+
+  const handleRemove = async (id: string) => {
     const ex = exercises.find((e) => e.id === id);
     if (ex) {
-      removeExercise(id);
+      await removeExercise(id);
       toast({ title: "Ejercicio eliminado", description: `"${ex.name}" eliminado de la biblioteca.` });
     }
   };
