@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, Search, Check, CheckCheck, X, ClipboardList, UserPlus, Dumbbell, Info, LogOut, Settings, Loader2 } from "lucide-react";
+import { Bell, Check, CheckCheck, X, ClipboardList, UserPlus, Dumbbell, Info, LogOut, Settings, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Input } from "@/components/ui/input";
 import { useAdminProfile } from "@/contexts/AdminProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -81,12 +80,9 @@ const AdminHeader = () => {
     <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 lg:px-8 shrink-0">
       <div className="flex items-center gap-3">
         <MobileMenuButton />
-        <div className="relative w-48 sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={t("header.searchPlaceholder")}
-            className="pl-10 bg-muted border-border h-9 text-sm text-foreground placeholder:text-muted-foreground"
-          />
+        <div className="hidden sm:block">
+          <p className="text-sm font-semibold text-foreground leading-none">Panel de Administración</p>
+          <p className="text-xs text-muted-foreground mt-0.5">JIP Performance Nutrition</p>
         </div>
       </div>
 
