@@ -86,6 +86,12 @@ const mockComments: MediaComment[] = [
     text: "La profundidad ha mejorado. Intenta mantener las rodillas más abiertas en la fase concéntrica.",
     createdAt: "2026-02-25T08:00:00Z",
   },
+  {
+    id: "mc-3", targetType: "video", targetId: "tv-mock-1",
+    clientId: "1", authorName: "Javier Ibáñez",
+    text: "Buena profundidad en la sentadilla del check-in. Sigue trabajando la posición de rodillas.",
+    createdAt: "2026-01-27T10:00:00Z",
+  },
 ];
 
 // ── Store ──
