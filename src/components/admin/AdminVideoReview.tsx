@@ -16,7 +16,8 @@ const daysUntilExpiry = (expiresAt: string): number => {
 };
 
 const AdminVideoReview = ({ clientId }: Props) => {
-  const activeVideos = useMediaStore((s) => s.getActiveVideos(clientId));
+  const getActiveVideosFn = useMediaStore((s) => s.getActiveVideos);
+  const activeVideos = getActiveVideosFn(clientId);
 
   if (activeVideos.length === 0) {
     return (

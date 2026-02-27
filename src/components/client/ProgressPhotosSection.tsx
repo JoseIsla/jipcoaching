@@ -16,10 +16,14 @@ interface Props {
 
 const ProgressPhotosSection = ({ clientId }: Props) => {
   const { toast } = useToast();
-  const sessions = useMediaStore((s) => s.getPhotoSessions(clientId));
-  const canUpload = useMediaStore((s) => s.canUploadPhotos(clientId));
-  const nextDate = useMediaStore((s) => s.getNextPhotoDate(clientId));
+  const getPhotoSessions = useMediaStore((s) => s.getPhotoSessions);
+  const canUploadFn = useMediaStore((s) => s.canUploadPhotos);
+  const getNextPhotoDateFn = useMediaStore((s) => s.getNextPhotoDate);
   const addPhotoBatch = useMediaStore((s) => s.addPhotoBatch);
+
+  const sessions = getPhotoSessions(clientId);
+  const canUpload = canUploadFn(clientId);
+  const nextDate = getNextPhotoDateFn(clientId);
 
   const [uploading, setUploading] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<Record<PhotoAngle, File | null>>({

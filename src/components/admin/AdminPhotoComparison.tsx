@@ -17,7 +17,8 @@ interface Props {
 const angleLabels: Record<PhotoAngle, string> = { front: "Frente", side: "Lateral", back: "Espalda" };
 
 const AdminPhotoComparison = ({ clientId }: Props) => {
-  const sessions = useMediaStore((s) => s.getPhotoSessions(clientId));
+  const getPhotoSessions = useMediaStore((s) => s.getPhotoSessions);
+  const sessions = getPhotoSessions(clientId);
   const [compareMode, setCompareMode] = useState(false);
   const [dateA, setDateA] = useState<string>("");
   const [dateB, setDateB] = useState<string>("");

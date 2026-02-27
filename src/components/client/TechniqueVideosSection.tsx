@@ -23,9 +23,11 @@ const daysUntilExpiry = (expiresAt: string): number => {
 
 const TechniqueVideosSection = ({ clientId }: Props) => {
   const { toast } = useToast();
-  const activeVideos = useMediaStore((s) => s.getActiveVideos(clientId));
+  const getActiveVideosFn = useMediaStore((s) => s.getActiveVideos);
   const addVideo = useMediaStore((s) => s.addVideo);
   const removeVideo = useMediaStore((s) => s.removeVideo);
+
+  const activeVideos = getActiveVideosFn(clientId);
 
   const [showUpload, setShowUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
