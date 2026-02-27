@@ -27,6 +27,22 @@ const formatRelativeTime = (date: Date) => {
   return `hace ${days}d`;
 };
 
+/** Trigger haptic vibration + notification sound. */
+const playNotificationFeedback = () => {
+  // Vibration (mobile)
+  if (navigator.vibrate) {
+    navigator.vibrate([80, 50, 80]);
+  }
+  // Sound
+  try {
+    const audio = new Audio("/sounds/notification.mp3");
+    audio.volume = 0.4;
+    audio.play().catch(() => {/* autoplay blocked – ignore */});
+  } catch {
+    /* no audio support */
+  }
+};
+
 const ClientLayout = ({ children }: { children: ReactNode }) => {
   const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
   const { t } = useTranslation();
@@ -36,6 +52,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const toastShownRef = useRef(false);
+  const prevUnreadRef = useRef<number | null>(null);
 
   useEffect(() => { if (userId) setCurrentUser(userId); }, [setCurrentUser, userId]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -45,6 +62,14 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   const generateForClient = useClientNotificationStore((s) => s.generateForClient);
   const markAllRead = useClientNotificationStore((s) => s.markAllRead);
   const unreadCount = useClientNotificationStore((s) => s.getUnreadCount());
+
+  // Play feedback when unread count increases
+  useEffect(() => {
+    if (prevUnreadRef.current !== null && unreadCount > prevUnreadRef.current) {
+      playNotificationFeedback();
+    }
+    prevUnreadRef.current = unreadCount;
+  }, [unreadCount]);
 
   // Get pending check-in entries for this client
   const allEntries = useQuestionnaireStore((s) => s.entries);
