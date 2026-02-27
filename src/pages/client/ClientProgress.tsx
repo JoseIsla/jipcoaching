@@ -84,7 +84,7 @@ const ClientProgress = () => {
 
   return (
     <ClientLayout>
-      <div className="space-y-5 max-w-lg mx-auto animate-fade-in">
+      <div className="space-y-5 max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto animate-fade-in">
         <div>
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-primary" />
