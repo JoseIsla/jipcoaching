@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { api } from "@/services/api";
 import type { ApiQuestionnaire, ApiSession } from "@/types/api";
+import { DEV_MOCK } from "@/config/devMode";
+import { mockQuestionnaireEntries, mockWeightHistory, mockRMRecords } from "@/data/mockCheckins";
 
 // ── Types (previously from mockData, now standalone) ──
 
@@ -94,11 +96,11 @@ interface QuestionnaireState {
 }
 
 export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
-  entries: [],
+  entries: DEV_MOCK ? mockQuestionnaireEntries : [],
   sessions: [],
   activeQuestionnaire: null,
-  weightHistory: {},
-  rmRecords: {},
+  weightHistory: DEV_MOCK ? mockWeightHistory : {},
+  rmRecords: DEV_MOCK ? mockRMRecords : {},
   loading: false,
   error: null,
 
