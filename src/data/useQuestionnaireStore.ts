@@ -194,8 +194,9 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   // ── Legacy local actions ──
 
   submitEntry: (entryId, responses, trainingLog) =>
-    set((state) => ({
-      entries: state.entries.map((e) =>
+    set((state) => {
+      const entry = state.entries.find((e) => e.id === entryId);
+      const updatedEntries = state.entries.map((e) =>
         e.id === entryId
           ? {
               ...e,
@@ -204,8 +205,30 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
               ...(trainingLog ? { trainingLog } : {}),
             }
           : e
-      ),
-    })),
+      );
+
+      // If this is a nutrition check-in with weight (q1), update weightHistory
+      const updatedWeightHistory = { ...state.weightHistory };
+      if (entry && entry.category === "nutrition" && responses.q1 != null) {
+        const weight = Number(responses.q1);
+        if (!isNaN(weight) && weight > 0) {
+          const clientHistory = [...(updatedWeightHistory[entry.clientId] || [])];
+          const today = new Date().toISOString().slice(0, 10);
+          // Avoid duplicate entries for the same date
+          const existingIdx = clientHistory.findIndex((w) => w.date === today);
+          if (existingIdx >= 0) {
+            clientHistory[existingIdx] = { date: today, weight };
+          } else {
+            clientHistory.push({ date: today, weight });
+          }
+          // Sort by date
+          clientHistory.sort((a, b) => a.date.localeCompare(b.date));
+          updatedWeightHistory[entry.clientId] = clientHistory;
+        }
+      }
+
+      return { entries: updatedEntries, weightHistory: updatedWeightHistory };
+    }),
 
   addVideoToEntry: (entryId, video) =>
     set((state) => ({
