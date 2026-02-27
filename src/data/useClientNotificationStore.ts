@@ -3,7 +3,7 @@ import type { ServiceType } from "@/types/api";
 
 export interface ClientNotification {
   id: string;
-  type: "nutrition_checkin" | "training_checkin";
+  type: "nutrition_checkin" | "training_checkin" | "video_comment";
   titleKey: string;
   descriptionKey: string;
   titleVars?: Record<string, string | number>;
@@ -19,6 +19,8 @@ interface ClientNotificationState {
   notifications: ClientNotification[];
   /** Generates notifications based on client services and current day */
   generateForClient: (clientId: string, services: ServiceType[], pendingCheckinIds: string[]) => void;
+  /** Add a single notification (e.g. from admin actions) */
+  addNotification: (notification: ClientNotification) => void;
   /** Mark a single notification as read */
   markRead: (id: string) => void;
   /** Mark all as read */
@@ -100,6 +102,11 @@ export const useClientNotificationStore = create<ClientNotificationState>((set, 
 
     set({ notifications: notifs });
   },
+
+  addNotification: (notification) =>
+    set((s) => ({
+      notifications: [notification, ...s.notifications],
+    })),
 
   markRead: (id) =>
     set((s) => ({

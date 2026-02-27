@@ -8,20 +8,24 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useMediaStore } from "@/data/useMediaStore";
 import { useAdminProfile } from "@/contexts/AdminProfileContext";
+import { useClientNotificationStore } from "@/data/useClientNotificationStore";
 import type { MediaComment } from "@/types/media";
 
 interface Props {
   targetType: MediaComment["targetType"];
   targetId: string;
   clientId: string;
+  /** Used to generate client notification when commenting on a video */
+  exerciseName?: string;
   /** Compact mode for inline use */
   compact?: boolean;
 }
 
-const MediaCommentThread = ({ targetType, targetId, clientId, compact = false }: Props) => {
+const MediaCommentThread = ({ targetType, targetId, clientId, exerciseName, compact = false }: Props) => {
   const getComments = useMediaStore((s) => s.getComments);
   const addComment = useMediaStore((s) => s.addComment);
   const removeComment = useMediaStore((s) => s.removeComment);
+  const addClientNotification = useClientNotificationStore((s) => s.addNotification);
   const { profile } = useAdminProfile();
 
   const comments = getComments(targetType, targetId);
@@ -40,6 +44,19 @@ const MediaCommentThread = ({ targetType, targetId, clientId, compact = false }:
       text: trimmed,
       createdAt: new Date().toISOString(),
     });
+    // Notify client about the new comment on their video
+    if (targetType === "video" && exerciseName) {
+      addClientNotification({
+        id: `cn-vc-${Date.now()}`,
+        type: "video_comment",
+        titleKey: "clientNotifications.videoCommentTitle",
+        descriptionKey: "clientNotifications.videoCommentDesc",
+        descriptionVars: { exercise: exerciseName },
+        timestamp: new Date(),
+        read: false,
+        link: "/client/checkins",
+      });
+    }
     setText("");
   };
 

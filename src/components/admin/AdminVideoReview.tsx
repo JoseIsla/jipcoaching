@@ -74,6 +74,7 @@ const AdminVideoReview = ({ clientId }: Props) => {
                   targetType="video"
                   targetId={video.id}
                   clientId={clientId}
+                  exerciseName={video.exerciseName}
                   compact
                 />
               </div>
