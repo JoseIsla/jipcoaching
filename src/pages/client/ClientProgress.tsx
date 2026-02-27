@@ -114,7 +114,7 @@ const ClientProgress = () => {
                 <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
                 <ReferenceLine y={100} stroke="hsl(110 100% 54%)" strokeDasharray="3 3" strokeOpacity={0.3} />
                 <Tooltip
-                  contentStyle={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(0 0% 16%)", borderRadius: 8, fontSize: 12 }}
+                  contentStyle={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(0 0% 16%)", borderRadius: 8, fontSize: 12, color: "hsl(0 0% 90%)" }}
                   formatter={(value: number, _name: string, props: any) => [`${value}% (${props.payload.answered}/${props.payload.total})`, props.payload.weekFull]}
                   labelFormatter={() => ""}
                 />
