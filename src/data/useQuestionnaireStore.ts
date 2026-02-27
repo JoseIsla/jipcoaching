@@ -4,6 +4,7 @@ import type { ApiQuestionnaire, ApiSession } from "@/types/api";
 import { DEV_MOCK } from "@/config/devMode";
 import { mockQuestionnaireEntries, mockWeightHistory, mockRMRecords } from "@/data/mockCheckins";
 import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
+import { useClientDetailStore } from "@/data/useClientDetailStore";
 
 // ── Types (previously from mockData, now standalone) ──
 
@@ -224,6 +225,24 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
           // Sort by date
           clientHistory.sort((a, b) => a.date.localeCompare(b.date));
           updatedWeightHistory[entry.clientId] = clientHistory;
+        }
+      }
+
+      // Sync weight to client detail store so admin panel reflects it
+      if (entry && entry.category === "nutrition" && responses.q1 != null) {
+        const weight = Number(responses.q1);
+        if (!isNaN(weight) && weight > 0) {
+          const detailStore = useClientDetailStore.getState();
+          const existingDetail = detailStore.getDetail(entry.clientId);
+          if (existingDetail) {
+            const today = new Date().toISOString().slice(0, 10);
+            const history = [...(existingDetail.weightHistory || [])];
+            const idx = history.findIndex((w) => w.date === today);
+            if (idx >= 0) history[idx] = { date: today, weight };
+            else history.push({ date: today, weight });
+            history.sort((a, b) => a.date.localeCompare(b.date));
+            detailStore.updateDetail(entry.clientId, { currentWeight: weight, weightHistory: history });
+          }
         }
       }
 
