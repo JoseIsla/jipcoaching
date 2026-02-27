@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useNotificationStore, type NotificationType } from "@/data/notificationStore";
 import { MobileMenuButton } from "@/components/admin/AdminSidebar";
+import GlobalSearch from "@/components/admin/GlobalSearch";
 import { useTranslation } from "@/i18n/useTranslation";
 
 const typeIcon: Record<NotificationType, typeof Bell> = {
@@ -80,10 +81,7 @@ const AdminHeader = () => {
     <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 lg:px-8 shrink-0">
       <div className="flex items-center gap-3">
         <MobileMenuButton />
-        <div className="hidden sm:block">
-          <p className="text-sm font-semibold text-foreground leading-none">Panel de Administración</p>
-          <p className="text-xs text-muted-foreground mt-0.5">JIP Performance Nutrition</p>
-        </div>
+        <GlobalSearch />
       </div>
 
       <div className="flex items-center gap-4">
