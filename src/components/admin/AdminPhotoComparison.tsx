@@ -4,6 +4,7 @@
  */
 import { useState, useMemo } from "react";
 import { Camera, ArrowLeftRight, Calendar, ImageIcon } from "lucide-react";
+import MediaCommentThread from "./MediaCommentThread";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -176,6 +177,13 @@ const AdminPhotoComparison = ({ clientId }: Props) => {
                   </div>
                 ))}
               </div>
+              {/* Session-level comment thread */}
+              <MediaCommentThread
+                targetType="photo_session"
+                targetId={session.date}
+                clientId={clientId}
+                compact
+              />
             </div>
           ))}
         </div>

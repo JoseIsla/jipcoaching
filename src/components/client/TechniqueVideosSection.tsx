@@ -5,6 +5,7 @@
  */
 import { useState, useRef } from "react";
 import { Video, Upload, Clock, Trash2, Film } from "lucide-react";
+import ClientMediaComments from "./ClientMediaComments";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -196,6 +197,7 @@ const TechniqueVideosSection = ({ clientId }: Props) => {
                     </button>
                   </div>
                 </div>
+                <ClientMediaComments targetType="video" targetId={video.id} />
               </div>
             );
           })}

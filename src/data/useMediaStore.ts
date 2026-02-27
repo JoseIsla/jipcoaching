@@ -3,7 +3,7 @@
  * Provides mock data for development and API integration hooks.
  */
 import { create } from "zustand";
-import type { ProgressPhoto, ProgressPhotoSession, TechniqueVideo, PhotoAngle } from "@/types/media";
+import type { ProgressPhoto, ProgressPhotoSession, TechniqueVideo, PhotoAngle, MediaComment } from "@/types/media";
 import { PHOTO_INTERVAL_DAYS, VIDEO_EXPIRY_DAYS } from "@/types/media";
 
 // ── Mock Data ──
@@ -73,17 +73,34 @@ const mockVideos: TechniqueVideo[] = [
   },
 ];
 
+const mockComments: MediaComment[] = [
+  {
+    id: "mc-1", targetType: "photo_session", targetId: "2026-02-15",
+    clientId: "1", authorName: "Javier Ibáñez",
+    text: "Buen progreso en la espalda. Se nota más definición en los dorsales.",
+    createdAt: "2026-02-16T09:00:00Z",
+  },
+  {
+    id: "mc-2", targetType: "video", targetId: "vid-1",
+    clientId: "1", authorName: "Javier Ibáñez",
+    text: "La profundidad ha mejorado. Intenta mantener las rodillas más abiertas en la fase concéntrica.",
+    createdAt: "2026-02-25T08:00:00Z",
+  },
+];
+
 // ── Store ──
 
 interface MediaState {
   photos: ProgressPhoto[];
   videos: TechniqueVideo[];
+  comments: MediaComment[];
 
   // Computed helpers
   getPhotoSessions: (clientId: string) => ProgressPhotoSession[];
   getActiveVideos: (clientId: string) => TechniqueVideo[];
   canUploadPhotos: (clientId: string) => boolean;
   getNextPhotoDate: (clientId: string) => string | null;
+  getComments: (targetType: MediaComment["targetType"], targetId: string) => MediaComment[];
 
   // Actions
   addPhoto: (photo: ProgressPhoto) => void;
@@ -91,11 +108,14 @@ interface MediaState {
   removePhoto: (photoId: string) => void;
   addVideo: (video: TechniqueVideo) => void;
   removeVideo: (videoId: string) => void;
+  addComment: (comment: MediaComment) => void;
+  removeComment: (commentId: string) => void;
 }
 
 export const useMediaStore = create<MediaState>((set, get) => ({
   photos: mockPhotos,
   videos: mockVideos,
+  comments: mockComments,
 
   getPhotoSessions: (clientId) => {
     const photos = get().photos.filter((p) => p.clientId === clientId);
@@ -131,9 +151,16 @@ export const useMediaStore = create<MediaState>((set, get) => ({
     return lastDate.toISOString().split("T")[0];
   },
 
+  getComments: (targetType, targetId) =>
+    get().comments
+      .filter((c) => c.targetType === targetType && c.targetId === targetId)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+
   addPhoto: (photo) => set((s) => ({ photos: [...s.photos, photo] })),
   addPhotoBatch: (photos) => set((s) => ({ photos: [...s.photos, ...photos] })),
   removePhoto: (photoId) => set((s) => ({ photos: s.photos.filter((p) => p.id !== photoId) })),
   addVideo: (video) => set((s) => ({ videos: [...s.videos, video] })),
   removeVideo: (videoId) => set((s) => ({ videos: s.videos.filter((v) => v.id !== videoId) })),
+  addComment: (comment) => set((s) => ({ comments: [...s.comments, comment] })),
+  removeComment: (commentId) => set((s) => ({ comments: s.comments.filter((c) => c.id !== commentId) })),
 }));

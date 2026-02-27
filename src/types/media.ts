@@ -30,6 +30,18 @@ export interface TechniqueVideo {
   expiresAt: string; // 7 days after upload
 }
 
+export type MediaCommentTarget = "photo" | "video" | "photo_session";
+
+export interface MediaComment {
+  id: string;
+  targetType: MediaCommentTarget;
+  targetId: string; // photo id, video id, or session date
+  clientId: string;
+  authorName: string; // admin name
+  text: string;
+  createdAt: string;
+}
+
 export const PHOTO_ANGLES: { key: PhotoAngle; label: string; emoji: string }[] = [
   { key: "front", label: "Frente", emoji: "🧍" },
   { key: "side", label: "Lateral", emoji: "🧍‍♂️" },

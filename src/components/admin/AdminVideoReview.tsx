@@ -5,6 +5,7 @@
 import { Video, Clock, Film } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useMediaStore } from "@/data/useMediaStore";
+import MediaCommentThread from "./MediaCommentThread";
 
 interface Props {
   clientId: string;
@@ -51,7 +52,7 @@ const AdminVideoReview = ({ clientId }: Props) => {
                 preload="metadata"
                 className="w-full aspect-video bg-black rounded-t-lg"
               />
-              <div className="p-3 space-y-1">
+              <div className="p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-foreground">{video.exerciseName}</p>
                   <Badge
@@ -68,6 +69,13 @@ const AdminVideoReview = ({ clientId }: Props) => {
                 <p className="text-[10px] text-muted-foreground">
                   Subido: {new Date(video.uploadedAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                 </p>
+                {/* Video comment thread */}
+                <MediaCommentThread
+                  targetType="video"
+                  targetId={video.id}
+                  clientId={clientId}
+                  compact
+                />
               </div>
             </div>
           );
