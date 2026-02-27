@@ -37,7 +37,7 @@ const playNotificationFeedback = () => {
   if (notificationSound) {
     try {
       const audio = new Audio("/sounds/notification.mp3");
-      audio.volume = 0.4;
+      audio.volume = 0.8;
       audio.play().catch(() => {});
     } catch { /* */ }
   }
