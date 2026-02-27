@@ -10,6 +10,8 @@ import {
 } from "recharts";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
+import ProgressPhotosSection from "@/components/client/ProgressPhotosSection";
+import TechniqueVideosSection from "@/components/client/TechniqueVideosSection";
 
 /** Group check-in adherence by ISO week */
 const computeAdherence = (
@@ -220,6 +222,8 @@ const ClientProgress = () => {
                   <p className="text-sm text-muted-foreground">{t("clientProgress.notEnoughData")}</p>
                 </div>
               )}
+              {/* Progress Photos */}
+              <ProgressPhotosSection clientId={client.id} />
             </TabsContent>
           )}
 
@@ -288,6 +292,9 @@ const ClientProgress = () => {
                   </div>
                 )}
               </div>
+
+              {/* Technique Videos */}
+              <TechniqueVideosSection clientId={client.id} />
             </TabsContent>
           )}
         </Tabs>
