@@ -21,6 +21,7 @@ import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
 import { MAX_VIDEO_SIZE_MB } from "@/types/media";
 import { compressVideo } from "@/utils/compressMedia";
+import ClientMediaComments from "@/components/client/ClientMediaComments";
 
 /** Publication hour for nutrition check-ins (8:00 AM) */
 const NUTRITION_PUBLISH_HOUR = 8;
@@ -528,9 +529,10 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                     {videos.map((v) => (
                       <div key={v.id} className="bg-muted/30 rounded-lg overflow-hidden">
                         <video src={v.url} controls preload="metadata" className="w-full max-h-36 bg-black rounded-t-lg" />
-                        <div className="p-2">
+                        <div className="p-2 space-y-1.5">
                           <p className="text-xs font-semibold text-foreground">{v.exerciseName}</p>
                           {v.notes && <p className="text-[10px] text-muted-foreground">{v.notes}</p>}
+                          <ClientMediaComments targetType="video" targetId={v.id} />
                         </div>
                       </div>
                     ))}
