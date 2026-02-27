@@ -133,104 +133,113 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="bg-card border-b border-border px-3 sm:px-4 pt-12 pb-3 flex items-center justify-between shrink-0 safe-area-top">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <Avatar className="h-8 w-8 border border-primary/30 shrink-0">
-            <AvatarImage src={undefined} />
-            <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col min-w-0">
-            <span className="text-foreground font-semibold text-sm leading-tight truncate">{client.name}</span>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              {(client.services ?? []).map((s) => (
-                <span
-                  key={s}
-                  className="text-[10px] leading-tight text-primary/80 font-medium"
-                >
-                  {s === "nutrition" ? `🍎 ${t("common.nutrition")}` : `🏋️ ${t("common.training")}`}
-                </span>
-              ))}
+      {/* Safe area spacer */}
+      <div className="bg-card safe-area-top" />
+
+      <header className="bg-card border-b border-border px-4 py-3 shrink-0">
+        <div className="flex items-center justify-between max-w-lg mx-auto">
+          {/* Left: Avatar + Info */}
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <Avatar className="h-10 w-10 border-2 border-primary/40 shrink-0 ring-2 ring-primary/10">
+              <AvatarImage src={client.avatarUrl ?? undefined} alt={client.name} />
+              <AvatarFallback className="bg-primary/15 text-primary text-sm font-bold">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col min-w-0">
+              <span className="text-foreground font-semibold text-sm leading-tight truncate">
+                {client.name}
+              </span>
+              <div className="flex items-center gap-2 mt-0.5">
+                {(client.services ?? []).map((s) => (
+                  <span
+                    key={s}
+                    className="inline-flex items-center gap-0.5 text-[10px] leading-none font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary"
+                  >
+                    {s === "nutrition" ? "🍎 " + t("common.nutrition") : "🏋️ " + t("common.training")}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          {/* Bell icon with notification badge */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <button className="relative p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
-                <Bell className="h-4 w-4" />
-                {unreadCount > 0 && (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center"
-                  >
-                    {unreadCount}
-                  </motion.span>
-                )}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-0 bg-card border-border" align="end" sideOffset={8}>
-              <div className="p-3 border-b border-border flex items-center justify-between">
-                <p className="text-sm font-semibold text-foreground">{t("clientNotifications.title")}</p>
-                {unreadCount > 0 && (
-                  <button
-                    onClick={markAllRead}
-                    className="text-[10px] text-primary hover:underline"
-                  >
-                    {t("clientNotifications.markAll")}
-                  </button>
-                )}
-              </div>
-              <div className="max-h-64 overflow-y-auto">
-                {notifications.length === 0 ? (
-                  <div className="p-4 text-center">
-                    <Bell className="h-6 w-6 text-muted-foreground mx-auto mb-1.5" />
-                    <p className="text-xs text-muted-foreground">{t("clientNotifications.noNotifications")}</p>
-                  </div>
-                ) : (
-                  notifications.map((notif) => (
-                    <button
-                      key={notif.id}
-                      onClick={() => {
-                        useClientNotificationStore.getState().markRead(notif.id);
-                        navigate(notif.link);
-                      }}
-                      className={`w-full text-left p-3 border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors ${
-                        notif.read ? "opacity-60" : ""
-                      }`}
-                    >
-                      <p className="text-sm font-medium text-foreground">{t(notif.titleKey, notif.titleVars)}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{t(notif.descriptionKey, notif.descriptionVars)}</p>
-                    </button>
-                  ))
-                )}
-              </div>
-              {notifications.length > 0 && (
-                <div className="p-2 border-t border-border">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full text-xs text-primary"
-                    onClick={() => navigate("/client/checkins")}
-                  >
-                    {t("clientNotifications.goToCheckins")}
-                  </Button>
-                </div>
-              )}
-            </PopoverContent>
-          </Popover>
 
-          <button
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-70"
-            title={t("common.logout")}
-          >
-            {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
-          </button>
+          {/* Right: Actions */}
+          <div className="flex items-center gap-1 shrink-0">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="relative p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+                  <Bell className="h-[18px] w-[18px]" />
+                  {unreadCount > 0 && (
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center ring-2 ring-card"
+                    >
+                      {unreadCount}
+                    </motion.span>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72 p-0 bg-card border-border" align="end" sideOffset={8}>
+                <div className="p-3 border-b border-border flex items-center justify-between">
+                  <p className="text-sm font-semibold text-foreground">{t("clientNotifications.title")}</p>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={markAllRead}
+                      className="text-[10px] text-primary hover:underline"
+                    >
+                      {t("clientNotifications.markAll")}
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center">
+                      <Bell className="h-6 w-6 text-muted-foreground mx-auto mb-1.5" />
+                      <p className="text-xs text-muted-foreground">{t("clientNotifications.noNotifications")}</p>
+                    </div>
+                  ) : (
+                    notifications.map((notif) => (
+                      <button
+                        key={notif.id}
+                        onClick={() => {
+                          useClientNotificationStore.getState().markRead(notif.id);
+                          navigate(notif.link);
+                        }}
+                        className={`w-full text-left p-3 border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors ${
+                          notif.read ? "opacity-60" : ""
+                        }`}
+                      >
+                        <p className="text-sm font-medium text-foreground">{t(notif.titleKey, notif.titleVars)}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{t(notif.descriptionKey, notif.descriptionVars)}</p>
+                      </button>
+                    ))
+                  )}
+                </div>
+                {notifications.length > 0 && (
+                  <div className="p-2 border-t border-border">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-xs text-primary"
+                      onClick={() => navigate("/client/checkins")}
+                    >
+                      {t("clientNotifications.goToCheckins")}
+                    </Button>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="p-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-70"
+              title={t("common.logout")}
+            >
+              {isLoggingOut ? <Loader2 className="h-[18px] w-[18px] animate-spin" /> : <LogOut className="h-[18px] w-[18px]" />}
+            </button>
+          </div>
         </div>
       </header>
 

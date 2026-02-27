@@ -52,6 +52,7 @@ export interface ApiClient {
   status?: ClientStatus | string;
   monthlyFee?: number;
   notes?: string;
+  avatarUrl?: string | null;
   /** Computed from packType — not from the API */
   services: ServiceType[];
 }
