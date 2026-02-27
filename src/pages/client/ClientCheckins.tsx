@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
@@ -249,12 +250,21 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            {unseenCount > 0 && (
-              <span className="flex items-center gap-0.5 text-[9px] font-semibold text-accent bg-accent/15 px-1.5 py-0.5 rounded-full animate-pulse">
-                <MessageSquare className="h-2.5 w-2.5" />
-                {unseenCount}
-              </span>
-            )}
+            <AnimatePresence>
+              {unseenCount > 0 && (
+                <motion.span
+                  key="unseen-badge"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.25 } }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  className="flex items-center gap-0.5 text-[9px] font-semibold text-accent bg-accent/15 px-1.5 py-0.5 rounded-full animate-pulse"
+                >
+                  <MessageSquare className="h-2.5 w-2.5" />
+                  {unseenCount}
+                </motion.span>
+              )}
+            </AnimatePresence>
             {countdown && <span className="text-[9px] font-mono text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded">⏳ {countdown}</span>}
             {statusIcon}<span className="text-[10px] text-muted-foreground">{statusLabel}</span>
           </div>
