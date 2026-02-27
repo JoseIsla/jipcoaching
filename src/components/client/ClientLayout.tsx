@@ -53,6 +53,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
   const toastShownRef = useRef(false);
   const prevUnreadRef = useRef<number | null>(null);
+  const soundPlayedOnLoginRef = useRef(false);
 
   useEffect(() => { if (userId) setCurrentUser(userId); }, [setCurrentUser, userId]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -63,9 +64,18 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   const markAllRead = useClientNotificationStore((s) => s.markAllRead);
   const unreadCount = useClientNotificationStore((s) => s.getUnreadCount());
 
-  // Play feedback when unread count increases
+  // Play feedback: once on login if there are unread, then only when count genuinely increases
   useEffect(() => {
-    if (prevUnreadRef.current !== null && unreadCount > prevUnreadRef.current) {
+    if (prevUnreadRef.current === null) {
+      // First render: play once if there are unread notifications, then mark as handled
+      prevUnreadRef.current = unreadCount;
+      if (unreadCount > 0 && !soundPlayedOnLoginRef.current) {
+        soundPlayedOnLoginRef.current = true;
+        playNotificationFeedback();
+      }
+      return;
+    }
+    if (unreadCount > prevUnreadRef.current) {
       playNotificationFeedback();
     }
     prevUnreadRef.current = unreadCount;
@@ -81,49 +91,57 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
 
   // Generate notifications based on services and pending check-ins
   // Preserve video_comment notifications added by admin actions
+  // Uses stable IDs to avoid regenerating and resetting read state
   useEffect(() => {
-    const pendingIds = pendingEntries.map((e) => e.id);
     const existingVideoComments = notifications.filter((n) => n.type === "video_comment");
     const existingCheckins = notifications.filter((n) => n.type !== "video_comment");
+    const existingById = new Map(existingCheckins.map((n) => [n.id, n]));
 
-    if (pendingIds.length > 0) {
+    if (pendingEntries.length > 0) {
       const checkinNotifs: import("@/data/useClientNotificationStore").ClientNotification[] = [];
       const now = new Date();
 
+      // Stable IDs — no timestamp, so they persist across re-renders
       if (pendingNutrition.length > 0 && client.services?.includes("nutrition")) {
+        const stableId = `cn-${client.id}-nutrition`;
+        const existing = existingById.get(stableId);
         checkinNotifs.push({
-          id: `cn-${client.id}-nutrition-${now.getTime()}`,
+          id: stableId,
           type: "nutrition_checkin",
           titleKey: "clientNotifications.nutritionCheckinTitle",
           descriptionKey: "clientNotifications.nutritionCheckinDesc",
-          timestamp: now,
-          read: false,
+          timestamp: existing?.timestamp ?? now,
+          read: existing?.read ?? false,
           link: "/client/checkins",
         });
       }
 
       if (pendingTraining.length > 0 && client.services?.includes("training")) {
+        const stableId = `cn-${client.id}-training`;
+        const existing = existingById.get(stableId);
         checkinNotifs.push({
-          id: `cn-${client.id}-training-${now.getTime()}`,
+          id: stableId,
           type: "training_checkin",
           titleKey: "clientNotifications.trainingCheckinTitle",
           descriptionKey: "clientNotifications.trainingCheckinDesc",
-          timestamp: now,
-          read: false,
+          timestamp: existing?.timestamp ?? now,
+          read: existing?.read ?? false,
           link: "/client/checkins",
         });
       }
 
       const merged = [...existingVideoComments, ...checkinNotifs];
-      // Only update if checkin count changed (avoid infinite loop)
-      if (checkinNotifs.length !== existingCheckins.length) {
+      // Only update if set of notification IDs changed
+      const currentIds = existingCheckins.map((n) => n.id).sort().join(",");
+      const newIds = checkinNotifs.map((n) => n.id).sort().join(",");
+      if (currentIds !== newIds) {
         useClientNotificationStore.setState({ notifications: merged });
       }
     } else if (existingCheckins.length > 0) {
       // No pending check-ins → keep only video comments
       useClientNotificationStore.setState({ notifications: existingVideoComments });
     }
-  }, [client.id, client.services, pendingEntries.length, pendingNutrition.length, pendingTraining.length, notifications.length]);
+  }, [client.id, client.services, pendingEntries.length, pendingNutrition.length, pendingTraining.length]);
 
   // Auto-toast on entry when there are pending check-ins
   useEffect(() => {
