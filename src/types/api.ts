@@ -223,6 +223,7 @@ export interface ApiTrainingDay {
   dayNumber: number;
   title?: string;
   notes?: string;
+  warmup?: string;
   exercises: ApiExercisePrescription[];
   createdAt?: string;
   updatedAt?: string;
@@ -233,6 +234,8 @@ export interface ApiTrainingWeek {
   planId: string;
   weekNumber: number;
   notes?: string;
+  block?: string;
+  status: string;
   days: ApiTrainingDay[];
   createdAt?: string;
   updatedAt?: string;
@@ -243,6 +246,10 @@ export interface ApiTrainingPlan {
   clientId: string;
   title: string;
   isActive: boolean;
+  modality?: string;
+  block?: string;
+  daysPerWeek: number;
+  blockVariants?: string;
   weeks: ApiTrainingWeek[];
   createdAt?: string;
   updatedAt?: string;
@@ -366,6 +373,7 @@ export interface ApiNutritionPlan {
   clientId: string;
   title: string;
   isActive: boolean;
+  recommendations?: string;
   kcalMin?: number;
   kcalMax?: number;
   proteinG?: number;
