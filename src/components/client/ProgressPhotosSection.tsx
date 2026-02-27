@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useMediaStore } from "@/data/useMediaStore";
-import { PHOTO_ANGLES, MAX_PHOTO_SIZE_MB, type PhotoAngle, type ProgressPhoto } from "@/types/media";
+import { PHOTO_ANGLES, MAX_PHOTO_SIZE_MB, MIN_PHOTO_WIDTH, MIN_PHOTO_HEIGHT, getImageDimensions, type PhotoAngle, type ProgressPhoto } from "@/types/media";
 
 interface Props {
   clientId: string;
@@ -44,7 +44,7 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
     back: useRef<HTMLInputElement>(null),
   };
 
-  const handleFileSelect = (angle: PhotoAngle, file: File | null) => {
+  const handleFileSelect = async (angle: PhotoAngle, file: File | null) => {
     if (!file) return;
     if (file.size > MAX_PHOTO_SIZE_MB * 1024 * 1024) {
       toast({ title: "Archivo muy grande", description: `Máximo ${MAX_PHOTO_SIZE_MB}MB por foto`, variant: "destructive" });
@@ -52,6 +52,20 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
     }
     if (!file.type.startsWith("image/")) {
       toast({ title: "Formato no válido", description: "Solo se permiten imágenes", variant: "destructive" });
+      return;
+    }
+    try {
+      const { width, height } = await getImageDimensions(file);
+      if (width < MIN_PHOTO_WIDTH || height < MIN_PHOTO_HEIGHT) {
+        toast({
+          title: "Resolución insuficiente",
+          description: `Mínimo ${MIN_PHOTO_WIDTH}×${MIN_PHOTO_HEIGHT}px. Tu foto es ${width}×${height}px.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    } catch {
+      toast({ title: "Error", description: "No se pudo leer la imagen", variant: "destructive" });
       return;
     }
     setPendingFiles((prev) => ({ ...prev, [angle]: file }));
@@ -125,7 +139,7 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
       {showUpload && canUpload && (
         <div className="space-y-3 bg-muted/30 rounded-lg p-3">
           <p className="text-xs text-muted-foreground">
-            Sube hasta 3 fotos: frente, lateral y espalda. Máximo {MAX_PHOTO_SIZE_MB}MB por foto.
+            Sube hasta 3 fotos: frente, lateral y espalda. Máximo {MAX_PHOTO_SIZE_MB}MB por foto. Resolución mínima: {MIN_PHOTO_WIDTH}×{MIN_PHOTO_HEIGHT}px.
           </p>
           <div className="grid grid-cols-3 gap-2">
             {PHOTO_ANGLES.map(({ key, label, emoji }) => (

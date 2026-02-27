@@ -38,5 +38,23 @@ export const PHOTO_ANGLES: { key: PhotoAngle; label: string; emoji: string }[] =
 
 export const MAX_PHOTO_SIZE_MB = 5;
 export const MAX_VIDEO_SIZE_MB = 50;
+export const MIN_PHOTO_WIDTH = 400;
+export const MIN_PHOTO_HEIGHT = 600;
 export const PHOTO_INTERVAL_DAYS = 15;
 export const VIDEO_EXPIRY_DAYS = 7;
+
+/** Load an image file and resolve its natural dimensions */
+export const getImageDimensions = (file: File): Promise<{ width: number; height: number }> =>
+  new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = () => {
+      reject(new Error("No se pudo leer la imagen"));
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  });
