@@ -11,7 +11,7 @@ import {
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
 import ProgressPhotosSection from "@/components/client/ProgressPhotosSection";
-import TechniqueVideosSection from "@/components/client/TechniqueVideosSection";
+
 
 /** Group check-in adherence by ISO week */
 const computeAdherence = (
@@ -293,8 +293,6 @@ const ClientProgress = () => {
                 )}
               </div>
 
-              {/* Technique Videos */}
-              <TechniqueVideosSection clientId={client.id} />
             </TabsContent>
           )}
         </Tabs>

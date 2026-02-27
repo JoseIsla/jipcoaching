@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { Video } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -458,6 +459,29 @@ const AdminQuestionnaires = () => {
                         </div>
                       );
                     })}
+                  </div>
+                )}
+                {/* Technique Videos */}
+                {selectedEntry.techniqueVideos && selectedEntry.techniqueVideos.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <Video className="h-4 w-4 text-primary" />
+                      Videos de técnica ({selectedEntry.techniqueVideos.length})
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {selectedEntry.techniqueVideos.map((v) => (
+                        <div key={v.id} className="bg-muted/30 rounded-lg overflow-hidden border border-border">
+                          <video src={v.url} controls preload="metadata" className="w-full max-h-48 bg-black rounded-t-lg" />
+                          <div className="p-2.5">
+                            <p className="text-sm font-semibold text-foreground">{v.exerciseName}</p>
+                            {v.notes && <p className="text-xs text-muted-foreground mt-0.5">{v.notes}</p>}
+                            <p className="text-[10px] text-muted-foreground mt-1">
+                              {new Date(v.uploadedAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
