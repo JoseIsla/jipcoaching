@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Camera, Mail, Lock, User, Check, Eye, EyeOff, Globe, Trash2 } from "lucide-react";
+import { Camera, Mail, Lock, User, Check, Eye, EyeOff, Globe, Trash2, Volume2, Vibrate } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useLanguageStore, type Language } from "@/i18n/store";
+import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 
 const ClientSettings = () => {
   const { client } = useClient();
@@ -20,6 +22,10 @@ const ClientSettings = () => {
   const { t } = useTranslation();
   const setAppLanguage = useLanguageStore((s) => s.setLanguage);
   const appLanguage = useLanguageStore((s) => s.language);
+  const notifSound = useClientPreferencesStore((s) => s.notificationSound);
+  const notifVibration = useClientPreferencesStore((s) => s.notificationVibration);
+  const setNotifSound = useClientPreferencesStore((s) => s.setNotificationSound);
+  const setNotifVibration = useClientPreferencesStore((s) => s.setNotificationVibration);
 
   const initials = client.name
     .split(" ")
@@ -268,6 +274,30 @@ const ClientSettings = () => {
             <Button onClick={handleChangePassword} variant="outline" className="w-full border-border">
               {t("clientSettings.changePasswordBtn")}
             </Button>
+          </div>
+        </div>
+
+        {/* Notifications */}
+        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Volume2 className="h-4 w-4 text-primary" />
+            {t("clientSettings.notifications") || "Notificaciones"}
+          </h2>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Volume2 className="h-3.5 w-3.5 text-muted-foreground" />
+                <Label className="text-sm text-foreground">{t("clientSettings.notifSound") || "Sonido"}</Label>
+              </div>
+              <Switch checked={notifSound} onCheckedChange={setNotifSound} />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Vibrate className="h-3.5 w-3.5 text-muted-foreground" />
+                <Label className="text-sm text-foreground">{t("clientSettings.notifVibration") || "Vibración"}</Label>
+              </div>
+              <Switch checked={notifVibration} onCheckedChange={setNotifVibration} />
+            </div>
           </div>
         </div>
 

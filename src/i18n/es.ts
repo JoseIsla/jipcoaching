@@ -627,6 +627,9 @@ const es = {
     passwordTooShortDesc: "Mínimo 6 caracteres.",
     passwordMismatch: "No coinciden",
     passwordMismatchDesc: "Las contraseñas no coinciden.",
+    notifications: "Notificaciones",
+    notifSound: "Sonido",
+    notifVibration: "Vibración",
   },
 
   // ── 404 ──
