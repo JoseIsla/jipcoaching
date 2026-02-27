@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +43,45 @@ const getEntryWindowStatus = (entry: QuestionnaireEntry): "within" | "future" | 
   return "expired";
 };
 
+/** Returns the deadline Date for an entry's fill window. */
+const getEntryDeadline = (entry: QuestionnaireEntry): Date => {
+  if (entry.category === "nutrition") {
+    const publishDate = new Date(entry.date + "T00:00:00");
+    publishDate.setHours(NUTRITION_PUBLISH_HOUR, 0, 0, 0);
+    return new Date(publishDate.getTime() + 48 * 60 * 60 * 1000);
+  }
+  const entryDate = new Date(entry.date);
+  const windowEnd = new Date(entryDate);
+  windowEnd.setDate(windowEnd.getDate() + 2);
+  return windowEnd;
+};
+
+/** Formats remaining ms as "Xh Ym" or "Xm" */
+const formatTimeRemaining = (ms: number): string => {
+  if (ms <= 0) return "";
+  const totalMin = Math.floor(ms / 60000);
+  const hours = Math.floor(totalMin / 60);
+  const mins = totalMin % 60;
+  if (hours > 0) return `${hours}h ${mins}m`;
+  return `${mins}m`;
+};
+
+/** Hook that returns a live countdown string, updating every minute. */
+const useCountdown = (entry: QuestionnaireEntry, isActive: boolean): string => {
+  const [remaining, setRemaining] = useState("");
+  useEffect(() => {
+    if (!isActive) { setRemaining(""); return; }
+    const update = () => {
+      const ms = getEntryDeadline(entry).getTime() - Date.now();
+      setRemaining(ms > 0 ? formatTimeRemaining(ms) : "");
+    };
+    update();
+    const id = setInterval(update, 60000);
+    return () => clearInterval(id);
+  }, [entry, isActive]);
+  return remaining;
+};
+
 const QuestionField = ({ q, value, onChange }: { q: QuestionDefinition; value: string | number | boolean | undefined; onChange: (v: string | number | boolean) => void }) => {
   switch (q.type) {
     case "number": return (<div className="space-y-1"><Label className="text-sm text-foreground">{q.label}{q.required && " *"}</Label><Input type="number" step="0.1" className="bg-background border-border h-10" value={value as number ?? ""} onChange={(e) => onChange(Number(e.target.value))} /></div>);
@@ -62,6 +101,7 @@ const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const submitEntry = useQuestionnaireStore((s) => s.submitEntry);
   const windowStatus = getEntryWindowStatus(entry);
   const canFill = !submitted && windowStatus === "within";
+  const countdown = useCountdown(entry, canFill);
   const template = nutritionTemplates.find((tp) => tp.id === entry.templateId);
   const questions = template?.questions || [];
 
@@ -79,7 +119,10 @@ const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <CollapsibleTrigger className="w-full flex items-center justify-between p-3 hover:bg-muted/30 transition-colors">
           <div className="flex items-center gap-2"><AnimatedChevron open={open} /><div><p className="text-sm font-semibold text-foreground">{entry.templateName}</p><p className="text-[10px] text-muted-foreground">{entry.dayLabel} · {entry.weekLabel}</p></div></div>
-          <div className="flex items-center gap-1.5">{statusIcon}<span className="text-[10px] text-muted-foreground">{statusLabel}</span></div>
+          <div className="flex items-center gap-1.5">
+            {countdown && <span className="text-[9px] font-mono text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded">⏳ {countdown}</span>}
+            {statusIcon}<span className="text-[10px] text-muted-foreground">{statusLabel}</span>
+          </div>
         </CollapsibleTrigger>
         <AnimatedCollapsibleContent open={open}>
           <div className="p-4 pt-0 space-y-4">
@@ -130,6 +173,8 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
     toast({ title: t("clientCheckins.checkinSent"), description: t("clientCheckins.checkinSentDesc") });
   };
 
+  const isPending = !submitted;
+  const countdown = useCountdown(entry, isPending);
   const statusIcon = submitted ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Clock className="h-3.5 w-3.5 text-yellow-500" />;
   const statusLabel = submitted ? t("clientCheckins.responded") : t("clientCheckins.pendingLabel");
 
@@ -147,7 +192,10 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
               <p className="text-[10px] text-muted-foreground">{entry.weekLabel}</p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5">{statusIcon}<span className="text-[10px] text-muted-foreground">{statusLabel}</span></div>
+          <div className="flex items-center gap-1.5">
+            {countdown && <span className="text-[9px] font-mono text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded">⏳ {countdown}</span>}
+            {statusIcon}<span className="text-[10px] text-muted-foreground">{statusLabel}</span>
+          </div>
         </CollapsibleTrigger>
         <AnimatedCollapsibleContent open={open}>
           <div className="p-4 pt-2 space-y-4">
