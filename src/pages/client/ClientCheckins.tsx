@@ -310,21 +310,41 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                             <th className="px-2 py-1.5 text-left text-muted-foreground font-medium">Ejercicio</th>
                             <th className="px-2 py-1.5 text-center text-muted-foreground font-medium">{t("clientCheckins.planned")}</th>
                             <th className="px-2 py-1.5 text-center text-primary font-medium">{t("clientCheckins.actual")}</th>
+                            <th className="px-2 py-1.5 text-center text-muted-foreground font-medium">RPE</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {day.exercises.map((ex, i) => (
-                            <tr key={i} className="border-t border-border/50">
-                              <td className="px-2 py-1.5 font-medium text-foreground">{ex.exerciseName}</td>
-                              <td className="px-2 py-1.5 text-center text-muted-foreground">
-                                {ex.plannedSets}×{ex.plannedReps} {ex.plannedRPE ? `@${ex.plannedRPE}` : ""}
-                              </td>
-                              <td className="px-2 py-1.5 text-center text-foreground font-mono">
-                                {ex.actualWeight ? `${ex.actualWeight}kg` : "—"} {ex.actualRPE ? `@${ex.actualRPE}` : ""}
-                                {ex.actualSets ? ` (${ex.actualSets}×${ex.actualReps || "?"})` : ""}
-                              </td>
-                            </tr>
-                          ))}
+                          {day.exercises.map((ex, i) => {
+                            const rpeDiff = (ex.actualRPE != null && ex.plannedRPE != null)
+                              ? ex.actualRPE - ex.plannedRPE
+                              : null;
+                            const rpeDiffColor = rpeDiff != null
+                              ? rpeDiff > 0 ? "text-destructive" : rpeDiff < 0 ? "text-primary" : "text-foreground"
+                              : "";
+                            return (
+                              <tr key={i} className="border-t border-border/50">
+                                <td className="px-2 py-1.5 font-medium text-foreground">{ex.exerciseName}</td>
+                                <td className="px-2 py-1.5 text-center text-muted-foreground">
+                                  {ex.plannedSets}×{ex.plannedReps}
+                                </td>
+                                <td className="px-2 py-1.5 text-center text-foreground font-mono">
+                                  {ex.actualWeight ? `${ex.actualWeight}kg` : "—"}
+                                  {ex.actualSets ? ` (${ex.actualSets}×${ex.actualReps || "?"})` : ""}
+                                </td>
+                                <td className="px-2 py-1.5 text-center">
+                                  <div className="flex flex-col items-center leading-tight">
+                                    {ex.plannedRPE && <span className="text-muted-foreground">{ex.plannedRPE}</span>}
+                                    {ex.actualRPE && <span className={`font-bold ${rpeDiffColor}`}>{ex.actualRPE}</span>}
+                                    {rpeDiff != null && rpeDiff !== 0 && (
+                                      <span className={`text-[8px] font-semibold ${rpeDiffColor}`}>
+                                        {rpeDiff > 0 ? "+" : ""}{rpeDiff}
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
