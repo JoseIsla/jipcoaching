@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Utensils, Dumbbell, MoreHorizontal, UserX, UserCheck } from "lucide-react";
+import { Search, Plus, Utensils, Dumbbell, MoreHorizontal, UserX, UserCheck, Trash2 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AddClientSheet, { type NewClientData } from "@/components/admin/AddClientSheet";
 import { Input } from "@/components/ui/input";
@@ -30,9 +30,10 @@ const AdminClients = () => {
   const [filter, setFilter] = useState<FilterType>("all");
   const [addOpen, setAddOpen] = useState(false);
   const [toggleClient, setToggleClient] = useState<{ id: string; name: string; isActive: boolean } | null>(null);
+  const [deleteClient, setDeleteClient] = useState<{ id: string; name: string; step: 1 | 2 } | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { clients, fetchClients, addClient, updateClientStatus } = useClientStore();
+  const { clients, fetchClients, addClient, updateClientStatus, deleteClient: removeClient } = useClientStore();
 
   useEffect(() => { fetchClients(); }, [fetchClients]);
 
@@ -170,6 +171,16 @@ const AdminClients = () => {
                               <><UserCheck className="h-4 w-4 mr-2" /> Reactivar</>
                             )}
                           </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteClient({ id: client.id, name: client.name, step: 1 });
+                            }}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" /> Eliminar permanentemente
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -217,6 +228,63 @@ const AdminClients = () => {
                 className={toggleClient?.isActive ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"}
               >
                 {toggleClient?.isActive ? "Desactivar" : "Reactivar"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete – Double Confirmation */}
+        <AlertDialog open={deleteClient?.step === 1} onOpenChange={(open) => !open && setDeleteClient(null)}>
+          <AlertDialogContent className="bg-card border-border">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-foreground flex items-center gap-2">
+                <Trash2 className="h-5 w-5 text-destructive" />
+                Eliminar cliente
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                ¿Estás seguro de que quieres eliminar permanentemente a <strong className="text-foreground">{deleteClient?.name}</strong>? Esta acción no se puede deshacer.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="border-border">Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deleteClient && setDeleteClient({ ...deleteClient, step: 2 })}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                Sí, continuar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={deleteClient?.step === 2} onOpenChange={(open) => !open && setDeleteClient(null)}>
+          <AlertDialogContent className="bg-card border-border">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-destructive flex items-center gap-2">
+                <Trash2 className="h-5 w-5" />
+                Confirmar eliminación definitiva
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                Vas a eliminar a <strong className="text-foreground">{deleteClient?.name}</strong> de forma permanente. Se perderán todos sus datos, planes y registros asociados. <strong className="text-destructive">Esta acción es irreversible.</strong>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="border-border">Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (!deleteClient) return;
+                  removeClient(deleteClient.id);
+                  useClientDetailStore.getState().deleteDetail(deleteClient.id);
+                  toast({
+                    title: "Cliente eliminado",
+                    description: `${deleteClient.name} ha sido eliminado permanentemente.`,
+                    variant: "destructive",
+                  });
+                  setDeleteClient(null);
+                }}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                Eliminar permanentemente
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

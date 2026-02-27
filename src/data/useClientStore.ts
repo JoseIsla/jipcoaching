@@ -20,6 +20,7 @@ interface ClientStore {
   fetchClients: () => Promise<void>;
   addClient: (dto: CreateClientDto) => Promise<ApiClient>;
   updateClientStatus: (id: string, status: string) => void;
+  deleteClient: (id: string) => void;
   getClient: (id: string) => ApiClient | undefined;
   getActiveClients: () => ApiClient[];
   getRetentionRate: () => number;
@@ -64,6 +65,11 @@ export const useClientStore = create<ClientStore>((set, get) => ({
       clients: state.clients.map((c) =>
         c.id === id ? { ...c, status } : c
       ),
+    })),
+
+  deleteClient: (id) =>
+    set((state) => ({
+      clients: state.clients.filter((c) => c.id !== id),
     })),
 
   getClient: (id) => get().clients.find((c) => c.id === id),
