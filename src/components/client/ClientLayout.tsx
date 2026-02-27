@@ -1,7 +1,7 @@
 import { type ReactNode, useState, useEffect, useRef } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings, LogOut, Loader2, Bell } from "lucide-react";
+import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings, LogOut, Loader2, Bell, MessageSquare } from "lucide-react";
 import PullToRefresh from "./PullToRefresh";
 import { useClient } from "@/contexts/ClientContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,16 +43,18 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   const pendingTraining = pendingEntries.filter((e) => e.category === "training");
 
   // Generate notifications based on services and pending check-ins
+  // Preserve video_comment notifications added by admin actions
   useEffect(() => {
     const pendingIds = pendingEntries.map((e) => e.id);
-    // Only generate if there are actually pending check-ins
+    const existingVideoComments = notifications.filter((n) => n.type === "video_comment");
+    const existingCheckins = notifications.filter((n) => n.type !== "video_comment");
+
     if (pendingIds.length > 0) {
-      // Build notifications based on what's actually pending
-      const notifs: import("@/data/useClientNotificationStore").ClientNotification[] = [];
+      const checkinNotifs: import("@/data/useClientNotificationStore").ClientNotification[] = [];
       const now = new Date();
 
       if (pendingNutrition.length > 0 && client.services?.includes("nutrition")) {
-        notifs.push({
+        checkinNotifs.push({
           id: `cn-${client.id}-nutrition-${now.getTime()}`,
           type: "nutrition_checkin",
           titleKey: "clientNotifications.nutritionCheckinTitle",
@@ -64,7 +66,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
       }
 
       if (pendingTraining.length > 0 && client.services?.includes("training")) {
-        notifs.push({
+        checkinNotifs.push({
           id: `cn-${client.id}-training-${now.getTime()}`,
           type: "training_checkin",
           titleKey: "clientNotifications.trainingCheckinTitle",
@@ -75,13 +77,14 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
         });
       }
 
-      // Only update if different count (avoid infinite loop)
-      if (notifs.length !== notifications.length) {
-        useClientNotificationStore.setState({ notifications: notifs });
+      const merged = [...existingVideoComments, ...checkinNotifs];
+      // Only update if checkin count changed (avoid infinite loop)
+      if (checkinNotifs.length !== existingCheckins.length) {
+        useClientNotificationStore.setState({ notifications: merged });
       }
-    } else if (notifications.length > 0) {
-      // No pending → clear notifications (auto-dismiss)
-      useClientNotificationStore.getState().clear();
+    } else if (existingCheckins.length > 0) {
+      // No pending check-ins → keep only video comments
+      useClientNotificationStore.setState({ notifications: existingVideoComments });
     }
   }, [client.id, client.services, pendingEntries.length, pendingNutrition.length, pendingTraining.length, notifications.length]);
 
@@ -206,12 +209,33 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
                           useClientNotificationStore.getState().markRead(notif.id);
                           navigate(notif.link);
                         }}
-                        className={`w-full text-left p-3 border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors ${
+                        className={`w-full text-left p-3 border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors flex items-start gap-2.5 ${
                           notif.read ? "opacity-60" : ""
                         }`}
                       >
-                        <p className="text-sm font-medium text-foreground">{t(notif.titleKey, notif.titleVars)}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{t(notif.descriptionKey, notif.descriptionVars)}</p>
+                        {/* Type indicator */}
+                        <span className={`mt-0.5 shrink-0 flex items-center justify-center h-6 w-6 rounded-full ${
+                          notif.type === "video_comment"
+                            ? "bg-accent/15 text-accent"
+                            : notif.type === "nutrition_checkin"
+                            ? "bg-primary/15 text-primary"
+                            : "bg-primary/15 text-primary"
+                        }`}>
+                          {notif.type === "video_comment" ? (
+                            <MessageSquare className="h-3 w-3" />
+                          ) : notif.type === "nutrition_checkin" ? (
+                            <Utensils className="h-3 w-3" />
+                          ) : (
+                            <Dumbbell className="h-3 w-3" />
+                          )}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-foreground">{t(notif.titleKey, notif.titleVars)}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{t(notif.descriptionKey, notif.descriptionVars)}</p>
+                        </div>
+                        {!notif.read && (
+                          <span className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
+                        )}
                       </button>
                     ))
                   )}
