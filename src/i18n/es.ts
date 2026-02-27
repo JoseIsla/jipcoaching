@@ -73,6 +73,7 @@ const es = {
   // ── Admin Header ──
   header: {
     searchPlaceholder: "Buscar clientes, planes...",
+    noResults: "Sin resultados",
     notifications: "Notificaciones",
     noNotifications: "Sin notificaciones",
     markAll: "Marcar todo",

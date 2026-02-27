@@ -75,6 +75,7 @@ const en: Translations = {
   // ── Admin Header ──
   header: {
     searchPlaceholder: "Search clients, plans...",
+    noResults: "No results found",
     notifications: "Notifications",
     noNotifications: "No notifications",
     markAll: "Mark all",
