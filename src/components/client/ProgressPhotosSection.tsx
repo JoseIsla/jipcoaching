@@ -4,6 +4,7 @@
  */
 import { useState, useRef } from "react";
 import { Camera, Upload, Clock, CheckCircle2, ImageIcon } from "lucide-react";
+import ClientMediaComments from "./ClientMediaComments";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -210,6 +211,7 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
                   </div>
                 ))}
               </div>
+              <ClientMediaComments targetType="photo_session" targetId={session.date} />
             </div>
           ))}
         </div>
