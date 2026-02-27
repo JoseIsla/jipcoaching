@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { api } from "@/services/api";
+import { DEV_MOCK } from "@/config/devMode";
 import {
   exerciseLibrary as initialExercises,
   type ExerciseLibraryItem,
@@ -58,12 +59,17 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
   // ── API-backed exercises ──
 
   fetchExercises: async () => {
+    if (DEV_MOCK) {
+      // In dev mode, use local exercise library (already loaded as initialExercises)
+      set({ loading: false });
+      return;
+    }
+
     set({ loading: true, error: null });
     try {
       const data = await api.get<ApiExercise[]>("/exercises");
       set({ exercises: (data ?? []).map(toLibraryItem), loading: false });
     } catch (err: any) {
-      // If API fails, keep initial local data as fallback
       console.warn("Failed to fetch exercises from API, using local fallback:", err?.message);
       set({ loading: false });
     }

@@ -9,6 +9,7 @@ import LoadingScreen from "@/components/LoadingScreen";
 import logoJip from "@/assets/logo-jip.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "@/services/api";
+import { DEV_MOCK } from "@/config/devMode";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useLanguageStore, type Language } from "@/i18n/store";
 import { useToast } from "@/hooks/use-toast";
@@ -137,9 +138,17 @@ const LoginPage = () => {
           </form>
         </div>
         <p className="text-center text-xs text-muted-foreground mt-8">© 2026 JIP Performance Nutrition. {t("common.allRightsReserved")}</p>
-        <p className="text-center text-[10px] text-muted-foreground/50 mt-2 font-mono truncate px-4" title={API_BASE_URL}>
-          API: {API_BASE_URL}
-        </p>
+        {DEV_MOCK ? (
+          <div className="mt-4 bg-muted/50 border border-border rounded-lg p-3 text-xs text-muted-foreground space-y-1">
+            <p className="font-semibold text-foreground">🛠 Modo Desarrollo</p>
+            <p><strong>Admin:</strong> admin@jipcoaching.com / admin123</p>
+            <p><strong>Cliente:</strong> carlos@email.com / client123</p>
+          </div>
+        ) : (
+          <p className="text-center text-[10px] text-muted-foreground/50 mt-2 font-mono truncate px-4" title={API_BASE_URL}>
+            API: {API_BASE_URL}
+          </p>
+        )}
       </div>
     </div>
   );
