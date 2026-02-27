@@ -226,6 +226,10 @@ export const mockQuestionnaireEntries: QuestionnaireEntry[] = [
       tq1: 5, tq2: false, tq3: "", tq4: 8, tq5: 9, tq6: "Buen inicio de ciclo, cargas manejables.",
     },
     trainingLog: makeTrainingLog(0),
+    techniqueVideos: [
+      { id: "tv-mock-1", exerciseName: "Sentadilla", url: "https://www.w3schools.com/html/mov_bbb.mp4", notes: "Revisión de profundidad", uploadedAt: "2026-01-26T10:30:00Z" },
+      { id: "tv-mock-2", exerciseName: "Press Banca", url: "https://www.w3schools.com/html/mov_bbb.mp4", notes: "Arco y retracción escapular", uploadedAt: "2026-01-26T11:00:00Z" },
+    ],
     planId: "t-mock-carlos",
     weekNumber: 1,
   },
