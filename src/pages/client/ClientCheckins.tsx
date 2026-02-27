@@ -20,9 +20,22 @@ import { nutritionTemplates, trainingTemplate, type QuestionDefinition } from "@
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
 
+/** Publication hour for nutrition check-ins (8:00 AM) */
+const NUTRITION_PUBLISH_HOUR = 8;
+
 const getEntryWindowStatus = (entry: QuestionnaireEntry): "within" | "future" | "expired" => {
-  const entryDate = new Date(entry.date);
   const now = new Date();
+  if (entry.category === "nutrition") {
+    // 48h window from publication hour (8:00 AM on the check-in day)
+    const publishDate = new Date(entry.date + "T00:00:00");
+    publishDate.setHours(NUTRITION_PUBLISH_HOUR, 0, 0, 0);
+    const windowEnd = new Date(publishDate.getTime() + 48 * 60 * 60 * 1000);
+    if (now < publishDate) return "future";
+    if (now <= windowEnd) return "within";
+    return "expired";
+  }
+  // Training: keep original logic (2 calendar days)
+  const entryDate = new Date(entry.date);
   const windowEnd = new Date(entryDate);
   windowEnd.setDate(windowEnd.getDate() + 2);
   if (now < entryDate) return "future";
