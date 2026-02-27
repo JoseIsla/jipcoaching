@@ -9,6 +9,7 @@ interface ClientDetailState {
   getDetail: (clientId: string) => ClientDetail | undefined;
   updateDetail: (clientId: string, updates: Partial<ClientDetail>) => void;
   addDetail: (detail: ClientDetail) => void;
+  deleteDetail: (clientId: string) => void;
 }
 
 export const useClientDetailStore = create<ClientDetailState>((set, get) => ({
@@ -28,4 +29,10 @@ export const useClientDetailStore = create<ClientDetailState>((set, get) => ({
     set((state) => ({
       details: { ...state.details, [detail.id]: detail },
     })),
+
+  deleteDetail: (clientId) =>
+    set((state) => {
+      const { [clientId]: _, ...rest } = state.details;
+      return { details: rest };
+    }),
 }));
