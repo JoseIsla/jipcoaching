@@ -133,7 +133,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="bg-card border-b border-border px-3 sm:px-4 pt-8 pb-3 flex items-center justify-between shrink-0 safe-area-top">
+      <header className="bg-card border-b border-border px-3 sm:px-4 pt-12 pb-3 flex items-center justify-between shrink-0 safe-area-top">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <Avatar className="h-8 w-8 border border-primary/30 shrink-0">
             <AvatarImage src={undefined} />

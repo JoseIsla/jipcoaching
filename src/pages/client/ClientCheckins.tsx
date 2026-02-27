@@ -207,7 +207,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                     <TabsList className="bg-muted border border-border w-full flex-wrap h-auto gap-1 p-1">
                       {trainingLog.map((day, i) => (
                         <TabsTrigger key={i} value={String(i)} className="text-[10px] flex-1 min-w-0 px-2 py-1.5">
-                          {day.dayName}
+                          Día {day.dayNumber}
                         </TabsTrigger>
                       ))}
                     </TabsList>
