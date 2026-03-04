@@ -17,7 +17,7 @@ const HeroSection = () => {
         <img
           src={coachHero}
           alt="Competición de powerlifting"
-          className="w-full h-full object-cover object-[center_70%] opacity-25"
+          className="w-full h-full object-cover object-[center_55%] opacity-[0.18]"
           loading="eager"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
