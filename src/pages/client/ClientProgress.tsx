@@ -115,7 +115,8 @@ const ClientProgress = () => {
                 <ReferenceLine y={100} stroke="hsl(110 100% 54%)" strokeDasharray="3 3" strokeOpacity={0.3} />
                 <Tooltip
                   contentStyle={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(0 0% 16%)", borderRadius: 8, fontSize: 12, color: "hsl(0 0% 100%)" }}
-                  formatter={(value: number, _name: string, props: any) => [`${value}% (${props.payload.answered}/${props.payload.total})`, props.payload.weekFull]}
+                   itemStyle={{ color: "hsl(110 100% 54%)" }}
+                   formatter={(value: number, _name: string, props: any) => [`${value}% (${props.payload.answered}/${props.payload.total})`, props.payload.weekFull]}
                   labelFormatter={() => ""}
                 />
                 <Bar dataKey="rate" radius={[4, 4, 0, 0]}>
@@ -180,7 +181,8 @@ const ClientProgress = () => {
                         />
                         <YAxis domain={["dataMin - 1", "dataMax + 1"]} tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }} />
                         <Tooltip
-                          contentStyle={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(110 100% 54% / 0.3)", borderRadius: 8, fontSize: 12, color: "hsl(110 100% 54%)" }}
+                          contentStyle={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(110 100% 54% / 0.3)", borderRadius: 8, fontSize: 12, color: "hsl(0 0% 100%)" }}
+                          itemStyle={{ color: "hsl(110 100% 54%)" }}
                           labelFormatter={(d) => new Date(d).toLocaleDateString("es-ES")}
                         />
                         <Line type="monotone" dataKey="weight" stroke="hsl(110 100% 54%)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
@@ -202,7 +204,8 @@ const ClientProgress = () => {
                         <YAxis tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}kg`} />
                         <ReferenceLine y={0} stroke="hsl(0 0% 30%)" />
                         <Tooltip
-                          contentStyle={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(110 100% 54% / 0.3)", borderRadius: 8, fontSize: 12, color: "hsl(110 100% 54%)" }}
+                          contentStyle={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(110 100% 54% / 0.3)", borderRadius: 8, fontSize: 12, color: "hsl(0 0% 100%)" }}
+                          itemStyle={{ color: "hsl(110 100% 54%)" }}
                           formatter={(value: number) => [`${value > 0 ? "+" : ""}${value} kg`, "Variación"]}
                           labelFormatter={(label) => `Semana ${label}`}
                         />
