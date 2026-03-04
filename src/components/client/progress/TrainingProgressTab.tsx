@@ -1,5 +1,12 @@
 import { Dumbbell, Activity } from "lucide-react";
 import { useTranslation } from "@/i18n/useTranslation";
+import { motion } from "framer-motion";
+
+const stagger = { animate: { transition: { staggerChildren: 0.06 } } };
+const fadeUp = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
+};
 
 interface BestRM {
   exerciseId: string;
@@ -32,17 +39,17 @@ const TrainingProgressTab = ({ bestRMs, trainingProgress }: TrainingProgressTabP
   const sbdTotal = (squat?.estimated1RM || 0) + (bench?.estimated1RM || 0) + (deadlift?.estimated1RM || 0);
 
   return (
-    <div className="space-y-4">
+    <motion.div className="space-y-4" variants={stagger} initial="initial" animate="animate">
       {sbdTotal > 0 && (
-        <div className="bg-card border border-border rounded-xl p-4 text-center">
+        <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-4 text-center">
           <Dumbbell className="h-5 w-5 text-primary mx-auto mb-1" />
           <p className="text-3xl font-black text-foreground">{sbdTotal} kg</p>
           <p className="text-xs text-muted-foreground">{t("clientProgress.sbdTotal")}</p>
-        </div>
+        </motion.div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="space-y-2">
+        <motion.div className="space-y-2" variants={stagger}>
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             {t("clientProgress.personalRecords")}
           </h3>
@@ -50,7 +57,7 @@ const TrainingProgressTab = ({ bestRMs, trainingProgress }: TrainingProgressTabP
             <p className="text-sm text-muted-foreground text-center py-4">{t("clientProgress.noRecords")}</p>
           )}
           {bestRMs.map((rm) => (
-            <div key={rm.exerciseId} className="bg-card border border-border rounded-xl p-3 flex items-center justify-between">
+            <motion.div key={rm.exerciseId} variants={fadeUp} className="bg-card border border-border rounded-xl p-3 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-foreground">{rm.exerciseName}</p>
                 <p className="text-[10px] text-muted-foreground">
@@ -61,12 +68,12 @@ const TrainingProgressTab = ({ bestRMs, trainingProgress }: TrainingProgressTabP
                 <p className="text-lg font-bold text-primary">{rm.estimated1RM} kg</p>
                 <p className="text-[10px] text-muted-foreground">e1RM</p>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {trainingProgress.latestFatigue != null && (
-          <div className="bg-card border border-border rounded-xl p-4 space-y-3 h-fit">
+          <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-4 space-y-3 h-fit">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
               <Activity className="h-3.5 w-3.5" /> {t("clientProgress.lastReport")}
             </h3>
@@ -91,10 +98,10 @@ const TrainingProgressTab = ({ bestRMs, trainingProgress }: TrainingProgressTabP
                 </p>
               </div>
             )}
-          </div>
+          </motion.div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

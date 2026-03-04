@@ -7,6 +7,13 @@ import {
 import { useTranslation } from "@/i18n/useTranslation";
 import ProgressPhotosSection from "@/components/client/ProgressPhotosSection";
 import { computeWeightDeltas } from "@/utils/progressHelpers";
+import { motion } from "framer-motion";
+
+const stagger = { animate: { transition: { staggerChildren: 0.06 } } };
+const fadeUp = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
+};
 
 interface NutritionProgressTabProps {
   clientId: string;
@@ -26,34 +33,34 @@ const NutritionProgressTab = ({ clientId, weightData }: NutritionProgressTabProp
   const weightDeltas = useMemo(() => computeWeightDeltas(weightData), [weightData]);
 
   return (
-    <div className="space-y-4">
+    <motion.div className="space-y-4" variants={stagger} initial="initial" animate="animate">
       {/* Stats cards */}
-      <div className="grid grid-cols-3 gap-2">
-        <div className="bg-card border border-border rounded-xl p-3 text-center">
+      <motion.div className="grid grid-cols-3 gap-2" variants={stagger}>
+        <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-3 text-center">
           <Weight className="h-4 w-4 text-primary mx-auto mb-1" />
           <p className="text-xl font-bold text-foreground">{latestWeight ?? "—"}</p>
           <p className="text-[9px] text-muted-foreground">{t("clientProgress.currentWeight")}</p>
-        </div>
-        <div className="bg-card border border-border rounded-xl p-3 text-center">
+        </motion.div>
+        <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-3 text-center">
           {weeklyWeight && Number(weeklyWeight) < 0
             ? <TrendingDown className="h-4 w-4 text-primary mx-auto mb-1" />
             : <TrendingUp className="h-4 w-4 text-primary mx-auto mb-1" />}
           <p className="text-xl font-bold text-foreground">{weeklyWeight ? `${Number(weeklyWeight) > 0 ? "+" : ""}${weeklyWeight}` : "—"}</p>
           <p className="text-[9px] text-muted-foreground">Δ semanal</p>
-        </div>
-        <div className="bg-card border border-border rounded-xl p-3 text-center">
+        </motion.div>
+        <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-3 text-center">
           {weightDelta && Number(weightDelta) < 0
             ? <TrendingDown className="h-4 w-4 text-primary mx-auto mb-1" />
             : <TrendingUp className="h-4 w-4 text-primary mx-auto mb-1" />}
           <p className="text-xl font-bold text-foreground">{weightDelta ? `${Number(weightDelta) > 0 ? "+" : ""}${weightDelta}` : "—"}</p>
           <p className="text-[9px] text-muted-foreground">{t("clientProgress.totalDelta")}</p>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {weightData.length > 1 && (
-          <div className="bg-card border border-border rounded-xl p-4">
+          <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-4">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">
               {t("clientProgress.weightEvolution")}
             </h3>
@@ -74,11 +81,11 @@ const NutritionProgressTab = ({ clientId, weightData }: NutritionProgressTabProp
                 <Line type="monotone" dataKey="weight" stroke="hsl(110 100% 54%)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
               </LineChart>
             </ResponsiveContainer>
-          </div>
+          </motion.div>
         )}
 
         {weightDeltas.length > 0 && (
-          <div className="bg-card border border-border rounded-xl p-4">
+          <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-4">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">
               Variación semanal de peso
             </h3>
@@ -101,18 +108,20 @@ const NutritionProgressTab = ({ clientId, weightData }: NutritionProgressTabProp
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </motion.div>
         )}
       </div>
 
       {weightData.length <= 1 && (
-        <div className="bg-card border border-border rounded-xl p-8 text-center">
+        <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-8 text-center">
           <p className="text-sm text-muted-foreground">{t("clientProgress.notEnoughData")}</p>
-        </div>
+        </motion.div>
       )}
 
-      <ProgressPhotosSection clientId={clientId} />
-    </div>
+      <motion.div variants={fadeUp}>
+        <ProgressPhotosSection clientId={clientId} />
+      </motion.div>
+    </motion.div>
   );
 };
 
