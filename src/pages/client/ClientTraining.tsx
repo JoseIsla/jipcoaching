@@ -5,10 +5,11 @@ import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, Dumbbell, Lock, Calendar } from "lucide-react";
+import { ChevronDown, Dumbbell, Lock, Calendar, Download } from "lucide-react";
 import AnimatedChevron from "@/components/ui/animated-chevron";
 import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-content";
 import { useTrainingPlanStore, TRAINING_METHOD_LABELS, type TrainingPlanFull, type TrainingWeek, type TrainingDay } from "@/data/useTrainingPlanStore";
+import { exportTrainingWeekPDF } from "@/utils/exportClientPlanPDF";
 import { useTranslation } from "@/i18n/useTranslation";
 
 const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<string, string | number>) => string }) => {
@@ -120,9 +121,22 @@ const ClientTraining = () => {
   return (
     <ClientLayout>
       <motion.div className="space-y-5 max-w-lg mx-auto" variants={stagger} initial="initial" animate="animate">
-        <motion.div variants={fadeUp}>
-          <h1 className="text-xl font-bold text-foreground flex items-center gap-2"><Dumbbell className="h-5 w-5 text-accent" />{plan.planName}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{plan.modality} · {plan.block}</p>
+        <motion.div variants={fadeUp} className="flex items-start justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-foreground flex items-center gap-2"><Dumbbell className="h-5 w-5 text-accent" />{plan.planName}</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">{plan.modality} · {plan.block}</p>
+          </div>
+          {currentWeek && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs shrink-0"
+              onClick={() => exportTrainingWeekPDF(plan, currentWeek, client.name)}
+            >
+              <Download className="h-3.5 w-3.5" />
+              PDF
+            </Button>
+          )}
         </motion.div>
         <motion.div variants={fadeUp} className="space-y-2">
           {Object.entries(blockGroups).map(([block, group]) => (

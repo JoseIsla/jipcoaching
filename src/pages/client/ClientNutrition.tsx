@@ -3,12 +3,14 @@ import { motion } from "framer-motion";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, Utensils, Apple, Leaf, Target, Flame, Droplets } from "lucide-react";
+import { ChevronDown, Utensils, Apple, Leaf, Target, Flame, Droplets, Download } from "lucide-react";
 import AnimatedChevron from "@/components/ui/animated-chevron";
 import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-content";
 import { useNutritionPlanStore, macroCategoryLabels, type Meal, type MealOption } from "@/data/useNutritionPlanStore";
 import { useExerciseLibraryStore } from "@/data/useExerciseLibraryStore";
+import { exportNutritionPlanPDF } from "@/utils/exportClientPlanPDF";
 import { type ReactNode } from "react";
 import { useTranslation } from "@/i18n/useTranslation";
 
@@ -101,9 +103,22 @@ const ClientNutrition = () => {
   return (
     <ClientLayout>
       <motion.div className="space-y-6 max-w-lg mx-auto" variants={stagger} initial="initial" animate="animate">
-        <motion.div variants={fadeUp}>
-          <h1 className="text-xl font-bold text-foreground flex items-center gap-2"><Utensils className="h-5 w-5 text-primary" />{activePlanSummary.planName}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{t("clientNutrition.activePlan")}</p>
+        <motion.div variants={fadeUp} className="flex items-start justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-foreground flex items-center gap-2"><Utensils className="h-5 w-5 text-primary" />{activePlanSummary.planName}</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">{t("clientNutrition.activePlan")}</p>
+          </div>
+          {planDetail && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs shrink-0"
+              onClick={() => exportNutritionPlanPDF(planDetail, activePlanSummary.planName, client.name, supplements)}
+            >
+              <Download className="h-3.5 w-3.5" />
+              PDF
+            </Button>
+          )}
         </motion.div>
 
         {planDetail && (
