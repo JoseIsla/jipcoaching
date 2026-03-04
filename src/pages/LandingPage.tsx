@@ -6,6 +6,7 @@ import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import FAQSection from "@/components/landing/FAQSection";
 import ContactSection from "@/components/landing/ContactSection";
 import LandingFooter from "@/components/landing/LandingFooter";
+import CookieBanner from "@/components/CookieBanner";
 
 const LandingPage = () => {
   return (
@@ -18,6 +19,7 @@ const LandingPage = () => {
       <FAQSection />
       <ContactSection />
       <LandingFooter />
+      <CookieBanner />
     </div>
   );
 };

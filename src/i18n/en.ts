@@ -713,6 +713,13 @@ const en: Translations = {
       hostedBy: "Hosted by",
     },
   },
+  cookies: {
+    title: "This site uses cookies 🍪",
+    description: "We use technical and preference cookies to improve your browsing experience.",
+    learnMore: "Learn more",
+    accept: "Accept",
+    reject: "Reject",
+  },
 };
 
 export default en;
