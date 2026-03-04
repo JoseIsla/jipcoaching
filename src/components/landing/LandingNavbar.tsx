@@ -77,13 +77,21 @@ const LandingNavbar = () => {
           {/* Language + Login/Panel + Mobile toggle */}
           <div className="flex items-center gap-2">
             {/* Language toggle */}
-            <button
-              onClick={toggleLang}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
-            >
-              <Globe className="h-3.5 w-3.5" />
-              <span className="uppercase">{appLanguage === "es" ? "EN" : "ES"}</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <button
+                onClick={() => setAppLanguage("es")}
+                className={`text-xs font-medium px-2 py-1 rounded-md transition-colors ${appLanguage === "es" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+              >
+                ES
+              </button>
+              <button
+                onClick={() => setAppLanguage("en")}
+                className={`text-xs font-medium px-2 py-1 rounded-md transition-colors ${appLanguage === "en" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+              >
+                EN
+              </button>
+            </div>
 
             {isLoggedIn ? (
               <Link
