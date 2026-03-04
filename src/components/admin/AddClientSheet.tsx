@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { useClientStore } from "@/data/useClientStore";
-import { PackType, ClientStatus, packTypeLabels, type CreateClientDto } from "@/types/api";
+import { useClientDetailStore } from "@/data/useClientDetailStore";
+import { PackType, ClientStatus, packTypeLabels, getServicesFromPack, type CreateClientDto } from "@/types/api";
 
 export interface NewClientData {
   name: string;
@@ -25,6 +26,7 @@ interface AddClientSheetProps {
 const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) => {
   const { toast } = useToast();
   const addClient = useClientStore((s) => s.addClient);
+  const addDetail = useClientDetailStore((s) => s.addDetail);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [name, setName] = useState("");
@@ -57,7 +59,23 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
 
     setIsSubmitting(true);
     try {
-      await addClient(dto);
+      const created = await addClient(dto);
+      // Create detail entry so AdminClientDetail can find it
+      addDetail({
+        id: created.id,
+        name: dto.name,
+        email: dto.email,
+        phone: "",
+        services: getServicesFromPack(dto.packType),
+        plan: "",
+        status: dto.status === ClientStatus.ACTIVE ? "Activo" : "Pendiente",
+        startDate: new Date().toISOString().slice(0, 10),
+        monthlyRate: dto.monthlyFee,
+        lastPaymentDate: "",
+        nextPaymentDate: "",
+        paymentMethod: "",
+        notes: dto.notes || "",
+      });
       toast({ title: "Cliente añadido", description: `${name} se ha registrado correctamente.` });
       onClientAdded({ name, email, notes });
       resetForm();
