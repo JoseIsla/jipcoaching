@@ -68,6 +68,7 @@ const en: Translations = {
     nutrition: "Nutrition",
     training: "Training",
     library: "Library",
+    leads: "Leads",
     questionnaires: "Questionnaires",
     settings: "Settings",
   },
