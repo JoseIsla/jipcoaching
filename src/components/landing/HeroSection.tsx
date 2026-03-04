@@ -86,7 +86,7 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.6 }}
-              className="inline-block"
+              className="inline"
             >
               {t("landing.hero.titleLine1")}{" "}
             </motion.span>
@@ -94,7 +94,7 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.45, duration: 0.6 }}
-              className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent"
+              className="inline text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent"
             >
               {t("landing.hero.titleHighlight")}
             </motion.span>
