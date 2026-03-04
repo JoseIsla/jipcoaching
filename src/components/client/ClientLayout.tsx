@@ -132,18 +132,31 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
     }
   }, [client.id, client.services, pendingEntries.length, pendingNutrition.length, pendingTraining.length]);
 
-  // Auto-toast on entry when there are pending check-ins
+  // Auto-toast on login only — show once per session, dismiss quickly to avoid blocking mobile UI
+  const prevPendingRef = useRef(pendingEntries.length);
   useEffect(() => {
-    if (toastShownRef.current) return;
+    if (toastShownRef.current) {
+      // After initial toast, only re-fire if count increased (new notification arrived)
+      if (pendingEntries.length > prevPendingRef.current) {
+        toast({
+          title: t("clientNotifications.pendingReminder", { n: String(pendingEntries.length) }),
+          description: t("clientNotifications.goToCheckins"),
+          duration: 3000,
+        });
+      }
+      prevPendingRef.current = pendingEntries.length;
+      return;
+    }
     if (pendingEntries.length > 0) {
       toastShownRef.current = true;
+      prevPendingRef.current = pendingEntries.length;
       toast({
         title: t("clientNotifications.pendingReminder", { n: String(pendingEntries.length) }),
         description: t("clientNotifications.goToCheckins"),
-        duration: 5000,
+        duration: 3000,
       });
     }
-  }, [client.id]);
+  }, [client.id, pendingEntries.length]);
 
   // Reset toast flag when client changes
   useEffect(() => {
