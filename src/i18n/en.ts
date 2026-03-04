@@ -706,6 +706,12 @@ const en: Translations = {
       sendAnother: "Send another message",
     },
     footer: "All rights reserved.",
+    footerLegal: {
+      legalNotice: "Legal Notice",
+      privacy: "Privacy Policy",
+      cookies: "Cookie Policy",
+      hostedBy: "Hosted by",
+    },
   },
 };
 

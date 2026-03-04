@@ -710,6 +710,12 @@ const es = {
       sendAnother: "Enviar otro mensaje",
     },
     footer: "Todos los derechos reservados.",
+    footerLegal: {
+      legalNotice: "Aviso Legal",
+      privacy: "Política de Privacidad",
+      cookies: "Política de Cookies",
+      hostedBy: "Alojado por",
+    },
   },
 } as const;
 
