@@ -27,11 +27,12 @@ const AboutSection = () => {
             </h2>
             <div className="mt-6 space-y-4 text-muted-foreground text-sm sm:text-base leading-relaxed">
               <p>
-                Soy un profesional apasionado por el entrenamiento y la nutrición basados en evidencia científica.
-                Mi enfoque combina la periodización del entrenamiento con estrategias nutricionales
-                personalizadas para maximizar tus resultados.
+                Soy entrenador, nutricionista y competidor de powerlifting con varios años de experiencia
+                en tarima. Vivo en primera persona lo que enseño — conozco las exigencias de la preparación,
+                la periodización y la nutrición deportiva porque las aplico en mi propio rendimiento.
               </p>
               <p>
+                Mi enfoque combina la evidencia científica con la experiencia práctica de la competición.
                 Cada plan que diseño se adapta a tu estilo de vida, tus preferencias y tus objetivos — ya sea
                 perder grasa, ganar masa muscular, mejorar tu rendimiento deportivo o simplemente sentirte mejor.
               </p>
