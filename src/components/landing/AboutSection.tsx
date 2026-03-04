@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Award, Users, Calendar, GraduationCap } from "lucide-react";
+import coachAbout from "@/assets/coach-about.jpg";
 
 const stats = [
   { icon: Users, value: "50+", label: "Clientes activos" },
@@ -41,7 +42,7 @@ const AboutSection = () => {
             </div>
           </motion.div>
 
-          {/* Photo placeholder + Stats */}
+          {/* Photo + Stats */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -49,16 +50,18 @@ const AboutSection = () => {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="space-y-6"
           >
-            {/* Photo placeholder - will be replaced with actual photo */}
-            <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-muted/30 border border-border flex items-center justify-center">
-              <div className="text-center p-8">
-                <div className="w-24 h-24 mx-auto rounded-full bg-primary/10 border-2 border-primary/30 flex items-center justify-center mb-4">
-                  <span className="text-3xl font-black text-primary">JIP</span>
-                </div>
-                <p className="text-muted-foreground text-sm">Foto del coach próximamente</p>
-              </div>
-              {/* Decorative gradient border */}
-              <div className="absolute inset-0 rounded-2xl border-2 border-transparent bg-gradient-to-br from-primary/20 via-transparent to-accent/20 pointer-events-none" style={{ WebkitMaskImage: "linear-gradient(#000 0 0)", maskImage: "linear-gradient(#000 0 0)" }} />
+            {/* Coach photo */}
+            <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-border">
+              <img
+                src={coachAbout}
+                alt="Coach en competición de powerlifting"
+                className="w-full h-full object-cover object-top"
+                loading="lazy"
+              />
+              {/* Gradient overlay at bottom */}
+              <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+              {/* Decorative glow */}
+              <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-primary/10" />
             </div>
 
             {/* Stats grid */}

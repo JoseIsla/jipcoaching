@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ArrowDown, Zap, Target, TrendingUp } from "lucide-react";
+import coachHero from "@/assets/coach-hero.jpg";
 
 const HeroSection = () => {
   const scrollToAbout = () => {
@@ -11,19 +12,19 @@ const HeroSection = () => {
       id="hero"
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background"
     >
+      {/* Background image */}
+      <div className="absolute inset-0">
+        <img
+          src={coachHero}
+          alt="Competición de powerlifting"
+          className="w-full h-full object-cover object-top opacity-20"
+          loading="eager"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
+      </div>
+
       {/* Gradient overlays */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(110_100%_54%/0.08)_0%,transparent_60%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,hsl(145_63%_42%/0.06)_0%,transparent_50%)]" />
-
-      {/* Grid pattern */}
-      <div
-        className="absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: `linear-gradient(hsl(110 100% 54% / 0.3) 1px, transparent 1px),
-                            linear-gradient(90deg, hsl(110 100% 54% / 0.3) 1px, transparent 1px)`,
-          backgroundSize: "60px 60px",
-        }}
-      />
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center">
         <motion.div
