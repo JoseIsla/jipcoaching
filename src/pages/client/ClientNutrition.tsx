@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
@@ -91,16 +92,22 @@ const ClientNutrition = () => {
     );
   }
 
+  const stagger = { animate: { transition: { staggerChildren: 0.07 } } };
+  const fadeUp = {
+    initial: { opacity: 0, y: 16 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
+  };
+
   return (
     <ClientLayout>
-      <div className="space-y-6 max-w-lg mx-auto animate-fade-in">
-        <div>
+      <motion.div className="space-y-6 max-w-lg mx-auto" variants={stagger} initial="initial" animate="animate">
+        <motion.div variants={fadeUp}>
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2"><Utensils className="h-5 w-5 text-primary" />{activePlanSummary.planName}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{t("clientNutrition.activePlan")}</p>
-        </div>
+        </motion.div>
 
         {planDetail && (
-          <div className="bg-card border border-border rounded-xl p-4">
+          <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-4">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t("clientNutrition.dailyGoal")}</h3>
             {planDetail.objective && <p className="text-sm text-foreground mb-3">{planDetail.objective}</p>}
             <div className="grid grid-cols-4 gap-3">
@@ -109,36 +116,36 @@ const ClientNutrition = () => {
               <div className="text-center"><Droplets className="h-4 w-4 text-amber-400 mx-auto mb-1" /><p className="text-lg font-bold text-foreground">{planDetail.carbs || "—"}g</p><p className="text-[10px] text-muted-foreground">CH</p></div>
               <div className="text-center"><span className="text-base">🥑</span><p className="text-lg font-bold text-foreground">{planDetail.fats || "—"}g</p><p className="text-[10px] text-muted-foreground">{t("clientNutrition.fats")}</p></div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {planDetail && (
-          <div className="space-y-3">
+          <motion.div variants={fadeUp} className="space-y-3">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("clientNutrition.meals")}</h2>
             {planDetail.meals.map((meal) => <MealCard key={meal.id} meal={meal} t={t} />)}
-          </div>
+          </motion.div>
         )}
 
-        {supplements.length > 0 && <ControlledCollapsible trigger={<div className="flex items-center gap-2"><span className="font-semibold text-foreground">{t("clientNutrition.supplementation")}</span><Badge variant="outline" className="text-[10px]">{supplements.length}</Badge></div>}>
+        {supplements.length > 0 && <motion.div variants={fadeUp}><ControlledCollapsible trigger={<div className="flex items-center gap-2"><span className="font-semibold text-foreground">{t("clientNutrition.supplementation")}</span><Badge variant="outline" className="text-[10px]">{supplements.length}</Badge></div>}>
           <div className="px-4 pb-4 space-y-2">{supplements.map((s, i) => <div key={i} className="bg-background/50 border border-border/40 rounded-lg p-3 flex items-center justify-between"><div><p className="text-sm font-medium text-foreground">{s.name}</p><p className="text-xs text-muted-foreground">{s.dose}</p></div><Badge variant="outline" className="text-[10px]">{s.timing}</Badge></div>)}</div>
-        </ControlledCollapsible>}
+        </ControlledCollapsible></motion.div>}
 
         {planDetail && planDetail.recommendations.length > 0 && (
-          <div className="bg-card border border-border rounded-xl p-4">
+          <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-4">
             <h3 className="text-sm font-semibold text-foreground mb-2">{t("clientNutrition.recommendations")}</h3>
             <ul className="space-y-1.5">{planDetail.recommendations.map((r, i) => <li key={i} className="text-sm text-muted-foreground flex items-start gap-2"><span className="text-primary mt-0.5">•</span> {r}</li>)}</ul>
-          </div>
+          </motion.div>
         )}
 
-        <div className="grid grid-cols-1 gap-3">
+        <motion.div variants={fadeUp} className="grid grid-cols-1 gap-3">
           <ControlledCollapsible trigger={<div className="flex items-center gap-2"><Apple className="h-4 w-4 text-primary" /><span className="font-semibold text-foreground text-sm">{t("clientNutrition.fruits")}</span><Badge variant="outline" className="text-[10px]">{fruits.length}</Badge></div>}>
             <div className="px-4 pb-4 flex flex-wrap gap-1.5">{fruits.map((f, i) => <span key={i} className="text-xs bg-muted/50 text-muted-foreground px-2 py-1 rounded-full">{f}</span>)}</div>
           </ControlledCollapsible>
           <ControlledCollapsible trigger={<div className="flex items-center gap-2"><Leaf className="h-4 w-4 text-accent" /><span className="font-semibold text-foreground text-sm">{t("clientNutrition.vegetables")}</span><Badge variant="outline" className="text-[10px]">{vegetables.length}</Badge></div>}>
             <div className="px-4 pb-4 flex flex-wrap gap-1.5">{vegetables.map((v, i) => <span key={i} className="text-xs bg-muted/50 text-muted-foreground px-2 py-1 rounded-full">{v}</span>)}</div>
           </ControlledCollapsible>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </ClientLayout>
   );
 };

@@ -651,41 +651,49 @@ const ClientCheckins = () => {
 
   const defaultTab = hasNutrition ? "nutrition" : "training";
 
+  const stagger = { animate: { transition: { staggerChildren: 0.07 } } };
+  const fadeUp = {
+    initial: { opacity: 0, y: 16 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
+  };
+
   return (
     <ClientLayout>
-      <div className="space-y-5 max-w-lg mx-auto animate-fade-in">
-        <div>
+      <motion.div className="space-y-5 max-w-lg mx-auto" variants={stagger} initial="initial" animate="animate">
+        <motion.div variants={fadeUp}>
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2"><ClipboardList className="h-5 w-5 text-yellow-500" />{t("clientCheckins.title")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{t("clientCheckins.subtitle")}</p>
-        </div>
-        <Tabs defaultValue={defaultTab} className="space-y-4">
-          <TabsList className="bg-card border border-border w-full">
-            {hasNutrition && <TabsTrigger value="nutrition" className="flex-1 text-xs">🍎 {t("common.nutrition")}</TabsTrigger>}
-            {hasTraining && <TabsTrigger value="training" className="flex-1 text-xs">🏋️ {t("common.training")}</TabsTrigger>}
-          </TabsList>
-          {hasNutrition && (
-            <TabsContent value="nutrition" className="space-y-3">
-              <p className="text-xs text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("clientCheckins.nutritionSchedule") }} />
-              {nutritionEntries.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">{t("clientCheckins.noNutrition")}</p>}
-              {nutritionEntries.map((entry) => <NutritionCheckinCard key={entry.id} entry={entry} />)}
-              <HistorySection weeks={pastNutritionWeeks} renderCard={(entry) => <NutritionCheckinCard key={entry.id} entry={entry} />} formatShortDate={formatShortDate} t={t} />
-            </TabsContent>
-          )}
-          {hasTraining && (
-            <TabsContent value="training" className="space-y-3">
-              <p className="text-xs text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("clientCheckins.trainingSchedule") }} />
-              {trainingEntries.length === 0 && (
-                <div className="text-center py-8">
-                  <Dumbbell className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">{t("clientCheckins.noActivePlan")}</p>
-                </div>
-              )}
-              {trainingEntries.map((entry) => <TrainingLogCard key={entry.id} entry={entry} />)}
-              <HistorySection weeks={pastTrainingWeeks} renderCard={(entry) => <TrainingLogCard key={entry.id} entry={entry} />} formatShortDate={formatShortDate} t={t} />
-            </TabsContent>
-          )}
-        </Tabs>
-      </div>
+        </motion.div>
+        <motion.div variants={fadeUp}>
+          <Tabs defaultValue={defaultTab} className="space-y-4">
+            <TabsList className="bg-card border border-border w-full">
+              {hasNutrition && <TabsTrigger value="nutrition" className="flex-1 text-xs">🍎 {t("common.nutrition")}</TabsTrigger>}
+              {hasTraining && <TabsTrigger value="training" className="flex-1 text-xs">🏋️ {t("common.training")}</TabsTrigger>}
+            </TabsList>
+            {hasNutrition && (
+              <TabsContent value="nutrition" className="space-y-3">
+                <p className="text-xs text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("clientCheckins.nutritionSchedule") }} />
+                {nutritionEntries.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">{t("clientCheckins.noNutrition")}</p>}
+                {nutritionEntries.map((entry) => <NutritionCheckinCard key={entry.id} entry={entry} />)}
+                <HistorySection weeks={pastNutritionWeeks} renderCard={(entry) => <NutritionCheckinCard key={entry.id} entry={entry} />} formatShortDate={formatShortDate} t={t} />
+              </TabsContent>
+            )}
+            {hasTraining && (
+              <TabsContent value="training" className="space-y-3">
+                <p className="text-xs text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("clientCheckins.trainingSchedule") }} />
+                {trainingEntries.length === 0 && (
+                  <div className="text-center py-8">
+                    <Dumbbell className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">{t("clientCheckins.noActivePlan")}</p>
+                  </div>
+                )}
+                {trainingEntries.map((entry) => <TrainingLogCard key={entry.id} entry={entry} />)}
+                <HistorySection weeks={pastTrainingWeeks} renderCard={(entry) => <TrainingLogCard key={entry.id} entry={entry} />} formatShortDate={formatShortDate} t={t} />
+              </TabsContent>
+            )}
+          </Tabs>
+        </motion.div>
+      </motion.div>
     </ClientLayout>
   );
 };
