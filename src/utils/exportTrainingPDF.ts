@@ -3,46 +3,88 @@ import autoTable from "jspdf-autotable";
 import type { QuestionnaireEntry } from "@/data/useQuestionnaireStore";
 import { trainingTemplate, nutritionTemplates } from "@/data/questionnaireDefs";
 
+// Brand palette — dark premium + neon green
+const BG_BLACK: [number, number, number] = [0, 0, 0];
+const PANEL_DARK: [number, number, number] = [17, 17, 17];
+const PANEL_MID: [number, number, number] = [30, 30, 30];
+const NEON_GREEN: [number, number, number] = [57, 255, 20];
+const WHITE: [number, number, number] = [255, 255, 255];
+const TEXT_MUTED: [number, number, number] = [140, 140, 140];
+const TEXT_LIGHT: [number, number, number] = [210, 210, 210];
+const BORDER_DARK: [number, number, number] = [50, 50, 50];
+const ALT_ROW: [number, number, number] = [22, 22, 22];
+const RPE_HIGH: [number, number, number] = [255, 80, 80];
+const RPE_LOW: [number, number, number] = [57, 255, 20];
+
+const fillBackground = (doc: jsPDF) => {
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+  doc.setFillColor(...BG_BLACK);
+  doc.rect(0, 0, pw, ph, "F");
+};
+
 export const exportTrainingLogPDF = (entry: QuestionnaireEntry) => {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 15;
+
+  // Black background
+  fillBackground(doc);
+
   let y = 20;
 
   // ── Header ──
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
+  doc.setTextColor(...NEON_GREEN);
   doc.text("JIP Coaching", margin, y);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(120, 120, 120);
+  doc.setTextColor(...TEXT_MUTED);
   doc.text("Registro de Entrenamiento", pageWidth - margin, y, { align: "right" });
   y += 10;
 
-  // Separator line
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.5);
+  // Neon accent line
+  doc.setDrawColor(...NEON_GREEN);
+  doc.setLineWidth(0.7);
   doc.line(margin, y, pageWidth - margin, y);
   y += 8;
 
   // ── Client info ──
   doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(30, 30, 30);
+  doc.setTextColor(...WHITE);
   doc.text(entry.clientName, margin, y);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(100, 100, 100);
+  doc.setTextColor(...TEXT_MUTED);
   doc.text(`${entry.templateName}  ·  ${entry.weekLabel}  ·  ${entry.date}`, margin, y + 5);
   y += 14;
+
+  // Common styles
+  const baseStyles = {
+    fontSize: 8,
+    cellPadding: 2.5,
+    lineColor: [...BORDER_DARK] as [number, number, number],
+    lineWidth: 0.3,
+    textColor: [...TEXT_LIGHT] as [number, number, number],
+    fillColor: [...PANEL_DARK] as [number, number, number],
+  };
+
+  const headStyles = {
+    fillColor: [...PANEL_MID] as [number, number, number],
+    textColor: [...NEON_GREEN] as [number, number, number],
+    fontStyle: "bold" as const,
+    fontSize: 7.5,
+    halign: "center" as const,
+  };
 
   // ── Training log tables ──
   if (entry.trainingLog && entry.trainingLog.length > 0) {
     entry.trainingLog.forEach((day) => {
-      // Day title
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(30, 30, 30);
+      doc.setTextColor(...NEON_GREEN);
       doc.text(`Día ${day.dayNumber}: ${day.dayName}`, margin, y);
       y += 2;
 
@@ -80,37 +122,25 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry) => {
         ],
         body: tableBody,
         theme: "grid",
-        styles: {
-          fontSize: 8,
-          cellPadding: 2.5,
-          lineColor: [220, 220, 220],
-          lineWidth: 0.3,
-        },
-        headStyles: {
-          fillColor: [40, 40, 40],
-          textColor: [255, 255, 255],
-          fontStyle: "bold",
-          fontSize: 7.5,
-          halign: "center",
-        },
+        styles: baseStyles,
+        headStyles,
+        alternateRowStyles: { fillColor: [...ALT_ROW] },
         columnStyles: {
-          0: { fontStyle: "bold", halign: "left", cellWidth: 38 },
+          0: { fontStyle: "bold", halign: "left", cellWidth: 38, textColor: [...WHITE] },
           1: { halign: "center" },
           2: { halign: "center" },
           3: { halign: "center" },
           4: { halign: "center" },
-          5: { halign: "center", fontStyle: "bold" },
+          5: { halign: "center", fontStyle: "bold", textColor: [...WHITE] },
           6: { halign: "center", fontStyle: "bold" },
         },
-        alternateRowStyles: { fillColor: [248, 248, 248] },
         didParseCell: (data) => {
-          // Color RPE diff in actual RPE column
           if (data.section === "body" && data.column.index === 6) {
             const text = String(data.cell.raw || "");
             if (text.includes("(+")) {
-              data.cell.styles.textColor = [220, 50, 50];
+              data.cell.styles.textColor = [...RPE_HIGH];
             } else if (text.includes("(-")) {
-              data.cell.styles.textColor = [50, 150, 50];
+              data.cell.styles.textColor = [...RPE_LOW];
             }
           }
         },
@@ -118,9 +148,9 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry) => {
 
       y = (doc as any).lastAutoTable.finalY + 8;
 
-      // Check if we need a new page
       if (y > doc.internal.pageSize.getHeight() - 40) {
         doc.addPage();
+        fillBackground(doc);
         y = 20;
       }
     });
@@ -130,7 +160,7 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry) => {
   if ((!entry.trainingLog || entry.trainingLog.length === 0) && entry.liftLogs && entry.liftLogs.length > 0) {
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 30, 30);
+    doc.setTextColor(...NEON_GREEN);
     doc.text("Registro de Pesos", margin, y);
     y += 2;
 
@@ -145,11 +175,12 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry) => {
         log.rpe != null ? String(log.rpe) : "—",
       ]),
       theme: "grid",
-      styles: { fontSize: 8, cellPadding: 2.5, lineColor: [220, 220, 220], lineWidth: 0.3 },
-      headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: "bold" },
+      styles: baseStyles,
+      headStyles,
+      alternateRowStyles: { fillColor: [...ALT_ROW] },
       columnStyles: {
-        0: { fontStyle: "bold" },
-        2: { halign: "right", fontStyle: "bold" },
+        0: { fontStyle: "bold", textColor: [...WHITE] },
+        2: { halign: "right", fontStyle: "bold", textColor: [...WHITE] },
         3: { halign: "right" },
       },
     });
@@ -161,12 +192,13 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry) => {
   if (entry.responses && Object.keys(entry.responses).length > 0) {
     if (y > doc.internal.pageSize.getHeight() - 60) {
       doc.addPage();
+      fillBackground(doc);
       y = 20;
     }
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 30, 30);
+    doc.setTextColor(...NEON_GREEN);
     doc.text("Respuestas Generales", margin, y);
     y += 2;
 
@@ -189,11 +221,12 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry) => {
       head: [["Pregunta", "Respuesta"]],
       body: responseRows,
       theme: "grid",
-      styles: { fontSize: 8, cellPadding: 2.5, lineColor: [220, 220, 220], lineWidth: 0.3 },
-      headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: "bold" },
+      styles: baseStyles,
+      headStyles,
+      alternateRowStyles: { fillColor: [...ALT_ROW] },
       columnStyles: {
         0: { cellWidth: 100 },
-        1: { fontStyle: "bold", halign: "right" },
+        1: { fontStyle: "bold", halign: "right", textColor: [...WHITE] },
       },
     });
   }
@@ -202,15 +235,20 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry) => {
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
+    const footerY = doc.internal.pageSize.getHeight() - 10;
+
+    doc.setDrawColor(...BORDER_DARK);
+    doc.setLineWidth(0.3);
+    doc.line(margin, footerY - 4, pageWidth - margin, footerY - 4);
+
     doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(160, 160, 160);
-    const footerY = doc.internal.pageSize.getHeight() - 10;
+    doc.setTextColor(...TEXT_MUTED);
     doc.text(`JIP Coaching — ${entry.clientName} — ${entry.date}`, margin, footerY);
+    doc.setTextColor(...NEON_GREEN);
     doc.text(`${i}/${pageCount}`, pageWidth - margin, footerY, { align: "right" });
   }
 
-  // Download
   const fileName = `${entry.clientName.replace(/\s+/g, "_")}_${entry.templateName.replace(/\s+/g, "_")}_${entry.date}.pdf`;
   doc.save(fileName);
 };
