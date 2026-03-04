@@ -77,32 +77,56 @@ const PlansSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.12, duration: 0.5 }}
-              className={`relative rounded-2xl p-6 sm:p-8 border transition-all ${
+              whileHover={{
+                y: -8,
+                transition: { type: "spring", stiffness: 300 },
+              }}
+              className={`relative rounded-2xl p-6 sm:p-8 border transition-shadow ${
                 plan.accent
-                  ? "bg-gradient-to-b from-primary/10 to-card border-primary/40 shadow-xl shadow-primary/10 scale-[1.03] md:scale-105"
-                  : "bg-card border-border hover:border-primary/20"
+                  ? "bg-gradient-to-b from-primary/10 to-card border-primary/40 shadow-xl shadow-primary/10 scale-[1.03] md:scale-105 hover:shadow-2xl hover:shadow-primary/20"
+                  : "bg-card border-border hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5"
               }`}
             >
               {plan.accent && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider">
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.4 }}
+                  className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider"
+                >
                   {t("landing.plans.popular")}
-                </div>
+                </motion.div>
               )}
 
-              <plan.icon className={`h-8 w-8 mb-4 ${plan.accent ? "text-primary" : "text-muted-foreground"}`} />
+              <motion.div
+                whileHover={{ rotate: [0, -10, 10, 0] }}
+                transition={{ duration: 0.5 }}
+              >
+                <plan.icon className={`h-8 w-8 mb-4 ${plan.accent ? "text-primary" : "text-muted-foreground"}`} />
+              </motion.div>
               <h3 className="text-xl font-bold text-foreground">{lang === "en" ? plan.nameEn : plan.name}</h3>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{lang === "en" ? plan.descriptionEn : plan.description}</p>
 
               <ul className="mt-6 space-y-2.5">
-                {plan.features.map((f) => (
-                  <li key={f.es} className="flex items-start gap-2 text-sm text-foreground/80">
+                {plan.features.map((f, fi) => (
+                  <motion.li
+                    key={f.es}
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.3 + fi * 0.06 }}
+                    className="flex items-start gap-2 text-sm text-foreground/80"
+                  >
                     <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                     {lang === "en" ? f.en : f.es}
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })}
                 className={`mt-8 w-full py-3 rounded-xl text-sm font-bold transition-all ${
                   plan.accent
@@ -111,7 +135,7 @@ const PlansSection = () => {
                 }`}
               >
                 {t("landing.plans.cta")}
-              </button>
+              </motion.button>
             </motion.div>
           ))}
         </div>
