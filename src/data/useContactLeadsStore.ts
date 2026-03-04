@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { useNotificationStore } from "./notificationStore";
 
 export interface ContactLead {
   id: string;
@@ -40,7 +41,7 @@ export const useContactLeadsStore = create<ContactLeadsStore>((set, get) => ({
     },
   ],
 
-  addLead: (lead) =>
+  addLead: (lead) => {
     set((state) => ({
       leads: [
         {
@@ -51,7 +52,16 @@ export const useContactLeadsStore = create<ContactLeadsStore>((set, get) => ({
         },
         ...state.leads,
       ],
-    })),
+    }));
+    // Also push an admin notification
+    useNotificationStore.getState().addNotification({
+      type: "client",
+      titleKey: "header.notifNewLeadTitle",
+      descriptionKey: "header.notifNewLeadDesc",
+      descriptionVars: { name: lead.name },
+      link: "/admin/leads",
+    });
+  },
 
   markAsRead: (id) =>
     set((state) => ({

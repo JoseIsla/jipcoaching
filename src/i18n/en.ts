@@ -94,6 +94,8 @@ const en: Translations = {
     notifCheckinPendingDesc: "{name} hasn't submitted their Friday check-in.",
     notifPlanEndingTitle: "Plan ending soon",
     notifPlanEndingDesc: "{name}'s plan ({plan}) ends in {days} week.",
+    notifNewLeadTitle: "New contact lead",
+    notifNewLeadDesc: "{name} has sent a message from the landing page.",
     notifSystemUpdateTitle: "System update",
     notifSystemUpdateDesc: "New metrics have been added to the progress panel.",
   },

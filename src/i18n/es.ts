@@ -92,6 +92,8 @@ const es = {
     notifCheckinPendingDesc: "{name} no ha enviado su check-in del viernes.",
     notifPlanEndingTitle: "Plan próximo a finalizar",
     notifPlanEndingDesc: "El plan de {name} ({plan}) termina en {days} semana.",
+    notifNewLeadTitle: "Nuevo lead de contacto",
+    notifNewLeadDesc: "{name} ha enviado un mensaje desde la landing.",
     notifSystemUpdateTitle: "Actualización del sistema",
     notifSystemUpdateDesc: "Se han añadido nuevas métricas al panel de progreso.",
   },
