@@ -9,6 +9,7 @@ import { useNutritionPlanStore } from "@/data/useNutritionPlanStore";
 import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
 import { useQuestionnaireStore, isActionablePending } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
+import ClientTestimonialCard from "@/components/client/ClientTestimonialCard";
 
 const ClientHome = () => {
   const { t } = useTranslation();
@@ -122,6 +123,9 @@ const ClientHome = () => {
             <p className="text-xs text-muted-foreground mt-0.5">{weightHistory.length > 0 ? t("clientHome.records", { n: weightHistory.length }) : t("clientHome.viewMetrics")}</p>
           </motion.button>
         </div>
+
+        {/* Testimonial */}
+        <ClientTestimonialCard />
       </div>
     </ClientLayout>
   );

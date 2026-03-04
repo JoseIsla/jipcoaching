@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, LogIn } from "lucide-react";
+import { Menu, X, LogIn, LayoutDashboard } from "lucide-react";
 import logoJip from "@/assets/logo-jip.png";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { label: "Inicio", href: "#hero" },
@@ -16,6 +17,8 @@ const navItems = [
 const LandingNavbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { status, role } = useAuth();
+  const isLoggedIn = status === "authenticated" && role;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -28,6 +31,8 @@ const LandingNavbar = () => {
     const el = document.querySelector(href);
     el?.scrollIntoView({ behavior: "smooth" });
   };
+
+  const panelPath = role === "admin" ? "/admin" : "/client";
 
   return (
     <motion.nav
@@ -60,15 +65,25 @@ const LandingNavbar = () => {
             ))}
           </div>
 
-          {/* Login + Mobile toggle */}
+          {/* Login/Panel + Mobile toggle */}
           <div className="flex items-center gap-2">
-            <Link
-              to="/login"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:brightness-110 transition-all"
-            >
-              <LogIn className="h-4 w-4" />
-              <span className="hidden sm:inline">Acceder</span>
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                to={panelPath}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:brightness-110 transition-all"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                <span className="hidden sm:inline">Mi Panel</span>
+              </Link>
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:brightness-110 transition-all"
+              >
+                <LogIn className="h-4 w-4" />
+                <span className="hidden sm:inline">Acceder</span>
+              </Link>
+            )}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="lg:hidden p-2 text-foreground hover:bg-muted/50 rounded-lg transition-colors"
