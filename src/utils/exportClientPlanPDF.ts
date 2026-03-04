@@ -4,30 +4,51 @@ import type { NutritionPlanDetail, Meal, Supplement } from "@/data/nutritionPlan
 import type { TrainingPlanFull, TrainingWeek } from "@/data/trainingPlanStore";
 
 const MARGIN = 15;
-const GREEN = [30, 200, 80] as const;
-const DARK = [25, 25, 25] as const;
-const GRAY = [120, 120, 120] as const;
-const LIGHT_GRAY = [220, 220, 220] as const;
+
+// Brand palette — dark premium + neon green
+const BG_BLACK: [number, number, number] = [0, 0, 0];
+const PANEL_DARK: [number, number, number] = [17, 17, 17];
+const PANEL_MID: [number, number, number] = [30, 30, 30];
+const NEON_GREEN: [number, number, number] = [57, 255, 20];
+const WHITE: [number, number, number] = [255, 255, 255];
+const TEXT_MUTED: [number, number, number] = [140, 140, 140];
+const TEXT_LIGHT: [number, number, number] = [210, 210, 210];
+const BORDER_DARK: [number, number, number] = [50, 50, 50];
+
+const fillBackground = (doc: jsPDF) => {
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+  doc.setFillColor(...BG_BLACK);
+  doc.rect(0, 0, pw, ph, "F");
+};
 
 const addHeader = (doc: jsPDF, title: string, subtitle: string) => {
+  fillBackground(doc);
   const pw = doc.internal.pageSize.getWidth();
   let y = 20;
+
+  // Brand name in neon green
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(...DARK);
+  doc.setTextColor(...NEON_GREEN);
   doc.text("JIP Coaching", MARGIN, y);
+
+  // Section title
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(...GRAY);
+  doc.setTextColor(...TEXT_MUTED);
   doc.text(title, pw - MARGIN, y, { align: "right" });
+
   y += 10;
-  doc.setDrawColor(...LIGHT_GRAY);
-  doc.setLineWidth(0.5);
+  // Neon accent line
+  doc.setDrawColor(...NEON_GREEN);
+  doc.setLineWidth(0.7);
   doc.line(MARGIN, y, pw - MARGIN, y);
+
   y += 8;
   doc.setFontSize(13);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(...DARK);
+  doc.setTextColor(...WHITE);
   doc.text(subtitle, MARGIN, y);
   y += 6;
   return y;
@@ -39,11 +60,18 @@ const addFooter = (doc: jsPDF, clientName: string) => {
   const date = new Date().toLocaleDateString("es-ES");
   for (let i = 1; i <= pages; i++) {
     doc.setPage(i);
+    const fy = doc.internal.pageSize.getHeight() - 10;
+
+    // Subtle separator
+    doc.setDrawColor(...BORDER_DARK);
+    doc.setLineWidth(0.3);
+    doc.line(MARGIN, fy - 4, pw - MARGIN, fy - 4);
+
     doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(160, 160, 160);
-    const fy = doc.internal.pageSize.getHeight() - 10;
+    doc.setTextColor(...TEXT_MUTED);
     doc.text(`JIP Coaching — ${clientName} — ${date}`, MARGIN, fy);
+    doc.setTextColor(...NEON_GREEN);
     doc.text(`${i}/${pages}`, pw - MARGIN, fy, { align: "right" });
   }
 };
@@ -51,10 +79,37 @@ const addFooter = (doc: jsPDF, clientName: string) => {
 const checkPage = (doc: jsPDF, y: number, needed = 40): number => {
   if (y > doc.internal.pageSize.getHeight() - needed) {
     doc.addPage();
+    fillBackground(doc);
     return 20;
   }
   return y;
 };
+
+// Common table styles matching brand
+const baseStyles = {
+  fontSize: 8,
+  cellPadding: 3,
+  lineColor: [...BORDER_DARK] as [number, number, number],
+  lineWidth: 0.3,
+  textColor: [...TEXT_LIGHT] as [number, number, number],
+  fillColor: [...PANEL_DARK] as [number, number, number],
+};
+
+const headStylesPrimary = {
+  fillColor: [...PANEL_MID] as [number, number, number],
+  textColor: [...NEON_GREEN] as [number, number, number],
+  fontStyle: "bold" as const,
+  fontSize: 8,
+};
+
+const headStylesSecondary = {
+  fillColor: [...PANEL_DARK] as [number, number, number],
+  textColor: [...TEXT_MUTED] as [number, number, number],
+  fontStyle: "bold" as const,
+  fontSize: 7.5,
+};
+
+const altRowColor: [number, number, number] = [22, 22, 22];
 
 // ─── NUTRITION PLAN PDF ───
 
@@ -70,7 +125,7 @@ export const exportNutritionPlanPDF = (
   // Client
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(...GRAY);
+  doc.setTextColor(...TEXT_MUTED);
   doc.text(`Cliente: ${clientName}`, MARGIN, y);
   y += 6;
 
@@ -78,30 +133,27 @@ export const exportNutritionPlanPDF = (
   if (plan.objective) {
     doc.setFontSize(9);
     doc.setFont("helvetica", "italic");
-    doc.setTextColor(80, 80, 80);
+    doc.setTextColor(...TEXT_LIGHT);
     const lines = doc.splitTextToSize(plan.objective, doc.internal.pageSize.getWidth() - MARGIN * 2);
     doc.text(lines, MARGIN, y);
     y += lines.length * 4 + 4;
   }
 
-  // Macros table
-  const macroData = [
-    [
-      String(plan.calories || "—"),
-      `${plan.protein || "—"}g`,
-      `${plan.carbs || "—"}g`,
-      `${plan.fats || "—"}g`,
-    ],
-  ];
+  // Macros table — highlight with neon green headers
   autoTable(doc, {
     startY: y,
     margin: { left: MARGIN, right: MARGIN },
     head: [["Kcal", "Proteínas", "Carbohidratos", "Grasas"]],
-    body: macroData,
+    body: [[
+      String(plan.calories || "—"),
+      `${plan.protein || "—"}g`,
+      `${plan.carbs || "—"}g`,
+      `${plan.fats || "—"}g`,
+    ]],
     theme: "grid",
-    styles: { fontSize: 10, cellPadding: 4, halign: "center", lineColor: [...LIGHT_GRAY], lineWidth: 0.3 },
-    headStyles: { fillColor: [...DARK], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
-    bodyStyles: { fontStyle: "bold", fontSize: 11 },
+    styles: { ...baseStyles, fontSize: 10, cellPadding: 4, halign: "center" },
+    headStyles: { ...headStylesPrimary, fontSize: 9 },
+    bodyStyles: { fontStyle: "bold", fontSize: 12, textColor: [...WHITE] as [number, number, number] },
   });
   y = (doc as any).lastAutoTable.finalY + 8;
 
@@ -110,14 +162,14 @@ export const exportNutritionPlanPDF = (
     y = checkPage(doc, y, 30);
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(...DARK);
+    doc.setTextColor(...NEON_GREEN);
     doc.text(`🍽 ${meal.name}`, MARGIN, y);
     y += 2;
 
     if (meal.description) {
       doc.setFontSize(8);
       doc.setFont("helvetica", "italic");
-      doc.setTextColor(...GRAY);
+      doc.setTextColor(...TEXT_MUTED);
       doc.text(meal.description, MARGIN, y + 3);
       y += 6;
     }
@@ -139,12 +191,13 @@ export const exportNutritionPlanPDF = (
         head: [[{ content: `Opción ${optIdx + 1}${opt.notes ? ` — ${opt.notes}` : ""}`, colSpan: 3 }]],
         body: tableBody,
         theme: "grid",
-        styles: { fontSize: 8, cellPadding: 2.5, lineColor: [...LIGHT_GRAY], lineWidth: 0.3 },
-        headStyles: { fillColor: [50, 50, 50], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 8 },
+        styles: { ...baseStyles, cellPadding: 2.5 },
+        headStyles: headStylesSecondary,
+        alternateRowStyles: { fillColor: [...altRowColor] },
         columnStyles: {
-          0: { cellWidth: 25, halign: "center", fontSize: 7 },
-          1: { fontStyle: "bold" },
-          2: { fontSize: 7, textColor: [...GRAY] },
+          0: { cellWidth: 25, halign: "center", fontSize: 7, textColor: [...NEON_GREEN] },
+          1: { fontStyle: "bold", textColor: [...WHITE] },
+          2: { fontSize: 7, textColor: [...TEXT_MUTED] },
         },
       });
       y = (doc as any).lastAutoTable.finalY + 4;
@@ -157,7 +210,7 @@ export const exportNutritionPlanPDF = (
     y = checkPage(doc, y, 30);
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(...DARK);
+    doc.setTextColor(...NEON_GREEN);
     doc.text("💊 Suplementación", MARGIN, y);
     y += 2;
     autoTable(doc, {
@@ -166,8 +219,9 @@ export const exportNutritionPlanPDF = (
       head: [["Suplemento", "Dosis", "Momento"]],
       body: supplements.map((s) => [s.name, s.dose, s.timing]),
       theme: "grid",
-      styles: { fontSize: 8, cellPadding: 2.5, lineColor: [...LIGHT_GRAY], lineWidth: 0.3 },
-      headStyles: { fillColor: [...DARK], textColor: [255, 255, 255], fontStyle: "bold" },
+      styles: baseStyles,
+      headStyles: headStylesPrimary,
+      alternateRowStyles: { fillColor: [...altRowColor] },
     });
     y = (doc as any).lastAutoTable.finalY + 6;
   }
@@ -177,12 +231,12 @@ export const exportNutritionPlanPDF = (
     y = checkPage(doc, y, 20);
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(...DARK);
+    doc.setTextColor(...NEON_GREEN);
     doc.text("📌 Recomendaciones", MARGIN, y);
     y += 5;
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(60, 60, 60);
+    doc.setTextColor(...TEXT_LIGHT);
     plan.recommendations.forEach((r) => {
       y = checkPage(doc, y, 8);
       const lines = doc.splitTextToSize(`• ${r}`, doc.internal.pageSize.getWidth() - MARGIN * 2);
@@ -208,7 +262,7 @@ export const exportTrainingWeekPDF = (
   // Subtitle
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(...GRAY);
+  doc.setTextColor(...TEXT_MUTED);
   doc.text(`${clientName}  ·  ${plan.modality} · ${week.block || plan.block}  ·  Semana ${week.weekNumber}`, MARGIN, y);
   y += 8;
 
@@ -216,7 +270,7 @@ export const exportTrainingWeekPDF = (
   if (week.generalNotes) {
     doc.setFontSize(8);
     doc.setFont("helvetica", "italic");
-    doc.setTextColor(80, 80, 80);
+    doc.setTextColor(...TEXT_LIGHT);
     const lines = doc.splitTextToSize(week.generalNotes, doc.internal.pageSize.getWidth() - MARGIN * 2);
     doc.text(lines, MARGIN, y);
     y += lines.length * 3.5 + 4;
@@ -226,16 +280,17 @@ export const exportTrainingWeekPDF = (
   week.days.forEach((day) => {
     y = checkPage(doc, y, 35);
 
+    // Day header with neon green accent
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(...DARK);
+    doc.setTextColor(...NEON_GREEN);
     doc.text(`Día ${day.dayNumber} — ${day.name}`, MARGIN, y);
     y += 2;
 
     if (day.warmup) {
       doc.setFontSize(7);
       doc.setFont("helvetica", "italic");
-      doc.setTextColor(...GRAY);
+      doc.setTextColor(...TEXT_MUTED);
       doc.text(`🔥 ${day.warmup}`, MARGIN, y + 3);
       y += 6;
     }
@@ -267,13 +322,14 @@ export const exportTrainingWeekPDF = (
         head: [["Ejercicio", "Método", "Prescripción", "Notas"]],
         body: basicRows,
         theme: "grid",
-        styles: { fontSize: 8, cellPadding: 2.5, lineColor: [...LIGHT_GRAY], lineWidth: 0.3 },
-        headStyles: { fillColor: [...DARK], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 7.5 },
+        styles: { ...baseStyles, cellPadding: 2.5 },
+        headStyles: { ...headStylesPrimary, fontSize: 7.5 },
+        alternateRowStyles: { fillColor: [...altRowColor] },
         columnStyles: {
-          0: { fontStyle: "bold", cellWidth: 40 },
+          0: { fontStyle: "bold", cellWidth: 40, textColor: [...WHITE] },
           1: { cellWidth: 28, fontSize: 7 },
           2: { cellWidth: 50 },
-          3: { fontSize: 7, textColor: [...GRAY] },
+          3: { fontSize: 7, textColor: [...TEXT_MUTED] },
         },
       });
       y = (doc as any).lastAutoTable.finalY + 3;
@@ -284,7 +340,7 @@ export const exportTrainingWeekPDF = (
       y = checkPage(doc, y, 15);
       doc.setFontSize(8);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(...GRAY);
+      doc.setTextColor(...TEXT_MUTED);
       doc.text("Accesorios", MARGIN, y + 2);
       y += 3;
 
@@ -302,11 +358,12 @@ export const exportTrainingWeekPDF = (
         head: [["Accesorio", "Volumen", "Notas"]],
         body: accRows,
         theme: "grid",
-        styles: { fontSize: 7.5, cellPadding: 2, lineColor: [...LIGHT_GRAY], lineWidth: 0.3 },
-        headStyles: { fillColor: [80, 80, 80], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 7 },
+        styles: { ...baseStyles, fontSize: 7.5, cellPadding: 2 },
+        headStyles: headStylesSecondary,
+        alternateRowStyles: { fillColor: [...altRowColor] },
         columnStyles: {
-          0: { fontStyle: "bold" },
-          2: { fontSize: 7, textColor: [...GRAY] },
+          0: { fontStyle: "bold", textColor: [...WHITE] },
+          2: { fontSize: 7, textColor: [...TEXT_MUTED] },
         },
       });
       y = (doc as any).lastAutoTable.finalY + 3;
@@ -315,7 +372,7 @@ export const exportTrainingWeekPDF = (
     if (day.exercises.length === 0) {
       doc.setFontSize(8);
       doc.setFont("helvetica", "italic");
-      doc.setTextColor(...GRAY);
+      doc.setTextColor(...TEXT_MUTED);
       doc.text("Sin ejercicios asignados", MARGIN, y + 3);
       y += 8;
     }
