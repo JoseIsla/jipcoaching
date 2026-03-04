@@ -717,6 +717,13 @@ const es = {
       hostedBy: "Alojado por",
     },
   },
+  cookies: {
+    title: "Este sitio usa cookies 🍪",
+    description: "Utilizamos cookies técnicas y de preferencias para mejorar tu experiencia de navegación.",
+    learnMore: "Más información",
+    accept: "Aceptar",
+    reject: "Rechazar",
+  },
 } as const;
 
 export default es;
