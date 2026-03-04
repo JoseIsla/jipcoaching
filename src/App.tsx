@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AdminProfileProvider } from "@/contexts/AdminProfileContext";
 import { ClientProvider } from "@/contexts/ClientContext";
+import { ClientProfileProvider } from "@/contexts/ClientProfileContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthHomeRedirect, PublicRoute, RoleRoute } from "@/components/auth/AuthRoute";
 import LandingPage from "./pages/LandingPage";
@@ -44,6 +45,7 @@ const App = () => (
       <AuthProvider>
         <AdminProfileProvider>
           <ClientProvider>
+            <ClientProfileProvider>
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<LandingPage />} />
@@ -82,6 +84,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
+            </ClientProfileProvider>
           </ClientProvider>
         </AdminProfileProvider>
       </AuthProvider>

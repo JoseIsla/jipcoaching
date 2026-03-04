@@ -1,24 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import ClientLayout from "@/components/client/ClientLayout";
-import { useClient } from "@/contexts/ClientContext";
-import { useClientStore } from "@/data/useClientStore";
+import { useClientProfile } from "@/contexts/ClientProfileContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Camera, Mail, Lock, User, Check, Eye, EyeOff, Globe, Trash2, Volume2, Vibrate } from "lucide-react";
+import { Camera, Mail, Lock, User, Eye, EyeOff, Globe, Trash2, Volume2, Vibrate, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useLanguageStore, type Language } from "@/i18n/store";
 import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 
 const ClientSettings = () => {
-  const { client } = useClient();
-  const updateClient = useClientStore((s) => s.updateClient);
+  const { profile, loading, saving, saveProfile, handleUploadAvatar, handleDeleteAvatar, handleChangeEmail, handleChangePassword } = useClientProfile();
   const { toast } = useToast();
   const { t } = useTranslation();
   const setAppLanguage = useLanguageStore((s) => s.setLanguage);
@@ -28,89 +27,123 @@ const ClientSettings = () => {
   const setNotifSound = useClientPreferencesStore((s) => s.setNotificationSound);
   const setNotifVibration = useClientPreferencesStore((s) => s.setNotificationVibration);
 
-  const initials = client.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Profile
-  const [name, setName] = useState(client.name);
+  // Profile fields
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-
-  // Sync name when client changes
-  useEffect(() => {
-    setName(client.name);
-    setAvatarPreview(client.avatarUrl ?? null);
-  }, [client.id, client.name, client.avatarUrl]);
+  const [isDirty, setIsDirty] = useState(false);
 
   // Email change
-  const [newEmail, setNewEmail] = useState("");
-  const [emailSent, setEmailSent] = useState(false);
+  const [emailChange, setEmailChange] = useState({ newEmail: "", password: "" });
 
   // Password change
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
   const [showCurrentPw, setShowCurrentPw] = useState(false);
   const [showNewPw, setShowNewPw] = useState(false);
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Sync from profile
+  useEffect(() => {
+    if (profile) {
+      setName(profile.name);
+      setPhone(profile.phone);
+      setIsDirty(false);
+    }
+  }, [profile]);
+
+  // Track dirty
+  useEffect(() => {
+    if (!profile) return;
+    setIsDirty(name !== profile.name || phone !== profile.phone);
+  }, [name, phone, profile]);
+
+  const initials = (profile?.name || "")
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const handleAvatarSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUrl = reader.result as string;
-        setAvatarPreview(dataUrl);
-        // Persist avatar to store immediately
-        updateClient(client.id, { avatarUrl: dataUrl });
-        toast({ title: t("clientSettings.profilePicture"), description: t("clientSettings.profileUpdatedDesc") });
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    const res = await handleUploadAvatar(file);
+    if (res.success) {
+      toast({ title: t("clientSettings.profilePicture"), description: t("clientSettings.profileUpdatedDesc") });
+    } else {
+      toast({ title: "Error", description: res.error || "", variant: "destructive" });
+    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleRemoveAvatar = async () => {
+    const res = await handleDeleteAvatar();
+    if (res.success) {
+      toast({ title: t("clientSettings.profilePicture"), description: t("clientSettings.profileUpdatedDesc") });
     }
   };
 
-  const handleRemoveAvatar = () => {
-    setAvatarPreview(null);
-    updateClient(client.id, { avatarUrl: null });
-    toast({ title: t("clientSettings.profilePicture"), description: t("clientSettings.profileUpdatedDesc") });
-  };
-
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!name.trim()) {
-      toast({ title: t("clientSettings.invalidEmail"), description: "El nombre no puede estar vacío.", variant: "destructive" });
+      toast({ title: "Error", description: "El nombre no puede estar vacío.", variant: "destructive" });
       return;
     }
-    updateClient(client.id, { name: name.trim() });
-    toast({ title: t("clientSettings.profileUpdated"), description: t("clientSettings.profileUpdatedDesc") });
+    const res = await saveProfile({ name: name.trim(), phone });
+    if (res.success) {
+      toast({ title: t("clientSettings.profileUpdated"), description: t("clientSettings.profileUpdatedDesc") });
+    } else {
+      toast({ title: "Error", description: res.error || "", variant: "destructive" });
+    }
   };
 
-  const handleChangeEmail = () => {
-    if (!newEmail.includes("@")) {
+  const onChangeEmail = async () => {
+    if (!emailChange.newEmail || !emailChange.password) {
+      toast({ title: "Error", description: "Completa todos los campos.", variant: "destructive" });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailChange.newEmail)) {
       toast({ title: t("clientSettings.invalidEmail"), description: t("clientSettings.invalidEmailDesc"), variant: "destructive" });
       return;
     }
-    setEmailSent(true);
-    toast({
-      title: t("clientSettings.verificationSentTitle"),
-      description: t("clientSettings.verificationSentDesc", { email: newEmail }),
+    const res = await handleChangeEmail({
+      newEmail: emailChange.newEmail,
+      currentPassword: emailChange.password,
     });
+    if (res.success) {
+      toast({
+        title: t("clientSettings.verificationSentTitle"),
+        description: t("clientSettings.verificationSentDesc", { email: emailChange.newEmail }),
+      });
+      setEmailChange({ newEmail: "", password: "" });
+    } else {
+      toast({ title: "Error", description: res.error || "", variant: "destructive" });
+    }
   };
 
-  const handleChangePassword = () => {
-    if (newPassword.length < 6) {
+  const onChangePassword = async () => {
+    if (!passwords.current || !passwords.new || !passwords.confirm) {
+      toast({ title: "Error", description: "Completa todos los campos.", variant: "destructive" });
+      return;
+    }
+    if (passwords.new.length < 6) {
       toast({ title: t("clientSettings.passwordTooShort"), description: t("clientSettings.passwordTooShortDesc"), variant: "destructive" });
       return;
     }
-    if (newPassword !== confirmPassword) {
+    if (passwords.new !== passwords.confirm) {
       toast({ title: t("clientSettings.passwordMismatch"), description: t("clientSettings.passwordMismatchDesc"), variant: "destructive" });
       return;
     }
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    toast({ title: t("clientSettings.passwordUpdated"), description: t("clientSettings.passwordUpdatedDesc") });
+    const res = await handleChangePassword({
+      currentPassword: passwords.current,
+      newPassword: passwords.new,
+    });
+    if (res.success) {
+      toast({ title: t("clientSettings.passwordUpdated"), description: t("clientSettings.passwordUpdatedDesc") });
+      setPasswords({ current: "", new: "", confirm: "" });
+    } else {
+      toast({ title: "Error", description: res.error || "", variant: "destructive" });
+    }
   };
 
   const stagger = { animate: { transition: { staggerChildren: 0.07 } } };
@@ -118,6 +151,23 @@ const ClientSettings = () => {
     initial: { opacity: 0, y: 16 },
     animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
   };
+
+  if (loading) {
+    return (
+      <ClientLayout>
+        <div className="space-y-6 max-w-lg mx-auto pb-8">
+          <Skeleton className="h-8 w-48" />
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-card border border-border rounded-xl p-5 space-y-4">
+              <Skeleton className="h-20 w-20 rounded-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ))}
+        </div>
+      </ClientLayout>
+    );
+  }
 
   return (
     <ClientLayout>
@@ -134,39 +184,35 @@ const ClientSettings = () => {
         <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground">{t("clientSettings.profilePicture")}</h2>
           <div className="flex items-center gap-4">
-            <div className="relative">
+            <div className="relative group">
               <Avatar className="h-20 w-20 border-2 border-primary/30">
-                <AvatarImage src={avatarPreview || client.avatarUrl || undefined} />
+                <AvatarImage src={profile?.avatarUrl || undefined} />
                 <AvatarFallback className="bg-primary/10 text-primary text-lg font-bold">
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <label
-                htmlFor="avatar-upload"
-                className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1.5 cursor-pointer hover:brightness-110 transition-all"
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
               >
-                <Camera className="h-3.5 w-3.5" />
-              </label>
-              <input
-                id="avatar-upload"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarChange}
-              />
+                <Camera className="h-5 w-5 text-foreground" />
+              </button>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">{client.name}</p>
-              <p className="text-xs text-muted-foreground truncate">{client.email}</p>
-              {(avatarPreview || client.avatarUrl) && (
-                <button
-                  onClick={handleRemoveAvatar}
-                  className="mt-1.5 flex items-center gap-1 text-[11px] text-destructive hover:underline"
-                >
-                  <Trash2 className="h-3 w-3" />
-                  Eliminar foto
-                </button>
-              )}
+              <p className="text-sm font-medium text-foreground truncate">{profile?.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
+              <div className="flex gap-2 mt-2">
+                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={saving}>
+                  {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Camera className="h-4 w-4 mr-1" />}
+                  Cambiar
+                </Button>
+                {profile?.avatarUrl && (
+                  <Button variant="outline" size="sm" onClick={handleRemoveAvatar} disabled={saving} className="text-destructive hover:text-destructive">
+                    <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+                  </Button>
+                )}
+              </div>
+              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatarSelect} />
             </div>
           </div>
 
@@ -189,7 +235,8 @@ const ClientSettings = () => {
                 className="bg-background border-border h-10"
               />
             </div>
-            <Button onClick={handleSaveProfile} className="w-full glow-primary-sm">
+            <Button onClick={handleSaveProfile} className="w-full glow-primary-sm" disabled={!isDirty || saving}>
+              {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
               {t("clientSettings.saveChanges")}
             </Button>
           </div>
@@ -204,26 +251,36 @@ const ClientSettings = () => {
           <p className="text-xs text-muted-foreground">
             {t("clientSettings.changeEmailDesc")}
           </p>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">{t("clientSettings.newEmail")}</Label>
-            <Input
-              type="email"
-              value={newEmail}
-              onChange={(e) => { setNewEmail(e.target.value); setEmailSent(false); }}
-              placeholder="nuevo@email.com"
-              className="bg-background border-border h-10"
-            />
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground">Email actual:</span>
+            <span className="text-foreground font-medium">{profile?.email}</span>
           </div>
-          {emailSent ? (
-            <div className="flex items-center gap-2 text-xs text-primary">
-              <Check className="h-3.5 w-3.5" />
-              <span>{t("clientSettings.verificationSent")}</span>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">{t("clientSettings.newEmail")}</Label>
+              <Input
+                type="email"
+                value={emailChange.newEmail}
+                onChange={(e) => setEmailChange({ ...emailChange, newEmail: e.target.value })}
+                placeholder="nuevo@email.com"
+                className="bg-background border-border h-10"
+              />
             </div>
-          ) : (
-            <Button onClick={handleChangeEmail} variant="outline" className="w-full border-border">
-              {t("clientSettings.sendVerification")}
-            </Button>
-          )}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Contraseña actual</Label>
+              <Input
+                type="password"
+                value={emailChange.password}
+                onChange={(e) => setEmailChange({ ...emailChange, password: e.target.value })}
+                placeholder="••••••••"
+                className="bg-background border-border h-10"
+              />
+            </div>
+          </div>
+          <Button onClick={onChangeEmail} variant="outline" className="w-full border-border" disabled={saving}>
+            {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
+            {t("clientSettings.sendVerification")}
+          </Button>
         </motion.div>
 
         {/* Change Password */}
@@ -238,8 +295,9 @@ const ClientSettings = () => {
               <div className="relative">
                 <Input
                   type={showCurrentPw ? "text" : "password"}
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  value={passwords.current}
+                  onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
+                  placeholder="••••••••"
                   className="bg-background border-border h-10 pr-10"
                 />
                 <button
@@ -256,8 +314,9 @@ const ClientSettings = () => {
               <div className="relative">
                 <Input
                   type={showNewPw ? "text" : "password"}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  value={passwords.new}
+                  onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
+                  placeholder="••••••••"
                   className="bg-background border-border h-10 pr-10"
                 />
                 <button
@@ -273,12 +332,14 @@ const ClientSettings = () => {
               <Label className="text-xs text-muted-foreground">{t("clientSettings.confirmPassword")}</Label>
               <Input
                 type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                value={passwords.confirm}
+                onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
+                placeholder="••••••••"
                 className="bg-background border-border h-10"
               />
             </div>
-            <Button onClick={handleChangePassword} variant="outline" className="w-full border-border">
+            <Button onClick={onChangePassword} variant="outline" className="w-full border-border" disabled={saving}>
+              {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
               {t("clientSettings.changePasswordBtn")}
             </Button>
           </div>
