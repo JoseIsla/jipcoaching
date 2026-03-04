@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
 import { Star, Quote } from "lucide-react";
 import { useTestimonialStore } from "@/data/useTestimonialStore";
+import { useTranslation } from "@/i18n/useTranslation";
 
 const TestimonialsSection = () => {
+  const { t } = useTranslation();
   const testimonials = useTestimonialStore((s) => s.testimonials);
 
   if (testimonials.length === 0) return null;
@@ -16,16 +18,14 @@ const TestimonialsSection = () => {
           viewport={{ once: true, margin: "-100px" }}
           className="text-center mb-16"
         >
-          <span className="text-primary text-xs font-bold uppercase tracking-widest">Testimonios</span>
-          <h2 className="mt-3 text-3xl sm:text-4xl font-black text-foreground">
-            Lo que dicen mis clientes
-          </h2>
+          <span className="text-primary text-xs font-bold uppercase tracking-widest">{t("landing.testimonials.label")}</span>
+          <h2 className="mt-3 text-3xl sm:text-4xl font-black text-foreground">{t("landing.testimonials.title")}</h2>
         </motion.div>
 
         <div className="grid sm:grid-cols-2 gap-5">
-          {testimonials.map((t, i) => (
+          {testimonials.map((te, i) => (
             <motion.div
-              key={t.id}
+              key={te.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -34,15 +34,13 @@ const TestimonialsSection = () => {
             >
               <Quote className="h-6 w-6 text-primary/30 absolute top-5 right-5" />
               <div className="flex gap-0.5 mb-4">
-                {Array.from({ length: t.rating }).map((_, j) => (
+                {Array.from({ length: te.rating }).map((_, j) => (
                   <Star key={j} className="h-4 w-4 fill-primary text-primary" />
                 ))}
               </div>
-              <p className="text-foreground/80 text-sm sm:text-base leading-relaxed italic">
-                "{t.text}"
-              </p>
+              <p className="text-foreground/80 text-sm sm:text-base leading-relaxed italic">"{te.text}"</p>
               <p className="mt-4 text-sm font-bold text-foreground">
-                {t.clientName.split(" ")[0]} {t.clientName.split(" ")[1]?.[0] ? `${t.clientName.split(" ")[1][0]}.` : ""}
+                {te.clientName.split(" ")[0]} {te.clientName.split(" ")[1]?.[0] ? `${te.clientName.split(" ")[1][0]}.` : ""}
               </p>
             </motion.div>
           ))}

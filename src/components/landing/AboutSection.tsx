@@ -1,49 +1,39 @@
 import { motion } from "framer-motion";
 import { Award, Users, Calendar, GraduationCap } from "lucide-react";
 import coachAbout from "@/assets/coach-about.jpg";
-
-const stats = [
-  { icon: Users, value: "50+", label: "Clientes activos" },
-  { icon: Calendar, value: "5+", label: "Años de experiencia" },
-  { icon: Award, value: "100%", label: "Planes a medida" },
-  { icon: GraduationCap, value: "NSCA", label: "Certificación" },
-];
+import { useTranslation } from "@/i18n/useTranslation";
 
 const AboutSection = () => {
+  const { t } = useTranslation();
+
+  const stats = [
+    { icon: Users, value: "50+", label: t("landing.about.stat1") },
+    { icon: Calendar, value: "5+", label: t("landing.about.stat2") },
+    { icon: Award, value: "100%", label: t("landing.about.stat3") },
+    { icon: GraduationCap, value: "NSCA", label: t("landing.about.stat4") },
+  ];
+
   return (
     <section id="about" className="relative py-24 sm:py-32 bg-card">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Text side */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-primary text-xs font-bold uppercase tracking-widest">Sobre mí</span>
+            <span className="text-primary text-xs font-bold uppercase tracking-widest">{t("landing.about.label")}</span>
             <h2 className="mt-3 text-3xl sm:text-4xl font-black text-foreground leading-tight">
-              Tu coach de rendimiento y nutrición
+              {t("landing.about.title")}
             </h2>
             <div className="mt-6 space-y-4 text-muted-foreground text-sm sm:text-base leading-relaxed">
-              <p>
-                Soy entrenador, nutricionista y competidor de powerlifting con varios años de experiencia
-                en tarima. Vivo en primera persona lo que enseño — conozco las exigencias de la preparación,
-                la periodización y la nutrición deportiva porque las aplico en mi propio rendimiento.
-              </p>
-              <p>
-                Mi enfoque combina la evidencia científica con la experiencia práctica de la competición.
-                Cada plan que diseño se adapta a tu estilo de vida, tus preferencias y tus objetivos — ya sea
-                perder grasa, ganar masa muscular, mejorar tu rendimiento deportivo o simplemente sentirte mejor.
-              </p>
-              <p>
-                No creo en las soluciones rápidas ni en los planes genéricos. Creo en el proceso, la consistencia
-                y en la relación de confianza con cada uno de mis clientes.
-              </p>
+              <p>{t("landing.about.p1")}</p>
+              <p>{t("landing.about.p2")}</p>
+              <p>{t("landing.about.p3")}</p>
             </div>
           </motion.div>
 
-          {/* Photo + Stats */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -51,7 +41,6 @@ const AboutSection = () => {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="space-y-6"
           >
-            {/* Coach photo */}
             <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-border">
               <img
                 src={coachAbout}
@@ -59,13 +48,10 @@ const AboutSection = () => {
                 className="w-full h-full object-cover object-top"
                 loading="lazy"
               />
-              {/* Gradient overlay at bottom */}
               <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
-              {/* Decorative glow */}
               <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-primary/10" />
             </div>
 
-            {/* Stats grid */}
             <div className="grid grid-cols-2 gap-3">
               {stats.map(({ icon: Icon, value, label }, i) => (
                 <motion.div
