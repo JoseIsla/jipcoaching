@@ -43,6 +43,10 @@ const playNotificationFeedback = () => {
   }
 };
 
+// Module-level flags so they survive component remounts during tab navigation
+let sessionToastShown = false;
+let sessionPrevPending = 0;
+
 const ClientLayout = ({ children }: { children: ReactNode }) => {
   const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
   const { t } = useTranslation();
@@ -51,7 +55,6 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const toastShownRef = useRef(false);
 
   useEffect(() => { if (userId) setCurrentUser(userId); }, [setCurrentUser, userId]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -132,36 +135,29 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
     }
   }, [client.id, client.services, pendingEntries.length, pendingNutrition.length, pendingTraining.length]);
 
-  // Auto-toast on login only — show once per session, dismiss quickly to avoid blocking mobile UI
-  const prevPendingRef = useRef(pendingEntries.length);
+  // Auto-toast: once on login, then only if pending count increases (new checkin arrived)
   useEffect(() => {
-    if (toastShownRef.current) {
-      // After initial toast, only re-fire if count increased (new notification arrived)
-      if (pendingEntries.length > prevPendingRef.current) {
+    if (sessionToastShown) {
+      if (pendingEntries.length > sessionPrevPending) {
+        sessionPrevPending = pendingEntries.length;
         toast({
           title: t("clientNotifications.pendingReminder", { n: String(pendingEntries.length) }),
           description: t("clientNotifications.goToCheckins"),
-          duration: 3000,
+          duration: 1000,
         });
       }
-      prevPendingRef.current = pendingEntries.length;
       return;
     }
     if (pendingEntries.length > 0) {
-      toastShownRef.current = true;
-      prevPendingRef.current = pendingEntries.length;
+      sessionToastShown = true;
+      sessionPrevPending = pendingEntries.length;
       toast({
         title: t("clientNotifications.pendingReminder", { n: String(pendingEntries.length) }),
         description: t("clientNotifications.goToCheckins"),
-        duration: 3000,
+        duration: 1000,
       });
     }
-  }, [client.id, pendingEntries.length]);
-
-  // Reset toast flag when client changes
-  useEffect(() => {
-    toastShownRef.current = false;
-  }, [client.id]);
+  }, [pendingEntries.length]);
 
   const tabs = [
     { label: t("clientNav.home"), icon: Home, path: "/client" },
@@ -185,6 +181,8 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
+    sessionToastShown = false;
+    sessionPrevPending = 0;
     useClientNotificationStore.getState().clear();
     await logout();
     navigate("/login", { replace: true });
