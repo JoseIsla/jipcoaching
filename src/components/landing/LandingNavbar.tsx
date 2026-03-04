@@ -1,24 +1,29 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, LogIn, LayoutDashboard } from "lucide-react";
+import { Menu, X, LogIn, LayoutDashboard, Globe } from "lucide-react";
 import logoJip from "@/assets/logo-jip.png";
 import { useAuth } from "@/contexts/AuthContext";
-
-const navItems = [
-  { label: "Inicio", href: "#hero" },
-  { label: "Sobre mí", href: "#about" },
-  { label: "Planes", href: "#plans" },
-  { label: "Testimonios", href: "#testimonials" },
-  { label: "FAQ", href: "#faq" },
-  { label: "Contacto", href: "#contact" },
-];
+import { useTranslation } from "@/i18n/useTranslation";
+import { useLanguageStore, type Language } from "@/i18n/store";
 
 const LandingNavbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { status, role } = useAuth();
+  const { t } = useTranslation();
+  const appLanguage = useLanguageStore((s) => s.language);
+  const setAppLanguage = useLanguageStore((s) => s.setLanguage);
   const isLoggedIn = status === "authenticated" && role;
+
+  const navItems = [
+    { label: t("landing.nav.home"), href: "#hero" },
+    { label: t("landing.nav.about"), href: "#about" },
+    { label: t("landing.nav.plans"), href: "#plans" },
+    { label: t("landing.nav.testimonials"), href: "#testimonials" },
+    { label: t("landing.nav.faq"), href: "#faq" },
+    { label: t("landing.nav.contact"), href: "#contact" },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -33,6 +38,10 @@ const LandingNavbar = () => {
   };
 
   const panelPath = role === "admin" ? "/admin" : "/client";
+
+  const toggleLang = () => {
+    setAppLanguage(appLanguage === "es" ? "en" : "es");
+  };
 
   return (
     <motion.nav
@@ -65,15 +74,24 @@ const LandingNavbar = () => {
             ))}
           </div>
 
-          {/* Login/Panel + Mobile toggle */}
+          {/* Language + Login/Panel + Mobile toggle */}
           <div className="flex items-center gap-2">
+            {/* Language toggle */}
+            <button
+              onClick={toggleLang}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+            >
+              <Globe className="h-3.5 w-3.5" />
+              <span className="uppercase">{appLanguage === "es" ? "EN" : "ES"}</span>
+            </button>
+
             {isLoggedIn ? (
               <Link
                 to={panelPath}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:brightness-110 transition-all"
               >
                 <LayoutDashboard className="h-4 w-4" />
-                <span className="hidden sm:inline">Mi Panel</span>
+                <span className="hidden sm:inline">{t("landing.nav.myPanel")}</span>
               </Link>
             ) : (
               <Link
@@ -81,7 +99,7 @@ const LandingNavbar = () => {
                 className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:brightness-110 transition-all"
               >
                 <LogIn className="h-4 w-4" />
-                <span className="hidden sm:inline">Acceder</span>
+                <span className="hidden sm:inline">{t("landing.nav.login")}</span>
               </Link>
             )}
             <button
