@@ -26,8 +26,7 @@ const LoginPage = () => {
 
   const [userChangedLang, setUserChangedLang] = useState(false);
   useState(() => {
-    setCurrentUser("login");
-    setLanguage("es");
+    // Don't reset language — keep whatever was set from the landing page
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
