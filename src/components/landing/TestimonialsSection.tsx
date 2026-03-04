@@ -1,30 +1,12 @@
 import { motion } from "framer-motion";
 import { Star, Quote } from "lucide-react";
-
-const testimonials = [
-  {
-    name: "Ana R.",
-    text: "En 4 meses he conseguido resultados que no logré en años entrenando sola. El seguimiento semanal marca la diferencia.",
-    rating: 5,
-  },
-  {
-    name: "David P.",
-    text: "Lo mejor es que el plan se adapta a mi vida real. No tengo que comer pollo con arroz 5 veces al día.",
-    rating: 5,
-  },
-  {
-    name: "Carmen L.",
-    text: "Profesional, cercano y basado en ciencia. He mejorado mis marcas en competición gracias a su periodización.",
-    rating: 5,
-  },
-  {
-    name: "Sergio M.",
-    text: "Llevaba años estancado. En 3 meses rompí mi meseta de peso muerto y bajé un 4% de grasa corporal.",
-    rating: 5,
-  },
-];
+import { useTestimonialStore } from "@/data/useTestimonialStore";
 
 const TestimonialsSection = () => {
+  const testimonials = useTestimonialStore((s) => s.testimonials);
+
+  if (testimonials.length === 0) return null;
+
   return (
     <section id="testimonials" className="py-24 sm:py-32 bg-card">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
@@ -43,7 +25,7 @@ const TestimonialsSection = () => {
         <div className="grid sm:grid-cols-2 gap-5">
           {testimonials.map((t, i) => (
             <motion.div
-              key={t.name}
+              key={t.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -59,7 +41,9 @@ const TestimonialsSection = () => {
               <p className="text-foreground/80 text-sm sm:text-base leading-relaxed italic">
                 "{t.text}"
               </p>
-              <p className="mt-4 text-sm font-bold text-foreground">{t.name}</p>
+              <p className="mt-4 text-sm font-bold text-foreground">
+                {t.clientName.split(" ")[0]} {t.clientName.split(" ")[1]?.[0] ? `${t.clientName.split(" ")[1][0]}.` : ""}
+              </p>
             </motion.div>
           ))}
         </div>
