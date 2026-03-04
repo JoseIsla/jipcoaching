@@ -44,7 +44,7 @@ const App = () => (
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<LandingPage />} />
-                <Route path="/home" element={<AuthHomeRedirect />} />
+                <Route path="/home" element={<LandingPage />} />
                 <Route
                   path="/login"
                   element={
