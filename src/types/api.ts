@@ -24,11 +24,8 @@ export enum ClientStatus {
 
 export enum PackType {
   NUTRITION = "NUTRITION",
-  TRAINING_PB = "TRAINING_PB",
-  TRAINING_PL = "TRAINING_PL",
-  TRAINING_PL_COMP = "TRAINING_PL_COMP",
-  NUTRITION_TRAINING_PB = "NUTRITION_TRAINING_PB",
-  NUTRITION_TRAINING_PL = "NUTRITION_TRAINING_PL",
+  TRAINING = "TRAINING",
+  FULL = "FULL",
 }
 
 export interface CreateClientDto {
@@ -61,11 +58,13 @@ export interface ApiClient {
 export const getServicesFromPack = (packType?: PackType | string): ServiceType[] => {
   if (!packType) return [];
   const pt = String(packType).toUpperCase();
-  const hasNutrition = pt.includes("NUTRITION");
-  const hasTraining = pt.includes("TRAINING");
+  if (pt === "FULL") return ["nutrition", "training"];
+  if (pt === "NUTRITION") return ["nutrition"];
+  if (pt === "TRAINING") return ["training"];
+  // Fallback: check substrings for legacy data
   const services: ServiceType[] = [];
-  if (hasNutrition) services.push("nutrition");
-  if (hasTraining) services.push("training");
+  if (pt.includes("NUTRITION")) services.push("nutrition");
+  if (pt.includes("TRAINING")) services.push("training");
   return services;
 };
 
@@ -490,11 +489,8 @@ export interface ApiQuestionnaire {
 // ── Labels for UI ──
 export const packTypeLabels: Record<string, string> = {
   [PackType.NUTRITION]: "Nutrición",
-  [PackType.TRAINING_PB]: "Entrenamiento PB",
-  [PackType.TRAINING_PL]: "Entrenamiento PL",
-  [PackType.TRAINING_PL_COMP]: "Entrenamiento PL Comp",
-  [PackType.NUTRITION_TRAINING_PB]: "Nutrición + Entrenamiento PB",
-  [PackType.NUTRITION_TRAINING_PL]: "Nutrición + Entrenamiento PL",
+  [PackType.TRAINING]: "Entrenamiento",
+  [PackType.FULL]: "Nutrición + Entrenamiento",
 };
 
 export const clientStatusLabels: Record<string, string> = {

@@ -55,6 +55,21 @@ export const useClientStore = create<ClientStore>((set, get) => ({
   },
 
   addClient: async (dto: CreateClientDto) => {
+    if (DEV_MOCK) {
+      await new Promise((r) => setTimeout(r, 300));
+      const created: ApiClient = {
+        id: `mock-${Date.now()}`,
+        name: dto.name,
+        email: dto.email,
+        packType: dto.packType,
+        status: dto.status,
+        monthlyFee: dto.monthlyFee,
+        notes: dto.notes,
+        services: getServicesFromPack(dto.packType),
+      };
+      set((state) => ({ clients: [created, ...state.clients] }));
+      return created;
+    }
     const raw = await api.post<any>("/clients", dto);
     const created = enrichClient(raw);
     set((state) => ({ clients: [created, ...state.clients] }));
