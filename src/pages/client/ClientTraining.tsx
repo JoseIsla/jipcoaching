@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
@@ -110,14 +111,20 @@ const ClientTraining = () => {
   const blockGroups: Record<string, { weeks: TrainingWeek[]; indices: number[] }> = {};
   plan.weeks.forEach((w, i) => { const b = w.block || plan.block; if (!blockGroups[b]) blockGroups[b] = { weeks: [], indices: [] }; blockGroups[b].weeks.push(w); blockGroups[b].indices.push(i); });
 
+  const stagger = { animate: { transition: { staggerChildren: 0.07 } } };
+  const fadeUp = {
+    initial: { opacity: 0, y: 16 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
+  };
+
   return (
     <ClientLayout>
-      <div className="space-y-5 max-w-lg mx-auto animate-fade-in">
-        <div>
+      <motion.div className="space-y-5 max-w-lg mx-auto" variants={stagger} initial="initial" animate="animate">
+        <motion.div variants={fadeUp}>
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2"><Dumbbell className="h-5 w-5 text-accent" />{plan.planName}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{plan.modality} · {plan.block}</p>
-        </div>
-        <div className="space-y-2">
+        </motion.div>
+        <motion.div variants={fadeUp} className="space-y-2">
           {Object.entries(blockGroups).map(([block, group]) => (
             <div key={block} className="space-y-1">
               <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{block}</p>
@@ -133,9 +140,9 @@ const ClientTraining = () => {
               </div>
             </div>
           ))}
-        </div>
+        </motion.div>
         {currentWeek && (
-          <div className="space-y-3">
+          <motion.div variants={fadeUp} className="space-y-3">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-semibold text-foreground">{t("clientTraining.week", { n: currentWeek.weekNumber })}</span>
@@ -145,9 +152,9 @@ const ClientTraining = () => {
             </div>
             {currentWeek.generalNotes && <div className="bg-muted/30 border border-border/40 rounded-lg p-3"><p className="text-xs text-muted-foreground">{currentWeek.generalNotes}</p></div>}
             <div className="space-y-2">{currentWeek.days.map((day) => <DayView key={day.id} day={day} t={t} />)}</div>
-          </div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     </ClientLayout>
   );
 };

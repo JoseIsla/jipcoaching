@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { useClientStore } from "@/data/useClientStore";
@@ -112,19 +113,25 @@ const ClientSettings = () => {
     toast({ title: t("clientSettings.passwordUpdated"), description: t("clientSettings.passwordUpdatedDesc") });
   };
 
+  const stagger = { animate: { transition: { staggerChildren: 0.07 } } };
+  const fadeUp = {
+    initial: { opacity: 0, y: 16 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
+  };
+
   return (
     <ClientLayout>
-      <div className="space-y-6 max-w-lg mx-auto animate-fade-in pb-8">
-        <div>
+      <motion.div className="space-y-6 max-w-lg mx-auto pb-8" variants={stagger} initial="initial" animate="animate">
+        <motion.div variants={fadeUp}>
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
             <User className="h-5 w-5 text-primary" />
             {t("clientSettings.title")}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{t("clientSettings.subtitle")}</p>
-        </div>
+        </motion.div>
 
         {/* Avatar & Profile */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground">{t("clientSettings.profilePicture")}</h2>
           <div className="flex items-center gap-4">
             <div className="relative">
@@ -186,10 +193,10 @@ const ClientSettings = () => {
               {t("clientSettings.saveChanges")}
             </Button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Change Email */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Mail className="h-4 w-4 text-primary" />
             {t("clientSettings.changeEmail")}
@@ -217,10 +224,10 @@ const ClientSettings = () => {
               {t("clientSettings.sendVerification")}
             </Button>
           )}
-        </div>
+        </motion.div>
 
         {/* Change Password */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Lock className="h-4 w-4 text-primary" />
             {t("clientSettings.changePassword")}
@@ -275,10 +282,10 @@ const ClientSettings = () => {
               {t("clientSettings.changePasswordBtn")}
             </Button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Notifications */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Volume2 className="h-4 w-4 text-primary" />
             {t("clientSettings.notifications") || "Notificaciones"}
@@ -299,10 +306,10 @@ const ClientSettings = () => {
               <Switch checked={notifVibration} onCheckedChange={setNotifVibration} />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Language */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Globe className="h-4 w-4 text-primary" />
             {t("settings.language")}
@@ -316,8 +323,8 @@ const ClientSettings = () => {
               <SelectItem value="en">{t("settings.english")}</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </ClientLayout>
   );
 };
