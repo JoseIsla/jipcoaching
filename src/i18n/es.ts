@@ -66,6 +66,7 @@ const es = {
     nutrition: "Nutrición",
     training: "Entrenamiento",
     library: "Biblioteca",
+    leads: "Leads",
     questionnaires: "Cuestionarios",
     settings: "Configuración",
   },

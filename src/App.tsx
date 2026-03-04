@@ -7,6 +7,7 @@ import { AdminProfileProvider } from "@/contexts/AdminProfileContext";
 import { ClientProvider } from "@/contexts/ClientContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthHomeRedirect, PublicRoute, RoleRoute } from "@/components/auth/AuthRoute";
+import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminClients from "./pages/AdminClients";
@@ -21,6 +22,7 @@ import AdminProgress from "./pages/AdminProgress";
 import AdminNutritionPlanDetail from "./pages/AdminNutritionPlanDetail";
 import AdminNutritionPlanView from "./pages/AdminNutritionPlanView";
 import AdminExerciseLibrary from "./pages/AdminExerciseLibrary";
+import AdminLeads from "./pages/AdminLeads";
 import ClientHome from "./pages/client/ClientHome";
 import ClientNutrition from "./pages/client/ClientNutrition";
 import ClientTraining from "./pages/client/ClientTraining";
@@ -41,7 +43,8 @@ const App = () => (
           <ClientProvider>
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<AuthHomeRedirect />} />
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/home" element={<AuthHomeRedirect />} />
                 <Route
                   path="/login"
                   element={
@@ -60,6 +63,7 @@ const App = () => (
                 <Route path="/admin/training/:planId" element={<RoleRoute allowedRole="admin"><AdminTrainingPlanView /></RoleRoute>} />
                 <Route path="/admin/training/:planId/edit" element={<RoleRoute allowedRole="admin"><AdminTrainingPlanDetail /></RoleRoute>} />
                 <Route path="/admin/exercises" element={<RoleRoute allowedRole="admin"><AdminExerciseLibrary /></RoleRoute>} />
+                <Route path="/admin/leads" element={<RoleRoute allowedRole="admin"><AdminLeads /></RoleRoute>} />
                 <Route path="/admin/settings" element={<RoleRoute allowedRole="admin"><AdminSettings /></RoleRoute>} />
                 <Route path="/admin/questionnaires" element={<RoleRoute allowedRole="admin"><AdminQuestionnaires /></RoleRoute>} />
                 <Route path="/admin/progress" element={<RoleRoute allowedRole="admin"><AdminProgress /></RoleRoute>} />

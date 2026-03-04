@@ -12,6 +12,7 @@ import {
   Library,
   Menu,
   X,
+  Inbox,
 } from "lucide-react";
 import logoJip from "@/assets/logo-jip.png";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -23,6 +24,7 @@ const navKeys = [
   { key: "sidebar.nutrition", icon: Utensils, path: "/admin/nutrition" },
   { key: "sidebar.training", icon: Dumbbell, path: "/admin/training" },
   { key: "sidebar.library", icon: Library, path: "/admin/exercises" },
+  { key: "sidebar.leads", icon: Inbox, path: "/admin/leads" },
   { key: "sidebar.questionnaires", icon: ClipboardList, path: "/admin/questionnaires" },
   { key: "sidebar.settings", icon: Settings, path: "/admin/settings" },
 ];
