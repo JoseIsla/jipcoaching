@@ -30,12 +30,25 @@ const TestimonialsSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="relative bg-background border border-border rounded-2xl p-6 sm:p-8"
+              whileHover={{
+                y: -4,
+                borderColor: "hsl(110 100% 54% / 0.3)",
+                transition: { type: "spring", stiffness: 300 },
+              }}
+              className="relative bg-background border border-border rounded-2xl p-6 sm:p-8 transition-shadow hover:shadow-lg hover:shadow-primary/5"
             >
               <Quote className="h-6 w-6 text-primary/30 absolute top-5 right-5" />
               <div className="flex gap-0.5 mb-4">
                 {Array.from({ length: te.rating }).map((_, j) => (
-                  <Star key={j} className="h-4 w-4 fill-primary text-primary" />
+                  <motion.div
+                    key={j}
+                    initial={{ opacity: 0, scale: 0 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 + j * 0.08, type: "spring", stiffness: 400 }}
+                  >
+                    <Star className="h-4 w-4 fill-primary text-primary" />
+                  </motion.div>
                 ))}
               </div>
               <p className="text-foreground/80 text-sm sm:text-base leading-relaxed italic">"{te.text}"</p>
