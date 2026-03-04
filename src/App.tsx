@@ -8,6 +8,9 @@ import { ClientProvider } from "@/contexts/ClientContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthHomeRedirect, PublicRoute, RoleRoute } from "@/components/auth/AuthRoute";
 import LandingPage from "./pages/LandingPage";
+import AvisoLegal from "./pages/legal/AvisoLegal";
+import PoliticaPrivacidad from "./pages/legal/PoliticaPrivacidad";
+import PoliticaCookies from "./pages/legal/PoliticaCookies";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminClients from "./pages/AdminClients";
@@ -45,6 +48,9 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/home" element={<LandingPage />} />
+                <Route path="/legal/aviso-legal" element={<AvisoLegal />} />
+                <Route path="/legal/privacidad" element={<PoliticaPrivacidad />} />
+                <Route path="/legal/cookies" element={<PoliticaCookies />} />
                 <Route
                   path="/login"
                   element={
