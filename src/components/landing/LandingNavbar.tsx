@@ -33,8 +33,15 @@ const LandingNavbar = () => {
 
   const scrollTo = (href: string) => {
     setMobileOpen(false);
-    const el = document.querySelector(href);
-    el?.scrollIntoView({ behavior: "smooth" });
+    // Delay scroll so the mobile menu animation finishes first
+    setTimeout(() => {
+      const el = document.querySelector(href);
+      if (el) {
+        const navHeight = 80; // fixed navbar height
+        const y = el.getBoundingClientRect().top + window.scrollY - navHeight;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+    }, 350);
   };
 
   const panelPath = role === "admin" ? "/admin" : "/client";
