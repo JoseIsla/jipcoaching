@@ -1,27 +1,38 @@
 
 
-## Problem
+## Añadir animaciones a la pantalla de progreso
 
-In Recharts tooltips, `contentStyle.color` controls the **label** text color (e.g. "Semana 27/1"). The **value** text (e.g. "Variación: +0.5 kg") is controlled by `itemStyle`. Currently both are set to the same green color via `contentStyle`, but the user wants:
+Usar Framer Motion (ya disponible en el proyecto y usado en `AnimatedPage`, `PullToRefresh`, etc.) para añadir animaciones staggered de entrada a todos los elementos de la página de progreso.
 
-- **Label** (top line like "Semana 17/2") → **white**
-- **Value** (data line like "Variación: +0.5 kg") → **green**
+### Cambios por archivo
 
-## Changes
+**1. `src/pages/client/ClientProgress.tsx`**
+- Envolver el contenido en `motion.div` con animación staggered container
+- Animar el header, AdherenceCard y Tabs como children con fade-in + slide-up escalonado
 
-**File: `src/pages/client/ClientProgress.tsx`**
+**2. `src/components/client/progress/AdherenceCard.tsx`**
+- Envolver la tarjeta en `motion.div` con `initial={{ opacity: 0, y: 12 }}` y `animate={{ opacity: 1, y: 0 }}`
 
-### 1. Weight Evolution tooltip (line 183)
-- Keep `color: "hsl(0 0% 100%)"` in `contentStyle` (label = white)
-- Add `itemStyle={{ color: "hsl(110 100% 54%)" }}` (value = green)
+**3. `src/components/client/progress/NutritionProgressTab.tsx`**
+- Usar un `motion.div` container con `staggerChildren` para las stat cards (3 tarjetas de peso)
+- Animar cada stat card y cada chart card con fade-in + scale-in escalonado
+- Cada tarjeta entra con un delay incremental (0.05s entre elementos)
 
-### 2. Weekly Weight Delta tooltip (line 205)
-- Set `color: "hsl(0 0% 100%)"` in `contentStyle` (label = white)  
-- Add `itemStyle={{ color: "hsl(110 100% 54%)" }}` (value = green)
+**4. `src/components/client/progress/TrainingProgressTab.tsx`**
+- Mismo patrón staggered para el total SBD, los récords personales y el reporte de estado
+- Cada tarjeta de RM entra escalonada con slide-up
 
-### 3. Adherence tooltip (line 117) — same treatment for consistency
-- Keep `color: "hsl(0 0% 100%)"` in `contentStyle`
-- Add `itemStyle={{ color: "hsl(110 100% 54%)" }}`
+### Patrón de animación consistente
 
-All three tooltips will show white labels and green values, matching the screenshot reference.
+```typescript
+// Container
+const stagger = { animate: { transition: { staggerChildren: 0.06 } } };
+// Children
+const fadeUp = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } },
+};
+```
+
+Se elimina el `animate-fade-in` CSS existente del container en `ClientProgress.tsx` ya que Framer Motion se encarga de todo.
 
