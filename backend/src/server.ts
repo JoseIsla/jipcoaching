@@ -20,6 +20,7 @@ import testimonialRoutes from "./routes/testimonials";
 import profileRoutes from "./routes/profile";
 import billingRoutes from "./routes/billing";
 import supplementRoutes from "./routes/supplements";
+import questionnaireRoutes from "./routes/questionnaires";
 
 export const prisma = new PrismaClient();
 
@@ -51,6 +52,7 @@ app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/billing", billingRoutes);
 app.use("/api/supplements", supplementRoutes);
+app.use("/api/questionnaires", questionnaireRoutes);
 
 // GET /api/me — alias used by frontend
 app.use("/api/me", (req, res, next) => {
