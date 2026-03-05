@@ -1,0 +1,792 @@
+// ─── Prisma Schema for JIP Coaching Backend ───
+// DB: MariaDB
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ──
+
+enum UserRole {
+  ADMIN
+  CLIENT
+}
+
+enum ClientStatus {
+  ACTIVE
+  PAUSED
+}
+
+enum PackType {
+  NUTRITION
+  TRAINING
+  FULL
+}
+
+enum ExerciseCategory {
+  BASIC
+  VARIANT
+  ACCESSORY
+}
+
+enum TrainingMethod {
+  STRAIGHT_SETS
+  RIR_SETS
+  LOAD_DROP
+  REPEATS
+  REPS_DROP
+  LOAD_REPS_DROP
+  TOP_SET_BACKOFFS
+}
+
+enum WeekStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+}
+
+enum ExerciseType {
+  BASIC
+  VARIANT
+  ACCESSORY
+}
+
+enum QuestionType {
+  SCALE_0_10
+  YES_NO
+  NUMBER
+  TEXT
+  SELECT
+}
+
+enum QuestionnaireScope {
+  GLOBAL
+  CLIENT
+}
+
+enum CheckinCategory {
+  NUTRITION
+  TRAINING
+}
+
+enum CheckinStatus {
+  PENDING
+  RESPONDED
+  EXPIRED
+}
+
+enum FoodCategory {
+  CARB
+  PROTEIN
+  FAT
+  FRUIT
+  VEG
+  SUPPLEMENT
+  OTHER
+}
+
+enum MealBlockType {
+  CARB
+  PROTEIN
+  FAT
+  FRUIT
+  VEG
+  TEXT
+}
+
+enum MediaType {
+  AVATAR
+  PROGRESS_PHOTO
+  CHECKIN_VIDEO
+  TECHNIQUE_VIDEO
+}
+
+enum PhotoAngle {
+  FRONT
+  SIDE
+  BACK
+}
+
+enum BillingStatus {
+  PENDING
+  PAID
+}
+
+enum PaymentMethod {
+  CASH
+  BIZUM
+  TRANSFER
+  OTHER
+}
+
+enum MediaCommentTarget {
+  PHOTO
+  VIDEO
+  PHOTO_SESSION
+}
+
+// ── Models ──
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      UserRole
+  avatarUrl String?  @db.VarChar(500)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  client       Client?
+  adminProfile AdminProfile?
+  notifications Notification[]
+  mediaUploads  MediaUpload[]
+
+  @@map("users")
+}
+
+model AdminProfile {
+  id            String  @id @default(uuid())
+  userId        String  @unique
+  name          String
+  phone         String? @db.VarChar(30)
+  timezone      String  @default("Europe/Madrid")
+  language      String  @default("Español")
+  notifEmail    Boolean @default(true)
+  notifPush     Boolean @default(true)
+  notifNewClient    Boolean @default(true)
+  notifPaymentReminder Boolean @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admin_profiles")
+}
+
+model Client {
+  id          String       @id @default(uuid())
+  userId      String       @unique
+  name        String
+  email       String
+  phone       String?      @db.VarChar(30)
+  age         Int?
+  sex         String?      @db.VarChar(20)
+  height      Int?
+  currentWeight Float?
+  targetWeight  Float?
+  packType    PackType
+  status      ClientStatus @default(ACTIVE)
+  monthlyFee  Float        @default(0)
+  notes       String?      @db.Text
+  startDate   DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trainingPlans     TrainingPlan[]
+  nutritionPlans    NutritionPlan[]
+  checkins          Checkin[]
+  weightHistory     WeightEntry[]
+  rmRecords         RMRecord[]
+  progressPhotos    ProgressPhoto[]
+  techniqueVideos   TechniqueVideo[]
+  mediaComments     MediaComment[]
+  nutritionIntake   NutritionIntake?
+  trainingIntake    TrainingIntake?
+  testimonial       Testimonial?
+
+  @@map("clients")
+}
+
+// ── Client Intake Forms ──
+
+model NutritionIntake {
+  id              String  @id @default(uuid())
+  clientId        String  @unique
+  goal            String?
+  goalTimeframe   String?
+  goalMotivation  String? @db.Text
+  targetWeight    Float?
+  mealsPerDay     Int?
+  sleepHours      Float?
+  stressLevel     Int?
+  occupation      String?
+  supplements     String? @db.Text
+  excludedFoods   String? @db.Text
+  allergies       String? @db.Text
+  pathologies     String? @db.Text
+  digestiveIssues String? @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("nutrition_intakes")
+}
+
+model TrainingIntake {
+  id              String  @id @default(uuid())
+  clientId        String  @unique
+  experience      String?
+  sessionsPerWeek String?
+  intensity       Int?
+  otherSports     String?
+  modality        String?
+  goal            String?
+  currentSBD      String?
+  injuries        String? @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("training_intakes")
+}
+
+// ── Exercise Library ──
+
+model Exercise {
+  id               String           @id @default(uuid())
+  name             String
+  category         ExerciseCategory
+  muscleGroup      String?
+  videoUrl         String?          @db.VarChar(500)
+  notes            String?          @db.Text
+  parentExerciseId String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  parentExercise Exercise?  @relation("ExerciseVariants", fields: [parentExerciseId], references: [id], onDelete: SetNull)
+  variants       Exercise[] @relation("ExerciseVariants")
+
+  @@map("exercises")
+}
+
+// ── Training Plans ──
+
+model TrainingPlan {
+  id           String   @id @default(uuid())
+  clientId     String
+  title        String
+  isActive     Boolean  @default(true)
+  modality     String?  @db.VarChar(50)
+  block        String?  @db.VarChar(50)
+  daysPerWeek  Int      @default(4)
+  blockVariants String? @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  client Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  weeks  TrainingWeek[]
+
+  @@map("training_plans")
+}
+
+model TrainingWeek {
+  id         String     @id @default(uuid())
+  planId     String
+  weekNumber Int
+  block      String?    @db.VarChar(50)
+  status     WeekStatus @default(DRAFT)
+  notes      String?    @db.Text
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  plan TrainingPlan  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  days TrainingDay[]
+
+  @@unique([planId, weekNumber])
+  @@map("training_weeks")
+}
+
+model TrainingDay {
+  id        String  @id @default(uuid())
+  weekId    String
+  dayNumber Int
+  title     String?
+  warmup    String? @db.Text
+  notes     String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  week      TrainingWeek          @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  exercises ExercisePrescription[]
+
+  @@unique([weekId, dayNumber])
+  @@map("training_days")
+}
+
+model ExercisePrescription {
+  id            String         @id @default(uuid())
+  dayId         String
+  name          String
+  type          ExerciseType   @default(BASIC)
+  method        TrainingMethod @default(STRAIGHT_SETS)
+  topSetReps    Int?
+  topSetRpe     Float?
+  fatiguePct    Float?
+  dropLoadPct   Float?
+  dropReps      Int?
+  setsMin       Int?
+  setsMax       Int?
+  rirMin        Int?
+  rirMax        Int?
+  restSec       Int?
+  notes         String?        @db.Text
+  videoRequired Boolean        @default(false)
+  order         Int            @default(0)
+  // Additional fields from frontend
+  backoffSets    Int?
+  backoffPercent Float?
+  technicalNotes String?       @db.Text
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  day          TrainingDay    @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  exerciseLogs ExerciseLog[]
+
+  @@map("exercise_prescriptions")
+}
+
+// ── Nutrition Plans ──
+
+model NutritionPlan {
+  id              String  @id @default(uuid())
+  clientId        String
+  title           String
+  isActive        Boolean @default(true)
+  objective       String? @db.Text
+  recommendations String? @db.LongText
+  kcalMin         Int?
+  kcalMax         Int?
+  proteinG        Float?
+  carbsG          Float?
+  fatsG           Float?
+  version         Int     @default(1)
+  startDate       DateTime?
+  endDate         DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client    Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  sections  NutritionSection[]
+  meals     NutritionMeal[]
+  foodItems NutritionFoodItem[]
+
+  @@map("nutrition_plans")
+}
+
+model NutritionSection {
+  id       String @id @default(uuid())
+  planId   String
+  title    String
+  content  String @db.LongText
+  order    Int    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  plan NutritionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("nutrition_sections")
+}
+
+model NutritionMeal {
+  id     String @id @default(uuid())
+  planId String
+  name   String
+  order  Int    @default(0)
+  notes  String? @db.Text
+  description String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  plan    NutritionPlan        @relation(fields: [planId], references: [id], onDelete: Cascade)
+  options NutritionMealOption[]
+
+  @@map("nutrition_meals")
+}
+
+model NutritionMealOption {
+  id     String @id @default(uuid())
+  mealId String
+  name   String
+  notes  String? @db.Text
+  order  Int    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  meal   NutritionMeal        @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  rows   NutritionIngredientRow[]
+
+  @@map("nutrition_meal_options")
+}
+
+model NutritionIngredientRow {
+  id             String  @id @default(uuid())
+  optionId       String
+  mainIngredient String
+  alternatives   String  @db.Text  // JSON array
+  macroCategory  String  @db.VarChar(50)
+  order          Int     @default(0)
+  createdAt      DateTime @default(now())
+
+  option NutritionMealOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@map("nutrition_ingredient_rows")
+}
+
+model NutritionFoodItem {
+  id       String       @id @default(uuid())
+  planId   String
+  category FoodCategory
+  name     String
+  createdAt DateTime    @default(now())
+
+  plan     NutritionPlan       @relation(fields: [planId], references: [id], onDelete: Cascade)
+  portions NutritionFoodPortion[]
+
+  @@map("nutrition_food_items")
+}
+
+model NutritionFoodPortion {
+  id         String  @id @default(uuid())
+  foodItemId String
+  grams      Float?
+  quantity   Float?
+  unit       String? @db.VarChar(50)
+  label      String?
+  createdAt  DateTime @default(now())
+
+  foodItem NutritionFoodItem @relation(fields: [foodItemId], references: [id], onDelete: Cascade)
+
+  @@map("nutrition_food_portions")
+}
+
+// ── Supplements ──
+
+model Supplement {
+  id     String @id @default(uuid())
+  name   String
+  dose   String
+  timing String
+  createdAt DateTime @default(now())
+
+  @@map("supplements")
+}
+
+// ── Check-ins / Questionnaires ──
+
+model QuestionnaireTemplate {
+  id          String             @id @default(uuid())
+  name        String
+  description String?            @db.Text
+  isActive    Boolean            @default(true)
+  scope       QuestionnaireScope @default(GLOBAL)
+  clientId    String?
+  version     Int                @default(1)
+  category    CheckinCategory    @default(NUTRITION)
+  dayOfWeek   Int?               // 0=Sun, 2=Tue, 5=Fri
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  questions QuestionnaireQuestion[]
+  checkins  Checkin[]
+
+  @@map("questionnaire_templates")
+}
+
+model QuestionnaireQuestion {
+  id          String       @id @default(uuid())
+  templateId  String
+  type        QuestionType
+  label       String       @db.Text
+  required    Boolean      @default(true)
+  order       Int          @default(0)
+  optionsJson String?      @db.Text  // JSON array for SELECT type
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  template  QuestionnaireTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  responses CheckinResponse[]
+
+  @@map("questionnaire_questions")
+}
+
+model Checkin {
+  id          String         @id @default(uuid())
+  clientId    String
+  templateId  String
+  category    CheckinCategory
+  weekLabel   String?
+  date        DateTime
+  dayLabel    String?        @db.VarChar(30)
+  status      CheckinStatus  @default(PENDING)
+  planId      String?        // for training check-ins
+  weekNumber  Int?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  client    Client                @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  template  QuestionnaireTemplate @relation(fields: [templateId], references: [id])
+  responses CheckinResponse[]
+  trainingLogs CheckinTrainingLog[]
+  videos       CheckinVideo[]
+
+  @@map("checkins")
+}
+
+model CheckinResponse {
+  id         String @id @default(uuid())
+  checkinId  String
+  questionId String
+  value      String @db.Text
+  createdAt  DateTime @default(now())
+
+  checkin  Checkin               @relation(fields: [checkinId], references: [id], onDelete: Cascade)
+  question QuestionnaireQuestion @relation(fields: [questionId], references: [id])
+
+  @@map("checkin_responses")
+}
+
+model CheckinTrainingLog {
+  id           String @id @default(uuid())
+  checkinId    String
+  dayNumber    Int
+  dayName      String
+  createdAt    DateTime @default(now())
+
+  checkin   Checkin                    @relation(fields: [checkinId], references: [id], onDelete: Cascade)
+  exercises CheckinTrainingExercise[]
+
+  @@map("checkin_training_logs")
+}
+
+model CheckinTrainingExercise {
+  id           String  @id @default(uuid())
+  logId        String
+  exerciseId   String?
+  exerciseName String
+  section      String  @db.VarChar(20)
+  plannedSets  String?
+  plannedReps  String?
+  plannedLoad  String?
+  plannedRPE   Float?
+  actualWeight Float?
+  actualRPE    Float?
+  actualSets   String?
+  actualReps   String?
+  createdAt    DateTime @default(now())
+
+  log CheckinTrainingLog @relation(fields: [logId], references: [id], onDelete: Cascade)
+
+  @@map("checkin_training_exercises")
+}
+
+model CheckinVideo {
+  id           String  @id @default(uuid())
+  checkinId    String
+  exerciseName String
+  url          String  @db.VarChar(500)
+  notes        String? @db.Text
+  uploadedAt   DateTime @default(now())
+
+  checkin Checkin @relation(fields: [checkinId], references: [id], onDelete: Cascade)
+
+  @@map("checkin_videos")
+}
+
+// ── Training Session Logs (exercise-level actual data) ──
+
+model ExerciseLog {
+  id              String  @id @default(uuid())
+  prescriptionId  String
+  topKg           Float?
+  topReps         Int?
+  topRpe          Float?
+  backoffKg       Float?
+  backoffReps     Int?
+  backoffRpe      Float?
+  backoffSetsCount Int?
+  notes           String? @db.Text
+  createdAt       DateTime @default(now())
+
+  prescription ExercisePrescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+
+  @@map("exercise_logs")
+}
+
+// ── Weight & RM Tracking ──
+
+model WeightEntry {
+  id       String   @id @default(uuid())
+  clientId String
+  date     DateTime
+  weight   Float
+  createdAt DateTime @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, date])
+  @@map("weight_entries")
+}
+
+model RMRecord {
+  id           String  @id @default(uuid())
+  clientId     String
+  exerciseId   String?
+  exerciseName String
+  weight       Float
+  reps         Int
+  estimated1RM Float
+  date         DateTime
+  createdAt    DateTime @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("rm_records")
+}
+
+// ── Media ──
+
+model MediaUpload {
+  id        String    @id @default(uuid())
+  userId    String
+  type      MediaType
+  url       String    @db.VarChar(500)
+  filename  String?
+  mimeType  String?   @db.VarChar(100)
+  size      Int?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("media_uploads")
+}
+
+model ProgressPhoto {
+  id          String    @id @default(uuid())
+  clientId    String
+  angle       PhotoAngle
+  url         String    @db.VarChar(500)
+  thumbnailUrl String?  @db.VarChar(500)
+  sessionDate DateTime
+  uploadedAt  DateTime  @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("progress_photos")
+}
+
+model TechniqueVideo {
+  id           String   @id @default(uuid())
+  clientId     String
+  exerciseName String
+  url          String   @db.VarChar(500)
+  thumbnailUrl String?  @db.VarChar(500)
+  notes        String?  @db.Text
+  uploadedAt   DateTime @default(now())
+  expiresAt    DateTime
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("technique_videos")
+}
+
+model MediaComment {
+  id         String             @id @default(uuid())
+  targetType MediaCommentTarget
+  targetId   String
+  clientId   String
+  authorName String
+  text       String             @db.Text
+  createdAt  DateTime           @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("media_comments")
+}
+
+// ── Notifications ──
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   @db.VarChar(50)
+  title     String
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  link      String?  @db.VarChar(500)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// ── Contact Leads ──
+
+model ContactLead {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String?  @db.VarChar(30)
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("contact_leads")
+}
+
+// ── Testimonials ──
+
+model Testimonial {
+  id         String   @id @default(uuid())
+  clientId   String   @unique
+  clientName String
+  text       String   @db.Text
+  rating     Int
+  createdAt  DateTime @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("testimonials")
+}
+
+// ── Billing ──
+
+model BillingAccount {
+  id          String  @id @default(uuid())
+  payerUserId String
+  monthlyFee  Float
+  notes       String? @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  billings BillingMonth[]
+
+  @@map("billing_accounts")
+}
+
+model BillingMonth {
+  id               String        @id @default(uuid())
+  billingAccountId String
+  month            String        @db.VarChar(7) // YYYY-MM
+  amount           Float
+  status           BillingStatus @default(PENDING)
+  method           PaymentMethod @default(TRANSFER)
+  paidAt           DateTime?
+  notes            String?       @db.Text
+  createdAt        DateTime      @default(now())
+
+  account BillingAccount @relation(fields: [billingAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([billingAccountId, month])
+  @@map("billing_months")
+}
