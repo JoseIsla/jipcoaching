@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,16 @@ const ClientHome = () => {
   const entries = useQuestionnaireStore((s) => s.entries);
   const getWeightHistory = useQuestionnaireStore((s) => s.getWeightHistory);
   const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
+  const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
+  const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
+  const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
+
+  // Fetch data from API on mount
+  useEffect(() => {
+    fetchEntries(client.id);
+    if (hasNutrition) fetchWeightHistory(client.id);
+    if (hasTraining) fetchRMRecords(client.id);
+  }, [client.id]);
   const activePlan = hasNutrition ? nutritionPlans.find((p) => p.clientId === client.id && p.active) : null;
   const activeTraining = hasTraining ? trainingPlans.find((p) => p.clientId === client.id && p.active) : null;
   const pendingCheckins = entries.filter((e) => e.clientId === client.id && isActionablePending(e)).length;

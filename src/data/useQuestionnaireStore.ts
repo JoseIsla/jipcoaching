@@ -115,12 +115,15 @@ interface QuestionnaireState {
   error: string | null;
 
   // API actions
+  fetchEntries: (clientId?: string) => Promise<void>;
+  fetchWeightHistory: (clientId: string) => Promise<void>;
+  fetchRMRecords: (clientId: string) => Promise<void>;
   fetchSessions: () => Promise<void>;
   createSession: (data: Record<string, unknown>) => Promise<ApiSession | null>;
   fetchActiveQuestionnaire: () => Promise<ApiQuestionnaire | null>;
   submitQuestionnaire: (sessionId: string, answers: Record<string, unknown>) => Promise<void>;
 
-  // Legacy local actions (kept for UI compat until backend supports full questionnaire flow)
+  // Legacy local actions (kept for UI compat)
   submitEntry: (entryId: string, responses: Record<string, string | number | boolean>, trainingLog?: TrainingLogDay[]) => void;
   addVideoToEntry: (entryId: string, video: CheckinVideo) => void;
   removeVideoFromEntry: (entryId: string, videoId: string) => void;
@@ -150,6 +153,48 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   error: null,
 
   // ── API actions ──
+
+  fetchEntries: async (clientId) => {
+    if (DEV_MOCK) return;
+    set({ loading: true, error: null });
+    try {
+      const query = clientId ? `?clientId=${clientId}` : "";
+      const data = await api.get<QuestionnaireEntry[]>(`/checkins${query}`);
+      set((s) => {
+        // Merge API entries with any locally-generated auto-entries (training)
+        const autoEntries = s.entries.filter((e) => e.id.startsWith("qe-t-auto-"));
+        const apiIds = new Set((data ?? []).map((e) => e.id));
+        const nonDuplicateAuto = autoEntries.filter((e) => !apiIds.has(e.id));
+        return { entries: [...(data ?? []), ...nonDuplicateAuto], loading: false };
+      });
+    } catch (err: any) {
+      set({ error: err?.message ?? "Error al cargar check-ins", loading: false });
+    }
+  },
+
+  fetchWeightHistory: async (clientId) => {
+    if (DEV_MOCK) return;
+    try {
+      const data = await api.get<WeightEntry[]>(`/checkins/weight/${clientId}`);
+      set((s) => ({
+        weightHistory: { ...s.weightHistory, [clientId]: data ?? [] },
+      }));
+    } catch (err: any) {
+      console.error("Error fetching weight history:", err);
+    }
+  },
+
+  fetchRMRecords: async (clientId) => {
+    if (DEV_MOCK) return;
+    try {
+      const data = await api.get<RMRecord[]>(`/checkins/rm/${clientId}`);
+      set((s) => ({
+        rmRecords: { ...s.rmRecords, [clientId]: data ?? [] },
+      }));
+    } catch (err: any) {
+      console.error("Error fetching RM records:", err);
+    }
+  },
 
   fetchSessions: async () => {
     set({ loading: true, error: null });
@@ -194,10 +239,19 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
 
   // ── Legacy local actions ──
 
-  submitEntry: (entryId, responses, trainingLog) =>
-    set((state) => {
-      const entry = state.entries.find((e) => e.id === entryId);
-      const updatedEntries = state.entries.map((e) =>
+  submitEntry: (entryId, responses, trainingLog) => {
+    const state = get();
+    const entry = state.entries.find((e) => e.id === entryId);
+
+    // If not DEV_MOCK, also submit to API
+    if (!DEV_MOCK && entry) {
+      api.post(`/checkins/${entryId}/submit`, { responses, trainingLog }).catch((err) =>
+        console.error("Error submitting check-in to API:", err)
+      );
+    }
+
+    set((s) => {
+      const updatedEntries = s.entries.map((e) =>
         e.id === entryId
           ? {
               ...e,
@@ -209,26 +263,24 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
       );
 
       // If this is a nutrition check-in with weight (q1), update weightHistory
-      const updatedWeightHistory = { ...state.weightHistory };
+      const updatedWeightHistory = { ...s.weightHistory };
       if (entry && entry.category === "nutrition" && responses.q1 != null) {
         const weight = Number(responses.q1);
         if (!isNaN(weight) && weight > 0) {
           const clientHistory = [...(updatedWeightHistory[entry.clientId] || [])];
           const today = new Date().toISOString().slice(0, 10);
-          // Avoid duplicate entries for the same date
           const existingIdx = clientHistory.findIndex((w) => w.date === today);
           if (existingIdx >= 0) {
             clientHistory[existingIdx] = { date: today, weight };
           } else {
             clientHistory.push({ date: today, weight });
           }
-          // Sort by date
           clientHistory.sort((a, b) => a.date.localeCompare(b.date));
           updatedWeightHistory[entry.clientId] = clientHistory;
         }
       }
 
-      // Sync weight to client detail store so admin panel reflects it
+      // Sync weight to client detail store
       if (entry && entry.category === "nutrition" && responses.q1 != null) {
         const weight = Number(responses.q1);
         if (!isNaN(weight) && weight > 0) {
@@ -247,7 +299,8 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
       }
 
       return { entries: updatedEntries, weightHistory: updatedWeightHistory };
-    }),
+    });
+  },
 
   addVideoToEntry: (entryId, video) =>
     set((state) => ({
@@ -281,7 +334,6 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   getOrCreateTrainingEntry: (clientId, clientName) => {
     const state = get();
 
-    // Get active training plan and its detail
     const tpStore = useTrainingPlanStore.getState();
     const activePlan = tpStore.getActivePlanForClient(clientId);
     if (!activePlan) return null;
@@ -289,22 +341,19 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
     const detail = tpStore.getDetail(activePlan.id);
     if (!detail || detail.weeks.length === 0) return null;
 
-    // Find the active week, fall back to the last week
     const activeWeek = detail.weeks.find((w) => w.status === "active") ?? detail.weeks[detail.weeks.length - 1];
 
-    // Check if we already auto-generated an entry for this plan + week
     const autoId = `qe-t-auto-${activePlan.id}-w${activeWeek.weekNumber}`;
     const existingEntry = state.entries.find((e) => e.id === autoId);
     if (existingEntry) return existingEntry;
 
-    // Build trainingLog from the week's days, filtering only basic/variant exercises
     const trainingLog: TrainingLogDay[] = activeWeek.days
       .filter((day) => day.exercises.some((ex) => ex.section === "basic"))
       .map((day) => ({
         dayNumber: day.dayNumber,
         dayName: day.name,
         exercises: day.exercises
-          .filter((ex) => ex.section === "basic") // basic section includes BASIC + VARIANT types
+          .filter((ex) => ex.section === "basic")
           .map((ex) => ({
             exerciseId: ex.exerciseId ?? ex.id,
             exerciseName: ex.exerciseName,
@@ -322,7 +371,6 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
 
     if (trainingLog.length === 0) return null;
 
-    // Determine date: use Sunday of the current ISO week
     const now = new Date();
     const day = now.getDay();
     const diffToSun = day === 0 ? 0 : 7 - day;
@@ -331,7 +379,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
     const dateStr = sunday.toISOString().split("T")[0];
 
     const newEntry: QuestionnaireEntry = {
-      id: `qe-t-auto-${activePlan.id}-w${activeWeek.weekNumber}`,
+      id: autoId,
       clientId,
       clientName,
       templateId: "tt-weekly",
@@ -346,7 +394,6 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
       weekNumber: activeWeek.weekNumber,
     };
 
-    // Add to store
     set((s) => ({ entries: [...s.entries, newEntry] }));
     return newEntry;
   },

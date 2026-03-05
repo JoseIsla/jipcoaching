@@ -166,6 +166,10 @@ const AdminQuestionnaires = () => {
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedEntry, setSelectedEntry] = useState<QuestionnaireEntry | null>(null);
   const allEntries = useQuestionnaireStore((s) => s.entries);
+  const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
+
+  // Fetch check-ins from API on mount
+  useEffect(() => { fetchEntries(); }, []);
 
   // Template store
   const nutritionTemplates = useTemplateStore((s) => s.nutritionTemplates);
