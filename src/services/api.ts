@@ -21,7 +21,10 @@ const getToken = (): string | null => localStorage.getItem(AUTH_TOKEN_KEY);
 
 const clearSessionAndRedirect = () => {
   localStorage.removeItem(AUTH_TOKEN_KEY);
-  window.location.href = "/login";
+  // Avoid redirect loop if already on /login or landing
+  if (window.location.pathname !== "/login" && window.location.pathname !== "/") {
+    window.location.href = "/login";
+  }
 };
 
 export class ApiError extends Error {
