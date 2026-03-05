@@ -2,11 +2,15 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { prisma } from "../server";
 import { authenticate, generateToken } from "../middleware/auth";
+import { rateLimit } from "../middleware/rateLimiter";
 
 const router = Router();
 
+// Rate limit: max 5 login attempts per IP every 15 minutes
+const loginLimiter = rateLimit({ windowSec: 15 * 60, max: 5 });
+
 // POST /api/auth/register
-router.post("/register", async (req, res) => {
+router.post("/register", loginLimiter, async (req, res) => {
   try {
     const { email, password, role = "CLIENT", name } = req.body;
 
@@ -46,7 +50,7 @@ router.post("/register", async (req, res) => {
 });
 
 // POST /api/auth/login
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 
