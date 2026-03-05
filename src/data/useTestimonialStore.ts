@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { api } from "@/services/api";
+import { DEV_MOCK } from "@/config/devMode";
 
 export interface Testimonial {
   id: string;
@@ -12,29 +13,78 @@ export interface Testimonial {
 
 interface TestimonialStore {
   testimonials: Testimonial[];
+  loading: boolean;
+  fetchTestimonials: () => Promise<void>;
   addTestimonial: (t: Omit<Testimonial, "id" | "createdAt">) => void;
   getByClient: (clientId: string) => Testimonial | undefined;
 }
 
-export const useTestimonialStore = create<TestimonialStore>()(
-  persist(
-    (set, get) => ({
-      testimonials: [],
+export const useTestimonialStore = create<TestimonialStore>((set, get) => ({
+  testimonials: [],
+  loading: false,
 
-      addTestimonial: (t) =>
-        set((state) => {
-          // One per client — replace if exists
-          const filtered = state.testimonials.filter((x) => x.clientId !== t.clientId);
-          return {
-            testimonials: [
-              ...filtered,
-              { ...t, id: `test-${Date.now()}`, createdAt: new Date().toISOString() },
-            ],
-          };
-        }),
+  fetchTestimonials: async () => {
+    if (DEV_MOCK) return;
 
-      getByClient: (clientId) => get().testimonials.find((t) => t.clientId === clientId),
-    }),
-    { name: "jip-testimonials" }
-  )
-);
+    set({ loading: true });
+    try {
+      const data = await api.get<any[]>("/testimonials");
+      set({
+        testimonials: (data ?? []).map((t) => ({
+          id: t.id,
+          clientId: t.clientId,
+          clientName: t.clientName,
+          text: t.text,
+          rating: t.rating,
+          createdAt: t.createdAt,
+        })),
+        loading: false,
+      });
+    } catch (err: any) {
+      console.warn("Failed to fetch testimonials:", err?.message);
+      set({ loading: false });
+    }
+  },
+
+  addTestimonial: (t) => {
+    if (DEV_MOCK) {
+      set((state) => {
+        const filtered = state.testimonials.filter((x) => x.clientId !== t.clientId);
+        return {
+          testimonials: [
+            ...filtered,
+            { ...t, id: `test-${Date.now()}`, createdAt: new Date().toISOString() },
+          ],
+        };
+      });
+      return;
+    }
+
+    api.post("/testimonials", {
+      clientName: t.clientName,
+      text: t.text,
+      rating: t.rating,
+    }).then((created) => {
+      set((state) => {
+        const filtered = state.testimonials.filter((x) => x.clientId !== t.clientId);
+        return {
+          testimonials: [
+            ...filtered,
+            {
+              id: created.id,
+              clientId: created.clientId,
+              clientName: created.clientName,
+              text: created.text,
+              rating: created.rating,
+              createdAt: created.createdAt,
+            },
+          ],
+        };
+      });
+    }).catch((err) => {
+      console.warn("Failed to submit testimonial:", err?.message);
+    });
+  },
+
+  getByClient: (clientId) => get().testimonials.find((t) => t.clientId === clientId),
+}));
