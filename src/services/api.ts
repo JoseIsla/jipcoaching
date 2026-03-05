@@ -11,7 +11,7 @@ const AUTH_TOKEN_KEY = "jip_auth_token";
 const API_BASE_URL = (
   import.meta.env.VITE_API_URL ??
   import.meta.env.VITE_API_BASE_URL ??
-  "https://api.jipcoaching.com"
+  "https://api.jipcoaching.com/api"
 ).trim().replace(/\/+$/, "");
 
 const getToken = (): string | null => localStorage.getItem(AUTH_TOKEN_KEY);
