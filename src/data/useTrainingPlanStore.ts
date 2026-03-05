@@ -103,13 +103,19 @@ const mapApiExerciseToEntry = (ex: ApiExercisePrescription, idx: number) => ({
   section: (ex.type === "BASIC" || ex.type === "VARIANT" ? "basic" : "accessory") as "basic" | "accessory",
   exerciseName: ex.name,
   exerciseType: ex.type,
-  method: undefined, // frontend uses its own TrainingMethod type
+  method: ex.method?.toLowerCase() as any,
   topSetReps: ex.topSetReps,
   topSetRPE: ex.topSetRpe,
   fatiguePercent: ex.fatiguePct,
-  sets: ex.setsMin != null && ex.setsMax != null ? `${ex.setsMin}-${ex.setsMax}` : undefined,
+  // Map drop set fields from backend
+  backoffSets: (ex as any).backoffSets,
+  backoffPercent: (ex as any).backoffPercent ?? ex.dropLoadPct,
+  sets: ex.setsMin != null && ex.setsMax != null
+    ? (ex.setsMin === ex.setsMax ? `${ex.setsMin}` : `${ex.setsMin}-${ex.setsMax}`)
+    : undefined,
+  reps: ex.dropReps != null ? `${ex.dropReps}` : undefined,
   intensityValue: ex.rirMin,
-  technicalNotes: ex.notes,
+  technicalNotes: ex.notes ?? (ex as any).technicalNotes,
 });
 
 /** Map API plan to our list entry format */
