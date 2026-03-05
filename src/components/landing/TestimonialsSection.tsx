@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Star, Quote } from "lucide-react";
 import { useTestimonialStore } from "@/data/useTestimonialStore";
@@ -6,6 +7,8 @@ import { useTranslation } from "@/i18n/useTranslation";
 const TestimonialsSection = () => {
   const { t } = useTranslation();
   const testimonials = useTestimonialStore((s) => s.testimonials);
+  const fetchTestimonials = useTestimonialStore((s) => s.fetchTestimonials);
+  useEffect(() => { fetchTestimonials(); }, []);
 
   if (testimonials.length === 0) return null;
 
