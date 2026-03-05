@@ -4,6 +4,7 @@ import { isClientActive } from "@/types/api";
 import { useClientStore } from "@/data/useClientStore";
 import { useAuth } from "@/contexts/AuthContext";
 
+
 interface ClientContextType {
   client: ApiClient;
   setClientId: (id: string) => void;
@@ -26,7 +27,7 @@ export const useClient = () => {
 };
 
 export const ClientProvider = ({ children }: { children: ReactNode }) => {
-  const { role, userId } = useAuth();
+  const { status, role, userId } = useAuth();
   const allStoreClients = useClientStore((s) => s.clients);
   const fetchClients = useClientStore((s) => s.fetchClients);
   const activeClients = allStoreClients.filter((c) => isClientActive(c.status));
@@ -39,12 +40,12 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [role, userId]);
 
-  // Fetch clients for admin, or for client in dev mode (to populate store)
+  // Fetch clients only when authenticated
   useEffect(() => {
-    if (role === "admin" || role === "client") {
+    if (status === "authenticated" && (role === "admin" || role === "client")) {
       fetchClients();
     }
-  }, [role, fetchClients]);
+  }, [status, role, fetchClients]);
 
   const client = clientId
     ? allStoreClients.find((c) => c.id === clientId) ?? FALLBACK_CLIENT
