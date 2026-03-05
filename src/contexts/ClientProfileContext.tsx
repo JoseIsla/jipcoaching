@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   type ClientProfile,
   fetchClientProfile,
@@ -28,6 +29,7 @@ interface ClientProfileContextValue {
 const ClientProfileContext = createContext<ClientProfileContextValue | null>(null);
 
 export function ClientProfileProvider({ children }: { children: ReactNode }) {
+  const { status, role } = useAuth();
   const [profile, setProfile] = useState<ClientProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -40,8 +42,12 @@ export function ClientProfileProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    reload();
-  }, [reload]);
+    if (status === "authenticated" && role === "client") {
+      reload();
+    } else {
+      setLoading(false);
+    }
+  }, [status, role, reload]);
 
   const saveProfile = useCallback(async (payload: UpdateClientProfilePayload) => {
     setSaving(true);

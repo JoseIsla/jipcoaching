@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { type AdminProfile } from "@/services/adminProfileApi";
 import {
   fetchAdminProfile,
@@ -28,6 +29,7 @@ interface AdminProfileContextValue {
 const AdminProfileContext = createContext<AdminProfileContextValue | null>(null);
 
 export function AdminProfileProvider({ children }: { children: ReactNode }) {
+  const { status, role } = useAuth();
   const [profile, setProfile] = useState<AdminProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -40,8 +42,12 @@ export function AdminProfileProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    reload();
-  }, [reload]);
+    if (status === "authenticated" && role === "admin") {
+      reload();
+    } else {
+      setLoading(false);
+    }
+  }, [status, role, reload]);
 
   const saveProfile = useCallback(async (payload: UpdateProfilePayload) => {
     setSaving(true);
