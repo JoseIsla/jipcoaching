@@ -9,15 +9,15 @@ async function main() {
   // Create admin user
   const adminPassword = await bcrypt.hash("admin123", 12);
   const adminUser = await prisma.user.upsert({
-    where: { email: "admin@jipcoaching.com" },
+    where: { email: "info@jipcoaching.com" },
     update: {},
     create: {
-      email: "admin@jipcoaching.com",
+      email: "info@jipcoaching.com",
       password: adminPassword,
       role: "ADMIN",
       adminProfile: {
         create: {
-          name: "Javier Ibáñez",
+          name: "Jose Isla Pérez",
           phone: "+34 600 123 456",
         },
       },
