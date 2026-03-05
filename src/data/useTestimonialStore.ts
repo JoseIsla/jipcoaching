@@ -28,7 +28,7 @@ export const useTestimonialStore = create<TestimonialStore>((set, get) => ({
 
     set({ loading: true });
     try {
-      const data = await api.get<any[]>("/testimonials");
+      const data = await api.get<any[]>("/testimonials", { skipAuth: true, silent: true });
       set({
         testimonials: (data ?? []).map((t) => ({
           id: t.id,
