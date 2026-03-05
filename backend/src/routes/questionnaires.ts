@@ -140,7 +140,7 @@ router.delete("/:id", authenticate, requireRole("ADMIN"), async (req: Request, r
 // ── GET /api/questionnaires/me/active — Get active questionnaire for current client
 router.get("/me/active", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = req.user!.userId;
     const client = await prisma.client.findUnique({ where: { userId } });
     if (!client) return res.status(404).json({ message: "Cliente no encontrado" });
 

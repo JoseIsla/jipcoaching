@@ -1,11 +1,59 @@
 import { create } from "zustand";
-import { clientDetailStore as initialStore, type ClientDetail } from "@/data/clientStore";
+import { clientDetailStore as mockStore, type ClientDetail } from "@/data/clientStore";
+import { DEV_MOCK } from "@/config/devMode";
+import { api } from "@/services/api";
 
 // Re-export types
 export type { ClientDetail, NutritionIntake, TrainingIntake } from "@/data/clientStore";
 
+/** Map packType → services array */
+const packToServices = (pack: string): ClientDetail["services"] => {
+  switch (pack) {
+    case "NUTRITION": return ["nutrition"];
+    case "TRAINING": return ["training"];
+    case "FULL": return ["nutrition", "training"];
+    default: return [];
+  }
+};
+
+/** Map API status → UI status */
+const mapStatus = (s: string): ClientDetail["status"] => {
+  switch (s) {
+    case "ACTIVE": return "Activo";
+    case "PAUSED": return "Inactivo";
+    default: return "Pendiente";
+  }
+};
+
+/** Map API client detail response → ClientDetail */
+const mapApiClient = (c: any): ClientDetail => ({
+  id: c.id,
+  name: c.name,
+  email: c.email,
+  phone: c.phone ?? "",
+  age: c.age ?? undefined,
+  sex: c.sex ?? undefined,
+  services: packToServices(c.packType),
+  plan: c.packType,
+  status: mapStatus(c.status),
+  startDate: c.startDate ? new Date(c.startDate).toISOString().split("T")[0] : "",
+  monthlyRate: c.monthlyFee ?? 0,
+  lastPaymentDate: "",
+  nextPaymentDate: "",
+  paymentMethod: "",
+  notes: c.notes ?? "",
+  currentWeight: c.currentWeight ?? undefined,
+  targetWeight: c.targetWeight ?? undefined,
+  height: c.height ?? undefined,
+  weightHistory: c.weightHistory ?? [],
+  nutritionIntake: c.nutritionIntake ?? undefined,
+  trainingIntake: c.trainingIntake ?? undefined,
+});
+
 interface ClientDetailState {
   details: Record<string, ClientDetail>;
+  loading: boolean;
+  fetchDetail: (clientId: string) => Promise<ClientDetail | undefined>;
   getDetail: (clientId: string) => ClientDetail | undefined;
   updateDetail: (clientId: string, updates: Partial<ClientDetail>) => void;
   addDetail: (detail: ClientDetail) => void;
@@ -13,7 +61,32 @@ interface ClientDetailState {
 }
 
 export const useClientDetailStore = create<ClientDetailState>((set, get) => ({
-  details: { ...initialStore },
+  details: DEV_MOCK ? { ...mockStore } : {},
+  loading: false,
+
+  fetchDetail: async (clientId) => {
+    // If DEV_MOCK, just return from mock store
+    if (DEV_MOCK) return get().details[clientId];
+
+    // If already fetched, return cached
+    const cached = get().details[clientId];
+    if (cached) return cached;
+
+    set({ loading: true });
+    try {
+      const data = await api.get(`/clients/${clientId}`);
+      const detail = mapApiClient(data);
+      set((state) => ({
+        details: { ...state.details, [clientId]: detail },
+        loading: false,
+      }));
+      return detail;
+    } catch (err) {
+      console.error("Error fetching client detail:", err);
+      set({ loading: false });
+      return undefined;
+    }
+  },
 
   getDetail: (clientId) => get().details[clientId],
 

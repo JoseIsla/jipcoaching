@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Mail, Phone, Utensils, Dumbbell, CreditCard, CalendarDays,
@@ -359,8 +359,25 @@ const AdminClientDetail = () => {
   const [confirmToggle, setConfirmToggle] = useState(false);
   const { toast } = useToast();
   const clientStore = useClientStore();
-  const details = useClientDetailStore((s) => s.details);
+  const { details, fetchDetail, loading } = useClientDetailStore();
   const client = id ? details[id] : null;
+
+  // Fetch from API if not in store
+  useEffect(() => {
+    if (id && !details[id]) {
+      fetchDetail(id);
+    }
+  }, [id]);
+
+  if (loading && !client) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+        </div>
+      </AdminLayout>
+    );
+  }
 
   if (!client) {
     return (
