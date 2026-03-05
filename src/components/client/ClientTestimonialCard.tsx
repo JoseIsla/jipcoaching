@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Star, MessageSquare, Check } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 
 const ClientTestimonialCard = () => {
   const { client } = useClient();
+  const fetchTestimonials = useTestimonialStore((s) => s.fetchTestimonials);
+  useEffect(() => { fetchTestimonials(); }, []);
   const existing = useTestimonialStore((s) => s.getByClient(client.id));
   const addTestimonial = useTestimonialStore((s) => s.addTestimonial);
   const { toast } = useToast();
