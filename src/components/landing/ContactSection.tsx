@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Send, Mail, Phone, User, MessageSquare, CheckCircle2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ const ContactSection = () => {
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [consent, setConsent] = useState(false);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -20,6 +22,7 @@ const ContactSection = () => {
     if (!form.email.includes("@")) e.email = "Email";
     if (!form.phone.trim()) e.phone = t("landing.contact.phone");
     if (!form.message.trim()) e.message = t("landing.contact.message");
+    if (!consent) e.consent = t("landing.contact.consentRequired");
     return e;
   };
 
@@ -119,6 +122,31 @@ const ContactSection = () => {
             />
             {errors.message && <p className="text-xs text-destructive">{errors.message}</p>}
           </motion.div>
+          {/* RGPD Consent checkbox */}
+          <motion.div
+            initial={{ opacity: 0, x: -15 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.32 }}
+            className="space-y-1.5"
+          >
+            <label className="flex items-start gap-2.5 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => { setConsent(e.target.checked); setErrors({ ...errors, consent: "" }); }}
+                className="mt-0.5 h-4 w-4 rounded border-border accent-primary shrink-0"
+              />
+              <span className="text-xs text-muted-foreground leading-relaxed">
+                {t("landing.contact.consentText")}{" "}
+                <Link to="/legal/privacidad" className="text-primary hover:underline font-medium">
+                  {t("landing.contact.consentLink")}
+                </Link>
+              </span>
+            </label>
+            {errors.consent && <p className="text-xs text-destructive">{errors.consent}</p>}
+          </motion.div>
+
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}

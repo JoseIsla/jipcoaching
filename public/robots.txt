@@ -12,3 +12,8 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /client/
+Disallow: /login
+
+Sitemap: https://jipcoaching.lovable.app/sitemap.xml
