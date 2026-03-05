@@ -1,20 +1,17 @@
 /**
  * Admin Profile API Service
- * 
- * This service layer abstracts all profile-related API calls.
- * Currently uses mock data with simulated delays.
- * 
- * When connecting to your PostgreSQL backend, replace the mock
- * implementations with real fetch/axios calls to your API endpoints.
- * 
- * Expected backend endpoints:
- *   GET    /api/admin/profile          → fetch profile
- *   PUT    /api/admin/profile          → update name, phone, timezone, language, notifications
- *   POST   /api/admin/profile/avatar   → upload avatar (multipart/form-data), returns { avatarUrl }
- *   DELETE /api/admin/profile/avatar   → delete current avatar
- *   PUT    /api/admin/profile/email    → request email change (sends verification)
- *   PUT    /api/admin/profile/password → change password
+ *
+ * Endpoints:
+ *   GET    /api/profile/admin          → fetch profile
+ *   PUT    /api/profile/admin          → update name, phone, timezone, language, notifications
+ *   POST   /api/profile/avatar         → upload avatar (multipart/form-data), returns { avatarUrl }
+ *   DELETE /api/profile/avatar         → delete current avatar
+ *   PUT    /api/profile/email          → change email (requires currentPassword)
+ *   PUT    /api/profile/password       → change password
  */
+
+import { api, API_BASE_URL, AUTH_TOKEN_KEY } from "@/services/api";
+import { DEV_MOCK } from "@/config/devMode";
 
 export interface AdminProfile {
   name: string;
@@ -31,28 +28,6 @@ export interface AdminProfile {
     paymentReminder: boolean;
   };
 }
-
-const adminProfile: AdminProfile = {
-  name: "Javier Ibáñez",
-  email: "javier@jipcoaching.com",
-  phone: "+34 600 123 456",
-  role: "Coach",
-  avatarUrl: null,
-  timezone: "Europe/Madrid",
-  language: "Español",
-  notifications: {
-    email: true,
-    push: true,
-    newClient: true,
-    paymentReminder: true,
-  },
-};
-
-// Simulated network delay
-const delay = (ms = 600) => new Promise((res) => setTimeout(res, ms));
-
-// In-memory mutable copy (simulates DB state)
-let currentProfile: AdminProfile = { ...adminProfile };
 
 export interface UpdateProfilePayload {
   name: string;
@@ -78,27 +53,60 @@ export interface ApiResponse<T = void> {
   error?: string;
 }
 
-// ── Fetch Profile ──────────────────────────────────────────────
+// ── Dev mock fallbacks ──
+
+const delay = (ms = 600) => new Promise((res) => setTimeout(res, ms));
+
+let mockProfile: AdminProfile = {
+  name: "Javier Ibáñez",
+  email: "javier@jipcoaching.com",
+  phone: "+34 600 123 456",
+  role: "Coach",
+  avatarUrl: null,
+  timezone: "Europe/Madrid",
+  language: "Español",
+  notifications: { email: true, push: true, newClient: true, paymentReminder: true },
+};
+
+// ── Fetch Profile ──
+
 export async function fetchAdminProfile(): Promise<ApiResponse<AdminProfile>> {
-  await delay(400);
-  // TODO: Replace with → GET /api/admin/profile
-  return { success: true, data: { ...currentProfile } };
+  if (DEV_MOCK) {
+    await delay(400);
+    return { success: true, data: { ...mockProfile } };
+  }
+
+  try {
+    const data = await api.get<AdminProfile>("/profile/admin");
+    return { success: true, data };
+  } catch (err: any) {
+    return { success: false, error: err?.message ?? "Error al obtener perfil" };
+  }
 }
 
-// ── Update Profile ─────────────────────────────────────────────
+// ── Update Profile ──
+
 export async function updateAdminProfile(payload: UpdateProfilePayload): Promise<ApiResponse<AdminProfile>> {
-  await delay();
-  // TODO: Replace with → PUT /api/admin/profile { body: payload }
-  currentProfile = { ...currentProfile, ...payload };
-  return { success: true, data: { ...currentProfile } };
+  if (DEV_MOCK) {
+    await delay();
+    mockProfile = { ...mockProfile, ...payload };
+    return { success: true, data: { ...mockProfile } };
+  }
+
+  try {
+    await api.put("/profile/admin", payload);
+    // Re-fetch to get updated data
+    const data = await api.get<AdminProfile>("/profile/admin");
+    return { success: true, data };
+  } catch (err: any) {
+    return { success: false, error: err?.message ?? "Error al actualizar perfil" };
+  }
 }
 
-// ── Upload Avatar ──────────────────────────────────────────────
-export async function uploadAvatar(file: File): Promise<ApiResponse<{ avatarUrl: string }>> {
-  await delay(800);
+// ── Upload Avatar ──
 
-  // Validate file before sending
-  const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+export async function uploadAvatar(file: File): Promise<ApiResponse<{ avatarUrl: string }>> {
+  const MAX_SIZE = 2 * 1024 * 1024;
   const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
   if (!ALLOWED_TYPES.includes(file.type)) {
@@ -108,51 +116,83 @@ export async function uploadAvatar(file: File): Promise<ApiResponse<{ avatarUrl:
     return { success: false, error: "El archivo supera el tamaño máximo de 2MB." };
   }
 
-  // TODO: Replace with → POST /api/admin/profile/avatar (multipart/form-data)
-  // The backend should:
-  //   1. Delete the old avatar file from storage
-  //   2. Save the new file
-  //   3. Return the new URL
-  const avatarUrl = URL.createObjectURL(file); // mock: use object URL
-  currentProfile = { ...currentProfile, avatarUrl };
-  return { success: true, data: { avatarUrl } };
+  if (DEV_MOCK) {
+    await delay(800);
+    const avatarUrl = URL.createObjectURL(file);
+    mockProfile = { ...mockProfile, avatarUrl };
+    return { success: true, data: { avatarUrl } };
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+
+    const res = await fetch(`${API_BASE_URL}/profile/avatar`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return { success: false, error: body?.message ?? "Error al subir avatar" };
+    }
+
+    const data = await res.json();
+    return { success: true, data: { avatarUrl: data.avatarUrl } };
+  } catch (err: any) {
+    return { success: false, error: err?.message ?? "Error al subir avatar" };
+  }
 }
 
-// ── Delete Avatar ──────────────────────────────────────────────
+// ── Delete Avatar ──
+
 export async function deleteAvatar(): Promise<ApiResponse> {
-  await delay();
-  // TODO: Replace with → DELETE /api/admin/profile/avatar
-  currentProfile = { ...currentProfile, avatarUrl: null };
-  return { success: true };
+  if (DEV_MOCK) {
+    await delay();
+    mockProfile = { ...mockProfile, avatarUrl: null };
+    return { success: true };
+  }
+
+  try {
+    await api.delete("/profile/avatar");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message ?? "Error al eliminar avatar" };
+  }
 }
 
-// ── Change Email ───────────────────────────────────────────────
+// ── Change Email ──
+
 export async function changeEmail(payload: ChangeEmailPayload): Promise<ApiResponse> {
-  await delay();
-  // TODO: Replace with → PUT /api/admin/profile/email { body: payload }
-  // The backend should:
-  //   1. Verify currentPassword
-  //   2. Send verification email to newEmail
-  //   3. Only update email in DB after verification link is clicked
-  
-  // Mock: simulate password check
-  if (!payload.currentPassword) {
-    return { success: false, error: "Contraseña incorrecta." };
+  if (DEV_MOCK) {
+    await delay();
+    if (!payload.currentPassword) return { success: false, error: "Contraseña incorrecta." };
+    return { success: true };
   }
-  return { success: true };
+
+  try {
+    await api.put("/profile/email", payload);
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message ?? "Error al cambiar email" };
+  }
 }
 
-// ── Change Password ────────────────────────────────────────────
+// ── Change Password ──
+
 export async function changePassword(payload: ChangePasswordPayload): Promise<ApiResponse> {
-  await delay();
-  // TODO: Replace with → PUT /api/admin/profile/password { body: payload }
-  // The backend should:
-  //   1. Verify currentPassword against bcrypt hash
-  //   2. Hash newPassword and update in DB
-  
-  // Mock: simulate password check
-  if (!payload.currentPassword) {
-    return { success: false, error: "Contraseña actual incorrecta." };
+  if (DEV_MOCK) {
+    await delay();
+    if (!payload.currentPassword) return { success: false, error: "Contraseña actual incorrecta." };
+    return { success: true };
   }
-  return { success: true };
+
+  try {
+    await api.put("/profile/password", payload);
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message ?? "Error al cambiar contraseña" };
+  }
 }

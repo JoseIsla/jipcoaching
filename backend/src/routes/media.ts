@@ -6,13 +6,30 @@ import { uploadProgressPhoto, uploadVideo } from "../middleware/upload";
 const router = Router();
 router.use(authenticate);
 
+// ══════════════════════════════════════════════════════════
+// Routes are mounted BOTH at /api/media AND /api/clients/:clientId/media
+// When mounted under /clients/:clientId/media, req.params.clientId comes
+// from the parent router (mergeParams). For /api/media/* routes, the
+// clientId is taken from the route param.
+// ══════════════════════════════════════════════════════════
+
+// Helper: resolve clientId from either parent param or route param
+const resolveClientId = (req: any): string | undefined =>
+  req.params.clientId || req.params.cid;
+
 // ── Progress Photos ──
 
-// GET /api/media/photos/:clientId
-router.get("/photos/:clientId", async (req, res) => {
+// GET /photos/:cid  OR  (parent)/photos
+router.get("/photos/:cid?", async (req, res) => {
   try {
+    const clientId = resolveClientId(req);
+    if (!clientId) {
+      res.status(400).json({ message: "clientId es obligatorio" });
+      return;
+    }
+
     const photos = await prisma.progressPhoto.findMany({
-      where: { clientId: req.params.clientId },
+      where: { clientId },
       orderBy: { sessionDate: "desc" },
     });
     res.json(photos.map((p) => ({
@@ -29,17 +46,20 @@ router.get("/photos/:clientId", async (req, res) => {
   }
 });
 
-// POST /api/media/photos/:clientId
-router.post("/photos/:clientId", uploadProgressPhoto.single("file"), async (req, res) => {
+// POST /photos/:cid  OR  (parent)/photos
+router.post("/photos/:cid?", uploadProgressPhoto.single("file"), async (req, res) => {
   try {
     if (!req.file) { res.status(400).json({ message: "No se proporcionó archivo" }); return; }
+
+    const clientId = resolveClientId(req);
+    if (!clientId) { res.status(400).json({ message: "clientId es obligatorio" }); return; }
 
     const { angle, sessionDate } = req.body;
     const url = `/uploads/progress/${req.file.filename}`;
 
     const photo = await prisma.progressPhoto.create({
       data: {
-        clientId: req.params.clientId,
+        clientId,
         angle: angle?.toUpperCase() || "FRONT",
         url,
         sessionDate: new Date(sessionDate || new Date()),
@@ -55,12 +75,12 @@ router.post("/photos/:clientId", uploadProgressPhoto.single("file"), async (req,
       uploadedAt: photo.uploadedAt.toISOString(),
     });
   } catch (err: any) {
-    console.error("POST /media/photos error:", err);
+    console.error("POST photos error:", err);
     res.status(500).json({ message: "Error al subir foto" });
   }
 });
 
-// DELETE /api/media/photos/:photoId
+// DELETE /photos/:photoId
 router.delete("/photos/:photoId", async (req, res) => {
   try {
     await prisma.progressPhoto.delete({ where: { id: req.params.photoId } });
@@ -72,12 +92,15 @@ router.delete("/photos/:photoId", async (req, res) => {
 
 // ── Technique Videos ──
 
-// GET /api/media/videos/:clientId
-router.get("/videos/:clientId", async (req, res) => {
+// GET /videos/:cid  OR  (parent)/videos
+router.get("/videos/:cid?", async (req, res) => {
   try {
+    const clientId = resolveClientId(req);
+    if (!clientId) { res.status(400).json({ message: "clientId es obligatorio" }); return; }
+
     const now = new Date();
     const videos = await prisma.techniqueVideo.findMany({
-      where: { clientId: req.params.clientId, expiresAt: { gt: now } },
+      where: { clientId, expiresAt: { gt: now } },
       orderBy: { uploadedAt: "desc" },
     });
     res.json(videos.map((v) => ({
@@ -94,10 +117,13 @@ router.get("/videos/:clientId", async (req, res) => {
   }
 });
 
-// POST /api/media/videos/:clientId
-router.post("/videos/:clientId", uploadVideo.single("file"), async (req, res) => {
+// POST /videos/:cid  OR  (parent)/videos
+router.post("/videos/:cid?", uploadVideo.single("file"), async (req, res) => {
   try {
     if (!req.file) { res.status(400).json({ message: "No se proporcionó archivo" }); return; }
+
+    const clientId = resolveClientId(req);
+    if (!clientId) { res.status(400).json({ message: "clientId es obligatorio" }); return; }
 
     const { exerciseName, notes } = req.body;
     const url = `/uploads/videos/${req.file.filename}`;
@@ -106,7 +132,7 @@ router.post("/videos/:clientId", uploadVideo.single("file"), async (req, res) =>
 
     const video = await prisma.techniqueVideo.create({
       data: {
-        clientId: req.params.clientId,
+        clientId,
         exerciseName: exerciseName || "Sin nombre",
         url,
         notes,
@@ -124,12 +150,12 @@ router.post("/videos/:clientId", uploadVideo.single("file"), async (req, res) =>
       expiresAt: video.expiresAt.toISOString(),
     });
   } catch (err: any) {
-    console.error("POST /media/videos error:", err);
+    console.error("POST videos error:", err);
     res.status(500).json({ message: "Error al subir vídeo" });
   }
 });
 
-// DELETE /api/media/videos/:videoId
+// DELETE /videos/:videoId
 router.delete("/videos/:videoId", async (req, res) => {
   try {
     await prisma.techniqueVideo.delete({ where: { id: req.params.videoId } });
@@ -141,7 +167,7 @@ router.delete("/videos/:videoId", async (req, res) => {
 
 // ── Media Comments ──
 
-// GET /api/media/comments?targetType=xxx&targetId=xxx
+// GET /comments?targetType=xxx&targetId=xxx
 router.get("/comments", async (req, res) => {
   try {
     const { targetType, targetId, clientId } = req.query;
@@ -160,7 +186,7 @@ router.get("/comments", async (req, res) => {
   }
 });
 
-// POST /api/media/comments
+// POST /comments
 router.post("/comments", requireRole("ADMIN"), async (req, res) => {
   try {
     const { targetType, targetId, clientId, authorName, text } = req.body;
@@ -179,7 +205,7 @@ router.post("/comments", requireRole("ADMIN"), async (req, res) => {
   }
 });
 
-// DELETE /api/media/comments/:id
+// DELETE /comments/:id
 router.delete("/comments/:id", requireRole("ADMIN"), async (req, res) => {
   try {
     await prisma.mediaComment.delete({ where: { id: req.params.id } });
