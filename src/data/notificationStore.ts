@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { api } from "@/services/api";
+import { DEV_MOCK } from "@/config/devMode";
 
 export type NotificationType = "checkin" | "client" | "plan" | "system";
 
@@ -14,14 +16,28 @@ export interface Notification {
   link?: string;
 }
 
+/** Map backend notification to frontend format */
+const mapApiNotification = (n: any): Notification => ({
+  id: n.id,
+  type: (n.type || "system") as NotificationType,
+  titleKey: n.title ?? "",
+  descriptionKey: n.message ?? "",
+  timestamp: new Date(n.createdAt),
+  read: n.read ?? false,
+  link: n.link ?? undefined,
+});
+
 interface NotificationStore {
   notifications: Notification[];
   unreadCount: number;
+  loading: boolean;
+  fetchNotifications: () => Promise<void>;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   removeNotification: (id: string) => void;
   addNotification: (notification: Omit<Notification, "id" | "timestamp" | "read">) => void;
 }
+
 const initialNotifications: Notification[] = [
   {
     id: "n1",
@@ -73,26 +89,64 @@ const initialNotifications: Notification[] = [
   },
 ];
 
-export const useNotificationStore = create<NotificationStore>((set) => ({
-  notifications: initialNotifications,
-  unreadCount: initialNotifications.filter((n) => !n.read).length,
-  markAsRead: (id) =>
+export const useNotificationStore = create<NotificationStore>((set, get) => ({
+  notifications: DEV_MOCK ? initialNotifications : [],
+  unreadCount: DEV_MOCK ? initialNotifications.filter((n) => !n.read).length : 0,
+  loading: false,
+
+  fetchNotifications: async () => {
+    if (DEV_MOCK) return; // Use initial mock data
+
+    set({ loading: true });
+    try {
+      const data = await api.get<any[]>("/notifications");
+      const notifications = (data ?? []).map(mapApiNotification);
+      set({
+        notifications,
+        unreadCount: notifications.filter((n) => !n.read).length,
+        loading: false,
+      });
+    } catch (err: any) {
+      console.warn("Failed to fetch notifications:", err?.message);
+      set({ loading: false });
+    }
+  },
+
+  markAsRead: (id) => {
     set((state) => {
       const updated = state.notifications.map((n) =>
         n.id === id ? { ...n, read: true } : n
       );
       return { notifications: updated, unreadCount: updated.filter((n) => !n.read).length };
-    }),
-  markAllAsRead: () =>
+    });
+
+    if (!DEV_MOCK) {
+      api.patch(`/notifications/${id}/read`).catch(() => {});
+    }
+  },
+
+  markAllAsRead: () => {
     set((state) => ({
       notifications: state.notifications.map((n) => ({ ...n, read: true })),
       unreadCount: 0,
-    })),
-  removeNotification: (id) =>
+    }));
+
+    if (!DEV_MOCK) {
+      api.patch("/notifications/read-all").catch(() => {});
+    }
+  },
+
+  removeNotification: (id) => {
     set((state) => {
       const updated = state.notifications.filter((n) => n.id !== id);
       return { notifications: updated, unreadCount: updated.filter((n) => !n.read).length };
-    }),
+    });
+
+    if (!DEV_MOCK) {
+      api.delete(`/notifications/${id}`).catch(() => {});
+    }
+  },
+
   addNotification: (notification) =>
     set((state) => {
       const newNotif: Notification = {

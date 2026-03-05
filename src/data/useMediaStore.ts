@@ -1,10 +1,12 @@
 /**
  * Zustand store for client media (progress photos & technique videos).
- * Provides mock data for development and API integration hooks.
+ * Uses mock data in DEV_MOCK mode, real API otherwise.
  */
 import { create } from "zustand";
-import type { ProgressPhoto, ProgressPhotoSession, TechniqueVideo, PhotoAngle, MediaComment } from "@/types/media";
-import { PHOTO_INTERVAL_DAYS, VIDEO_EXPIRY_DAYS } from "@/types/media";
+import { api } from "@/services/api";
+import { DEV_MOCK } from "@/config/devMode";
+import type { ProgressPhoto, ProgressPhotoSession, TechniqueVideo, MediaComment } from "@/types/media";
+import { PHOTO_INTERVAL_DAYS } from "@/types/media";
 
 // ── Mock Data ──
 
@@ -100,6 +102,12 @@ interface MediaState {
   photos: ProgressPhoto[];
   videos: TechniqueVideo[];
   comments: MediaComment[];
+  loading: boolean;
+
+  // Fetch from API
+  fetchPhotos: (clientId: string) => Promise<void>;
+  fetchVideos: (clientId: string) => Promise<void>;
+  fetchComments: (clientId: string) => Promise<void>;
 
   // Computed helpers
   getPhotoSessions: (clientId: string) => ProgressPhotoSession[];
@@ -119,9 +127,61 @@ interface MediaState {
 }
 
 export const useMediaStore = create<MediaState>((set, get) => ({
-  photos: mockPhotos,
-  videos: mockVideos,
-  comments: mockComments,
+  photos: DEV_MOCK ? mockPhotos : [],
+  videos: DEV_MOCK ? mockVideos : [],
+  comments: DEV_MOCK ? mockComments : [],
+  loading: false,
+
+  fetchPhotos: async (clientId) => {
+    if (DEV_MOCK) return;
+    set({ loading: true });
+    try {
+      const data = await api.get<ProgressPhoto[]>(`/clients/${clientId}/media/photos`);
+      set((s) => ({
+        photos: [
+          ...s.photos.filter((p) => p.clientId !== clientId),
+          ...(data ?? []),
+        ],
+        loading: false,
+      }));
+    } catch (err: any) {
+      console.warn("Failed to fetch photos:", err?.message);
+      set({ loading: false });
+    }
+  },
+
+  fetchVideos: async (clientId) => {
+    if (DEV_MOCK) return;
+    set({ loading: true });
+    try {
+      const data = await api.get<TechniqueVideo[]>(`/clients/${clientId}/media/videos`);
+      set((s) => ({
+        videos: [
+          ...s.videos.filter((v) => v.clientId !== clientId),
+          ...(data ?? []),
+        ],
+        loading: false,
+      }));
+    } catch (err: any) {
+      console.warn("Failed to fetch videos:", err?.message);
+      set({ loading: false });
+    }
+  },
+
+  fetchComments: async (clientId) => {
+    if (DEV_MOCK) return;
+    try {
+      const data = await api.get<MediaComment[]>(`/media/comments?clientId=${clientId}`);
+      set((s) => ({
+        comments: [
+          ...s.comments.filter((c) => c.clientId !== clientId),
+          ...(data ?? []),
+        ],
+      }));
+    } catch (err: any) {
+      console.warn("Failed to fetch comments:", err?.message);
+    }
+  },
 
   getPhotoSessions: (clientId) => {
     const photos = get().photos.filter((p) => p.clientId === clientId);
@@ -164,9 +224,29 @@ export const useMediaStore = create<MediaState>((set, get) => ({
 
   addPhoto: (photo) => set((s) => ({ photos: [...s.photos, photo] })),
   addPhotoBatch: (photos) => set((s) => ({ photos: [...s.photos, ...photos] })),
-  removePhoto: (photoId) => set((s) => ({ photos: s.photos.filter((p) => p.id !== photoId) })),
+  removePhoto: (photoId) => {
+    set((s) => ({ photos: s.photos.filter((p) => p.id !== photoId) }));
+    if (!DEV_MOCK) {
+      api.delete(`/media/photos/${photoId}`).catch(() => {});
+    }
+  },
   addVideo: (video) => set((s) => ({ videos: [...s.videos, video] })),
-  removeVideo: (videoId) => set((s) => ({ videos: s.videos.filter((v) => v.id !== videoId) })),
-  addComment: (comment) => set((s) => ({ comments: [...s.comments, comment] })),
-  removeComment: (commentId) => set((s) => ({ comments: s.comments.filter((c) => c.id !== commentId) })),
+  removeVideo: (videoId) => {
+    set((s) => ({ videos: s.videos.filter((v) => v.id !== videoId) }));
+    if (!DEV_MOCK) {
+      api.delete(`/media/videos/${videoId}`).catch(() => {});
+    }
+  },
+  addComment: (comment) => {
+    set((s) => ({ comments: [...s.comments, comment] }));
+    if (!DEV_MOCK) {
+      api.post("/media/comments", comment).catch(() => {});
+    }
+  },
+  removeComment: (commentId) => {
+    set((s) => ({ comments: s.comments.filter((c) => c.id !== commentId) }));
+    if (!DEV_MOCK) {
+      api.delete(`/media/comments/${commentId}`).catch(() => {});
+    }
+  },
 }));
