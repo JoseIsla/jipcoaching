@@ -36,7 +36,7 @@ router.post("/", async (req, res) => {
 router.patch("/:id/read", async (req, res) => {
   try {
     await prisma.notification.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: { read: true },
     });
     res.json({ message: "Marcada como leída" });
@@ -61,7 +61,7 @@ router.patch("/read-all", async (req, res) => {
 // DELETE /api/notifications/:id
 router.delete("/:id", async (req, res) => {
   try {
-    await prisma.notification.delete({ where: { id: req.params.id } });
+    await prisma.notification.delete({ where: { id: req.params.id as string } });
     res.json({ message: "Notificación eliminada" });
   } catch (err: any) {
     res.status(500).json({ message: "Error al eliminar notificación" });

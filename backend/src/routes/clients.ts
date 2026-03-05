@@ -16,7 +16,7 @@ router.get("/", requireRole("ADMIN"), async (_req, res) => {
       include: { user: { select: { avatarUrl: true } } },
     });
 
-    const result = clients.map((c) => ({
+    const result = clients.map((c: any) => ({
       id: c.id,
       name: c.name,
       email: c.email,
@@ -37,8 +37,8 @@ router.get("/", requireRole("ADMIN"), async (_req, res) => {
 // GET /api/clients/:id — Admin only
 router.get("/:id", requireRole("ADMIN"), async (req, res) => {
   try {
-    const client = await prisma.client.findUnique({
-      where: { id: req.params.id },
+    const client: any = await prisma.client.findUnique({
+      where: { id: req.params.id as string },
       include: {
         user: { select: { avatarUrl: true } },
         nutritionIntake: true,
@@ -70,7 +70,7 @@ router.get("/:id", requireRole("ADMIN"), async (req, res) => {
       avatarUrl: client.user?.avatarUrl || null,
       nutritionIntake: client.nutritionIntake,
       trainingIntake: client.trainingIntake,
-      weightHistory: client.weightHistory.map((w) => ({
+      weightHistory: client.weightHistory.map((w: any) => ({
         date: w.date.toISOString().split("T")[0],
         weight: w.weight,
       })),
@@ -138,7 +138,7 @@ router.put("/:id", requireRole("ADMIN"), async (req, res) => {
     const { name, email, packType, status, monthlyFee, notes, phone, age, sex, height, currentWeight, targetWeight } = req.body;
 
     const client = await prisma.client.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: {
         ...(name !== undefined && { name }),
         ...(email !== undefined && { email }),
@@ -165,7 +165,7 @@ router.put("/:id", requireRole("ADMIN"), async (req, res) => {
 // DELETE /api/clients/:id — Admin only
 router.delete("/:id", requireRole("ADMIN"), async (req, res) => {
   try {
-    const client = await prisma.client.findUnique({ where: { id: req.params.id } });
+    const client = await prisma.client.findUnique({ where: { id: req.params.id as string } });
     if (!client) {
       res.status(404).json({ message: "Cliente no encontrado" });
       return;
@@ -185,7 +185,7 @@ router.patch("/:id/status", requireRole("ADMIN"), async (req, res) => {
   try {
     const { status } = req.body;
     const client = await prisma.client.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: { status },
     });
     res.json(client);

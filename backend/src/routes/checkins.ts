@@ -129,7 +129,7 @@ router.post("/", async (req, res) => {
 router.post("/:id/submit", async (req, res) => {
   try {
     const { responses, trainingLog } = req.body;
-    const checkinId = req.params.id;
+    const checkinId = req.params.id as string;
 
     // Save responses
     if (responses && typeof responses === "object") {
@@ -219,7 +219,7 @@ router.post("/:id/submit", async (req, res) => {
 router.get("/weight/:clientId", async (req, res) => {
   try {
     const entries = await prisma.weightEntry.findMany({
-      where: { clientId: req.params.clientId },
+      where: { clientId: req.params.clientId as string },
       orderBy: { date: "asc" },
     });
     res.json(entries.map((e) => ({
@@ -235,7 +235,7 @@ router.get("/weight/:clientId", async (req, res) => {
 router.get("/rm/:clientId", async (req, res) => {
   try {
     const records = await prisma.rMRecord.findMany({
-      where: { clientId: req.params.clientId },
+      where: { clientId: req.params.clientId as string },
       orderBy: { date: "desc" },
     });
     res.json(records.map((r) => ({

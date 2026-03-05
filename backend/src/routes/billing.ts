@@ -38,7 +38,7 @@ router.post("/accounts/:id/months", async (req, res) => {
     const { month, amount, status, method, notes } = req.body;
     const billing = await prisma.billingMonth.create({
       data: {
-        billingAccountId: req.params.id,
+        billingAccountId: req.params.id as string,
         month,
         amount,
         status: status || "PENDING",
@@ -57,7 +57,7 @@ router.patch("/months/:id", async (req, res) => {
   try {
     const { status, method, paidAt, notes } = req.body;
     const billing = await prisma.billingMonth.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: {
         ...(status !== undefined && { status }),
         ...(method !== undefined && { method }),

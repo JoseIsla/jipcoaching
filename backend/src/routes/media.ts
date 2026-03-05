@@ -6,13 +6,6 @@ import { uploadProgressPhoto, uploadVideo } from "../middleware/upload";
 const router = Router();
 router.use(authenticate);
 
-// ══════════════════════════════════════════════════════════
-// Routes are mounted BOTH at /api/media AND /api/clients/:clientId/media
-// When mounted under /clients/:clientId/media, req.params.clientId comes
-// from the parent router (mergeParams). For /api/media/* routes, the
-// clientId is taken from the route param.
-// ══════════════════════════════════════════════════════════
-
 // Helper: resolve clientId from either parent param or route param
 const resolveClientId = (req: any): string | undefined =>
   req.params.clientId || req.params.cid;
@@ -83,7 +76,7 @@ router.post("/photos/:cid?", uploadProgressPhoto.single("file"), async (req, res
 // DELETE /photos/:photoId
 router.delete("/photos/:photoId", async (req, res) => {
   try {
-    await prisma.progressPhoto.delete({ where: { id: req.params.photoId } });
+    await prisma.progressPhoto.delete({ where: { id: req.params.photoId as string } });
     res.json({ message: "Foto eliminada" });
   } catch (err: any) {
     res.status(500).json({ message: "Error al eliminar foto" });
@@ -158,7 +151,7 @@ router.post("/videos/:cid?", uploadVideo.single("file"), async (req, res) => {
 // DELETE /videos/:videoId
 router.delete("/videos/:videoId", async (req, res) => {
   try {
-    await prisma.techniqueVideo.delete({ where: { id: req.params.videoId } });
+    await prisma.techniqueVideo.delete({ where: { id: req.params.videoId as string } });
     res.json({ message: "Vídeo eliminado" });
   } catch (err: any) {
     res.status(500).json({ message: "Error al eliminar vídeo" });
@@ -208,7 +201,7 @@ router.post("/comments", requireRole("ADMIN"), async (req, res) => {
 // DELETE /comments/:id
 router.delete("/comments/:id", requireRole("ADMIN"), async (req, res) => {
   try {
-    await prisma.mediaComment.delete({ where: { id: req.params.id } });
+    await prisma.mediaComment.delete({ where: { id: req.params.id as string } });
     res.json({ message: "Comentario eliminado" });
   } catch (err: any) {
     res.status(500).json({ message: "Error al eliminar comentario" });

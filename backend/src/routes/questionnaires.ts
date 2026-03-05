@@ -24,7 +24,7 @@ router.get("/", authenticate, requireRole("ADMIN"), async (_req: Request, res: R
 router.get("/:id", authenticate, async (req: Request, res: Response) => {
   try {
     const template = await prisma.questionnaireTemplate.findUnique({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       include: {
         questions: { orderBy: { order: "asc" } },
       },
@@ -79,7 +79,7 @@ router.put("/:id", authenticate, requireRole("ADMIN"), async (req: Request, res:
 
     // Update template fields
     const template = await prisma.questionnaireTemplate.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: {
         name,
         description,
@@ -95,12 +95,12 @@ router.put("/:id", authenticate, requireRole("ADMIN"), async (req: Request, res:
     // If questions provided, replace all
     if (questions) {
       await prisma.questionnaireQuestion.deleteMany({
-        where: { templateId: req.params.id },
+        where: { templateId: req.params.id as string },
       });
 
       await prisma.questionnaireQuestion.createMany({
         data: questions.map((q: any, idx: number) => ({
-          templateId: req.params.id,
+          templateId: req.params.id as string,
           type: q.type,
           label: q.label,
           required: q.required ?? true,
@@ -111,7 +111,7 @@ router.put("/:id", authenticate, requireRole("ADMIN"), async (req: Request, res:
     }
 
     const result = await prisma.questionnaireTemplate.findUnique({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       include: {
         questions: { orderBy: { order: "asc" } },
       },
@@ -128,7 +128,7 @@ router.put("/:id", authenticate, requireRole("ADMIN"), async (req: Request, res:
 router.delete("/:id", authenticate, requireRole("ADMIN"), async (req: Request, res: Response) => {
   try {
     await prisma.questionnaireTemplate.delete({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
     });
     res.json({ message: "Plantilla eliminada" });
   } catch (err) {

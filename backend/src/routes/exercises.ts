@@ -37,7 +37,7 @@ router.patch("/:id", requireRole("ADMIN"), async (req, res) => {
   try {
     const { name, category, muscleGroup, videoUrl, notes, parentExerciseId } = req.body;
     const exercise = await prisma.exercise.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: {
         ...(name !== undefined && { name }),
         ...(category !== undefined && { category }),
@@ -56,7 +56,7 @@ router.patch("/:id", requireRole("ADMIN"), async (req, res) => {
 // DELETE /api/exercises/:id — Admin only
 router.delete("/:id", requireRole("ADMIN"), async (req, res) => {
   try {
-    await prisma.exercise.delete({ where: { id: req.params.id } });
+    await prisma.exercise.delete({ where: { id: req.params.id as string } });
     res.json({ message: "Ejercicio eliminado" });
   } catch (err: any) {
     res.status(500).json({ message: "Error al eliminar ejercicio" });
