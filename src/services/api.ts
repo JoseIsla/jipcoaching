@@ -3,8 +3,11 @@
  *
  * - Injects Authorization header from localStorage
  * - Handles 401 (auto-logout), 403, 400 globally
+ * - Shows toast notifications on errors
  * - Base URL from VITE_API_URL env var
  */
+
+import { toast } from "@/hooks/use-toast";
 
 const AUTH_TOKEN_KEY = "jip_auth_token";
 
@@ -31,13 +34,34 @@ export class ApiError extends Error {
   }
 }
 
+/** Show a toast for API errors (debounced for 401 to avoid spam on redirect) */
+const showErrorToast = (error: ApiError) => {
+  // Skip toast for 401 — user is being redirected to login
+  if (error.status === 401) return;
+
+  const titles: Record<number, string> = {
+    400: "Error de validación",
+    403: "Acceso denegado",
+    404: "No encontrado",
+    500: "Error del servidor",
+  };
+
+  toast({
+    variant: "destructive",
+    title: titles[error.status] ?? `Error ${error.status}`,
+    description: error.message,
+  });
+};
+
 interface RequestOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
   skipAuth?: boolean;
+  /** If true, suppress the global error toast (caller handles errors) */
+  silent?: boolean;
 }
 
 async function request<T = any>(path: string, opts: RequestOptions = {}): Promise<T> {
-  const { body, skipAuth, headers: extraHeaders, ...rest } = opts;
+  const { body, skipAuth, silent, headers: extraHeaders, ...rest } = opts;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -51,11 +75,18 @@ async function request<T = any>(path: string, opts: RequestOptions = {}): Promis
 
   const url = `${API_BASE_URL}${path}`;
 
-  const response = await fetch(url, {
-    ...rest,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...rest,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  } catch (networkErr) {
+    const error = new ApiError(0, null, "No se pudo conectar con el servidor");
+    if (!silent) showErrorToast(error);
+    throw error;
+  }
 
   // Handle global error statuses
   if (response.status === 401) {
@@ -71,20 +102,20 @@ async function request<T = any>(path: string, opts: RequestOptions = {}): Promis
     // non-JSON response
   }
 
-  if (response.status === 403) {
-    throw new ApiError(403, data, "Acceso denegado");
-  }
-
-  if (response.status === 400) {
-    const msg =
-      data?.message ??
-      (Array.isArray(data?.errors) ? data.errors.join(", ") : "Error de validación");
-    throw new ApiError(400, data, msg);
-  }
-
   if (!response.ok) {
-    const msg = data?.message ?? data?.error ?? `Error ${response.status}`;
-    throw new ApiError(response.status, data, msg);
+    let msg: string;
+    if (response.status === 403) {
+      msg = "No tienes permisos para esta acción";
+    } else if (response.status === 400) {
+      msg = data?.message ??
+        (Array.isArray(data?.errors) ? data.errors.join(", ") : "Error de validación");
+    } else {
+      msg = data?.message ?? data?.error ?? `Error ${response.status}`;
+    }
+
+    const error = new ApiError(response.status, data, msg);
+    if (!silent) showErrorToast(error);
+    throw error;
   }
 
   return data as T;
