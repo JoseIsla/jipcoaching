@@ -43,7 +43,7 @@ router.get("/plans", async (req, res) => {
 router.get("/plans/:id", async (req, res) => {
   try {
     const plan = await prisma.trainingPlan.findUnique({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       include: {
         weeks: {
           include: { days: { include: { exercises: { orderBy: { order: "asc" } } } } },
@@ -188,7 +188,7 @@ router.put("/plans/:id", requireRole("ADMIN"), async (req, res) => {
     const { title, modality, block, daysPerWeek, blockVariants, isActive } = req.body;
 
     const plan = await prisma.trainingPlan.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: {
         ...(title !== undefined && { title }),
         ...(modality !== undefined && { modality }),
@@ -210,7 +210,7 @@ router.put("/plans/:id", requireRole("ADMIN"), async (req, res) => {
 router.patch("/plans/:id/toggle", requireRole("ADMIN"), async (req, res) => {
   try {
     const { isActive } = req.body;
-    const plan = await prisma.trainingPlan.findUnique({ where: { id: req.params.id } });
+    const plan = await prisma.trainingPlan.findUnique({ where: { id: req.params.id as string } });
     if (!plan) { res.status(404).json({ message: "Plan no encontrado" }); return; }
 
     if (isActive) {
@@ -221,7 +221,7 @@ router.patch("/plans/:id/toggle", requireRole("ADMIN"), async (req, res) => {
     }
 
     const updated = await prisma.trainingPlan.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: { isActive },
     });
     res.json(updated);
@@ -236,8 +236,8 @@ router.patch("/plans/:id/toggle", requireRole("ADMIN"), async (req, res) => {
 router.post("/plans/:planId/weeks", requireRole("ADMIN"), async (req, res) => {
   try {
     const { block, notes } = req.body;
-    const plan = await prisma.trainingPlan.findUnique({
-      where: { id: req.params.planId },
+    const plan: any = await prisma.trainingPlan.findUnique({
+      where: { id: req.params.planId as string },
       include: { weeks: true },
     });
     if (!plan) { res.status(404).json({ message: "Plan no encontrado" }); return; }
@@ -278,7 +278,7 @@ router.put("/weeks/:weekId", requireRole("ADMIN"), async (req, res) => {
   try {
     const { block, status, notes } = req.body;
     const week = await prisma.trainingWeek.update({
-      where: { id: req.params.weekId },
+      where: { id: req.params.weekId as string },
       data: {
         ...(block !== undefined && { block }),
         ...(status !== undefined && { status }),
@@ -300,7 +300,7 @@ router.put("/days/:dayId", requireRole("ADMIN"), async (req, res) => {
     const { title, warmup, notes, exercises } = req.body;
 
     const day = await prisma.trainingDay.update({
-      where: { id: req.params.dayId },
+      where: { id: req.params.dayId as string },
       data: {
         ...(title !== undefined && { title }),
         ...(warmup !== undefined && { warmup }),

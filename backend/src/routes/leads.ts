@@ -36,7 +36,7 @@ router.get("/", authenticate, requireRole("ADMIN"), async (_req, res) => {
 router.patch("/:id/read", authenticate, requireRole("ADMIN"), async (req, res) => {
   try {
     await prisma.contactLead.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: { read: true },
     });
     res.json({ message: "Marcado como leído" });
@@ -48,7 +48,7 @@ router.patch("/:id/read", authenticate, requireRole("ADMIN"), async (req, res) =
 // DELETE /api/leads/:id — Admin only
 router.delete("/:id", authenticate, requireRole("ADMIN"), async (req, res) => {
   try {
-    await prisma.contactLead.delete({ where: { id: req.params.id } });
+    await prisma.contactLead.delete({ where: { id: req.params.id as string } });
     res.json({ message: "Lead eliminado" });
   } catch (err: any) {
     res.status(500).json({ message: "Error al eliminar lead" });

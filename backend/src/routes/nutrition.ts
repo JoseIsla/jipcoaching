@@ -48,7 +48,7 @@ router.get("/plans", async (req, res) => {
 router.get("/plans/:id", async (req, res) => {
   try {
     const plan = await prisma.nutritionPlan.findUnique({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       include: {
         meals: {
           include: {
@@ -173,7 +173,7 @@ router.put("/plans/:id", requireRole("ADMIN"), async (req, res) => {
     const { title, objective, recommendations, kcalMin, kcalMax, proteinG, carbsG, fatsG, isActive, meals } = req.body;
 
     const plan = await prisma.nutritionPlan.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: {
         ...(title !== undefined && { title }),
         ...(objective !== undefined && { objective }),
@@ -241,7 +241,7 @@ router.put("/plans/:id", requireRole("ADMIN"), async (req, res) => {
 router.patch("/plans/:id/toggle", requireRole("ADMIN"), async (req, res) => {
   try {
     const { isActive } = req.body;
-    const plan = await prisma.nutritionPlan.findUnique({ where: { id: req.params.id } });
+    const plan = await prisma.nutritionPlan.findUnique({ where: { id: req.params.id as string } });
     if (!plan) { res.status(404).json({ message: "Plan no encontrado" }); return; }
 
     if (isActive) {
@@ -252,7 +252,7 @@ router.patch("/plans/:id/toggle", requireRole("ADMIN"), async (req, res) => {
     }
 
     const updated = await prisma.nutritionPlan.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: { isActive },
     });
     res.json(updated);

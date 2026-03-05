@@ -31,7 +31,7 @@ router.put("/:id", requireRole("ADMIN"), async (req, res) => {
   try {
     const { name, dose, timing } = req.body;
     const supplement = await prisma.supplement.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: { name, dose, timing },
     });
     res.json(supplement);
@@ -43,7 +43,7 @@ router.put("/:id", requireRole("ADMIN"), async (req, res) => {
 // DELETE /api/supplements/:id — Admin only
 router.delete("/:id", requireRole("ADMIN"), async (req, res) => {
   try {
-    await prisma.supplement.delete({ where: { id: req.params.id } });
+    await prisma.supplement.delete({ where: { id: req.params.id as string } });
     res.json({ message: "Suplemento eliminado" });
   } catch (err: any) {
     res.status(500).json({ message: "Error al eliminar suplemento" });
