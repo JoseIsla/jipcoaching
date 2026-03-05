@@ -54,9 +54,12 @@ app.use("/api/billing", billingRoutes);
 app.use("/api/supplements", supplementRoutes);
 app.use("/api/questionnaires", questionnaireRoutes);
 
+// Mount media routes also under /api/clients/:clientId/media
+// so frontend calls like /clients/abc/media/photos work
+app.use("/api/clients/:clientId/media", mediaRoutes);
+
 // GET /api/me — alias used by frontend
 app.use("/api/me", (req, res, next) => {
-  // Redirect to auth/me handler
   req.url = "/me";
   authRoutes(req, res, next);
 });

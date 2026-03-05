@@ -1,20 +1,17 @@
 /**
  * Client Profile API Service
- * 
- * This service layer abstracts all client profile-related API calls.
- * Currently uses mock data with simulated delays.
- * 
- * When connecting to your backend, replace the mock
- * implementations with real fetch/axios calls to your API endpoints.
- * 
- * Expected backend endpoints:
- *   GET    /api/client/profile          → fetch client profile
- *   PUT    /api/client/profile          → update name, phone
- *   POST   /api/client/profile/avatar   → upload avatar (multipart/form-data), returns { avatarUrl }
- *   DELETE /api/client/profile/avatar   → delete current avatar
- *   PUT    /api/client/profile/email    → request email change (sends verification)
- *   PUT    /api/client/profile/password → change password
+ *
+ * Endpoints:
+ *   GET    /api/profile/client          → fetch client profile
+ *   PUT    /api/profile/client          → update name, phone
+ *   POST   /api/profile/avatar          → upload avatar (multipart/form-data), returns { avatarUrl }
+ *   DELETE /api/profile/avatar          → delete current avatar
+ *   PUT    /api/profile/email           → change email (requires currentPassword)
+ *   PUT    /api/profile/password        → change password
  */
+
+import { api, API_BASE_URL, AUTH_TOKEN_KEY } from "@/services/api";
+import { DEV_MOCK } from "@/config/devMode";
 
 export interface ClientProfile {
   id: string;
@@ -45,11 +42,11 @@ export interface ApiResponse<T = void> {
   error?: string;
 }
 
-// Simulated network delay
+// ── Dev mock fallbacks ──
+
 const delay = (ms = 600) => new Promise((res) => setTimeout(res, ms));
 
-// In-memory mutable copy (simulates DB state)
-let currentProfile: ClientProfile = {
+let mockProfile: ClientProfile = {
   id: "c1",
   name: "Carlos García",
   email: "carlos@email.com",
@@ -57,26 +54,44 @@ let currentProfile: ClientProfile = {
   avatarUrl: null,
 };
 
-// ── Fetch Profile ──────────────────────────────────────────────
+// ── Fetch Profile ──
+
 export async function fetchClientProfile(): Promise<ApiResponse<ClientProfile>> {
-  await delay(400);
-  // TODO: Replace with → GET /api/client/profile (uses JWT from localStorage)
-  return { success: true, data: { ...currentProfile } };
+  if (DEV_MOCK) {
+    await delay(400);
+    return { success: true, data: { ...mockProfile } };
+  }
+
+  try {
+    const data = await api.get<ClientProfile>("/profile/client");
+    return { success: true, data };
+  } catch (err: any) {
+    return { success: false, error: err?.message ?? "Error al obtener perfil" };
+  }
 }
 
-// ── Update Profile ─────────────────────────────────────────────
+// ── Update Profile ──
+
 export async function updateClientProfile(payload: UpdateClientProfilePayload): Promise<ApiResponse<ClientProfile>> {
-  await delay();
-  // TODO: Replace with → PUT /api/client/profile { body: payload }
-  currentProfile = { ...currentProfile, ...payload };
-  return { success: true, data: { ...currentProfile } };
+  if (DEV_MOCK) {
+    await delay();
+    mockProfile = { ...mockProfile, ...payload };
+    return { success: true, data: { ...mockProfile } };
+  }
+
+  try {
+    await api.put("/profile/client", payload);
+    const data = await api.get<ClientProfile>("/profile/client");
+    return { success: true, data };
+  } catch (err: any) {
+    return { success: false, error: err?.message ?? "Error al actualizar perfil" };
+  }
 }
 
-// ── Upload Avatar ──────────────────────────────────────────────
-export async function uploadClientAvatar(file: File): Promise<ApiResponse<{ avatarUrl: string }>> {
-  await delay(800);
+// ── Upload Avatar ──
 
-  const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+export async function uploadClientAvatar(file: File): Promise<ApiResponse<{ avatarUrl: string }>> {
+  const MAX_SIZE = 2 * 1024 * 1024;
   const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
   if (!ALLOWED_TYPES.includes(file.type)) {
@@ -86,48 +101,84 @@ export async function uploadClientAvatar(file: File): Promise<ApiResponse<{ avat
     return { success: false, error: "El archivo supera el tamaño máximo de 2MB." };
   }
 
-  // TODO: Replace with → POST /api/client/profile/avatar (multipart/form-data)
-  const avatarUrl = URL.createObjectURL(file);
-  currentProfile = { ...currentProfile, avatarUrl };
-  return { success: true, data: { avatarUrl } };
+  if (DEV_MOCK) {
+    await delay(800);
+    const avatarUrl = URL.createObjectURL(file);
+    mockProfile = { ...mockProfile, avatarUrl };
+    return { success: true, data: { avatarUrl } };
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+
+    const res = await fetch(`${API_BASE_URL}/profile/avatar`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return { success: false, error: body?.message ?? "Error al subir avatar" };
+    }
+
+    const data = await res.json();
+    return { success: true, data: { avatarUrl: data.avatarUrl } };
+  } catch (err: any) {
+    return { success: false, error: err?.message ?? "Error al subir avatar" };
+  }
 }
 
-// ── Delete Avatar ──────────────────────────────────────────────
+// ── Delete Avatar ──
+
 export async function deleteClientAvatar(): Promise<ApiResponse> {
-  await delay();
-  // TODO: Replace with → DELETE /api/client/profile/avatar
-  currentProfile = { ...currentProfile, avatarUrl: null };
-  return { success: true };
+  if (DEV_MOCK) {
+    await delay();
+    mockProfile = { ...mockProfile, avatarUrl: null };
+    return { success: true };
+  }
+
+  try {
+    await api.delete("/profile/avatar");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message ?? "Error al eliminar avatar" };
+  }
 }
 
-// ── Change Email ───────────────────────────────────────────────
+// ── Change Email ──
+
 export async function changeClientEmail(payload: ChangeEmailPayload): Promise<ApiResponse> {
-  await delay();
-  // TODO: Replace with → PUT /api/client/profile/email { body: payload }
-  // Backend should:
-  //   1. Verify currentPassword
-  //   2. Send verification email to newEmail
-  //   3. Only update email in DB after verification link is clicked
-
-  if (!payload.currentPassword) {
-    return { success: false, error: "Contraseña incorrecta." };
+  if (DEV_MOCK) {
+    await delay();
+    if (!payload.currentPassword) return { success: false, error: "Contraseña incorrecta." };
+    return { success: true };
   }
-  return { success: true };
+
+  try {
+    await api.put("/profile/email", payload);
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message ?? "Error al cambiar email" };
+  }
 }
 
-// ── Change Password ────────────────────────────────────────────
-export async function changeClientPassword(payload: ChangePasswordPayload): Promise<ApiResponse> {
-  await delay();
-  // TODO: Replace with → PUT /api/client/profile/password { body: payload }
-  // Backend should:
-  //   1. Verify currentPassword against bcrypt hash
-  //   2. Hash newPassword and update in DB
+// ── Change Password ──
 
-  if (!payload.currentPassword) {
-    return { success: false, error: "Contraseña actual incorrecta." };
+export async function changeClientPassword(payload: ChangePasswordPayload): Promise<ApiResponse> {
+  if (DEV_MOCK) {
+    await delay();
+    if (!payload.currentPassword) return { success: false, error: "Contraseña actual incorrecta." };
+    if (payload.newPassword.length < 6) return { success: false, error: "La contraseña debe tener al menos 6 caracteres." };
+    return { success: true };
   }
-  if (payload.newPassword.length < 6) {
-    return { success: false, error: "La contraseña debe tener al menos 6 caracteres." };
+
+  try {
+    await api.put("/profile/password", payload);
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message ?? "Error al cambiar contraseña" };
   }
-  return { success: true };
 }
