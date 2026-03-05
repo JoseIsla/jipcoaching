@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Activity, Utensils, Dumbbell, Trophy, Brain, AlertTriangle, Search } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -184,6 +184,10 @@ const AdminProgress = () => {
   const [search, setSearch] = useState("");
   const activeClients = useClientStore((s) => s.getActiveClients)();
   const filtered = activeClients.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
+  const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
+
+  // Fetch all check-ins for admin view
+  useEffect(() => { fetchEntries(); }, []);
 
   return (
     <AdminLayout>
