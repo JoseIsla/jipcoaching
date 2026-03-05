@@ -58,10 +58,23 @@ app.use("/api/questionnaires", questionnaireRoutes);
 // so frontend calls like /clients/abc/media/photos work
 app.use("/api/clients/:clientId/media", mediaRoutes);
 
-// GET /api/me — alias used by frontend
-app.use("/api/me", (req, res, next) => {
-  req.url = "/me";
-  authRoutes(req, res, next);
+// GET /api/me — convenience alias forwarding to auth router's /me handler
+import { authenticate } from "./middleware/auth";
+app.get("/api/me", authenticate, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+      select: { id: true, email: true, role: true, avatarUrl: true },
+    });
+    if (!user) {
+      res.status(404).json({ message: "Usuario no encontrado" });
+      return;
+    }
+    res.json(user);
+  } catch (err: any) {
+    console.error("Me alias error:", err);
+    res.status(500).json({ message: "Error al obtener perfil" });
+  }
 });
 
 // Health check

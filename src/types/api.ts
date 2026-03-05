@@ -261,7 +261,7 @@ export interface ApiTrainingPlan {
 export interface ApiExerciseLog {
   id: string;
   prescriptionId: string;
-  sessionId: string;
+  /** No sessionId in Prisma — ExerciseLog belongs directly to ExercisePrescription */
   topKg?: number;
   topReps?: number;
   topRpe?: number;
@@ -294,27 +294,18 @@ export interface ApiTrainingSessionLog {
 
 // ── Nutrition ──
 
-export interface ApiNutritionBlockItem {
-  id: string;
-  blockId: string;
-  portionId?: string;
-  freeText?: string;
-  order: number;
-  createdAt?: string;
-}
-
-export interface ApiNutritionMealBlock {
+/**
+ * Matches Prisma NutritionIngredientRow.
+ * Each row belongs to a NutritionMealOption.
+ */
+export interface ApiNutritionIngredientRow {
   id: string;
   optionId: string;
-  type: MealBlockType;
-  title?: string;
-  notes?: string;
+  mainIngredient: string;
+  alternatives: string; // JSON array stored as TEXT
+  macroCategory: string;
   order: number;
-  useTable: boolean;
-  tableCategory?: FoodCategory;
-  items: ApiNutritionBlockItem[];
   createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface ApiNutritionMealOption {
@@ -323,7 +314,7 @@ export interface ApiNutritionMealOption {
   name: string;
   notes?: string;
   order: number;
-  blocks: ApiNutritionMealBlock[];
+  rows: ApiNutritionIngredientRow[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -435,7 +426,7 @@ export interface ApiBillingAccount {
   updatedAt?: string;
 }
 
-// ── Sessions (legacy — now TrainingSessionLog) ──
+/** @deprecated Use ApiTrainingSessionLog instead */
 export interface ApiSession {
   id: string;
   date: string;
@@ -485,6 +476,28 @@ export interface ApiQuestionnaire {
   templateId: string;
   description: string;
   questions: ApiQuestionnaireQuestion[];
+}
+
+// ── Legacy block-based nutrition types (DEPRECATED) ──
+// These were used before the backend settled on the IngredientRow model.
+// Keeping only as type aliases for gradual migration.
+
+/** @deprecated Use ApiNutritionIngredientRow instead */
+export type ApiNutritionBlockItem = ApiNutritionIngredientRow;
+
+/** @deprecated Block-based nutrition was replaced by row-based model */
+export interface ApiNutritionMealBlock {
+  id: string;
+  optionId: string;
+  type: MealBlockType;
+  title?: string;
+  notes?: string;
+  order: number;
+  useTable: boolean;
+  tableCategory?: FoodCategory;
+  items: ApiNutritionIngredientRow[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // ── Labels for UI ──
