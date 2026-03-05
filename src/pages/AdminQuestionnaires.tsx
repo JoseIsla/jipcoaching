@@ -168,8 +168,9 @@ const AdminQuestionnaires = () => {
   const allEntries = useQuestionnaireStore((s) => s.entries);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
 
-  // Fetch check-ins from API on mount
-  useEffect(() => { fetchEntries(); }, []);
+  // Fetch check-ins and templates from API on mount
+  const fetchTemplates = useTemplateStore((s) => s.fetchTemplates);
+  useEffect(() => { fetchEntries(); fetchTemplates(); }, []);
 
   // Template store
   const nutritionTemplates = useTemplateStore((s) => s.nutritionTemplates);
@@ -177,6 +178,7 @@ const AdminQuestionnaires = () => {
   const {
     updateNutritionQuestion, deleteNutritionQuestion, addNutritionQuestion, reorderNutritionQuestions,
     updateTrainingQuestion, deleteTrainingQuestion, addTrainingQuestion, reorderTrainingQuestions,
+    saveTemplate,
   } = useTemplateStore();
 
   // Edit/add question state
@@ -191,8 +193,10 @@ const AdminQuestionnaires = () => {
     if (!deleteTarget) return;
     if (deleteTarget.type === "nutrition" && deleteTarget.templateId) {
       deleteNutritionQuestion(deleteTarget.templateId, deleteTarget.questionId);
+      saveTemplate(deleteTarget.templateId);
     } else {
       deleteTrainingQuestion(deleteTarget.questionId);
+      saveTemplate(trainingTemplate.id);
     }
     setDeleteTarget(null);
   };
@@ -201,16 +205,20 @@ const AdminQuestionnaires = () => {
     if (editContext) {
       if (editContext.type === "nutrition" && editContext.templateId) {
         updateNutritionQuestion(editContext.templateId, q.id, q);
+        saveTemplate(editContext.templateId);
       } else {
         updateTrainingQuestion(q.id, q);
+        saveTemplate(trainingTemplate.id);
       }
       setEditContext(null);
       setEditingQuestion(undefined);
     } else if (addContext) {
       if (addContext.type === "nutrition" && addContext.templateId) {
         addNutritionQuestion(addContext.templateId, q);
+        saveTemplate(addContext.templateId);
       } else {
         addTrainingQuestion(q);
+        saveTemplate(trainingTemplate.id);
       }
       setAddContext(null);
     }
@@ -289,7 +297,7 @@ const AdminQuestionnaires = () => {
                         template={template}
                         onEdit={(q) => { setEditingQuestion(q); setEditContext({ type: "nutrition", templateId: template.id }); }}
                         onDelete={(qId) => setDeleteTarget({ type: "nutrition", templateId: template.id, questionId: qId })}
-                        onReorder={(ids) => reorderNutritionQuestions(template.id, ids)}
+                        onReorder={(ids) => { reorderNutritionQuestions(template.id, ids); saveTemplate(template.id); }}
                         onAdd={() => setAddContext({ type: "nutrition", templateId: template.id })}
                         t={t}
                       />
@@ -327,7 +335,7 @@ const AdminQuestionnaires = () => {
                     questions={trainingTemplate.questions}
                     onEdit={(q) => { setEditingQuestion(q); setEditContext({ type: "training" }); }}
                     onDelete={(qId) => setDeleteTarget({ type: "training", questionId: qId })}
-                    onReorder={(ids) => reorderTrainingQuestions(ids)}
+                    onReorder={(ids) => { reorderTrainingQuestions(ids); saveTemplate(trainingTemplate.id); }}
                     onAdd={() => setAddContext({ type: "training" })}
                     t={t}
                   />
