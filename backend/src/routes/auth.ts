@@ -6,8 +6,8 @@ import { rateLimit } from "../middleware/rateLimiter";
 
 const router = Router();
 
-// Rate limit: max 5 login attempts per IP every 15 minutes
-const loginLimiter = rateLimit({ windowSec: 15 * 60, max: 5 });
+// Rate limit: max 20 login attempts per IP every 15 minutes
+const loginLimiter = rateLimit({ windowSec: 15 * 60, max: 20 });
 
 // POST /api/auth/register
 router.post("/register", loginLimiter, async (req, res) => {
