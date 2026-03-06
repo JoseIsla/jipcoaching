@@ -160,6 +160,24 @@ router.post("/plans", requireRole("ADMIN"), async (req, res) => {
       },
     });
 
+    // Notify the client about new nutrition plan
+    try {
+      const client = await prisma.client.findUnique({ where: { id: clientId } });
+      if (client) {
+        await prisma.notification.create({
+          data: {
+            userId: client.userId,
+            type: "plan",
+            title: "Nuevo plan de nutrición",
+            message: `Se te ha asignado el plan "${title}"`,
+            link: "/client/nutrition",
+          },
+        });
+      }
+    } catch (notifErr) {
+      console.warn("Failed to create nutrition plan notification:", notifErr);
+    }
+
     res.status(201).json(plan);
   } catch (err: any) {
     console.error("POST /nutrition/plans error:", err);

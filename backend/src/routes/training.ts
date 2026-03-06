@@ -175,6 +175,24 @@ router.post("/plans", requireRole("ADMIN"), async (req, res) => {
       },
     });
 
+    // Notify the client about new training plan
+    try {
+      const client = await prisma.client.findUnique({ where: { id: clientId } });
+      if (client) {
+        await prisma.notification.create({
+          data: {
+            userId: client.userId,
+            type: "plan",
+            title: "Nuevo plan de entrenamiento",
+            message: `Se te ha asignado el plan "${title}"`,
+            link: "/client/training",
+          },
+        });
+      }
+    } catch (notifErr) {
+      console.warn("Failed to create training plan notification:", notifErr);
+    }
+
     res.status(201).json(plan);
   } catch (err: any) {
     console.error("POST /training/plans error:", err);
