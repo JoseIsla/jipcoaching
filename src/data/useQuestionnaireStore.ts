@@ -288,38 +288,42 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
           : e
       );
 
-      // If this is a nutrition check-in with weight (q1), update weightHistory
+      // If this is a nutrition check-in with weight, update weightHistory
+      // Find weight question: first NUMBER question with "peso"/"weight" in label, or fallback to "q1"
       const updatedWeightHistory = { ...s.weightHistory };
-      if (entry && entry.category === "nutrition" && responses.q1 != null) {
-        const weight = Number(responses.q1);
-        if (!isNaN(weight) && weight > 0) {
-          const clientHistory = [...(updatedWeightHistory[entry.clientId] || [])];
-          const today = new Date().toISOString().slice(0, 10);
-          const existingIdx = clientHistory.findIndex((w) => w.date === today);
-          if (existingIdx >= 0) {
-            clientHistory[existingIdx] = { date: today, weight };
-          } else {
-            clientHistory.push({ date: today, weight });
-          }
-          clientHistory.sort((a, b) => a.date.localeCompare(b.date));
-          updatedWeightHistory[entry.clientId] = clientHistory;
-        }
-      }
+      if (entry && entry.category === "nutrition") {
+        const weightQ = entry.templateQuestions?.find(
+          (q) => q.type.toLowerCase() === "number" &&
+            (q.label.toLowerCase().includes("peso") || q.label.toLowerCase().includes("weight"))
+        ) || entry.templateQuestions?.find((q) => q.type.toLowerCase() === "number");
+        const weightKey = weightQ?.id || "q1";
+        const rawWeight = responses[weightKey];
 
-      // Sync weight to client detail store
-      if (entry && entry.category === "nutrition" && responses.q1 != null) {
-        const weight = Number(responses.q1);
-        if (!isNaN(weight) && weight > 0) {
-          const detailStore = useClientDetailStore.getState();
-          const existingDetail = detailStore.getDetail(entry.clientId);
-          if (existingDetail) {
+        if (rawWeight != null) {
+          const weight = Number(rawWeight);
+          if (!isNaN(weight) && weight > 0) {
+            const clientHistory = [...(updatedWeightHistory[entry.clientId] || [])];
             const today = new Date().toISOString().slice(0, 10);
-            const history = [...(existingDetail.weightHistory || [])];
-            const idx = history.findIndex((w) => w.date === today);
-            if (idx >= 0) history[idx] = { date: today, weight };
-            else history.push({ date: today, weight });
-            history.sort((a, b) => a.date.localeCompare(b.date));
-            detailStore.updateDetail(entry.clientId, { currentWeight: weight, weightHistory: history });
+            const existingIdx = clientHistory.findIndex((w) => w.date === today);
+            if (existingIdx >= 0) {
+              clientHistory[existingIdx] = { date: today, weight };
+            } else {
+              clientHistory.push({ date: today, weight });
+            }
+            clientHistory.sort((a, b) => a.date.localeCompare(b.date));
+            updatedWeightHistory[entry.clientId] = clientHistory;
+
+            // Sync weight to client detail store
+            const detailStore = useClientDetailStore.getState();
+            const existingDetail = detailStore.getDetail(entry.clientId);
+            if (existingDetail) {
+              const history = [...(existingDetail.weightHistory || [])];
+              const idx = history.findIndex((w) => w.date === today);
+              if (idx >= 0) history[idx] = { date: today, weight };
+              else history.push({ date: today, weight });
+              history.sort((a, b) => a.date.localeCompare(b.date));
+              detailStore.updateDetail(entry.clientId, { currentWeight: weight, weightHistory: history });
+            }
           }
         }
       }
