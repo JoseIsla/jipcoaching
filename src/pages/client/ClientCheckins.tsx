@@ -629,9 +629,12 @@ const ClientCheckins = () => {
   const allEntries = useQuestionnaireStore((s) => s.entries);
   const getOrCreateTrainingEntry = useQuestionnaireStore((s) => s.getOrCreateTrainingEntry);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
+  const generateMyCheckins = useQuestionnaireStore((s) => s.generateMyCheckins);
 
-  // Fetch check-ins from API on mount
-  useEffect(() => { fetchEntries(client.id); }, [client.id]);
+  // Generate + fetch check-ins from API on mount
+  useEffect(() => {
+    generateMyCheckins().then(() => fetchEntries(client.id));
+  }, [client.id]);
 
   // Auto-generate training entry from active plan on mount / client change
   useEffect(() => {
