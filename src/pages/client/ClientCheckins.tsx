@@ -141,7 +141,8 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const submitEntry = useQuestionnaireStore((s) => s.submitEntry);
   const addVideoToEntry = useQuestionnaireStore((s) => s.addVideoToEntry);
   const removeVideoFromEntry = useQuestionnaireStore((s) => s.removeVideoFromEntry);
-  const questions = trainingTemplate.questions;
+  const storeTrainingTemplate = useTemplateStore((s) => s.trainingTemplate);
+  const questions = storeTrainingTemplate?.questions?.length > 0 ? storeTrainingTemplate.questions : localTrainingTemplate.questions;
 
   // Video upload state
   const [showVideoUpload, setShowVideoUpload] = useState(false);
