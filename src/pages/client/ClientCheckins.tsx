@@ -35,9 +35,11 @@ const getEntryDeadline = (entry: QuestionnaireEntry): Date => {
     publishDate.setHours(NUTRITION_PUBLISH_HOUR, 0, 0, 0);
     return new Date(publishDate.getTime() + 48 * 60 * 60 * 1000);
   }
-  const entryDate = new Date(entry.date);
+  // Training: deadline is Sunday 23:59:59
+  const entryDate = new Date(entry.date + "T00:00:00");
   const windowEnd = new Date(entryDate);
-  windowEnd.setDate(windowEnd.getDate() + 2);
+  windowEnd.setDate(windowEnd.getDate() + 1); // Sunday
+  windowEnd.setHours(23, 59, 59, 999);
   return windowEnd;
 };
 
