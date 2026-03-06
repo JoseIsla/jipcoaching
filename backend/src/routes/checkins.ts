@@ -25,7 +25,14 @@ router.get("/", async (req, res) => {
     const checkins = await prisma.checkin.findMany({
       where,
       include: {
-        template: { select: { name: true } },
+        template: {
+          select: {
+            name: true,
+            category: true,
+            dayOfWeek: true,
+            questions: { orderBy: { order: "asc" } },
+          },
+        },
         responses: { include: { question: true } },
         trainingLogs: {
           include: { exercises: true },
