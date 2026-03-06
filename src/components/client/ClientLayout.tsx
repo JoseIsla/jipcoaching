@@ -279,7 +279,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
                   <p className="text-sm font-semibold text-foreground">{t("clientNotifications.title")}</p>
                   {unreadCount > 0 && (
                     <button
-                      onClick={markAllRead}
+                      onClick={() => { markAllRead(); api.patch("/notifications/read-all").catch(() => {}); }}
                       className="text-[10px] text-primary hover:underline"
                     >
                       {t("clientNotifications.markAll")}
