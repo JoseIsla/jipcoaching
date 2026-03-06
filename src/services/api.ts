@@ -94,7 +94,7 @@ async function request<T = any>(path: string, opts: RequestOptions = {}): Promis
   }
 
   // Handle global error statuses
-  if (response.status === 401) {
+  if (response.status === 401 && !skipAuth) {
     clearSessionAndRedirect();
     throw new ApiError(401, null, "Sesión expirada");
   }
