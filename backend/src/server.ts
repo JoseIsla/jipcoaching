@@ -102,9 +102,13 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
   res.status(500).json({ message: "Error interno del servidor" });
 });
 
+// ── Cron scheduler ──
+import { startCheckinScheduler } from "./cron/checkinScheduler";
+
 // ── Start ──
 app.listen(PORT, () => {
   console.log(`🚀 JIP Coaching API running on port ${PORT}`);
+  startCheckinScheduler();
 });
 
 // Graceful shutdown
