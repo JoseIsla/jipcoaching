@@ -12,6 +12,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import type { TrainingBlock, TrainingModality } from "@/data/useTrainingPlanStore";
 import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
+import { api } from "@/services/api";
 
 const BLOCKS: TrainingBlock[] = ["Hipertrofia", "Intensificación", "Peaking", "Tapering"];
 const MODALITIES: TrainingModality[] = ["Powerlifting", "Powerbuilding"];
@@ -26,12 +27,12 @@ const CreateTrainingPlanSheet = ({ onCreated }: { onCreated?: () => void }) => {
   const [daysPerWeek, setDaysPerWeek] = useState(4);
   const [blockVariants, setBlockVariants] = useState("");
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const clients = useTrainingPlanStore((s) => s.getClientsWithService)();
   const getActivePlanForClient = useTrainingPlanStore((s) => s.getActivePlanForClient);
-  const addPlan = useTrainingPlanStore((s) => s.addPlan);
   
   const selectedClient = clients.find((c) => c.id === clientId);
   const existingActive = clientId ? getActivePlanForClient(clientId) : null;
@@ -42,32 +43,45 @@ const CreateTrainingPlanSheet = ({ onCreated }: { onCreated?: () => void }) => {
     setBlockVariants(""); setConfirmDeactivate(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!clientId || !planName.trim()) return;
     if (existingActive && !confirmDeactivate) {
       setConfirmDeactivate(true);
       return;
     }
 
-    const id = addPlan({
-      clientId,
-      clientName: selectedClient?.name || "",
-      planName: planName.trim(),
-      modality,
-      block,
-      weeksDuration,
-      daysPerWeek,
-      blockVariants: blockVariants.trim(),
-    });
+    setSubmitting(true);
+    try {
+      const result = await api.post<any>("/training/plans", {
+        clientId,
+        title: planName.trim(),
+        modality,
+        block,
+        daysPerWeek,
+        blockVariants: blockVariants.trim() || undefined,
+      });
 
-    toast({
-      title: "Plan creado",
-      description: `"${planName}" asignado a ${selectedClient?.name}`,
-    });
-    reset();
-    setOpen(false);
-    onCreated?.();
-    navigate(`/admin/training/${id}/edit`);
+      if (result?.id) {
+        toast({
+          title: "Plan creado",
+          description: `"${planName}" asignado a ${selectedClient?.name}`,
+        });
+        // Refresh plans from API
+        await useTrainingPlanStore.getState().fetchPlans();
+        reset();
+        setOpen(false);
+        onCreated?.();
+        navigate(`/admin/training/${result.id}/edit`);
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err?.message || "Error al crear el plan",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -170,8 +184,8 @@ const CreateTrainingPlanSheet = ({ onCreated }: { onCreated?: () => void }) => {
           </div>
 
           {/* Submit */}
-          <Button onClick={handleSubmit} className="w-full glow-primary-sm" disabled={!clientId || !planName.trim()}>
-            {confirmDeactivate ? "Confirmar: desactivar anterior y crear" : "Crear plan"}
+          <Button onClick={handleSubmit} className="w-full glow-primary-sm" disabled={!clientId || !planName.trim() || submitting}>
+            {submitting ? "Creando..." : confirmDeactivate ? "Confirmar: desactivar anterior y crear" : "Crear plan"}
           </Button>
         </div>
       </SheetContent>
