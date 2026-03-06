@@ -446,8 +446,8 @@ async function generateCheckinsForClient(clientId: string, packType: string): Pr
                   : ex.setsMin ? String(ex.setsMin) : "—",
                 plannedReps: ex.method === "TOP_SET_BACKOFFS"
                   ? String(ex.topSetReps ?? "—")
-                  : ex.reps ?? "—",
-                plannedLoad: ex.plannedLoad ?? "—",
+                  : ex.dropReps ? String(ex.dropReps) : "—",
+                plannedLoad: "—",
                 plannedRPE: ex.topSetRpe,
               })),
             });
