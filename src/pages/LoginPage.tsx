@@ -138,6 +138,7 @@ const LoginPage = () => {
           <div className="text-center">
             <Link to="/forgot-password" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               ¿Olvidaste tu contraseña?
+              {t("forgotPassword.linkText")}
             </Link>
           </div>
         </div>
