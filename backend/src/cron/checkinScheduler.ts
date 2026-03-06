@@ -193,6 +193,17 @@ async function generateTrainingCheckins() {
         },
       });
 
+      // Create push notification for the client
+      await prisma.notification.create({
+        data: {
+          userId: client.userId,
+          type: "checkin_reminder",
+          title: "🏋️ Nuevo check-in de entrenamiento",
+          message: `Tu check-in de entrenamiento (${activeWeek.weekNumber ? `Semana ${activeWeek.weekNumber}` : "esta semana"}) está disponible. Tienes hasta el domingo a las 23:59 para completarlo.`,
+          link: "/client/checkins",
+        },
+      });
+
       // Pre-populate training log
       for (const day of activeWeek.days) {
         const basicExercises = day.exercises.filter((e) => e.type === "BASIC");
