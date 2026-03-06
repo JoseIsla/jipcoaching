@@ -1,4 +1,4 @@
-import { api, AUTH_TOKEN_KEY } from "@/services/api";
+import { api, AUTH_TOKEN_KEY, setLoginInProgress } from "@/services/api";
 import type { LoginResponse, MeResponse, UserRole } from "@/types/api";
 import { DEV_MOCK, DEV_USERS } from "@/config/devMode";
 
@@ -54,9 +54,13 @@ export const loginRequest = async (payload: LoginPayload): Promise<ApiResponse<A
   }
 
   try {
-    const data = await api.post<LoginResponse>("/auth/login", payload, { skipAuth: true });
+    setLoginInProgress(true);
+    const data = await api.post<LoginResponse>("/auth/login", payload, { skipAuth: true, silent: true });
     const token = data?.access_token;
-    if (!token) return { success: false, error: "Respuesta inesperada del servidor." };
+    if (!token) {
+      setLoginInProgress(false);
+      return { success: false, error: "Respuesta inesperada del servidor." };
+    }
 
     localStorage.setItem(AUTH_TOKEN_KEY, token);
     // Use skipAuth + manual header to avoid the 401 interceptor clearing session
@@ -65,6 +69,7 @@ export const loginRequest = async (payload: LoginPayload): Promise<ApiResponse<A
       silent: true,
       headers: { Authorization: `Bearer ${token}` },
     });
+    setLoginInProgress(false);
     const role = normalizeRole(me?.role);
     const userId = me?.id;
 
@@ -75,6 +80,7 @@ export const loginRequest = async (payload: LoginPayload): Promise<ApiResponse<A
 
     return { success: true, data: { token, role, userId } };
   } catch (err: any) {
+    setLoginInProgress(false);
     return { success: false, error: err?.message || "No se pudo conectar con el servidor." };
   }
 };
@@ -94,7 +100,11 @@ export const fetchSessionRequest = async (token: string | null): Promise<ApiResp
   }
 
   try {
-    const me = await api.get<MeResponse>("/me");
+    const me = await api.get<MeResponse>("/me", {
+      skipAuth: true,
+      silent: true,
+      headers: { Authorization: `Bearer ${token}` },
+    });
     const role = normalizeRole(me?.role);
     const userId = me?.id;
     if (!role || !userId) return { success: false, error: "Rol no válido." };
