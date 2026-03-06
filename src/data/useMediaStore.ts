@@ -240,7 +240,21 @@ export const useMediaStore = create<MediaState>((set, get) => ({
   addComment: (comment) => {
     set((s) => ({ comments: [...s.comments, comment] }));
     if (!DEV_MOCK) {
-      api.post("/media/comments", comment).catch(() => {});
+      // Post to API — server will generate id/createdAt
+      api.post<MediaComment>("/media/comments", {
+        targetType: comment.targetType,
+        targetId: comment.targetId,
+        clientId: comment.clientId,
+        authorName: comment.authorName,
+        text: comment.text,
+      }).then((saved) => {
+        if (saved?.id) {
+          // Replace local placeholder with server response
+          set((s) => ({
+            comments: s.comments.map((c) => c.id === comment.id ? { ...comment, ...saved } : c),
+          }));
+        }
+      }).catch(() => {});
     }
   },
   removeComment: (commentId) => {
