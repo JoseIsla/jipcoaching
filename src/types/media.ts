@@ -53,7 +53,7 @@ export const MAX_VIDEO_SIZE_MB = 50;
 export const MIN_PHOTO_WIDTH = 400;
 export const MIN_PHOTO_HEIGHT = 600;
 export const PHOTO_INTERVAL_DAYS = 15;
-export const VIDEO_EXPIRY_DAYS = 7;
+export const VIDEO_EXPIRY_DAYS = 6;
 
 /** Load an image file and resolve its natural dimensions */
 export const getImageDimensions = (file: File): Promise<{ width: number; height: number }> =>
