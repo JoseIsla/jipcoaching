@@ -8,7 +8,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { useNutritionPlanStore, genId, type NutritionPlanDetail, type NutritionPlanListEntry } from "@/data/useNutritionPlanStore";
+import { useNutritionPlanStore, type NutritionPlanListEntry } from "@/data/useNutritionPlanStore";
+import { api } from "@/services/api";
 import CreateNutritionPlanSheet from "@/components/admin/CreateNutritionPlanSheet";
 import { toast } from "sonner";
 import { useTranslation } from "@/i18n/useTranslation";
@@ -20,9 +21,6 @@ const AdminNutrition = () => {
 
   const plans = useNutritionPlanStore((s) => s.plans);
   const togglePlanActive = useNutritionPlanStore((s) => s.togglePlanActive);
-  const deactivateClientPlans = useNutritionPlanStore((s) => s.deactivateClientPlans);
-  const addPlan = useNutritionPlanStore((s) => s.addPlan);
-  const addDetail = useNutritionPlanStore((s) => s.addDetail);
 
   const matchesSearch = (p: NutritionPlanListEntry) =>
     (p.clientName ?? "").toLowerCase().includes(search.toLowerCase()) ||
@@ -38,13 +36,22 @@ const AdminNutrition = () => {
     toast.success(activate ? t("nutritionPage.activated") : t("nutritionPage.deactivated"));
   };
 
-  const handleCreate = (data: { planName: string; clientId: string; clientName: string; objective: string }) => {
-    const id = genId();
-    const today = new Date().toISOString().split("T")[0];
-    deactivateClientPlans(data.clientId);
-    addPlan({ id, clientId: data.clientId, clientName: data.clientName, planName: data.planName, type: "Sin definir", calories: 0, active: true, startDate: today, endDate: null });
-    addDetail({ id, clientId: data.clientId, clientName: data.clientName, planName: data.planName, objective: data.objective, active: true, startDate: today, endDate: null, meals: [], recommendations: [] });
-    navigate(`/admin/nutrition/${id}/edit`);
+  const handleCreate = async (data: { planName: string; clientId: string; clientName: string; objective: string }) => {
+    try {
+      const result = await api.post<any>("/nutrition/plans", {
+        clientId: data.clientId,
+        title: data.planName,
+        objective: data.objective,
+      });
+
+      if (result?.id) {
+        // Refresh plans from API to get accurate state
+        await useNutritionPlanStore.getState().fetchPlans();
+        navigate(`/admin/nutrition/${result.id}/edit`);
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Error al crear el plan");
+    }
   };
 
   return (
