@@ -16,6 +16,25 @@ router.post("/", async (req, res) => {
     const lead = await prisma.contactLead.create({
       data: { name, email, phone, message },
     });
+
+    // Create notification for all admin users
+    try {
+      const admins = await prisma.user.findMany({ where: { role: "ADMIN" } });
+      for (const admin of admins) {
+        await prisma.notification.create({
+          data: {
+            userId: admin.id,
+            type: "client",
+            title: "Nuevo lead recibido",
+            message: `${name} ha enviado un mensaje desde la web`,
+            link: "/admin/leads",
+          },
+        });
+      }
+    } catch (notifErr) {
+      console.warn("Failed to create lead notification:", notifErr);
+    }
+
     res.status(201).json(lead);
   } catch (err: any) {
     res.status(500).json({ message: "Error al enviar mensaje" });
