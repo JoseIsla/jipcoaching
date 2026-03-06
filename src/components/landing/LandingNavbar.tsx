@@ -119,7 +119,7 @@ const LandingNavbar = () => {
             )}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="lg:hidden p-2 text-foreground hover:bg-muted/50 rounded-lg transition-colors"
+              className="lg:hidden p-2 rounded-lg transition-colors text-foreground bg-background/60 backdrop-blur-sm hover:bg-muted/70"
             >
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
