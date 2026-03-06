@@ -25,6 +25,7 @@ import { compressVideo } from "@/utils/compressMedia";
 import ClientMediaComments from "@/components/client/ClientMediaComments";
 import { useMediaStore } from "@/data/useMediaStore";
 import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
+import { mediaApi } from "@/services/mediaApi";
 
 /** Returns the deadline Date for an entry's fill window. */
 const getEntryDeadline = (entry: QuestionnaireEntry): Date => {
@@ -127,6 +128,7 @@ const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
 
 const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const { t } = useTranslation();
+  const { client } = useClient();
   const [open, setOpen] = useState(false);
   const [trainingLog, setTrainingLog] = useState<TrainingLogDay[]>(entry.trainingLog || []);
   const [responses, setResponses] = useState<Record<string, string | number | boolean>>(entry.responses || {});
@@ -144,6 +146,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const [videoNotes, setVideoNotes] = useState("");
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [compressingVideo, setCompressingVideo] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const videoFileRef = useRef<HTMLInputElement>(null);
 
   const videos = entry.techniqueVideos || [];
@@ -190,24 +193,37 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
     setVideoFile(processedFile);
   };
 
-  const handleAddVideo = () => {
+  const handleAddVideo = async () => {
     if (!videoFile || !videoExerciseName.trim()) {
       toast({ title: "Campos requeridos", description: "Indica el ejercicio y selecciona un video", variant: "destructive" });
       return;
     }
-    const newVideo: CheckinVideo = {
-      id: `cv-${Date.now()}`,
-      exerciseName: videoExerciseName.trim(),
-      url: URL.createObjectURL(videoFile),
-      notes: videoNotes.trim() || undefined,
-      uploadedAt: new Date().toISOString(),
-    };
-    addVideoToEntry(entry.id, newVideo);
-    toast({ title: "Video añadido ✅" });
-    setVideoFile(null);
-    setVideoExerciseName("");
-    setVideoNotes("");
-    setShowVideoUpload(false);
+    setUploadingVideo(true);
+    try {
+      const uploaded = await mediaApi.uploadTechniqueVideo(
+        client.id,
+        videoFile,
+        videoExerciseName.trim(),
+        videoNotes.trim() || undefined,
+      );
+      const newVideo: CheckinVideo = {
+        id: uploaded.id,
+        exerciseName: uploaded.exerciseName,
+        url: uploaded.url,
+        notes: uploaded.notes,
+        uploadedAt: uploaded.uploadedAt,
+      };
+      addVideoToEntry(entry.id, newVideo);
+      toast({ title: "Video subido ✅" });
+      setVideoFile(null);
+      setVideoExerciseName("");
+      setVideoNotes("");
+      setShowVideoUpload(false);
+    } catch (err: any) {
+      toast({ title: "Error al subir video", description: err?.message || "Inténtalo de nuevo", variant: "destructive" });
+    } finally {
+      setUploadingVideo(false);
+    }
   };
 
   const updateExercise = (dayIdx: number, exIdx: number, field: string, value: string | number) => {
@@ -435,9 +451,9 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                         size="sm"
                         className="w-full h-8 text-xs"
                         onClick={handleAddVideo}
-                        disabled={compressingVideo || !videoFile || !videoExerciseName.trim()}
+                        disabled={compressingVideo || uploadingVideo || !videoFile || !videoExerciseName.trim()}
                       >
-                        Añadir video
+                        {uploadingVideo ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" />Subiendo...</> : "Añadir video"}
                       </Button>
                     </div>
                   )}

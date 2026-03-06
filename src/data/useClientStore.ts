@@ -96,10 +96,15 @@ export const useClientStore = create<ClientStore>((set, get) => ({
     });
   },
 
-  deleteClient: (id) =>
+  deleteClient: (id) => {
     set((state) => ({
       clients: state.clients.filter((c) => c.id !== id),
-    })),
+    }));
+    // Persist to API
+    api.delete(`/clients/${id}`).catch((err) => {
+      console.error("Failed to delete client:", err);
+    });
+  },
 
   getClient: (id) => get().clients.find((c) => c.id === id),
 
