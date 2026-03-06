@@ -75,6 +75,18 @@ async function generateNutritionCheckins() {
               dayLabel: dayLabels[today] ?? "—",
             },
           });
+
+          // Create push notification for the client
+          await prisma.notification.create({
+            data: {
+              userId: client.userId,
+              type: "checkin_reminder",
+              title: "📋 Nuevo check-in de nutrición",
+              message: `Tu check-in de nutrición del ${dayLabels[today] ?? "hoy"} está disponible. Tienes 48h para completarlo.`,
+              link: "/client/checkins",
+            },
+          });
+
           totalCreated++;
         }
       }
@@ -178,6 +190,17 @@ async function generateTrainingCheckins() {
           dayLabel: "Sábado",
           planId: activePlan.id,
           weekNumber: activeWeek.weekNumber,
+        },
+      });
+
+      // Create push notification for the client
+      await prisma.notification.create({
+        data: {
+          userId: client.userId,
+          type: "checkin_reminder",
+          title: "🏋️ Nuevo check-in de entrenamiento",
+          message: `Tu check-in de entrenamiento (${activeWeek.weekNumber ? `Semana ${activeWeek.weekNumber}` : "esta semana"}) está disponible. Tienes hasta el domingo a las 23:59 para completarlo.`,
+          link: "/client/checkins",
         },
       });
 
