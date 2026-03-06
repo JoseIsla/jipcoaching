@@ -94,7 +94,11 @@ export const fetchSessionRequest = async (token: string | null): Promise<ApiResp
   }
 
   try {
-    const me = await api.get<MeResponse>("/me");
+    const me = await api.get<MeResponse>("/me", {
+      skipAuth: true,
+      silent: true,
+      headers: { Authorization: `Bearer ${token}` },
+    });
     const role = normalizeRole(me?.role);
     const userId = me?.id;
     if (!role || !userId) return { success: false, error: "Rol no válido." };

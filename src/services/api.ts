@@ -19,14 +19,17 @@ const API_BASE_URL = (
 
 const getToken = (): string | null => localStorage.getItem(AUTH_TOKEN_KEY);
 
+/** Track when a login is in progress to avoid the 401 interceptor clearing the session */
+let _loginInProgress = false;
+export const setLoginInProgress = (v: boolean) => { _loginInProgress = v; };
+
 const clearSessionAndRedirect = () => {
-  // Don't clear token if on login page — avoids race condition where
-  // hydrateSession's 401 wipes a freshly-stored token from loginRequest
-  const onLoginOrLanding = window.location.pathname === "/login" || window.location.pathname === "/";
-  if (!onLoginOrLanding) {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    window.location.href = "/login";
-  }
+  // Don't interfere during login flow or on login/landing pages
+  if (_loginInProgress) return;
+  const path = window.location.pathname;
+  if (path === "/login" || path === "/" || path === "/forgot-password" || path === "/reset-password") return;
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+  window.location.href = "/login";
 };
 
 export class ApiError extends Error {
