@@ -31,9 +31,14 @@ const AdminNutrition = () => {
   const inactivePlans = plans.filter((p) => !p.active && matchesSearch(p));
   const uniqueClients = new Set(plans.filter((p) => p.active).map((p) => p.clientId)).size;
 
-  const handleToggle = (planId: string, activate: boolean) => {
-    togglePlanActive(planId, activate);
-    toast.success(activate ? t("nutritionPage.activated") : t("nutritionPage.deactivated"));
+  const handleToggle = async (planId: string, activate: boolean) => {
+    try {
+      await api.patch(`/nutrition/plans/${planId}/toggle`, { isActive: activate });
+      togglePlanActive(planId, activate);
+      toast.success(activate ? t("nutritionPage.activated") : t("nutritionPage.deactivated"));
+    } catch (err: any) {
+      toast.error(err?.message || "Error al cambiar estado del plan");
+    }
   };
 
   const handleCreate = async (data: { planName: string; clientId: string; clientName: string; objective: string }) => {

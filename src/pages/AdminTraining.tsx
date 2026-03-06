@@ -10,6 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
 import type { TrainingBlock } from "@/data/useTrainingPlanStore";
 import CreateTrainingPlanSheet from "@/components/admin/CreateTrainingPlanSheet";
+import { api } from "@/services/api";
 import { useTranslation } from "@/i18n/useTranslation";
 
 const blockColor: Record<string, string> = {
@@ -132,7 +133,14 @@ const AdminTraining = () => {
             <CheckCircle2 className="h-5 w-5 text-primary" />{t("trainingPage.activePlans")}
             <span className="text-xs font-normal text-muted-foreground ml-1">({activePlans.length})</span>
           </h2>
-          <PlanTable plans={activePlans} navigate={navigate} onDeactivate={(id) => togglePlanActive(id, false)} t={t} />
+          <PlanTable plans={activePlans} navigate={navigate} onDeactivate={async (id) => {
+            try {
+              await api.patch(`/training/plans/${id}/toggle`, { isActive: false });
+              togglePlanActive(id, false);
+            } catch (err: any) {
+              console.error("Toggle error:", err);
+            }
+          }} t={t} />
         </div>
 
         <InactivePlansSection plans={inactivePlans} navigate={navigate} t={t} />
