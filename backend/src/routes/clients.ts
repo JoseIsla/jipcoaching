@@ -187,7 +187,20 @@ router.get("/:id", requireRole("ADMIN"), async (req, res) => {
   } catch (err: any) {
     console.error("GET /clients/:id error:", err);
     res.status(500).json({ message: "Error al obtener cliente" });
-  }
+    }
+
+    // Send welcome email to the new client
+    try {
+      const loginUrl = `${FRONTEND_URL}/login`;
+      await transporter.sendMail({
+        from: FROM_EMAIL,
+        to: email,
+        subject: "Bienvenido/a a JIP Coaching – Tu cuenta está lista",
+        html: buildWelcomeEmail(name, email, password, loginUrl),
+      });
+    } catch (mailErr) {
+      console.warn("Failed to send welcome email:", mailErr);
+    }
 });
 
 // POST /api/clients — Admin only
