@@ -69,6 +69,7 @@ export interface QuestionnaireEntry {
   techniqueVideos?: CheckinVideo[];
   planId?: string;
   weekNumber?: number;
+  templateQuestions?: { id: string; label: string; type: string; required: boolean; options?: string[] }[];
 }
 
 // ── Window status helper ──
@@ -122,6 +123,8 @@ interface QuestionnaireState {
   createSession: (data: Record<string, unknown>) => Promise<ApiSession | null>;
   fetchActiveQuestionnaire: () => Promise<ApiQuestionnaire | null>;
   submitQuestionnaire: (sessionId: string, answers: Record<string, unknown>) => Promise<void>;
+  generateMyCheckins: () => Promise<void>;
+  generateWeeklyCheckins: () => Promise<number>;
 
   // Legacy local actions (kept for UI compat)
   submitEntry: (entryId: string, responses: Record<string, string | number | boolean>, trainingLog?: TrainingLogDay[]) => void;
@@ -235,6 +238,26 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
 
   submitQuestionnaire: async (sessionId, answers) => {
     await api.post(`/questionnaires/sessions/${sessionId}/submit`, answers);
+  },
+
+  generateMyCheckins: async () => {
+    if (DEV_MOCK) return;
+    try {
+      await api.post("/checkins/generate-mine", {});
+    } catch (err: any) {
+      console.warn("Error generating my checkins:", err?.message);
+    }
+  },
+
+  generateWeeklyCheckins: async () => {
+    if (DEV_MOCK) return 0;
+    try {
+      const result = await api.post<{ created: number }>("/checkins/generate-weekly", {});
+      return result?.created ?? 0;
+    } catch (err: any) {
+      console.warn("Error generating weekly checkins:", err?.message);
+      return 0;
+    }
   },
 
   // ── Legacy local actions ──

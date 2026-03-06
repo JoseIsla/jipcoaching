@@ -26,10 +26,11 @@ const ClientHome = () => {
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
   const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
+  const generateMyCheckins = useQuestionnaireStore((s) => s.generateMyCheckins);
 
-  // Fetch data from API on mount
+  // Generate checkins + fetch data from API on mount
   useEffect(() => {
-    fetchEntries(client.id);
+    generateMyCheckins().then(() => fetchEntries(client.id));
     if (hasNutrition) fetchWeightHistory(client.id);
     if (hasTraining) fetchRMRecords(client.id);
   }, [client.id]);

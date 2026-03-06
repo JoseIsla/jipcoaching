@@ -17,7 +17,8 @@ import AnimatedChevron from "@/components/ui/animated-chevron";
 import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-content";
 import { useToast } from "@/hooks/use-toast";
 import { type QuestionnaireEntry, type TrainingLogDay, type CheckinVideo, NUTRITION_PUBLISH_HOUR, getEntryWindowStatus } from "@/data/useQuestionnaireStore";
-import { nutritionTemplates, trainingTemplate, type QuestionDefinition } from "@/data/questionnaireDefs";
+import { nutritionTemplates as localNutritionTemplates, trainingTemplate as localTrainingTemplate, type QuestionDefinition } from "@/data/questionnaireDefs";
+import { useTemplateStore } from "@/data/useTemplateStore";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
 import { MAX_VIDEO_SIZE_MB } from "@/types/media";
@@ -86,8 +87,12 @@ const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const windowStatus = getEntryWindowStatus(entry);
   const canFill = !submitted && windowStatus === "within";
   const countdown = useCountdown(entry, canFill);
-  const template = nutritionTemplates.find((tp) => tp.id === entry.templateId);
-  const questions = template?.questions || [];
+  const storeTemplates = useTemplateStore((s) => s.nutritionTemplates);
+  const template = storeTemplates.find((tp) => tp.id === entry.templateId)
+    || localNutritionTemplates.find((tp) => tp.id === entry.templateId);
+  const questions: QuestionDefinition[] = template?.questions
+    || (entry.templateQuestions || []).map((q) => ({ id: q.id, label: q.label, type: q.type as any, required: q.required, options: q.options }))
+    || [];
 
   const handleSubmit = () => {
     submitEntry(entry.id, responses);
@@ -138,7 +143,8 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const submitEntry = useQuestionnaireStore((s) => s.submitEntry);
   const addVideoToEntry = useQuestionnaireStore((s) => s.addVideoToEntry);
   const removeVideoFromEntry = useQuestionnaireStore((s) => s.removeVideoFromEntry);
-  const questions = trainingTemplate.questions;
+  const storeTrainingTemplate = useTemplateStore((s) => s.trainingTemplate);
+  const questions = storeTrainingTemplate?.questions?.length > 0 ? storeTrainingTemplate.questions : localTrainingTemplate.questions;
 
   // Video upload state
   const [showVideoUpload, setShowVideoUpload] = useState(false);
@@ -629,9 +635,12 @@ const ClientCheckins = () => {
   const allEntries = useQuestionnaireStore((s) => s.entries);
   const getOrCreateTrainingEntry = useQuestionnaireStore((s) => s.getOrCreateTrainingEntry);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
+  const generateMyCheckins = useQuestionnaireStore((s) => s.generateMyCheckins);
 
-  // Fetch check-ins from API on mount
-  useEffect(() => { fetchEntries(client.id); }, [client.id]);
+  // Generate + fetch check-ins from API on mount
+  useEffect(() => {
+    generateMyCheckins().then(() => fetchEntries(client.id));
+  }, [client.id]);
 
   // Auto-generate training entry from active plan on mount / client change
   useEffect(() => {
