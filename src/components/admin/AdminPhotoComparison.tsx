@@ -2,7 +2,7 @@
  * Admin-side photo gallery + side-by-side comparison for a client.
  * Shows chronological gallery with option to compare between two dates.
  */
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Camera, ArrowLeftRight, Calendar, ImageIcon } from "lucide-react";
 import MediaCommentThread from "./MediaCommentThread";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,14 @@ const angleLabels: Record<PhotoAngle, string> = { front: "Frente", side: "Latera
 
 const AdminPhotoComparison = ({ clientId }: Props) => {
   const getPhotoSessions = useMediaStore((s) => s.getPhotoSessions);
+  const fetchPhotos = useMediaStore((s) => s.fetchPhotos);
+  const fetchComments = useMediaStore((s) => s.fetchComments);
+
+  useEffect(() => {
+    fetchPhotos(clientId);
+    fetchComments(clientId);
+  }, [clientId]);
+
   const sessions = getPhotoSessions(clientId);
   const [compareMode, setCompareMode] = useState(false);
   const [dateA, setDateA] = useState<string>("");

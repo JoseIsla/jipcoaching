@@ -2,6 +2,7 @@
  * Admin-side video review for technique videos.
  * Shows active videos with expiry info.
  */
+import { useEffect } from "react";
 import { Video, Clock, Film } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useMediaStore } from "@/data/useMediaStore";
@@ -18,6 +19,14 @@ const daysUntilExpiry = (expiresAt: string): number => {
 
 const AdminVideoReview = ({ clientId }: Props) => {
   const getActiveVideosFn = useMediaStore((s) => s.getActiveVideos);
+  const fetchVideos = useMediaStore((s) => s.fetchVideos);
+  const fetchComments = useMediaStore((s) => s.fetchComments);
+
+  useEffect(() => {
+    fetchVideos(clientId);
+    fetchComments(clientId);
+  }, [clientId]);
+
   const activeVideos = getActiveVideosFn(clientId);
 
   if (activeVideos.length === 0) {
