@@ -9,7 +9,7 @@ const router = Router();
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || "https://jipcoaching.com").replace(/\/+$/, "");
-const FROM_EMAIL = process.env.FROM_EMAIL || "JIP Coaching <no-reply@jipcoaching.com>";
+const FROM_EMAIL = process.env.FROM_EMAIL || "JIP Coaching <info@jipcoaching.com>";
 const TOKEN_EXPIRY_MINUTES = 30;
 
 // Rate limit: max 5 requests per 15 min
