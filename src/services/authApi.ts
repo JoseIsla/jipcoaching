@@ -59,7 +59,12 @@ export const loginRequest = async (payload: LoginPayload): Promise<ApiResponse<A
     if (!token) return { success: false, error: "Respuesta inesperada del servidor." };
 
     localStorage.setItem(AUTH_TOKEN_KEY, token);
-    const me = await api.get<MeResponse>("/me");
+    // Use skipAuth + manual header to avoid the 401 interceptor clearing session
+    const me = await api.get<MeResponse>("/me", {
+      skipAuth: true,
+      silent: true,
+      headers: { Authorization: `Bearer ${token}` },
+    });
     const role = normalizeRole(me?.role);
     const userId = me?.id;
 
