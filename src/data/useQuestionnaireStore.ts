@@ -447,12 +447,25 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
       (e) => e.clientId === clientId && e.category === "training" && e.status === "respondido"
     );
     const latest = entries[entries.length - 1];
+    if (!latest?.responses) {
+      return { latestFatigue: undefined, latestSleep: undefined, latestMotivation: undefined, hasInjury: undefined, injuryDetail: undefined };
+    }
+
+    const r = latest.responses;
+    const qs = latest.templateQuestions || [];
+
+    // Helper: find response by label keyword match, fallback to legacy mock ID
+    const findVal = (keywords: string[], fallbackId: string) => {
+      const q = qs.find((q) => keywords.some((k) => q.label.toLowerCase().includes(k)));
+      return r[q?.id || fallbackId];
+    };
+
     return {
-      latestFatigue: latest?.responses?.tq1 as number | undefined,
-      latestSleep: latest?.responses?.tq4 as number | undefined,
-      latestMotivation: latest?.responses?.tq5 as number | undefined,
-      hasInjury: latest?.responses?.tq2 as boolean | undefined,
-      injuryDetail: latest?.responses?.tq3 as string | undefined,
+      latestFatigue: findVal(["fatiga", "fatigue"], "tq1") as number | undefined,
+      latestSleep: findVal(["sueño", "sleep", "descanso"], "tq4") as number | undefined,
+      latestMotivation: findVal(["motivación", "motivation", "ánimo"], "tq5") as number | undefined,
+      hasInjury: findVal(["molestia", "dolor", "injury", "pain"], "tq2") as boolean | undefined,
+      injuryDetail: findVal(["describe", "detalle", "detail"], "tq3") as string | undefined,
     };
   },
 }));
