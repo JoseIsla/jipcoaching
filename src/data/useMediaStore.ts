@@ -3,10 +3,18 @@
  * Uses mock data in DEV_MOCK mode, real API otherwise.
  */
 import { create } from "zustand";
-import { api } from "@/services/api";
+import { api, API_BASE_URL } from "@/services/api";
 import { DEV_MOCK } from "@/config/devMode";
 import type { ProgressPhoto, ProgressPhotoSession, TechniqueVideo, MediaComment } from "@/types/media";
 import { PHOTO_INTERVAL_DAYS } from "@/types/media";
+
+/** Resolve relative upload URLs to full server URLs */
+const resolveUrl = (url: string): string => {
+  if (!url || url.startsWith("http") || url.startsWith("blob:")) return url;
+  // API_BASE_URL = "https://api.jipcoaching.com/api" → server root = "https://api.jipcoaching.com"
+  const serverRoot = API_BASE_URL.replace(/\/api\/?$/, "");
+  return `${serverRoot}${url}`;
+};
 
 // ── Mock Data ──
 
@@ -137,10 +145,11 @@ export const useMediaStore = create<MediaState>((set, get) => ({
     set({ loading: true });
     try {
       const data = await api.get<ProgressPhoto[]>(`/clients/${clientId}/media/photos`);
+      const resolved = (data ?? []).map((p) => ({ ...p, url: resolveUrl(p.url), thumbnailUrl: p.thumbnailUrl ? resolveUrl(p.thumbnailUrl) : undefined }));
       set((s) => ({
         photos: [
           ...s.photos.filter((p) => p.clientId !== clientId),
-          ...(data ?? []),
+          ...resolved,
         ],
         loading: false,
       }));
@@ -155,10 +164,11 @@ export const useMediaStore = create<MediaState>((set, get) => ({
     set({ loading: true });
     try {
       const data = await api.get<TechniqueVideo[]>(`/clients/${clientId}/media/videos`);
+      const resolved = (data ?? []).map((v) => ({ ...v, url: resolveUrl(v.url) }));
       set((s) => ({
         videos: [
           ...s.videos.filter((v) => v.clientId !== clientId),
-          ...(data ?? []),
+          ...resolved,
         ],
         loading: false,
       }));
@@ -240,7 +250,21 @@ export const useMediaStore = create<MediaState>((set, get) => ({
   addComment: (comment) => {
     set((s) => ({ comments: [...s.comments, comment] }));
     if (!DEV_MOCK) {
-      api.post("/media/comments", comment).catch(() => {});
+      // Post to API — server will generate id/createdAt
+      api.post<MediaComment>("/media/comments", {
+        targetType: comment.targetType,
+        targetId: comment.targetId,
+        clientId: comment.clientId,
+        authorName: comment.authorName,
+        text: comment.text,
+      }).then((saved) => {
+        if (saved?.id) {
+          // Replace local placeholder with server response
+          set((s) => ({
+            comments: s.comments.map((c) => c.id === comment.id ? { ...comment, ...saved } : c),
+          }));
+        }
+      }).catch(() => {});
     }
   },
   removeComment: (commentId) => {

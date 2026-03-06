@@ -121,7 +121,7 @@ router.post("/videos/:cid?", uploadVideo.single("file"), async (req, res) => {
     const { exerciseName, notes } = req.body;
     const url = `/uploads/videos/${req.file.filename}`;
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
+    expiresAt.setDate(expiresAt.getDate() + 6); // 6-day expiry
 
     const video = await prisma.techniqueVideo.create({
       data: {

@@ -1,9 +1,9 @@
 /**
  * Client-side video upload for technique review.
  * Shows in Progress tab for training clients.
- * Videos auto-expire after 7 days.
+ * Videos auto-expire after 6 days.
  */
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Video, Upload, Clock, Trash2, Film, Loader2 } from "lucide-react";
 import ClientMediaComments from "./ClientMediaComments";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useMediaStore } from "@/data/useMediaStore";
 import { MAX_VIDEO_SIZE_MB, VIDEO_EXPIRY_DAYS, type TechniqueVideo } from "@/types/media";
 import { compressVideo } from "@/utils/compressMedia";
+import { mediaApi } from "@/services/mediaApi";
+import { useClient } from "@/contexts/ClientContext";
 
 interface Props {
   clientId: string;
@@ -27,7 +29,15 @@ const TechniqueVideosSection = ({ clientId }: Props) => {
   const { toast } = useToast();
   const getActiveVideosFn = useMediaStore((s) => s.getActiveVideos);
   const addVideo = useMediaStore((s) => s.addVideo);
-  const removeVideo = useMediaStore((s) => s.removeVideo);
+  const removeVideoFromStore = useMediaStore((s) => s.removeVideo);
+  const fetchVideos = useMediaStore((s) => s.fetchVideos);
+  const fetchComments = useMediaStore((s) => s.fetchComments);
+
+  // Fetch videos and comments from API on mount
+  useEffect(() => {
+    fetchVideos(clientId);
+    fetchComments(clientId);
+  }, [clientId]);
 
   const activeVideos = getActiveVideosFn(clientId);
 
@@ -74,31 +84,32 @@ const TechniqueVideosSection = ({ clientId }: Props) => {
 
     setUploading(true);
     try {
-      const now = new Date();
-      const expiresAt = new Date(now);
-      expiresAt.setDate(expiresAt.getDate() + VIDEO_EXPIRY_DAYS);
-
-      const newVideo: TechniqueVideo = {
-        id: `vid-${Date.now()}`,
+      const uploaded = await mediaApi.uploadTechniqueVideo(
         clientId,
-        exerciseName: exerciseName.trim(),
-        url: URL.createObjectURL(selectedFile),
-        notes: notes.trim() || undefined,
-        uploadedAt: now.toISOString(),
-        expiresAt: expiresAt.toISOString(),
-      };
-
-      addVideo(newVideo);
+        selectedFile,
+        exerciseName.trim(),
+        notes.trim() || undefined,
+      );
+      addVideo(uploaded);
       toast({ title: "Video subido ✅", description: `Se eliminará automáticamente en ${VIDEO_EXPIRY_DAYS} días` });
       setSelectedFile(null);
       setExerciseName("");
       setNotes("");
       setShowUpload(false);
-    } catch {
-      toast({ title: "Error", description: "No se pudo subir el video", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "No se pudo subir el video", variant: "destructive" });
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleRemoveVideo = async (videoId: string) => {
+    try {
+      await mediaApi.deleteTechniqueVideo(clientId, videoId);
+    } catch { /* ignore */ }
+    // Update store locally (don't call store's removeVideo which also hits API)
+    useMediaStore.setState((s) => ({ videos: s.videos.filter((v) => v.id !== videoId) }));
+    toast({ title: "Video eliminado" });
   };
 
   return (
@@ -218,7 +229,7 @@ const TechniqueVideosSection = ({ clientId }: Props) => {
                       {remaining}d
                     </Badge>
                     <button
-                      onClick={() => removeVideo(video.id)}
+                      onClick={() => handleRemoveVideo(video.id)}
                       className="text-muted-foreground hover:text-destructive transition-colors p-1"
                     >
                       <Trash2 className="h-3.5 w-3.5" />

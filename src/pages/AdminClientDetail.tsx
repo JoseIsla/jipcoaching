@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AdminPhotoComparison from "@/components/admin/AdminPhotoComparison";
+import AdminVideoReview from "@/components/admin/AdminVideoReview";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -687,10 +688,11 @@ const AdminClientDetail = () => {
         )}
 
         {/* ── Media Section ── */}
-        {hasNutrition && (
+        {(hasNutrition || hasTraining) && (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-foreground">Media del Cliente</h2>
-            <AdminPhotoComparison clientId={client.id} />
+            {hasNutrition && <AdminPhotoComparison clientId={client.id} />}
+            {hasTraining && <AdminVideoReview clientId={client.id} />}
           </div>
         )}
       </div>

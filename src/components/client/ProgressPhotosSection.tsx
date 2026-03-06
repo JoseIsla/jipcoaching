@@ -2,7 +2,7 @@
  * Client-side photo upload & gallery for progress tracking.
  * Shows in Progress tab for nutrition clients.
  */
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Camera, Upload, Clock, CheckCircle2, ImageIcon, Loader2 } from "lucide-react";
 import ClientMediaComments from "./ClientMediaComments";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMediaStore } from "@/data/useMediaStore";
 import { PHOTO_ANGLES, MAX_PHOTO_SIZE_MB, MIN_PHOTO_WIDTH, MIN_PHOTO_HEIGHT, getImageDimensions, type PhotoAngle, type ProgressPhoto } from "@/types/media";
 import { compressImage } from "@/utils/compressMedia";
+import { mediaApi } from "@/services/mediaApi";
 
 interface Props {
   clientId: string;
@@ -22,6 +23,14 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
   const canUploadFn = useMediaStore((s) => s.canUploadPhotos);
   const getNextPhotoDateFn = useMediaStore((s) => s.getNextPhotoDate);
   const addPhotoBatch = useMediaStore((s) => s.addPhotoBatch);
+  const fetchPhotos = useMediaStore((s) => s.fetchPhotos);
+  const fetchComments = useMediaStore((s) => s.fetchComments);
+
+  // Fetch photos and comments from API on mount
+  useEffect(() => {
+    fetchPhotos(clientId);
+    fetchComments(clientId);
+  }, [clientId]);
 
   const sessions = getPhotoSessions(clientId);
   const canUpload = canUploadFn(clientId);
@@ -90,7 +99,7 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
   };
 
   const handleUpload = async () => {
-    const filled = Object.values(pendingFiles).filter(Boolean);
+    const filled = Object.entries(pendingFiles).filter(([, f]) => f !== null) as [PhotoAngle, File][];
     if (filled.length === 0) {
       toast({ title: "Sin fotos", description: "Selecciona al menos una foto", variant: "destructive" });
       return;
@@ -98,29 +107,21 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
 
     setUploading(true);
     try {
-      // Mock upload — replace with mediaApi.uploadProgressPhoto calls
       const sessionDate = new Date().toISOString().split("T")[0];
-      const newPhotos: ProgressPhoto[] = [];
+      const uploadedPhotos: ProgressPhoto[] = [];
 
-      for (const [angle, file] of Object.entries(pendingFiles)) {
-        if (!file) continue;
-        newPhotos.push({
-          id: `ph-${Date.now()}-${angle}`,
-          clientId,
-          angle: angle as PhotoAngle,
-          url: URL.createObjectURL(file),
-          sessionDate,
-          uploadedAt: new Date().toISOString(),
-        });
+      for (const [angle, file] of filled) {
+        const photo = await mediaApi.uploadProgressPhoto(clientId, file, angle, sessionDate);
+        uploadedPhotos.push(photo);
       }
 
-      addPhotoBatch(newPhotos);
-      toast({ title: "Fotos subidas ✅", description: `${newPhotos.length} foto(s) guardadas correctamente` });
+      addPhotoBatch(uploadedPhotos);
+      toast({ title: "Fotos subidas ✅", description: `${uploadedPhotos.length} foto(s) guardadas correctamente` });
       setPendingFiles({ front: null, side: null, back: null });
       setPreviews({ front: null, side: null, back: null });
       setShowUpload(false);
-    } catch {
-      toast({ title: "Error", description: "No se pudieron subir las fotos", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "No se pudieron subir las fotos", variant: "destructive" });
     } finally {
       setUploading(false);
     }
