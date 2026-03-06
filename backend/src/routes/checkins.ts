@@ -215,31 +215,53 @@ router.post("/:id/submit", async (req, res) => {
       console.warn("Failed to create checkin notification:", notifErr);
     }
 
-    // If nutrition checkin with weight (q1), update weight history
-    const checkin = await prisma.checkin.findUnique({ where: { id: checkinId } });
-    if (checkin && responses?.q1) {
-      const weight = parseFloat(responses.q1);
-      if (!isNaN(weight) && weight > 0) {
-        await prisma.weightEntry.upsert({
-          where: {
-            clientId_date: {
-              clientId: checkin.clientId,
-              date: new Date(new Date().toISOString().split("T")[0]),
-            },
-          },
-          update: { weight },
-          create: {
-            clientId: checkin.clientId,
-            date: new Date(new Date().toISOString().split("T")[0]),
-            weight,
-          },
-        });
+    // If nutrition checkin, find weight response and update weight history
+    const checkin = await prisma.checkin.findUnique({
+      where: { id: checkinId },
+      include: {
+        template: {
+          include: { questions: { orderBy: { order: "asc" } } },
+        },
+      },
+    });
 
-        // Update client's current weight
-        await prisma.client.update({
-          where: { id: checkin.clientId },
-          data: { currentWeight: weight },
-        });
+    if (checkin && checkin.category === "NUTRITION" && responses) {
+      // Find the weight question: first NUMBER question, or one whose label contains "peso" or "weight"
+      const weightQuestion = checkin.template?.questions?.find(
+        (q) =>
+          q.type === "NUMBER" &&
+          (q.label.toLowerCase().includes("peso") || q.label.toLowerCase().includes("weight"))
+      ) || checkin.template?.questions?.find((q) => q.type === "NUMBER");
+
+      // Also support legacy mock ID "q1"
+      const weightQuestionId = weightQuestion?.id || "q1";
+      const weightValue = responses[weightQuestionId];
+
+      if (weightValue) {
+        const weight = parseFloat(String(weightValue));
+        if (!isNaN(weight) && weight > 0) {
+          const today = new Date(new Date().toISOString().split("T")[0]);
+          await prisma.weightEntry.upsert({
+            where: {
+              clientId_date: {
+                clientId: checkin.clientId,
+                date: today,
+              },
+            },
+            update: { weight },
+            create: {
+              clientId: checkin.clientId,
+              date: today,
+              weight,
+            },
+          });
+
+          // Update client's current weight
+          await prisma.client.update({
+            where: { id: checkin.clientId },
+            data: { currentWeight: weight },
+          });
+        }
       }
     }
 
