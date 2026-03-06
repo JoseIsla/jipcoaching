@@ -442,8 +442,8 @@ async function generateCheckinsForClient(clientId: string, packType: string): Pr
                 exerciseName: ex.name,
                 section: "basic",
                 plannedSets: ex.method === "TOP_SET_BACKOFFS"
-                  ? `1+${ex.dropSets ?? 3}`
-                  : ex.sets ? String(ex.sets) : "—",
+                  ? `1+${ex.backoffSets ?? 3}`
+                  : ex.setsMin ? String(ex.setsMin) : "—",
                 plannedReps: ex.method === "TOP_SET_BACKOFFS"
                   ? String(ex.topSetReps ?? "—")
                   : ex.reps ?? "—",
