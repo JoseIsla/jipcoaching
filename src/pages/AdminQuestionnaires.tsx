@@ -167,10 +167,14 @@ const AdminQuestionnaires = () => {
   const [selectedEntry, setSelectedEntry] = useState<QuestionnaireEntry | null>(null);
   const allEntries = useQuestionnaireStore((s) => s.entries);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
+  const generateWeeklyCheckins = useQuestionnaireStore((s) => s.generateWeeklyCheckins);
 
-  // Fetch check-ins and templates from API on mount
+  // Fetch check-ins and templates from API on mount, auto-generate weekly checkins
   const fetchTemplates = useTemplateStore((s) => s.fetchTemplates);
-  useEffect(() => { fetchEntries(); fetchTemplates(); }, []);
+  useEffect(() => {
+    generateWeeklyCheckins().then(() => fetchEntries());
+    fetchTemplates();
+  }, []);
 
   // Template store
   const nutritionTemplates = useTemplateStore((s) => s.nutritionTemplates);
