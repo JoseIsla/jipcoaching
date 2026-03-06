@@ -1,4 +1,6 @@
 import cron from "node-cron";
+import fs from "fs";
+import path from "path";
 import { prisma } from "../server";
 
 // ── Shared helper ──
@@ -248,11 +250,47 @@ async function expireTrainingCheckins() {
   }
 }
 
+// ── Clean up expired video files from disk ──
+
+async function cleanupExpiredVideos() {
+  try {
+    const now = new Date();
+    const expiredVideos = await prisma.techniqueVideo.findMany({
+      where: { expiresAt: { lt: now } },
+    });
+
+    if (expiredVideos.length === 0) return;
+
+    const uploadDir = process.env.UPLOAD_DIR || "./uploads";
+
+    for (const video of expiredVideos) {
+      // Delete file from disk
+      if (video.url) {
+        const filePath = path.join(uploadDir, video.url.replace(/^\/uploads\//, ""));
+        try {
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log(`[CRON] 🗑️ Deleted video file: ${filePath}`);
+          }
+        } catch (fileErr) {
+          console.warn(`[CRON] ⚠️ Could not delete file ${filePath}:`, fileErr);
+        }
+      }
+
+      // Delete DB record
+      await prisma.techniqueVideo.delete({ where: { id: video.id } }).catch(() => {});
+    }
+
+    console.log(`[CRON] ✅ Cleaned up ${expiredVideos.length} expired video(s)`);
+  } catch (err) {
+    console.error("[CRON] ❌ Error cleaning up expired videos:", err);
+  }
+}
+
 // ── Schedule ──
 
 export function startCheckinScheduler() {
   // Nutrition: Tuesday and Friday at 7:00 AM (Europe/Madrid)
-  // Cron: minute hour dayOfMonth month dayOfWeek
   cron.schedule("0 7 * * 2", () => {
     console.log("[CRON] 📅 Tuesday 7:00 — Nutrition check-in generation");
     generateNutritionCheckins();
@@ -269,14 +307,16 @@ export function startCheckinScheduler() {
     generateTrainingCheckins();
   }, { timezone: "Europe/Madrid" });
 
-  // Expiration check: runs every day at 1:00 AM to expire old checkins
+  // Expiration check: runs every day at 1:00 AM
   cron.schedule("0 1 * * *", () => {
-    console.log("[CRON] 🧹 Daily expiration check");
+    console.log("[CRON] 🧹 Daily expiration + cleanup check");
     expireTrainingCheckins();
+    cleanupExpiredVideos();
   }, { timezone: "Europe/Madrid" });
 
   console.log("⏱️  Check-in scheduler started:");
   console.log("   📅 Nutrition: Martes y Viernes a las 7:00 (48h ventana)");
   console.log("   📅 Entrenamiento: Sábado a las 7:00 (hasta Domingo 23:59)");
-  console.log("   🧹 Expiración: Diaria a la 1:00");
+  console.log("   🗑️ Limpieza videos: Diaria a la 1:00 (expiran a los 6 días)");
+  console.log("   🧹 Expiración check-ins: Diaria a la 1:00");
 }
