@@ -22,10 +22,17 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   useEffect(() => { if (userId) setCurrentUser(userId); }, [setCurrentUser, userId]);
 
-  // Fetch notifications and leads on admin panel mount
+  // Fetch notifications and leads on mount + poll every 60s
   useEffect(() => {
     fetchNotifications();
     fetchLeads();
+
+    const interval = setInterval(() => {
+      fetchNotifications();
+      fetchLeads();
+    }, 60_000);
+
+    return () => clearInterval(interval);
   }, [fetchNotifications, fetchLeads]);
 
   return (
