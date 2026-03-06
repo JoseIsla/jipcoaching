@@ -74,13 +74,14 @@ export interface QuestionnaireEntry {
 
 // ── Window status helper ──
 
-/** Publication hour for nutrition check-ins (8:00 AM) */
-export const NUTRITION_PUBLISH_HOUR = 8;
+/** Publication hour for nutrition check-ins (7:00 AM) */
+export const NUTRITION_PUBLISH_HOUR = 7;
 
 /** Determine whether a check-in entry's fill window is active, future, or expired. */
 export const getEntryWindowStatus = (entry: QuestionnaireEntry): "within" | "future" | "expired" => {
   const now = new Date();
   if (entry.category === "nutrition") {
+    // Nutrition: available from publish date at 7:00 AM for 48 hours
     const publishDate = new Date(entry.date + "T00:00:00");
     publishDate.setHours(NUTRITION_PUBLISH_HOUR, 0, 0, 0);
     const windowEnd = new Date(publishDate.getTime() + 48 * 60 * 60 * 1000);
@@ -88,9 +89,13 @@ export const getEntryWindowStatus = (entry: QuestionnaireEntry): "within" | "fut
     if (now <= windowEnd) return "within";
     return "expired";
   }
-  const entryDate = new Date(entry.date);
+  // Training: available from Saturday 7:00 AM until Sunday 23:59:59
+  const entryDate = new Date(entry.date + "T00:00:00");
+  entryDate.setHours(7, 0, 0, 0);
+  // Sunday midnight = next day at 00:00 from Saturday perspective
   const windowEnd = new Date(entryDate);
-  windowEnd.setDate(windowEnd.getDate() + 2);
+  windowEnd.setDate(windowEnd.getDate() + 1); // Sunday
+  windowEnd.setHours(23, 59, 59, 999);
   if (now < entryDate) return "future";
   if (now <= windowEnd) return "within";
   return "expired";
