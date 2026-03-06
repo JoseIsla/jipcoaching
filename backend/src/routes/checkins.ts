@@ -86,6 +86,13 @@ router.get("/", async (req, res) => {
       })),
       planId: c.planId,
       weekNumber: c.weekNumber,
+      templateQuestions: (c.template?.questions || []).map((q: any) => ({
+        id: q.id,
+        label: q.label,
+        type: q.type.toLowerCase().replace("_0_10", "").replace("yes_no", "yesno"),
+        required: q.required,
+        options: q.optionsJson ? JSON.parse(q.optionsJson) : undefined,
+      })),
     }));
 
     res.json(result);
