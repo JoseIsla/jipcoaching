@@ -75,6 +75,18 @@ async function generateNutritionCheckins() {
               dayLabel: dayLabels[today] ?? "—",
             },
           });
+
+          // Create push notification for the client
+          await prisma.notification.create({
+            data: {
+              userId: client.userId,
+              type: "checkin_reminder",
+              title: "📋 Nuevo check-in de nutrición",
+              message: `Tu check-in de nutrición del ${dayLabels[today] ?? "hoy"} está disponible. Tienes 48h para completarlo.`,
+              link: "/client/checkins",
+            },
+          });
+
           totalCreated++;
         }
       }
