@@ -87,7 +87,9 @@ const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const windowStatus = getEntryWindowStatus(entry);
   const canFill = !submitted && windowStatus === "within";
   const countdown = useCountdown(entry, canFill);
-  const template = nutritionTemplates.find((tp) => tp.id === entry.templateId);
+  const storeTemplates = useTemplateStore((s) => s.nutritionTemplates);
+  const template = storeTemplates.find((tp) => tp.id === entry.templateId)
+    || localNutritionTemplates.find((tp) => tp.id === entry.templateId);
   const questions = template?.questions || [];
 
   const handleSubmit = () => {
