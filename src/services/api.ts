@@ -20,9 +20,11 @@ const API_BASE_URL = (
 const getToken = (): string | null => localStorage.getItem(AUTH_TOKEN_KEY);
 
 const clearSessionAndRedirect = () => {
-  localStorage.removeItem(AUTH_TOKEN_KEY);
-  // Avoid redirect loop if already on /login or landing
-  if (window.location.pathname !== "/login" && window.location.pathname !== "/") {
+  // Don't clear token if on login page — avoids race condition where
+  // hydrateSession's 401 wipes a freshly-stored token from loginRequest
+  const onLoginOrLanding = window.location.pathname === "/login" || window.location.pathname === "/";
+  if (!onLoginOrLanding) {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
     window.location.href = "/login";
   }
 };
