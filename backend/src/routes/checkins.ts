@@ -175,10 +175,31 @@ router.post("/:id/submit", async (req, res) => {
     }
 
     // Update status
-    await prisma.checkin.update({
+    const updatedCheckin = await prisma.checkin.update({
       where: { id: checkinId },
       data: { status: "RESPONDED" },
+      include: { client: { select: { name: true } } },
     });
+
+    // Create notification for all admins
+    try {
+      const admins = await prisma.user.findMany({ where: { role: "ADMIN" } });
+      const clientName = updatedCheckin.client?.name ?? "Cliente";
+      const category = updatedCheckin.category === "NUTRITION" ? "nutrición" : "entrenamiento";
+      for (const admin of admins) {
+        await prisma.notification.create({
+          data: {
+            userId: admin.id,
+            type: "checkin",
+            title: "Nuevo check-in recibido",
+            message: `${clientName} ha enviado su check-in de ${category}`,
+            link: "/admin/questionnaires",
+          },
+        });
+      }
+    } catch (notifErr) {
+      console.warn("Failed to create checkin notification:", notifErr);
+    }
 
     // If nutrition checkin with weight (q1), update weight history
     const checkin = await prisma.checkin.findUnique({ where: { id: checkinId } });
