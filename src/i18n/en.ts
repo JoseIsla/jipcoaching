@@ -593,6 +593,8 @@ const en: Translations = {
     trainingCheckinDesc: "Time to log your weights and RPE for this week.",
     videoCommentTitle: "💬 New coach comment",
     videoCommentDesc: "Your coach left feedback on your {exercise} video.",
+    photoCommentTitle: "💬 New comment on your photos",
+    photoCommentDesc: "Your coach left feedback on your progress photos.",
     goToCheckins: "Go to Check-ins",
     pendingReminder: "You have {n} pending check-in(s)",
   },
