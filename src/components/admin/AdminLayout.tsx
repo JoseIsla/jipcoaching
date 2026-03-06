@@ -6,6 +6,8 @@ import AdminHeader from "@/components/admin/AdminHeader";
 import AnimatedPage from "@/components/admin/AnimatedPage";
 import { useLanguageStore } from "@/i18n/store";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotificationStore } from "@/data/notificationStore";
+import { useContactLeadsStore } from "@/data/useContactLeadsStore";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -15,7 +17,16 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const location = useLocation();
   const { userId } = useAuth();
   const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
+  const fetchNotifications = useNotificationStore((s) => s.fetchNotifications);
+  const fetchLeads = useContactLeadsStore((s) => s.fetchLeads);
+
   useEffect(() => { if (userId) setCurrentUser(userId); }, [setCurrentUser, userId]);
+
+  // Fetch notifications and leads on admin panel mount
+  useEffect(() => {
+    fetchNotifications();
+    fetchLeads();
+  }, [fetchNotifications, fetchLeads]);
 
   return (
     <div className="flex min-h-screen bg-background">
