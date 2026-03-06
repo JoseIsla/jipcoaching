@@ -260,4 +260,32 @@ router.patch("/:id/status", requireRole("ADMIN"), async (req, res) => {
   }
 });
 
+// PUT /api/clients/:id/password — Admin resets client password
+router.put("/:id/password", requireRole("ADMIN"), async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    if (!newPassword || newPassword.length < 6) {
+      res.status(400).json({ message: "La contraseña debe tener al menos 6 caracteres" });
+      return;
+    }
+
+    const client = await prisma.client.findUnique({ where: { id: req.params.id as string } });
+    if (!client) {
+      res.status(404).json({ message: "Cliente no encontrado" });
+      return;
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({
+      where: { id: client.userId },
+      data: { password: hashed },
+    });
+
+    res.json({ message: "Contraseña actualizada" });
+  } catch (err: any) {
+    console.error("PUT /clients/:id/password error:", err);
+    res.status(500).json({ message: "Error al cambiar contraseña" });
+  }
+});
+
 export default router;

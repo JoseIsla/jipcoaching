@@ -27,6 +27,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useClientStore } from "@/data/useClientStore";
 import { useClientDetailStore, type ClientDetail } from "@/data/useClientDetailStore";
+import { api } from "@/services/api";
 
 const statusClass = (status: ClientDetail["status"]) => {
   switch (status) {
@@ -96,7 +97,9 @@ const EditClientSheet = ({
     }));
   };
 
-  const handleSave = () => {
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
     if (!form.name.trim()) {
       toast({ title: "Error", description: "El nombre es obligatorio", variant: "destructive" });
       return;
@@ -118,12 +121,46 @@ const EditClientSheet = ({
       return;
     }
 
-    // Simulate API call
-    toast({ title: "Cliente actualizado", description: `Los datos de ${form.name} se han guardado correctamente.` });
-    onClose();
+    setSaving(true);
+    try {
+      // Map services to packType
+      const hasNut = form.services.includes("nutrition");
+      const hasTr = form.services.includes("training");
+      let packType = "FULL";
+      if (hasNut && !hasTr) packType = "NUTRITION_ONLY";
+      else if (hasTr && !hasNut) packType = "TRAINING_ONLY";
+
+      // Map status
+      const statusMap: Record<string, string> = { "Activo": "ACTIVE", "Inactivo": "PAUSED", "Pendiente": "PENDING" };
+
+      await api.put(`/clients/${client.id}`, {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone || undefined,
+        packType,
+        status: statusMap[form.status] || "ACTIVE",
+        monthlyFee: form.monthlyRate ? parseFloat(form.monthlyRate) : undefined,
+        notes: form.notes || undefined,
+        currentWeight: form.currentWeight ? parseFloat(form.currentWeight) : undefined,
+        targetWeight: form.targetWeight ? parseFloat(form.targetWeight) : undefined,
+        height: form.height ? parseFloat(form.height) : undefined,
+      });
+
+      // If password was set, reset it
+      if (form.newPassword) {
+        await api.put(`/clients/${client.id}/password`, { newPassword: form.newPassword });
+      }
+
+      toast({ title: "Cliente actualizado", description: `Los datos de ${form.name} se han guardado correctamente.` });
+      onClose();
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Error al guardar los datos", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleResetPassword = () => {
+  const handleResetPassword = async () => {
     if (!form.newPassword || form.newPassword.length < 8) {
       toast({ title: "Error", description: "La contraseña debe tener al menos 8 caracteres", variant: "destructive" });
       return;
@@ -132,9 +169,14 @@ const EditClientSheet = ({
       toast({ title: "Error", description: "Las contraseñas no coinciden", variant: "destructive" });
       return;
     }
-    toast({ title: "Contraseña actualizada", description: `Se ha cambiado la contraseña de ${client.name}.` });
-    updateField("newPassword", "");
-    updateField("confirmPassword", "");
+    try {
+      await api.put(`/clients/${client.id}/password`, { newPassword: form.newPassword });
+      toast({ title: "Contraseña actualizada", description: `Se ha cambiado la contraseña de ${client.name}.` });
+      updateField("newPassword", "");
+      updateField("confirmPassword", "");
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Error al cambiar contraseña", variant: "destructive" });
+    }
   };
 
   return (

@@ -83,12 +83,18 @@ export const useClientStore = create<ClientStore>((set, get) => ({
       ),
     })),
 
-  updateClientStatus: (id, status) =>
+  updateClientStatus: (id, status) => {
+    // Optimistically update local state
     set((state) => ({
       clients: state.clients.map((c) =>
         c.id === id ? { ...c, status } : c
       ),
-    })),
+    }));
+    // Persist to API
+    api.patch(`/clients/${id}/status`, { status }).catch((err) => {
+      console.error("Failed to update client status:", err);
+    });
+  },
 
   deleteClient: (id) =>
     set((state) => ({

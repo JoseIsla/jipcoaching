@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { api } from "@/services/api";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, Plus, Trash2, GripVertical, Dumbbell, ChevronDown, ChevronRight, Lock, Copy } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -404,15 +405,22 @@ const AdminTrainingPlanDetail = () => {
   const [weekIdx, setWeekIdx] = useState(0);
   const [currentWeek, setCurrentWeek] = useState<TrainingWeek | null>(null);
 
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     if (!planId) return;
-    const detail = getDetail(planId);
-    if (!detail) { navigate("/admin/training"); return; }
-    setPlan(detail);
-    const activeIdx = detail.weeks.findIndex((w) => w.status === "active");
-    const idx = activeIdx >= 0 ? activeIdx : detail.weeks.length - 1;
-    setWeekIdx(idx);
-    setCurrentWeek(JSON.parse(JSON.stringify(detail.weeks[idx])));
+    // Try to fetch from API first, fallback to local store
+    const loadPlan = async () => {
+      const fetched = await useTrainingPlanStore.getState().fetchPlanDetail(planId);
+      const detail = fetched || getDetail(planId);
+      if (!detail) { navigate("/admin/training"); return; }
+      setPlan(detail);
+      const activeIdx = detail.weeks.findIndex((w) => w.status === "active");
+      const idx = activeIdx >= 0 ? activeIdx : detail.weeks.length - 1;
+      setWeekIdx(idx);
+      setCurrentWeek(JSON.parse(JSON.stringify(detail.weeks[idx])));
+    };
+    loadPlan();
   }, [planId, navigate, getDetail]);
 
   if (!plan || !currentWeek) return null;
@@ -424,23 +432,65 @@ const AdminTrainingPlanDetail = () => {
     });
   };
 
-  const handleSave = () => {
-    saveWeek(plan.id, currentWeek);
-    toast({ title: "Semana guardada", description: `Semana ${currentWeek.weekNumber} guardada correctamente.` });
-    navigate("/admin/training");
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // Save each day's exercises via API
+      for (const day of currentWeek.days) {
+        await api.put(`/training/days/${day.id}`, {
+          title: day.name,
+          warmup: day.warmup,
+          exercises: day.exercises.map((e, i) => ({
+            name: e.exerciseName,
+            type: e.exerciseType || (e.section === "basic" ? "BASIC" : "ACCESSORY"),
+            method: e.method?.toUpperCase() || "STRAIGHT_SETS",
+            topSetReps: e.topSetReps,
+            topSetRpe: e.topSetRPE,
+            fatiguePct: e.fatiguePercent,
+            setsMin: e.sets ? parseInt(String(e.sets).split("-")[0]) : undefined,
+            setsMax: e.sets ? parseInt(String(e.sets).split("-").pop()!) : undefined,
+            rirMin: e.intensityValue,
+            notes: e.technicalNotes,
+            order: e.order ?? i,
+            backoffSets: e.backoffSets,
+            backoffPercent: e.backoffPercent,
+            technicalNotes: e.technicalNotes,
+          })),
+        });
+      }
+      // Save week metadata
+      await api.put(`/training/weeks/${currentWeek.id}`, {
+        block: currentWeek.block,
+        status: currentWeek.status?.toUpperCase(),
+        notes: currentWeek.generalNotes,
+      });
+      // Update local store
+      saveWeek(plan.id, currentWeek);
+      toast({ title: "Semana guardada", description: `Semana ${currentWeek.weekNumber} guardada correctamente.` });
+      navigate("/admin/training");
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Error al guardar la semana", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleAddWeek = (block: TrainingBlock) => {
-    const newWeek = addWeek(plan.id, block);
-    if (newWeek) {
-      const updatedDetail = getDetail(plan.id);
-      if (updatedDetail) {
-        setPlan({ ...updatedDetail });
-        const newIdx = updatedDetail.weeks.length - 1;
-        setWeekIdx(newIdx);
-        setCurrentWeek(JSON.parse(JSON.stringify(updatedDetail.weeks[newIdx])));
+  const handleAddWeek = async (block: TrainingBlock) => {
+    try {
+      const result = await api.post<any>(`/training/plans/${plan.id}/weeks`, { block });
+      if (result) {
+        // Refetch the plan detail from API
+        const updatedDetail = await useTrainingPlanStore.getState().fetchPlanDetail(plan.id);
+        if (updatedDetail) {
+          setPlan({ ...updatedDetail });
+          const newIdx = updatedDetail.weeks.length - 1;
+          setWeekIdx(newIdx);
+          setCurrentWeek(JSON.parse(JSON.stringify(updatedDetail.weeks[newIdx])));
+        }
+        toast({ title: "Semana añadida", description: `Semana (${block}) creada.` });
       }
-      toast({ title: "Semana añadida", description: `Semana ${newWeek.weekNumber} (${block}) creada.` });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Error al crear semana", variant: "destructive" });
     }
   };
 
@@ -460,8 +510,8 @@ const AdminTrainingPlanDetail = () => {
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-xs">{plan.blockVariants || "Sin variantes definidas"}</Badge>
-            <Button onClick={handleSave} className="glow-primary-sm gap-2">
-              <Save className="h-4 w-4" /> Guardar semana
+            <Button onClick={handleSave} className="glow-primary-sm gap-2" disabled={saving}>
+              <Save className="h-4 w-4" /> {saving ? "Guardando..." : "Guardar semana"}
             </Button>
           </div>
         </div>
@@ -532,8 +582,8 @@ const AdminTrainingPlanDetail = () => {
 
         {/* Bottom save */}
         <div className="flex justify-end">
-          <Button onClick={handleSave} className="glow-primary-sm gap-2">
-            <Save className="h-4 w-4" /> Guardar semana
+          <Button onClick={handleSave} className="glow-primary-sm gap-2" disabled={saving}>
+            <Save className="h-4 w-4" /> {saving ? "Guardando..." : "Guardar semana"}
           </Button>
         </div>
       </div>

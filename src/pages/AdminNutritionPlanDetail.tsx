@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { api } from "@/services/api";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Plus, Trash2, GripVertical, Utensils, Save, Apple, Salad,
@@ -410,23 +411,71 @@ const AdminNutritionPlanDetail = () => {
 
   const [plan, setPlan] = useState<NutritionPlanDetail | null>(stored ? { ...stored, meals: stored.meals.map((m) => ({ ...m })) } : null);
   const [supplements, setLocalSupplements] = useState<Supplement[]>([...storeSupplements]);
+  const [loadingPlan, setLoadingPlan] = useState(!stored);
 
-  const save = useCallback(() => {
-    if (!plan) return;
-    const savedPlan = { ...plan, meals: plan.meals.map(m => ({ ...m, options: m.options.map(o => ({ ...o, rows: [...o.rows] })) })) };
-    updateDetail(savedPlan);
-    syncPlanToList(savedPlan);
-    setSupplements(supplements);
-    toast.success("Plan guardado");
-    navigate("/admin/nutrition");
-  }, [plan, supplements, navigate, updateDetail, syncPlanToList, setSupplements]);
+  // If plan not in local store, fetch from API
+  useEffect(() => {
+    if (plan || !planId) return;
+    setLoadingPlan(true);
+    useNutritionPlanStore.getState().fetchPlans().then(() => {
+      const fetched = useNutritionPlanStore.getState().details[planId];
+      if (fetched) {
+        setPlan({ ...fetched, meals: fetched.meals.map((m) => ({ ...m })) });
+      }
+      setLoadingPlan(false);
+    });
+  }, [planId, plan]);
+
+  const [saving, setSaving] = useState(false);
+
+  const save = useCallback(async () => {
+    if (!plan || !planId) return;
+    setSaving(true);
+    try {
+      await api.put(`/nutrition/plans/${planId}`, {
+        title: plan.planName,
+        objective: plan.objective,
+        recommendations: plan.recommendations,
+        kcalMin: plan.calories,
+        kcalMax: plan.calories,
+        proteinG: plan.protein,
+        carbsG: plan.carbs,
+        fatsG: plan.fats,
+        meals: plan.meals.map((m) => ({
+          name: m.name,
+          description: m.description,
+          notes: m.description,
+          options: m.options.map((o) => ({
+            name: o.name,
+            notes: o.notes,
+            rows: o.rows.map((r) => ({
+              mainIngredient: r.mainIngredient,
+              alternatives: r.alternatives,
+              macroCategory: r.macroCategory,
+            })),
+          })),
+        })),
+      });
+      // Update local store too
+      const savedPlan = { ...plan, meals: plan.meals.map(m => ({ ...m, options: m.options.map(o => ({ ...o, rows: [...o.rows] })) })) };
+      updateDetail(savedPlan);
+      syncPlanToList(savedPlan);
+      setSupplements(supplements);
+      toast.success("Plan guardado");
+      navigate("/admin/nutrition");
+    } catch (err: any) {
+      toast.error(err?.message || "Error al guardar el plan");
+    } finally {
+      setSaving(false);
+    }
+  }, [plan, planId, supplements, navigate, updateDetail, syncPlanToList, setSupplements]);
 
   if (!plan) {
     return (
       <AdminLayout>
         <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-          <p className="text-muted-foreground">Plan no encontrado</p>
-          <Button variant="outline" onClick={() => navigate("/admin/nutrition")}>Volver a Nutrición</Button>
+          <p className="text-muted-foreground">{loadingPlan ? "Cargando plan…" : "Plan no encontrado"}</p>
+          {!loadingPlan && <Button variant="outline" onClick={() => navigate("/admin/nutrition")}>Volver a Nutrición</Button>}
         </div>
       </AdminLayout>
     );
@@ -476,8 +525,8 @@ const AdminNutritionPlanDetail = () => {
               </p>
             </div>
           </div>
-          <Button className="glow-primary-sm gap-2" onClick={save}>
-            <Save className="h-4 w-4" />Guardar
+          <Button className="glow-primary-sm gap-2" onClick={save} disabled={saving}>
+            <Save className="h-4 w-4" />{saving ? "Guardando..." : "Guardar"}
           </Button>
         </div>
 
