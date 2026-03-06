@@ -32,9 +32,9 @@ export const useClientStore = create<ClientStore>((set, get) => ({
   loading: false,
   error: null,
 
-  fetchClients: async () => {
-    // If already loaded, skip re-fetch (preserves in-memory changes in dev mode)
-    if (get().clients.length > 0) {
+  fetchClients: async (forceRefresh = false) => {
+    // If already loaded and not forcing, skip re-fetch
+    if (!forceRefresh && get().clients.length > 0) {
       return;
     }
 
