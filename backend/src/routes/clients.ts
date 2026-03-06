@@ -164,6 +164,24 @@ router.post("/", requireRole("ADMIN"), async (req, res) => {
       },
     });
 
+    // Notify all admins about new client
+    try {
+      const admins = await prisma.user.findMany({ where: { role: "ADMIN" } });
+      for (const admin of admins) {
+        await prisma.notification.create({
+          data: {
+            userId: admin.id,
+            type: "client",
+            title: "Nuevo cliente registrado",
+            message: `${name} se ha añadido con el pack ${packType}`,
+            link: `/admin/clients/${client.id}`,
+          },
+        });
+      }
+    } catch (notifErr) {
+      console.warn("Failed to create new client notification:", notifErr);
+    }
+
     res.status(201).json({
       id: client.id,
       name: client.name,

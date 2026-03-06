@@ -133,6 +133,26 @@ router.post("/videos/:cid?", uploadVideo.single("file"), async (req, res) => {
       },
     });
 
+    // Notify all admins about new technique video
+    try {
+      const client = await prisma.client.findUnique({ where: { id: clientId } });
+      const admins = await prisma.user.findMany({ where: { role: "ADMIN" } });
+      const clientName = client?.name ?? "Cliente";
+      for (const admin of admins) {
+        await prisma.notification.create({
+          data: {
+            userId: admin.id,
+            type: "checkin",
+            title: "Nuevo vídeo de técnica",
+            message: `${clientName} ha subido un vídeo de ${exerciseName || "técnica"}`,
+            link: `/admin/clients/${clientId}`,
+          },
+        });
+      }
+    } catch (notifErr) {
+      console.warn("Failed to create video notification:", notifErr);
+    }
+
     res.status(201).json({
       id: video.id,
       clientId: video.clientId,
