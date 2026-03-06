@@ -40,9 +40,9 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [role, userId]);
 
-  // Fetch clients only when authenticated
+  // Fetch clients only for admin — /api/clients is admin-only
   useEffect(() => {
-    if (status === "authenticated" && (role === "admin" || role === "client")) {
+    if (status === "authenticated" && role === "admin") {
       fetchClients();
     }
   }, [status, role, fetchClients]);
