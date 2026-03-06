@@ -69,6 +69,7 @@ export interface QuestionnaireEntry {
   techniqueVideos?: CheckinVideo[];
   planId?: string;
   weekNumber?: number;
+  templateQuestions?: { id: string; label: string; type: string; required: boolean; options?: string[] }[];
 }
 
 // ── Window status helper ──
