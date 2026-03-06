@@ -44,7 +44,7 @@ const MediaCommentThread = ({ targetType, targetId, clientId, exerciseName, comp
       text: trimmed,
       createdAt: new Date().toISOString(),
     });
-    // Notify client about the new comment on their video
+    // Notify client about the new comment (video or photo)
     if (targetType === "video" && exerciseName) {
       addClientNotification({
         id: `cn-vc-${Date.now()}`,
@@ -54,7 +54,17 @@ const MediaCommentThread = ({ targetType, targetId, clientId, exerciseName, comp
         descriptionVars: { exercise: exerciseName },
         timestamp: new Date(),
         read: false,
-        link: "/client/checkins",
+        link: "/client/progress",
+      });
+    } else if (targetType === "photo_session") {
+      addClientNotification({
+        id: `cn-pc-${Date.now()}`,
+        type: "video_comment",
+        titleKey: "clientNotifications.photoCommentTitle",
+        descriptionKey: "clientNotifications.photoCommentDesc",
+        timestamp: new Date(),
+        read: false,
+        link: "/client/progress",
       });
     }
     setText("");

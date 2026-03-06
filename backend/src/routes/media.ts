@@ -212,6 +212,28 @@ router.post("/comments", requireRole("ADMIN"), async (req, res) => {
         text,
       },
     });
+
+    // Create a server-side notification for the client
+    if (clientId) {
+      try {
+        const client = await prisma.client.findUnique({ where: { id: clientId } });
+        if (client) {
+          const isVideo = targetType.toUpperCase() === "VIDEO";
+          await prisma.notification.create({
+            data: {
+              userId: client.userId,
+              type: "media_comment",
+              title: isVideo ? "💬 Nuevo comentario en tu vídeo" : "💬 Nuevo comentario en tus fotos",
+              message: `${authorName} ha dejado un comentario: "${text.substring(0, 100)}${text.length > 100 ? "…" : ""}"`,
+              link: "/client/progress",
+            },
+          });
+        }
+      } catch (notifErr) {
+        console.warn("Failed to create comment notification:", notifErr);
+      }
+    }
+
     res.status(201).json(comment);
   } catch (err: any) {
     res.status(500).json({ message: "Error al crear comentario" });
