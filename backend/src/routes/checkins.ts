@@ -272,4 +272,202 @@ router.get("/rm/:clientId", async (req, res) => {
   }
 });
 
+// ── POST /api/checkins/generate-mine — Auto-generate pending checkins for the current client
+router.post("/generate-mine", async (req, res) => {
+  try {
+    const userId = req.user!.userId;
+    const client = await prisma.client.findUnique({ where: { userId } });
+    if (!client) { res.status(404).json({ message: "Cliente no encontrado" }); return; }
+    if (client.status !== "ACTIVE") { res.json({ created: 0 }); return; }
+
+    const created = await generateCheckinsForClient(client.id, client.packType);
+    res.json({ created });
+  } catch (err: any) {
+    console.error("POST /checkins/generate-mine error:", err);
+    res.status(500).json({ message: "Error al generar check-ins" });
+  }
+});
+
+// ── POST /api/checkins/generate-weekly — Admin batch-generate for all active clients
+router.post("/generate-weekly", requireRole("ADMIN"), async (req, res) => {
+  try {
+    const clients = await prisma.client.findMany({ where: { status: "ACTIVE" } });
+    let totalCreated = 0;
+    for (const client of clients) {
+      totalCreated += await generateCheckinsForClient(client.id, client.packType);
+    }
+    res.json({ created: totalCreated, clients: clients.length });
+  } catch (err: any) {
+    console.error("POST /checkins/generate-weekly error:", err);
+    res.status(500).json({ message: "Error al generar check-ins semanales" });
+  }
+});
+
+// ── Helper: generate checkins for a single client ──
+async function generateCheckinsForClient(clientId: string, packType: string): Promise<number> {
+  const dayLabels: Record<number, string> = {
+    0: "Domingo", 1: "Lunes", 2: "Martes", 3: "Miércoles",
+    4: "Jueves", 5: "Viernes", 6: "Sábado",
+  };
+
+  // Get current week range (Monday to Sunday)
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  monday.setHours(0, 0, 0, 0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
+
+  const weekNum = getISOWeekNumber(now);
+  const weekLabel = `Semana ${weekNum}`;
+
+  let created = 0;
+
+  // ── Nutrition checkins ──
+  const hasNutrition = packType === "NUTRITION" || packType === "FULL";
+  if (hasNutrition) {
+    const nutritionTemplates = await prisma.questionnaireTemplate.findMany({
+      where: { category: "NUTRITION", isActive: true },
+    });
+
+    for (const template of nutritionTemplates) {
+      if (template.dayOfWeek == null) continue;
+
+      // Calculate the date for this day of week in the current week
+      const targetDate = new Date(monday);
+      const diff = template.dayOfWeek === 0 ? 6 : template.dayOfWeek - 1;
+      targetDate.setDate(monday.getDate() + diff);
+      targetDate.setHours(0, 0, 0, 0);
+
+      // Check if checkin already exists for this client/template/week
+      const existing = await prisma.checkin.findFirst({
+        where: {
+          clientId,
+          templateId: template.id,
+          date: { gte: monday, lte: sunday },
+        },
+      });
+
+      if (!existing) {
+        await prisma.checkin.create({
+          data: {
+            clientId,
+            templateId: template.id,
+            category: "NUTRITION",
+            weekLabel,
+            date: targetDate,
+            dayLabel: dayLabels[template.dayOfWeek] ?? "—",
+          },
+        });
+        created++;
+      }
+    }
+  }
+
+  // ── Training checkins ──
+  const hasTraining = packType === "TRAINING" || packType === "FULL";
+  if (hasTraining) {
+    const trainingTemplate = await prisma.questionnaireTemplate.findFirst({
+      where: { category: "TRAINING", isActive: true },
+    });
+
+    if (trainingTemplate) {
+      // Find active training plan for this client
+      const activePlan = await prisma.trainingPlan.findFirst({
+        where: { clientId, isActive: true },
+        include: {
+          weeks: {
+            where: { status: "ACTIVE" },
+            include: {
+              days: {
+                include: { exercises: true },
+                orderBy: { dayNumber: "asc" },
+              },
+            },
+            orderBy: { weekNumber: "asc" },
+            take: 1,
+          },
+        },
+      });
+
+      if (activePlan && activePlan.weeks.length > 0) {
+        const activeWeek = activePlan.weeks[0];
+
+        // Sunday of current week for training checkin
+        const trainingSunday = new Date(sunday);
+        trainingSunday.setHours(0, 0, 0, 0);
+
+        const existing = await prisma.checkin.findFirst({
+          where: {
+            clientId,
+            templateId: trainingTemplate.id,
+            date: { gte: monday, lte: sunday },
+            category: "TRAINING",
+          },
+        });
+
+        if (!existing) {
+          const checkin = await prisma.checkin.create({
+            data: {
+              clientId,
+              templateId: trainingTemplate.id,
+              category: "TRAINING",
+              weekLabel: `Semana ${activeWeek.weekNumber}`,
+              date: trainingSunday,
+              dayLabel: "Domingo",
+              planId: activePlan.id,
+              weekNumber: activeWeek.weekNumber,
+            },
+          });
+
+          // Pre-populate training log from the active week's exercises
+          for (const day of activeWeek.days) {
+            const basicExercises = day.exercises.filter((e) => e.type === "BASIC");
+            if (basicExercises.length === 0) continue;
+
+            const log = await prisma.checkinTrainingLog.create({
+              data: {
+                checkinId: checkin.id,
+                dayNumber: day.dayNumber,
+                dayName: day.title || `Día ${day.dayNumber}`,
+              },
+            });
+
+            await prisma.checkinTrainingExercise.createMany({
+              data: basicExercises.map((ex) => ({
+                logId: log.id,
+                exerciseId: ex.id,
+                exerciseName: ex.name,
+                section: "basic",
+                plannedSets: ex.method === "TOP_SET_BACKOFFS"
+                  ? `1+${ex.dropSets ?? 3}`
+                  : ex.sets ? String(ex.sets) : "—",
+                plannedReps: ex.method === "TOP_SET_BACKOFFS"
+                  ? String(ex.topSetReps ?? "—")
+                  : ex.reps ?? "—",
+                plannedLoad: ex.plannedLoad ?? "—",
+                plannedRPE: ex.topSetRpe,
+              })),
+            });
+          }
+
+          created++;
+        }
+      }
+    }
+  }
+
+  return created;
+}
+
+function getISOWeekNumber(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+}
+
 export default router;
