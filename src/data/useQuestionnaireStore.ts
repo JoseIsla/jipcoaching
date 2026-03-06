@@ -122,6 +122,8 @@ interface QuestionnaireState {
   createSession: (data: Record<string, unknown>) => Promise<ApiSession | null>;
   fetchActiveQuestionnaire: () => Promise<ApiQuestionnaire | null>;
   submitQuestionnaire: (sessionId: string, answers: Record<string, unknown>) => Promise<void>;
+  generateMyCheckins: () => Promise<void>;
+  generateWeeklyCheckins: () => Promise<number>;
 
   // Legacy local actions (kept for UI compat)
   submitEntry: (entryId: string, responses: Record<string, string | number | boolean>, trainingLog?: TrainingLogDay[]) => void;
