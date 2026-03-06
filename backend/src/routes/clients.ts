@@ -8,6 +8,53 @@ const router = Router();
 // All routes require authentication
 router.use(authenticate);
 
+// GET /api/clients/me — Client gets their own client record
+router.get("/me", async (req, res) => {
+  try {
+    const client: any = await prisma.client.findUnique({
+      where: { userId: req.user!.userId },
+      include: {
+        user: { select: { avatarUrl: true } },
+        nutritionIntake: true,
+        trainingIntake: true,
+        weightHistory: { orderBy: { date: "asc" } },
+      },
+    });
+
+    if (!client) {
+      res.status(404).json({ message: "Cliente no encontrado" });
+      return;
+    }
+
+    res.json({
+      id: client.id,
+      name: client.name,
+      email: client.email,
+      phone: client.phone,
+      age: client.age,
+      sex: client.sex,
+      height: client.height,
+      currentWeight: client.currentWeight,
+      targetWeight: client.targetWeight,
+      packType: client.packType,
+      status: client.status,
+      monthlyFee: client.monthlyFee,
+      notes: client.notes,
+      startDate: client.startDate,
+      avatarUrl: client.user?.avatarUrl || null,
+      nutritionIntake: client.nutritionIntake,
+      trainingIntake: client.trainingIntake,
+      weightHistory: (client.weightHistory || []).map((w: any) => ({
+        date: w.date.toISOString().split("T")[0],
+        weight: w.weight,
+      })),
+    });
+  } catch (err: any) {
+    console.error("GET /clients/me error:", err);
+    res.status(500).json({ message: "Error al obtener datos del cliente" });
+  }
+});
+
 // GET /api/clients — Admin only
 router.get("/", requireRole("ADMIN"), async (_req, res) => {
   try {

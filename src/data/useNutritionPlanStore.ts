@@ -50,6 +50,7 @@ interface NutritionPlanState {
   error: string | null;
 
   // Fetch from API
+  fetchPlans: (clientId?: string) => Promise<void>;
   fetchActiveClientPlan: () => Promise<ApiNutritionPlan | null>;
 
   // Plan list (local for admin — backend doesn't have admin list endpoint yet)
@@ -67,6 +68,61 @@ interface NutritionPlanState {
   setSupplements: (sups: Supplement[]) => void;
 }
 
+/** Map API nutrition plan to list entry + detail */
+const mapApiPlanToListEntry = (p: ApiNutritionPlan): NutritionPlanListEntry => ({
+  id: p.id,
+  clientId: p.clientId,
+  clientName: "",
+  planName: p.title,
+  type: "custom",
+  calories: p.kcalMin ?? p.kcalMax ?? 0,
+  active: p.isActive,
+  startDate: p.createdAt?.split("T")[0] ?? new Date().toISOString().split("T")[0],
+  endDate: null,
+});
+
+const mapApiPlanToDetail = (p: ApiNutritionPlan): NutritionPlanDetail => {
+  let recommendations: string[] = [];
+  if (p.recommendations) {
+    try { recommendations = JSON.parse(p.recommendations); } catch { recommendations = [p.recommendations]; }
+  }
+  return {
+    id: p.id,
+    clientId: p.clientId,
+    clientName: "",
+    planName: p.title,
+    objective: p.recommendations ?? "",
+    calories: p.kcalMin ?? p.kcalMax,
+    protein: p.proteinG,
+    carbs: p.carbsG,
+    fats: p.fatsG,
+    active: p.isActive,
+    startDate: p.createdAt?.split("T")[0] ?? new Date().toISOString().split("T")[0],
+    endDate: null,
+    meals: (p.meals ?? []).map((m) => ({
+      id: m.id,
+      name: m.name,
+      description: m.notes,
+      options: (m.options ?? []).map((o) => ({
+        id: o.id,
+        name: o.name ?? "",
+        notes: o.notes,
+        rows: (o.rows ?? []).map((r) => {
+          let alts: string[] = [];
+          try { alts = typeof r.alternatives === "string" ? JSON.parse(r.alternatives) : r.alternatives ?? []; } catch { alts = []; }
+          return {
+            id: r.id,
+            mainIngredient: r.mainIngredient,
+            alternatives: alts,
+            macroCategory: (r.macroCategory ?? "") as MacroCategory,
+          };
+        }),
+      })),
+    })),
+    recommendations,
+  };
+};
+
 export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
   plans: DEV_MOCK ? mockNutritionPlanList : [],
   details: DEV_MOCK ? mockNutritionDetails : {},
@@ -74,10 +130,26 @@ export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
   loading: false,
   error: null,
 
+  fetchPlans: async (clientId) => {
+    if (DEV_MOCK) return;
+
+    set({ loading: true, error: null });
+    try {
+      const query = clientId ? `?clientId=${clientId}` : "";
+      const data = await api.get<ApiNutritionPlan[]>(`/nutrition/plans${query}`);
+      const plans = (data ?? []).map(mapApiPlanToListEntry);
+      const details: Record<string, NutritionPlanDetail> = {};
+      (data ?? []).forEach((p) => { details[p.id] = mapApiPlanToDetail(p); });
+      set({ plans, details, loading: false });
+    } catch (err: any) {
+      set({ error: err?.message ?? "Error al cargar planes", loading: false });
+    }
+  },
+
   fetchActiveClientPlan: async () => {
     if (DEV_MOCK) {
       await new Promise((r) => setTimeout(r, 200));
-      return null; // No active plan in dev mode by default
+      return null;
     }
 
     set({ loading: true, error: null });
