@@ -85,9 +85,23 @@ const ClientTraining = () => {
   const plans = useTrainingPlanStore((s) => s.plans);
   const getDetail = useTrainingPlanStore((s) => s.getDetail);
   const details = useTrainingPlanStore((s) => s.details);
+  const fetchPlans = useTrainingPlanStore((s) => s.fetchPlans);
+  const fetchPlanDetail = useTrainingPlanStore((s) => s.fetchPlanDetail);
   const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
+
+  // Fetch plans from API on mount
+  useEffect(() => { fetchPlans(client.id); }, [client.id]);
+
   const activePlan = plans.find((p) => p.clientId === client.id && p.active);
-  const plan = activePlan ? (details[activePlan.id] || getDetail(activePlan.id)) : null;
+
+  // Fetch plan detail when active plan is known
+  useEffect(() => {
+    if (activePlan && !details[activePlan.id]) {
+      fetchPlanDetail(activePlan.id);
+    }
+  }, [activePlan?.id]);
+
+  const plan = activePlan ? (details[activePlan.id] || null) : null;
 
   useEffect(() => {
     if (plan) {
