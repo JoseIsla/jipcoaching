@@ -239,6 +239,26 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
     await api.post(`/questionnaires/sessions/${sessionId}/submit`, answers);
   },
 
+  generateMyCheckins: async () => {
+    if (DEV_MOCK) return;
+    try {
+      await api.post("/checkins/generate-mine", {});
+    } catch (err: any) {
+      console.warn("Error generating my checkins:", err?.message);
+    }
+  },
+
+  generateWeeklyCheckins: async () => {
+    if (DEV_MOCK) return 0;
+    try {
+      const result = await api.post<{ created: number }>("/checkins/generate-weekly", {});
+      return result?.created ?? 0;
+    } catch (err: any) {
+      console.warn("Error generating weekly checkins:", err?.message);
+      return 0;
+    }
+  },
+
   // ── Legacy local actions ──
 
   submitEntry: (entryId, responses, trainingLog) => {
