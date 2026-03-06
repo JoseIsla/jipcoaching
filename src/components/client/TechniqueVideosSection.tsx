@@ -106,11 +106,10 @@ const TechniqueVideosSection = ({ clientId }: Props) => {
   const handleRemoveVideo = async (videoId: string) => {
     try {
       await mediaApi.deleteTechniqueVideo(clientId, videoId);
-      removeVideoFromStore(videoId);
-      toast({ title: "Video eliminado" });
-    } catch {
-      removeVideoFromStore(videoId);
-    }
+    } catch { /* ignore */ }
+    // Update store locally (don't call store's removeVideo which also hits API)
+    useMediaStore.setState((s) => ({ videos: s.videos.filter((v) => v.id !== videoId) }));
+    toast({ title: "Video eliminado" });
   };
 
   return (
