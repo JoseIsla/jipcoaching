@@ -409,9 +409,10 @@ async function generateCheckinsForClient(clientId: string, packType: string): Pr
       if (activePlan && activePlan.weeks.length > 0) {
         const activeWeek = activePlan.weeks[0];
 
-        // Sunday of current week for training checkin
-        const trainingSunday = new Date(sunday);
-        trainingSunday.setHours(0, 0, 0, 0);
+        // Saturday of current week for training checkin
+        const saturday = new Date(monday);
+        saturday.setDate(monday.getDate() + 5); // Saturday
+        saturday.setHours(7, 0, 0, 0);
 
         const existing = await prisma.checkin.findFirst({
           where: {
@@ -429,8 +430,8 @@ async function generateCheckinsForClient(clientId: string, packType: string): Pr
               templateId: trainingTemplate.id,
               category: "TRAINING",
               weekLabel: `Semana ${activeWeek.weekNumber}`,
-              date: trainingSunday,
-              dayLabel: "Domingo",
+              date: saturday,
+              dayLabel: "Sábado",
               planId: activePlan.id,
               weekNumber: activeWeek.weekNumber,
             },
