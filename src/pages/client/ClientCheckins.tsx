@@ -90,7 +90,9 @@ const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const storeTemplates = useTemplateStore((s) => s.nutritionTemplates);
   const template = storeTemplates.find((tp) => tp.id === entry.templateId)
     || localNutritionTemplates.find((tp) => tp.id === entry.templateId);
-  const questions = template?.questions || [];
+  const questions: QuestionDefinition[] = template?.questions
+    || (entry.templateQuestions || []).map((q) => ({ id: q.id, label: q.label, type: q.type as any, required: q.required, options: q.options }))
+    || [];
 
   const handleSubmit = () => {
     submitEntry(entry.id, responses);
