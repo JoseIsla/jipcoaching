@@ -104,8 +104,6 @@ export const getEntryWindowStatus = (entry: QuestionnaireEntry): "within" | "fut
 /** Returns true if a pending entry can actually be filled right now. */
 export const isActionablePending = (entry: QuestionnaireEntry): boolean => {
   if (entry.status !== "pendiente") return false;
-  // Training entries are always fillable while pending (no expiration window in client UI)
-  if (entry.category === "training") return true;
   return getEntryWindowStatus(entry) === "within";
 };
 
