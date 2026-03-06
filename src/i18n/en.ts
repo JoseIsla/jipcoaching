@@ -61,6 +61,40 @@ const en: Translations = {
     networkErrorDesc: "Could not connect to the backend. Please check it's running.",
   },
 
+  // ── Forgot / Reset Password ──
+  forgotPassword: {
+    linkText: "Forgot your password?",
+    title: "Forgot your password?",
+    subtitle: "Enter your email and we'll send you a recovery link.",
+    emailLabel: "Email",
+    emailPlaceholder: "you@email.com",
+    emailRequired: "Email is required",
+    emailInvalid: "Invalid email",
+    submitBtn: "Send recovery link",
+    successTitle: "Email sent",
+    successDesc: "If the email is registered, you'll receive a link to reset your password. Check your spam folder too.",
+    backToLogin: "Back to sign in",
+    errorGeneric: "Failed to send the email.",
+  },
+  resetPassword: {
+    title: "New password",
+    subtitle: "Enter your new password to continue.",
+    passwordLabel: "New password",
+    confirmLabel: "Confirm password",
+    passwordRequired: "Password is required",
+    passwordMin: "Minimum 6 characters",
+    confirmRequired: "Confirm your password",
+    confirmMismatch: "Passwords don't match",
+    submitBtn: "Reset password",
+    successTitle: "Password updated!",
+    successDesc: "Your password has been changed successfully. You can now sign in.",
+    loginBtn: "Sign in",
+    invalidLinkTitle: "Invalid link",
+    invalidLinkDesc: "This recovery link is invalid. Please request a new one.",
+    requestNewLink: "Request new link",
+    errorGeneric: "Failed to reset the password.",
+  },
+
   // ── Admin Sidebar ──
   sidebar: {
     dashboard: "Dashboard",

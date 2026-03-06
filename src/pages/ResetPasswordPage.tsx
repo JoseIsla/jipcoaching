@@ -37,12 +37,10 @@ const ResetPasswordPage = () => {
           </div>
           <div className="bg-card border border-border rounded-2xl p-8 space-y-4">
             <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
-            <h1 className="text-xl font-bold text-foreground">Enlace inválido</h1>
-            <p className="text-sm text-muted-foreground">
-              Este enlace de recuperación no es válido. Solicita uno nuevo.
-            </p>
+            <h1 className="text-xl font-bold text-foreground">{t("resetPassword.invalidLinkTitle")}</h1>
+            <p className="text-sm text-muted-foreground">{t("resetPassword.invalidLinkDesc")}</p>
             <Link to="/forgot-password">
-              <Button className="w-full mt-2">Solicitar nuevo enlace</Button>
+              <Button className="w-full mt-2">{t("resetPassword.requestNewLink")}</Button>
             </Link>
           </div>
         </div>
@@ -57,7 +55,7 @@ const ResetPasswordPage = () => {
       await api.post("/auth/reset-password", { token, password: data.password }, { skipAuth: true, silent: true });
       setSuccess(true);
     } catch (err: any) {
-      setError(err?.body?.message || err?.message || "Error al restablecer la contraseña.");
+      setError(err?.body?.message || err?.message || t("resetPassword.errorGeneric"));
     } finally {
       setIsLoading(false);
     }
@@ -78,21 +76,19 @@ const ResetPasswordPage = () => {
           {success ? (
             <div className="text-center space-y-4">
               <CheckCircle2 className="h-12 w-12 text-primary mx-auto" />
-              <h1 className="text-xl font-bold text-foreground">¡Contraseña actualizada!</h1>
-              <p className="text-sm text-muted-foreground">
-                Tu contraseña ha sido cambiada correctamente. Ya puedes iniciar sesión.
-              </p>
+              <h1 className="text-xl font-bold text-foreground">{t("resetPassword.successTitle")}</h1>
+              <p className="text-sm text-muted-foreground">{t("resetPassword.successDesc")}</p>
               <Link to="/login">
                 <Button className="w-full mt-2 bg-primary text-primary-foreground font-semibold">
-                  Iniciar sesión
+                  {t("resetPassword.loginBtn")}
                 </Button>
               </Link>
             </div>
           ) : (
             <>
               <div className="text-center space-y-2">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">Nueva contraseña</h1>
-                <p className="text-sm text-muted-foreground">Introduce tu nueva contraseña para continuar.</p>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("resetPassword.title")}</h1>
+                <p className="text-sm text-muted-foreground">{t("resetPassword.subtitle")}</p>
               </div>
 
               {error && (
@@ -103,7 +99,7 @@ const ResetPasswordPage = () => {
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-muted-foreground text-sm">Nueva contraseña</Label>
+                  <Label htmlFor="password" className="text-muted-foreground text-sm">{t("resetPassword.passwordLabel")}</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -112,8 +108,8 @@ const ResetPasswordPage = () => {
                       placeholder="••••••••"
                       className="pl-10 pr-10 bg-muted border-border focus:border-primary focus:ring-primary/20 h-12 text-foreground placeholder:text-muted-foreground"
                       {...register("password", {
-                        required: "La contraseña es obligatoria",
-                        minLength: { value: 6, message: "Mínimo 6 caracteres" },
+                        required: t("resetPassword.passwordRequired"),
+                        minLength: { value: 6, message: t("resetPassword.passwordMin") },
                       })}
                     />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
@@ -124,7 +120,7 @@ const ResetPasswordPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-muted-foreground text-sm">Confirmar contraseña</Label>
+                  <Label htmlFor="confirmPassword" className="text-muted-foreground text-sm">{t("resetPassword.confirmLabel")}</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -133,8 +129,8 @@ const ResetPasswordPage = () => {
                       placeholder="••••••••"
                       className="pl-10 pr-10 bg-muted border-border focus:border-primary focus:ring-primary/20 h-12 text-foreground placeholder:text-muted-foreground"
                       {...register("confirmPassword", {
-                        required: "Confirma la contraseña",
-                        validate: (v) => v === password || "Las contraseñas no coinciden",
+                        required: t("resetPassword.confirmRequired"),
+                        validate: (v) => v === password || t("resetPassword.confirmMismatch"),
                       })}
                     />
                     <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
@@ -149,14 +145,14 @@ const ResetPasswordPage = () => {
                   disabled={isLoading}
                   className="w-full h-12 bg-primary text-primary-foreground font-semibold text-base hover:brightness-110 transition-all"
                 >
-                  {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Restablecer contraseña"}
+                  {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : t("resetPassword.submitBtn")}
                 </Button>
               </form>
 
               <div className="text-center">
                 <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <ArrowLeft className="h-3 w-3 inline mr-1" />
-                  Volver al inicio de sesión
+                  {t("forgotPassword.backToLogin")}
                 </Link>
               </div>
             </>

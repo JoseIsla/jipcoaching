@@ -59,6 +59,40 @@ const es = {
     networkErrorDesc: "No se pudo conectar con el backend. Verifica que esté en funcionamiento.",
   },
 
+  // ── Forgot / Reset Password ──
+  forgotPassword: {
+    linkText: "¿Olvidaste tu contraseña?",
+    title: "¿Olvidaste tu contraseña?",
+    subtitle: "Introduce tu email y te enviaremos un enlace de recuperación.",
+    emailLabel: "Email",
+    emailPlaceholder: "tu@email.com",
+    emailRequired: "El email es obligatorio",
+    emailInvalid: "Email no válido",
+    submitBtn: "Enviar enlace de recuperación",
+    successTitle: "Email enviado",
+    successDesc: "Si el email está registrado, recibirás un enlace para restablecer tu contraseña. Revisa también la carpeta de spam.",
+    backToLogin: "Volver al inicio de sesión",
+    errorGeneric: "Error al enviar el email.",
+  },
+  resetPassword: {
+    title: "Nueva contraseña",
+    subtitle: "Introduce tu nueva contraseña para continuar.",
+    passwordLabel: "Nueva contraseña",
+    confirmLabel: "Confirmar contraseña",
+    passwordRequired: "La contraseña es obligatoria",
+    passwordMin: "Mínimo 6 caracteres",
+    confirmRequired: "Confirma la contraseña",
+    confirmMismatch: "Las contraseñas no coinciden",
+    submitBtn: "Restablecer contraseña",
+    successTitle: "¡Contraseña actualizada!",
+    successDesc: "Tu contraseña ha sido cambiada correctamente. Ya puedes iniciar sesión.",
+    loginBtn: "Iniciar sesión",
+    invalidLinkTitle: "Enlace inválido",
+    invalidLinkDesc: "Este enlace de recuperación no es válido. Solicita uno nuevo.",
+    requestNewLink: "Solicitar nuevo enlace",
+    errorGeneric: "Error al restablecer la contraseña.",
+  },
+
   // ── Admin Sidebar ──
   sidebar: {
     dashboard: "Dashboard",

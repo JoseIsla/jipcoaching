@@ -28,7 +28,7 @@ const ForgotPasswordPage = () => {
       await api.post("/auth/forgot-password", { email: data.email }, { skipAuth: true, silent: true });
       setSent(true);
     } catch (err: any) {
-      setError(err?.message || "Error al enviar el email.");
+      setError(err?.message || t("forgotPassword.errorGeneric"));
     } finally {
       setIsLoading(false);
     }
@@ -49,22 +49,20 @@ const ForgotPasswordPage = () => {
           {sent ? (
             <div className="text-center space-y-4">
               <CheckCircle2 className="h-12 w-12 text-primary mx-auto" />
-              <h1 className="text-xl font-bold text-foreground">Email enviado</h1>
-              <p className="text-sm text-muted-foreground">
-                Si el email está registrado, recibirás un enlace para restablecer tu contraseña. Revisa también la carpeta de spam.
-              </p>
+              <h1 className="text-xl font-bold text-foreground">{t("forgotPassword.successTitle")}</h1>
+              <p className="text-sm text-muted-foreground">{t("forgotPassword.successDesc")}</p>
               <Link to="/login">
                 <Button variant="outline" className="mt-4 w-full">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Volver al inicio de sesión
+                  {t("forgotPassword.backToLogin")}
                 </Button>
               </Link>
             </div>
           ) : (
             <>
               <div className="text-center space-y-2">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">¿Olvidaste tu contraseña?</h1>
-                <p className="text-sm text-muted-foreground">Introduce tu email y te enviaremos un enlace de recuperación.</p>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("forgotPassword.title")}</h1>
+                <p className="text-sm text-muted-foreground">{t("forgotPassword.subtitle")}</p>
               </div>
 
               {error && (
@@ -75,17 +73,17 @@ const ForgotPasswordPage = () => {
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-muted-foreground text-sm">Email</Label>
+                  <Label htmlFor="email" className="text-muted-foreground text-sm">{t("forgotPassword.emailLabel")}</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="email"
                       type="email"
-                      placeholder="tu@email.com"
+                      placeholder={t("forgotPassword.emailPlaceholder")}
                       className="pl-10 bg-muted border-border focus:border-primary focus:ring-primary/20 h-12 text-foreground placeholder:text-muted-foreground"
                       {...register("email", {
-                        required: "El email es obligatorio",
-                        pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Email no válido" },
+                        required: t("forgotPassword.emailRequired"),
+                        pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: t("forgotPassword.emailInvalid") },
                       })}
                     />
                   </div>
@@ -97,14 +95,14 @@ const ForgotPasswordPage = () => {
                   disabled={isLoading}
                   className="w-full h-12 bg-primary text-primary-foreground font-semibold text-base hover:brightness-110 transition-all"
                 >
-                  {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Enviar enlace de recuperación"}
+                  {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : t("forgotPassword.submitBtn")}
                 </Button>
               </form>
 
               <div className="text-center">
                 <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <ArrowLeft className="h-3 w-3 inline mr-1" />
-                  Volver al inicio de sesión
+                  {t("forgotPassword.backToLogin")}
                 </Link>
               </div>
             </>
