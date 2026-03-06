@@ -15,6 +15,7 @@ import { useClientNotificationStore } from "@/data/useClientNotificationStore";
 import { useQuestionnaireStore, isActionablePending } from "@/data/useQuestionnaireStore";
 import { useToast } from "@/hooks/use-toast";
 import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
+import { api } from "@/services/api";
 
 const formatRelativeTime = (date: Date) => {
   const now = Date.now();
@@ -61,9 +62,44 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
 
   // Notification store
   const notifications = useClientNotificationStore((s) => s.notifications);
-  const generateForClient = useClientNotificationStore((s) => s.generateForClient);
+  const addNotification = useClientNotificationStore((s) => s.addNotification);
   const markAllRead = useClientNotificationStore((s) => s.markAllRead);
   const unreadCount = useClientNotificationStore((s) => s.getUnreadCount());
+
+  // Fetch server-side notifications (checkin reminders, etc.) and merge into store
+  useEffect(() => {
+    const fetchServerNotifications = async () => {
+      try {
+        const data = await api.get<Array<{
+          id: string; type: string; title: string; message: string;
+          read: boolean; link?: string; createdAt: string;
+        }>>("/notifications");
+        if (!data || data.length === 0) return;
+
+        const existing = useClientNotificationStore.getState().notifications;
+        const existingIds = new Set(existing.map((n) => n.id));
+
+        for (const n of data) {
+          if (existingIds.has(`server-${n.id}`)) continue;
+          addNotification({
+            id: `server-${n.id}`,
+            type: n.type === "checkin_reminder"
+              ? (n.title.includes("nutrición") ? "nutrition_checkin" : "training_checkin")
+              : "video_comment",
+            titleKey: n.title,
+            descriptionKey: n.message,
+            timestamp: new Date(n.createdAt),
+            read: n.read,
+            link: n.link || "/client/checkins",
+          });
+        }
+      } catch { /* silent */ }
+    };
+    fetchServerNotifications();
+    // Poll every 60s for new notifications
+    const interval = setInterval(fetchServerNotifications, 60_000);
+    return () => clearInterval(interval);
+  }, [client.id]);
 
   // Play feedback: once on login if unread, then only when count genuinely increases
   // State is tracked in the Zustand store so navigation doesn't re-trigger
