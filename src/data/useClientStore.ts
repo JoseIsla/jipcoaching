@@ -32,9 +32,9 @@ export const useClientStore = create<ClientStore>((set, get) => ({
   loading: false,
   error: null,
 
-  fetchClients: async () => {
-    // If already loaded, skip re-fetch (preserves in-memory changes in dev mode)
-    if (get().clients.length > 0) {
+  fetchClients: async (forceRefresh = false) => {
+    // If already loaded and not forcing, skip re-fetch
+    if (!forceRefresh && get().clients.length > 0) {
       return;
     }
 
@@ -76,12 +76,19 @@ export const useClientStore = create<ClientStore>((set, get) => ({
     return created;
   },
 
-  updateClient: (id, updates) =>
+  updateClient: (id, updates) => {
     set((state) => ({
       clients: state.clients.map((c) =>
         c.id === id ? { ...c, ...updates } : c
       ),
-    })),
+    }));
+    // Persist to API
+    if (!DEV_MOCK) {
+      api.patch(`/clients/${id}`, updates).catch((err) => {
+        console.error("Failed to update client:", err);
+      });
+    }
+  },
 
   updateClientStatus: (id, status) => {
     // Optimistically update local state

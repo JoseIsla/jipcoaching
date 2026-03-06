@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
@@ -77,8 +77,13 @@ const ClientNutrition = () => {
   const plans = useNutritionPlanStore((s) => s.plans);
   const details = useNutritionPlanStore((s) => s.details);
   const supplements = useNutritionPlanStore((s) => s.supplements);
+  const fetchPlans = useNutritionPlanStore((s) => s.fetchPlans);
   const fruits = useExerciseLibraryStore((s) => s.fruits);
   const vegetables = useExerciseLibraryStore((s) => s.vegetables);
+
+  // Fetch plans from API on mount
+  useEffect(() => { fetchPlans(client.id); }, [client.id]);
+
   const activePlanSummary = plans.find((p) => p.clientId === client.id && p.active);
   const planDetail = activePlanSummary ? details[activePlanSummary.id] : null;
 

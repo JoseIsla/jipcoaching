@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,6 +24,16 @@ const ClientProgress = () => {
   const getWeightHistory = useQuestionnaireStore((s) => s.getWeightHistory);
   const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
   const getTrainingProgress = useQuestionnaireStore((s) => s.getTrainingProgress);
+  const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
+  const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
+  const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
+
+  // Fetch data from API on mount
+  useEffect(() => {
+    fetchEntries(client.id);
+    if (hasNutrition) fetchWeightHistory(client.id);
+    if (hasTraining) fetchRMRecords(client.id);
+  }, [client.id]);
 
   const weightData = getWeightHistory(client.id);
   const bestRMs = getBestRMs(client.id);
