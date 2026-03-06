@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Eye, EyeOff, Mail, Lock, Loader2, Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -135,6 +135,11 @@ const LoginPage = () => {
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : t("login.submit")}
             </Button>
           </form>
+          <div className="text-center">
+            <Link to="/forgot-password" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
         </div>
         <p className="text-center text-xs text-muted-foreground mt-8">© 2026 JIP Performance Nutrition. {t("common.allRightsReserved")}</p>
         {DEV_MOCK ? (

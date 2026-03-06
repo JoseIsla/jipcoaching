@@ -8,6 +8,7 @@ import { PrismaClient } from "@prisma/client";
 
 // Routes
 import authRoutes from "./routes/auth";
+import passwordResetRoutes from "./routes/passwordReset";
 import clientRoutes from "./routes/clients";
 import exerciseRoutes from "./routes/exercises";
 import trainingRoutes from "./routes/training";
@@ -47,6 +48,7 @@ app.use("/uploads", express.static(path.resolve(uploadDir)));
 
 // ── API Routes ──
 app.use("/api/auth", authRoutes);
+app.use("/api/auth", passwordResetRoutes);
 app.use("/api/clients", clientRoutes);
 app.use("/api/exercises", exerciseRoutes);
 app.use("/api/training", trainingRoutes);
