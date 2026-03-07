@@ -94,7 +94,6 @@ app.use("/api/questionnaires", questionnaireRoutes);
 app.use("/api/clients/:clientId/media", mediaRoutes);
 
 // GET /api/me — convenience alias forwarding to auth router's /me handler
-import { authenticate } from "./middleware/auth";
 app.get("/api/me", authenticate, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
