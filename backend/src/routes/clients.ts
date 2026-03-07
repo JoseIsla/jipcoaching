@@ -65,6 +65,40 @@ const buildWelcomeEmail = (name: string, email: string, password: string, loginU
 </body>
 </html>`;
 
+const buildPaymentConfirmationEmail = (name: string, monthName: string, amount: number) => `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#000000;font-family:'Inter',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#000000;padding:40px 20px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#111111;border-radius:16px;border:1px solid #292929;overflow:hidden;">
+        <tr><td style="padding:32px 32px 0;text-align:center;">
+          <img src="${FRONTEND_URL}/assets/logo-jip.png" alt="JIP Coaching" width="80" style="display:block;margin:0 auto 24px;" />
+          <h1 style="color:#ffffff;font-size:22px;font-weight:700;margin:0 0 8px;">Pago confirmado ✅</h1>
+          <p style="color:#999999;font-size:14px;margin:0;">Hola ${name}, tu pago ha sido registrado correctamente.</p>
+        </td></tr>
+        <tr><td style="padding:32px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1a1a1a;border-radius:12px;border:1px solid #292929;margin-bottom:24px;">
+            <tr><td style="padding:20px;">
+              <p style="color:#999999;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;">Detalle</p>
+              <p style="color:#ffffff;font-size:14px;margin:0 0 4px;"><strong>Período:</strong> ${monthName}</p>
+              <p style="color:#ffffff;font-size:14px;margin:0;"><strong>Importe:</strong> ${amount}€</p>
+            </td></tr>
+          </table>
+          <p style="color:#cccccc;font-size:14px;line-height:22px;margin:0;">
+            Gracias por confiar en JIP Coaching. ¡Seguimos trabajando juntos! 💪
+          </p>
+        </td></tr>
+        <tr><td style="padding:0 32px 24px;text-align:center;border-top:1px solid #292929;padding-top:20px;">
+          <p style="color:#555555;font-size:11px;margin:0;">© ${new Date().getFullYear()} JIP Performance Nutrition. Todos los derechos reservados.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
 const router = Router();
 
 // All routes require authentication
