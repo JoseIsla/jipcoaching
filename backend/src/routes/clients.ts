@@ -103,6 +103,7 @@ router.get("/me", async (req, res) => {
       monthlyFee: client.monthlyFee,
       notes: client.notes,
       startDate: client.startDate,
+      lastPaidAt: client.lastPaidAt,
       avatarUrl: client.user?.avatarUrl || null,
       nutritionIntake: client.nutritionIntake,
       trainingIntake: client.trainingIntake,
@@ -176,6 +177,7 @@ router.get("/:id", requireRole("ADMIN"), async (req, res) => {
       monthlyFee: client.monthlyFee,
       notes: client.notes,
       startDate: client.startDate,
+      lastPaidAt: client.lastPaidAt,
       avatarUrl: client.user?.avatarUrl || null,
       nutritionIntake: client.nutritionIntake,
       trainingIntake: client.trainingIntake,
@@ -317,6 +319,37 @@ router.delete("/:id", requireRole("ADMIN"), async (req, res) => {
   } catch (err: any) {
     console.error("DELETE /clients/:id error:", err);
     res.status(500).json({ message: "Error al eliminar cliente" });
+  }
+});
+
+// PATCH /api/clients/:id/mark-paid — Admin marks client as paid, resets 30-day counter
+router.patch("/:id/mark-paid", requireRole("ADMIN"), async (req, res) => {
+  try {
+    const client = await prisma.client.update({
+      where: { id: req.params.id as string },
+      data: { lastPaidAt: new Date() },
+    });
+
+    // Send payment confirmation email to client
+    try {
+      const clientUser = await prisma.user.findUnique({ where: { id: client.userId } });
+      if (clientUser) {
+        const monthName = new Date().toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+        await transporter.sendMail({
+          from: FROM_EMAIL,
+          to: client.email,
+          subject: `Pago confirmado – ${monthName} | JIP Coaching`,
+          html: buildPaymentConfirmationEmail(client.name, monthName, client.monthlyFee),
+        });
+      }
+    } catch (mailErr) {
+      console.warn("Failed to send payment confirmation email:", mailErr);
+    }
+
+    res.json({ message: "Pago registrado", lastPaidAt: client.lastPaidAt });
+  } catch (err: any) {
+    console.error("PATCH /clients/:id/mark-paid error:", err);
+    res.status(500).json({ message: "Error al registrar pago" });
   }
 });
 

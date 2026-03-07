@@ -26,29 +26,38 @@ const mapStatus = (s: string): ClientDetail["status"] => {
 };
 
 /** Map API client detail response → ClientDetail */
-const mapApiClient = (c: any): ClientDetail => ({
-  id: c.id,
-  name: c.name,
-  email: c.email,
-  phone: c.phone ?? "",
-  age: c.age ?? undefined,
-  sex: c.sex ?? undefined,
-  services: packToServices(c.packType),
-  plan: c.packType,
-  status: mapStatus(c.status),
-  startDate: c.startDate ? new Date(c.startDate).toISOString().split("T")[0] : "",
-  monthlyRate: c.monthlyFee ?? 0,
-  lastPaymentDate: "",
-  nextPaymentDate: "",
-  paymentMethod: "",
-  notes: c.notes ?? "",
-  currentWeight: c.currentWeight ?? undefined,
-  targetWeight: c.targetWeight ?? undefined,
-  height: c.height ?? undefined,
-  weightHistory: c.weightHistory ?? [],
-  nutritionIntake: c.nutritionIntake ?? undefined,
-  trainingIntake: c.trainingIntake ?? undefined,
-});
+const mapApiClient = (c: any): ClientDetail => {
+  const lastPaidAt = c.lastPaidAt ? new Date(c.lastPaidAt) : null;
+  const lastPaymentDate = lastPaidAt ? lastPaidAt.toISOString().split("T")[0] : "Sin registro";
+  const nextPaymentDate = lastPaidAt
+    ? new Date(lastPaidAt.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+    : "Pendiente";
+
+  return {
+    id: c.id,
+    name: c.name,
+    email: c.email,
+    phone: c.phone ?? "",
+    age: c.age ?? undefined,
+    sex: c.sex ?? undefined,
+    services: packToServices(c.packType),
+    plan: c.packType,
+    status: mapStatus(c.status),
+    startDate: c.startDate ? new Date(c.startDate).toISOString().split("T")[0] : "",
+    monthlyRate: c.monthlyFee ?? 0,
+    lastPaidAt: c.lastPaidAt ?? undefined,
+    lastPaymentDate,
+    nextPaymentDate,
+    paymentMethod: "",
+    notes: c.notes ?? "",
+    currentWeight: c.currentWeight ?? undefined,
+    targetWeight: c.targetWeight ?? undefined,
+    height: c.height ?? undefined,
+    weightHistory: c.weightHistory ?? [],
+    nutritionIntake: c.nutritionIntake ?? undefined,
+    trainingIntake: c.trainingIntake ?? undefined,
+  };
+};
 
 interface ClientDetailState {
   details: Record<string, ClientDetail>;

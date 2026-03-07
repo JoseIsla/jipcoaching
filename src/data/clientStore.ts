@@ -40,6 +40,7 @@ export interface ClientDetail {
   startDate: string;
   monthlyRate: number;
   lastPaymentDate: string;
+  lastPaidAt?: string;
   nextPaymentDate: string;
   paymentMethod: string;
   notes: string;
