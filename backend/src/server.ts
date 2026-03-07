@@ -42,9 +42,39 @@ app.use(cors({
 }));
 app.use(express.json({ limit: "10mb" }));
 
-// Serve uploaded files statically
+// Serve uploaded files with authentication — clients can only access their own files
 const uploadDir = process.env.UPLOAD_DIR || "./uploads";
-app.use("/uploads", express.static(path.resolve(uploadDir)));
+
+// Protected file serving: requires valid token, clients restricted to own files
+app.use("/uploads", authenticate, async (req, res, next) => {
+  // ADMINs can access all files
+  if (req.user?.role === "ADMIN") return next();
+
+  // For CLIENT role: check if the requested file belongs to them
+  const filePath = req.path; // e.g., /progress/filename.jpg or /videos/filename.mp4
+
+  if (filePath.startsWith("/progress/") || filePath.startsWith("/videos/")) {
+    // Look up the file in the database to verify ownership
+    const client = await prisma.client.findFirst({ where: { userId: req.user?.userId } });
+    if (!client) {
+      res.status(403).json({ message: "Acceso denegado" });
+      return;
+    }
+
+    const fullUrl = `/uploads${filePath}`;
+
+    // Check if this file belongs to the client (photo or video)
+    const isOwner = await prisma.progressPhoto.findFirst({ where: { clientId: client.id, url: fullUrl } })
+      || await prisma.techniqueVideo.findFirst({ where: { clientId: client.id, url: fullUrl } });
+
+    if (!isOwner) {
+      res.status(403).json({ message: "No tienes permiso para acceder a este archivo" });
+      return;
+    }
+  }
+
+  next();
+}, express.static(path.resolve(uploadDir)));
 
 // ── API Routes ──
 app.use("/api/auth", authRoutes);
