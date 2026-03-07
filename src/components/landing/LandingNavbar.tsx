@@ -61,8 +61,8 @@ const LandingNavbar = () => {
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 safe-area-top">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-2">
           {/* Logo */}
           <button onClick={() => scrollTo("#hero")} className="flex items-center gap-2">
             <img src={logoJip} alt="JIP Performance Nutrition" className="h-10 sm:h-12 w-auto" />
