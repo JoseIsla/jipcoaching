@@ -229,11 +229,13 @@ export const useMediaStore = create<MediaState>((set, get) => ({
 
   getComments: (targetType, targetId) =>
     get().comments
-      .filter((c) => c.targetType === targetType && c.targetId === targetId)
+      .filter((c) => c.targetType.toLowerCase() === targetType.toLowerCase() && c.targetId === targetId)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
 
-  addPhoto: (photo) => set((s) => ({ photos: [...s.photos, photo] })),
-  addPhotoBatch: (photos) => set((s) => ({ photos: [...s.photos, ...photos] })),
+  addPhoto: (photo) => set((s) => ({ photos: [...s.photos, { ...photo, url: resolveUrl(photo.url), thumbnailUrl: photo.thumbnailUrl ? resolveUrl(photo.thumbnailUrl) : undefined }] })),
+  addPhotoBatch: (photos) => set((s) => ({
+    photos: [...s.photos, ...photos.map((p) => ({ ...p, url: resolveUrl(p.url), thumbnailUrl: p.thumbnailUrl ? resolveUrl(p.thumbnailUrl) : undefined }))],
+  })),
   removePhoto: (photoId) => {
     set((s) => ({ photos: s.photos.filter((p) => p.id !== photoId) }));
     if (!DEV_MOCK) {
