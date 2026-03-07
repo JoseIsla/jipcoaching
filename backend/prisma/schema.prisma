@@ -200,6 +200,7 @@ model Client {
   monthlyFee  Float        @default(0)
   notes       String?      @db.Text
   startDate   DateTime?
+  lastPaidAt  DateTime?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
