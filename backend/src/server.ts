@@ -6,6 +6,9 @@ import cors from "cors";
 import path from "path";
 import { PrismaClient } from "@prisma/client";
 
+// Middleware
+import { authenticate } from "./middleware/auth";
+
 // Routes
 import authRoutes from "./routes/auth";
 import passwordResetRoutes from "./routes/passwordReset";
