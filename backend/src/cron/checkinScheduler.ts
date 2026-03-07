@@ -309,12 +309,10 @@ async function generateTrainingCheckins() {
 async function expireTrainingCheckins() {
   try {
     const now = new Date();
-    // Find training checkins that are PENDING and whose Sunday midnight has passed
-    // Training checkins have date = Saturday 7:00 AM
-    // Deadline = that Sunday at 23:59:59 = date + ~41 hours
-    const cutoff = new Date(now);
-    cutoff.setDate(cutoff.getDate() - 1); // Yesterday
-    cutoff.setHours(23, 59, 59, 999);
+    // Training checkins have date = Saturday at noon (stored)
+    // Deadline = Sunday at 23:59:59 = ~36 hours after noon Saturday
+    // So expire if date < (now - 36h)
+    const cutoff = new Date(now.getTime() - 36 * 60 * 60 * 1000);
 
     const expired = await prisma.checkin.updateMany({
       where: {
