@@ -13,7 +13,13 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ClipboardList, Utensils, Dumbbell, CheckCircle2, Clock, XCircle, ChevronLeft, ChevronRight, Eye, Settings2, Plus, Trash2, GripVertical, Download, Pencil, User, AlertTriangle } from "lucide-react";
-import { type QuestionnaireEntry } from "@/data/useQuestionnaireStore";
+import { type QuestionnaireEntry, getEntryWindowStatus } from "@/data/useQuestionnaireStore";
+
+/** Compute the effective display status: if API says "pendiente" but the window expired, treat as "expirado". */
+const getEffectiveStatus = (e: QuestionnaireEntry): QuestionnaireEntry["status"] => {
+  if (e.status === "pendiente" && getEntryWindowStatus(e) === "expired") return "expirado";
+  return e.status;
+};
 import { type QuestionDefinition, type QuestionType } from "@/data/questionnaireDefs";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTemplateStore } from "@/data/useTemplateStore";
@@ -274,8 +280,9 @@ const AdminQuestionnaires = () => {
       }
       map[e.clientId].entries.push(e);
       map[e.clientId].total++;
-      if (e.status === "respondido") map[e.clientId].responded++;
-      else if (e.status === "expirado") map[e.clientId].expired++;
+      const effectiveStatus = getEffectiveStatus(e);
+      if (effectiveStatus === "respondido") map[e.clientId].responded++;
+      else if (effectiveStatus === "expirado") map[e.clientId].expired++;
       else map[e.clientId].pending++;
     });
     return Object.values(map).sort((a, b) => {
@@ -293,13 +300,13 @@ const AdminQuestionnaires = () => {
     const training = entries.filter((e) => e.category === "training");
     return {
       totalEntries: entries.length,
-      responded: entries.filter((e) => e.status === "respondido").length,
-      pending: entries.filter((e) => e.status === "pendiente").length,
-      expired: entries.filter((e) => e.status === "expirado").length,
+      responded: entries.filter((e) => getEffectiveStatus(e) === "respondido").length,
+      pending: entries.filter((e) => getEffectiveStatus(e) === "pendiente").length,
+      expired: entries.filter((e) => getEffectiveStatus(e) === "expirado").length,
       nutritionTotal: nutrition.length,
-      nutritionResponded: nutrition.filter((e) => e.status === "respondido").length,
+      nutritionResponded: nutrition.filter((e) => getEffectiveStatus(e) === "respondido").length,
       trainingTotal: training.length,
-      trainingResponded: training.filter((e) => e.status === "respondido").length,
+      trainingResponded: training.filter((e) => getEffectiveStatus(e) === "respondido").length,
     };
   }, [entries]);
 
@@ -367,7 +374,7 @@ const AdminQuestionnaires = () => {
               clientSummaries.map((client) => {
                 const filteredEntries = filterStatus === "all"
                   ? client.entries
-                  : client.entries.filter((e) => e.status === filterStatus);
+                  : client.entries.filter((e) => getEffectiveStatus(e) === filterStatus);
 
                 if (filteredEntries.length === 0) return null;
 
@@ -819,7 +826,7 @@ function StatMini({ icon: Icon, label, value, accent, warn, danger }: { icon: ty
 }
 
 function EntryRow({ entry, onView, statusConfig }: { entry: QuestionnaireEntry; onView: () => void; statusConfig: Record<string, { label: string; icon: typeof CheckCircle2; className: string }> }) {
-  const config = statusConfig[entry.status] || statusConfig.no_enviado;
+  const config = statusConfig[getEffectiveStatus(entry)] || statusConfig.no_enviado;
   const StatusIcon = config.icon;
   return (
     <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer" onClick={onView}>
