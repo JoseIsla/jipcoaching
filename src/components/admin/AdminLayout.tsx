@@ -39,6 +39,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     <div className="flex min-h-screen bg-background">
       <AdminSidebar />
       <div className="flex-1 flex flex-col min-w-0">
+        {/* Safe area spacer for Android/notch devices */}
+        <div className="bg-card safe-area-top" />
         <AdminHeader />
         <main className="flex-1 p-6 lg:p-8 overflow-auto">
           <AnimatePresence mode="wait">
