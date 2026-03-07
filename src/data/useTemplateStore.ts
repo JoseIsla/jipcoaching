@@ -31,10 +31,19 @@ interface ApiTemplate {
   questions: ApiQuestion[];
 }
 
+// Map DB enum values back to frontend types
+const typeFromDb: Record<string, QuestionDefinition["type"]> = {
+  TEXT: "text",
+  NUMBER: "number",
+  SCALE_0_10: "scale",
+  YES_NO: "yesno",
+  SELECT: "select",
+};
+
 const mapApiQuestion = (q: ApiQuestion): QuestionDefinition => ({
   id: q.id,
   label: q.label,
-  type: q.type as QuestionDefinition["type"],
+  type: typeFromDb[q.type] || (q.type.toLowerCase() as QuestionDefinition["type"]),
   required: q.required,
   ...(q.optionsJson ? { options: JSON.parse(q.optionsJson) } : {}),
 });
@@ -62,14 +71,27 @@ const mapApiToTraining = (t: ApiTemplate, base: TrainingTemplate): TrainingTempl
 
 // ── Helpers to build API payload from frontend questions ──
 
+// Map frontend question types to DB enum values
+const typeToDb: Record<string, string> = {
+  text: "TEXT",
+  number: "NUMBER",
+  scale: "SCALE_0_10",
+  yesno: "YES_NO",
+  select: "SELECT",
+};
+
 const questionsToApi = (questions: QuestionDefinition[]) =>
   questions.map((q, idx) => ({
-    type: q.type,
+    type: typeToDb[q.type] || q.type.toUpperCase(),
     label: q.label,
     required: q.required,
     order: idx,
     options: q.options ?? undefined,
   }));
+
+// Known mock IDs that don't exist in the DB
+const MOCK_IDS = new Set(["nt-tue", "nt-fri", "tt-weekly"]);
+const isMockId = (id: string) => MOCK_IDS.has(id) || id.startsWith("q-") || id.startsWith("tq");
 
 // ── Store ──
 
@@ -109,7 +131,13 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const data = await api.get<ApiTemplate[]>("/questionnaires");
-      if (!data) { set({ loading: false }); return; }
+
+      // If no templates exist in DB, seed them from defaults
+      if (!data || data.length === 0) {
+        console.log("[Templates] No templates in DB, seeding defaults...");
+        await seedDefaultTemplates(set, get);
+        return;
+      }
 
       const nutritionOnes = data.filter((t) => t.category === "NUTRITION" && t.isActive);
       const trainingOne = data.find((t) => t.category === "TRAINING" && t.isActive);
@@ -131,26 +159,49 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
   saveTemplate: async (templateId: string) => {
     if (DEV_MOCK) return;
     const state = get();
+
+    // Check if this is a mock template that needs to be created first
+    if (isMockId(templateId)) {
+      console.log("[Templates] Mock template detected, creating in DB...");
+      await seedDefaultTemplates(set, get);
+      return;
+    }
+
     const nutTemplate = state.nutritionTemplates.find((t) => t.id === templateId);
     if (nutTemplate) {
-      await api.put(`/questionnaires/${templateId}`, {
-        name: nutTemplate.name,
-        category: "NUTRITION",
-        dayOfWeek: nutTemplate.dayOfWeek,
-        questions: questionsToApi(nutTemplate.questions),
-      });
+      try {
+        await api.put(`/questionnaires/${templateId}`, {
+          name: nutTemplate.name,
+          category: "NUTRITION",
+          dayOfWeek: nutTemplate.dayOfWeek,
+          questions: questionsToApi(nutTemplate.questions),
+        });
+      } catch (err: any) {
+        console.error("[Templates] Error saving nutrition template:", err);
+        // If PUT fails (template doesn't exist), try creating
+        if (err?.message?.includes("404") || err?.message?.includes("500")) {
+          await seedDefaultTemplates(set, get);
+        }
+      }
       return;
     }
     if (state.trainingTemplate.id === templateId) {
-      await api.put(`/questionnaires/${templateId}`, {
-        name: state.trainingTemplate.name,
-        category: "TRAINING",
-        questions: questionsToApi(state.trainingTemplate.questions),
-      });
+      try {
+        await api.put(`/questionnaires/${templateId}`, {
+          name: state.trainingTemplate.name,
+          category: "TRAINING",
+          questions: questionsToApi(state.trainingTemplate.questions),
+        });
+      } catch (err: any) {
+        console.error("[Templates] Error saving training template:", err);
+        if (err?.message?.includes("404") || err?.message?.includes("500")) {
+          await seedDefaultTemplates(set, get);
+        }
+      }
     }
   },
 
-  // ── Local mutations (same as before) ──
+  // ── Local mutations ──
 
   updateNutritionQuestion: (templateId, questionId, updates) =>
     set((s) => ({
@@ -214,3 +265,48 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
       return { trainingTemplate: { ...s.trainingTemplate, questions: ordered } };
     }),
 }));
+
+// ── Helper: seed default templates to DB and update store with real IDs ──
+
+async function seedDefaultTemplates(
+  set: (partial: Partial<TemplateState> | ((s: TemplateState) => Partial<TemplateState>)) => void,
+  get: () => TemplateState,
+) {
+  try {
+    // Create nutrition templates
+    const createdNutrition: NutritionTemplate[] = [];
+    for (const nt of initialNutritionTemplates) {
+      const created = await api.post<ApiTemplate>("/questionnaires", {
+        name: nt.name,
+        category: "NUTRITION",
+        dayOfWeek: nt.dayOfWeek,
+        questions: questionsToApi(nt.questions),
+      });
+      if (created) {
+        createdNutrition.push(mapApiToNutrition(created));
+      }
+    }
+
+    // Create training template
+    const createdTraining = await api.post<ApiTemplate>("/questionnaires", {
+      name: initialTrainingTemplate.name,
+      category: "TRAINING",
+      dayOfWeek: 6, // Saturday
+      questions: questionsToApi(initialTrainingTemplate.questions),
+    });
+
+    const state = get();
+    set({
+      nutritionTemplates: createdNutrition.length > 0 ? createdNutrition : state.nutritionTemplates,
+      trainingTemplate: createdTraining
+        ? mapApiToTraining(createdTraining, state.trainingTemplate)
+        : state.trainingTemplate,
+      loading: false,
+    });
+
+    console.log("[Templates] ✅ Default templates seeded to DB");
+  } catch (err: any) {
+    console.error("[Templates] ❌ Failed to seed templates:", err);
+    set({ loading: false });
+  }
+}
