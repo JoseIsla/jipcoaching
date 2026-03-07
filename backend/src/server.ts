@@ -6,6 +6,9 @@ import cors from "cors";
 import path from "path";
 import { PrismaClient } from "@prisma/client";
 
+// Middleware
+import { authenticate } from "./middleware/auth";
+
 // Routes
 import authRoutes from "./routes/auth";
 import passwordResetRoutes from "./routes/passwordReset";
@@ -91,7 +94,6 @@ app.use("/api/questionnaires", questionnaireRoutes);
 app.use("/api/clients/:clientId/media", mediaRoutes);
 
 // GET /api/me — convenience alias forwarding to auth router's /me handler
-import { authenticate } from "./middleware/auth";
 app.get("/api/me", authenticate, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
