@@ -3,7 +3,7 @@ import { prisma } from "../server";
 import { authenticate, requireRole } from "../middleware/auth";
 import { uploadProgressPhoto, uploadVideo } from "../middleware/upload";
 
-const router = Router();
+const router = Router({ mergeParams: true });
 router.use(authenticate);
 
 // Helper: resolve clientId from either parent param or route param
