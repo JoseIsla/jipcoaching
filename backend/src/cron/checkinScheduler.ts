@@ -365,6 +365,76 @@ async function cleanupExpiredVideos() {
   }
 }
 
+// ── Payment reminder: check daily for clients whose 30-day cycle is due ──
+
+async function sendPaymentReminders() {
+  console.log(`[CRON] 💰 Checking payment reminders at ${new Date().toISOString()}`);
+  try {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Find active clients whose lastPaidAt is null or > 30 days ago
+    const clients = await prisma.client.findMany({
+      where: {
+        status: "ACTIVE",
+        OR: [
+          { lastPaidAt: null },
+          { lastPaidAt: { lt: thirtyDaysAgo } },
+        ],
+      },
+    });
+
+    if (clients.length === 0) return;
+
+    const loginUrl = `${FRONTEND_URL}/login`;
+    let totalSent = 0;
+
+    for (const client of clients) {
+      // Create in-app notification
+      await prisma.notification.create({
+        data: {
+          userId: client.userId,
+          type: "payment_reminder",
+          title: "💰 Recordatorio de pago",
+          message: `Tu cuota mensual de ${client.monthlyFee}€ está pendiente de pago.`,
+          link: "/client",
+        },
+      });
+
+      // Notify admins too
+      const admins = await prisma.user.findMany({ where: { role: "ADMIN" } });
+      for (const admin of admins) {
+        await prisma.notification.create({
+          data: {
+            userId: admin.id,
+            type: "payment_reminder",
+            title: "💰 Pago pendiente",
+            message: `${client.name} tiene el pago mensual pendiente (${client.monthlyFee}€).`,
+            link: `/admin/clients/${client.id}`,
+          },
+        });
+      }
+
+      // Send email reminder
+      try {
+        await transporter.sendMail({
+          from: FROM_EMAIL,
+          to: client.email,
+          subject: "Recordatorio de pago – JIP Coaching",
+          html: buildPaymentReminderEmail(client.name, client.monthlyFee, loginUrl),
+        });
+        totalSent++;
+      } catch (mailErr) {
+        console.warn(`[CRON] ⚠️ Failed to send payment reminder to ${client.email}:`, mailErr);
+      }
+    }
+
+    console.log(`[CRON] ✅ Sent ${totalSent} payment reminders for ${clients.length} clients`);
+  } catch (err) {
+    console.error("[CRON] ❌ Error sending payment reminders:", err);
+  }
+}
+
 // ── Schedule ──
 
 export function startCheckinScheduler() {
