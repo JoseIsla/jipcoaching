@@ -31,10 +31,19 @@ interface ApiTemplate {
   questions: ApiQuestion[];
 }
 
+// Map DB enum values back to frontend types
+const typeFromDb: Record<string, QuestionDefinition["type"]> = {
+  TEXT: "text",
+  NUMBER: "number",
+  SCALE_0_10: "scale",
+  YES_NO: "yesno",
+  SELECT: "select",
+};
+
 const mapApiQuestion = (q: ApiQuestion): QuestionDefinition => ({
   id: q.id,
   label: q.label,
-  type: q.type as QuestionDefinition["type"],
+  type: typeFromDb[q.type] || (q.type.toLowerCase() as QuestionDefinition["type"]),
   required: q.required,
   ...(q.optionsJson ? { options: JSON.parse(q.optionsJson) } : {}),
 });
