@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ClipboardList, Utensils, Dumbbell, CheckCircle2, Clock, XCircle, ChevronLeft, ChevronRight, Eye, Settings2, Plus, Trash2, GripVertical, Download, Pencil } from "lucide-react";
+import { ClipboardList, Utensils, Dumbbell, CheckCircle2, Clock, XCircle, ChevronLeft, ChevronRight, Eye, Settings2, Plus, Trash2, GripVertical, Download, Pencil, User, AlertTriangle } from "lucide-react";
 import { type QuestionnaireEntry } from "@/data/useQuestionnaireStore";
 import { type QuestionDefinition, type QuestionType } from "@/data/questionnaireDefs";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
@@ -159,17 +159,30 @@ function QuestionRow({
   );
 }
 
+// ─── Client checkin summary type ───
+interface ClientCheckinSummary {
+  clientId: string;
+  clientName: string;
+  entries: QuestionnaireEntry[];
+  responded: number;
+  pending: number;
+  expired: number;
+  total: number;
+}
+
 // ─── Main component ───
 const AdminQuestionnaires = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedEntry, setSelectedEntry] = useState<QuestionnaireEntry | null>(null);
+  const [activeTab, setActiveTab] = useState<"overview" | "templates">("overview");
+  const [filterStatus, setFilterStatus] = useState<"all" | "pendiente" | "respondido" | "expirado">("all");
   const allEntries = useQuestionnaireStore((s) => s.entries);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
   const generateWeeklyCheckins = useQuestionnaireStore((s) => s.generateWeeklyCheckins);
 
-  // Fetch check-ins and templates from API on mount, auto-generate weekly checkins
+  // Fetch check-ins and templates from API on mount
   const fetchTemplates = useTemplateStore((s) => s.fetchTemplates);
   useEffect(() => {
     generateWeeklyCheckins().then(() => fetchEntries());
@@ -231,6 +244,7 @@ const AdminQuestionnaires = () => {
   const statusConfig: Record<string, { label: string; icon: typeof CheckCircle2; className: string }> = {
     respondido: { label: t("questionnaires.statusResponded"), icon: CheckCircle2, className: "bg-primary/15 text-primary border-primary/30" },
     pendiente: { label: t("questionnaires.statusPending"), icon: Clock, className: "bg-accent/15 text-accent border-accent/30" },
+    expirado: { label: t("questionnaires.statusExpired"), icon: AlertTriangle, className: "bg-destructive/15 text-destructive border-destructive/30" },
     no_enviado: { label: t("questionnaires.statusNotSent"), icon: XCircle, className: "bg-muted text-muted-foreground border-border" },
   };
 
@@ -242,20 +256,57 @@ const AdminQuestionnaires = () => {
   }, [weekOffset, t]);
 
   const entries = weekOffset === 0 ? allEntries : [];
-  const nutritionEntries = entries.filter((e) => e.category === "nutrition");
-  const trainingEntries = entries.filter((e) => e.category === "training");
-  const nutritionStats = { total: nutritionEntries.length, responded: nutritionEntries.filter((e) => e.status === "respondido").length };
-  const trainingStats = { total: trainingEntries.length, responded: trainingEntries.filter((e) => e.status === "respondido").length };
 
-  const nutritionByDay = useMemo(() => {
-    const map: Record<string, QuestionnaireEntry[]> = {};
-    nutritionEntries.forEach((e) => { if (!map[e.dayLabel]) map[e.dayLabel] = []; map[e.dayLabel].push(e); });
-    return map;
-  }, [nutritionEntries]);
+  // ── Group entries by client ──
+  const clientSummaries = useMemo(() => {
+    const map: Record<string, ClientCheckinSummary> = {};
+    entries.forEach((e) => {
+      if (!map[e.clientId]) {
+        map[e.clientId] = {
+          clientId: e.clientId,
+          clientName: e.clientName,
+          entries: [],
+          responded: 0,
+          pending: 0,
+          expired: 0,
+          total: 0,
+        };
+      }
+      map[e.clientId].entries.push(e);
+      map[e.clientId].total++;
+      if (e.status === "respondido") map[e.clientId].responded++;
+      else if (e.status === "expirado") map[e.clientId].expired++;
+      else map[e.clientId].pending++;
+    });
+    return Object.values(map).sort((a, b) => {
+      // Clients with pending/expired first
+      const aPriority = a.pending + a.expired;
+      const bPriority = b.pending + b.expired;
+      if (aPriority !== bPriority) return bPriority - aPriority;
+      return a.clientName.localeCompare(b.clientName);
+    });
+  }, [entries]);
+
+  // Global stats
+  const globalStats = useMemo(() => {
+    const nutrition = entries.filter((e) => e.category === "nutrition");
+    const training = entries.filter((e) => e.category === "training");
+    return {
+      totalEntries: entries.length,
+      responded: entries.filter((e) => e.status === "respondido").length,
+      pending: entries.filter((e) => e.status === "pendiente").length,
+      expired: entries.filter((e) => e.status === "expirado").length,
+      nutritionTotal: nutrition.length,
+      nutritionResponded: nutrition.filter((e) => e.status === "respondido").length,
+      trainingTotal: training.length,
+      trainingResponded: training.filter((e) => e.status === "respondido").length,
+    };
+  }, [entries]);
 
   return (
     <AdminLayout>
       <div className="space-y-6 animate-fade-in">
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">{t("questionnaires.title")}</h1>
@@ -268,97 +319,123 @@ const AdminQuestionnaires = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatMini icon={Utensils} label={t("questionnaires.nutritionSent")} value={nutritionStats.total} />
-          <StatMini icon={CheckCircle2} label={t("questionnaires.nutritionResponded")} value={nutritionStats.responded} accent />
-          <StatMini icon={Dumbbell} label={t("questionnaires.trainingSent")} value={trainingStats.total} />
-          <StatMini icon={CheckCircle2} label={t("questionnaires.trainingResponded")} value={trainingStats.responded} accent />
+        {/* Global Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          <StatMini icon={ClipboardList} label="Total" value={globalStats.totalEntries} />
+          <StatMini icon={CheckCircle2} label={t("questionnaires.statusResponded")} value={globalStats.responded} accent />
+          <StatMini icon={Clock} label={t("questionnaires.statusPending")} value={globalStats.pending} warn={globalStats.pending > 0} />
+          <StatMini icon={AlertTriangle} label={t("questionnaires.statusExpired")} value={globalStats.expired} danger={globalStats.expired > 0} />
+          <StatMini icon={User} label="Clientes" value={clientSummaries.length} />
         </div>
 
-        <Tabs defaultValue="nutrition" className="space-y-4">
+        {/* Tab: Overview vs Templates */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "overview" | "templates")} className="space-y-4">
           <TabsList className="bg-muted border border-border">
-            <TabsTrigger value="nutrition" className="data-[state=active]:bg-card data-[state=active]:text-primary"><Utensils className="h-4 w-4 mr-1.5" /> {t("common.nutrition")}</TabsTrigger>
-            <TabsTrigger value="training" className="data-[state=active]:bg-card data-[state=active]:text-primary"><Dumbbell className="h-4 w-4 mr-1.5" /> {t("common.training")}</TabsTrigger>
+            <TabsTrigger value="overview" className="data-[state=active]:bg-card data-[state=active]:text-primary">
+              <ClipboardList className="h-4 w-4 mr-1.5" /> Seguimiento
+            </TabsTrigger>
+            <TabsTrigger value="templates" className="data-[state=active]:bg-card data-[state=active]:text-primary">
+              <Settings2 className="h-4 w-4 mr-1.5" /> Plantillas
+            </TabsTrigger>
           </TabsList>
 
-          {/* ═══ NUTRITION TAB ═══ */}
-          <TabsContent value="nutrition" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-foreground">{t("questionnaires.nutritionCheckins")}</h2>
-              <Dialog>
-                <DialogTrigger asChild><Button variant="outline" size="sm"><Settings2 className="h-4 w-4 mr-1" /> {t("questionnaires.editTemplates")}</Button></DialogTrigger>
-                <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader><DialogTitle className="text-foreground">{t("questionnaires.nutritionTemplates")}</DialogTitle></DialogHeader>
-                  <Tabs defaultValue={nutritionTemplates[0]?.id} className="mt-4">
-                    <TabsList className="bg-muted border border-border">
-                      {nutritionTemplates.map((tp) => (
-                        <TabsTrigger key={tp.id} value={tp.id} className="data-[state=active]:bg-card data-[state=active]:text-primary">{tp.dayLabel}</TabsTrigger>
-                      ))}
-                    </TabsList>
-                    {nutritionTemplates.map((template) => (
-                      <NutritionTemplateEditor
-                        key={template.id}
-                        template={template}
-                        onEdit={(q) => { setEditingQuestion(q); setEditContext({ type: "nutrition", templateId: template.id }); }}
-                        onDelete={(qId) => setDeleteTarget({ type: "nutrition", templateId: template.id, questionId: qId })}
-                        onReorder={(ids) => { reorderNutritionQuestions(template.id, ids); saveTemplate(template.id); }}
-                        onAdd={() => setAddContext({ type: "nutrition", templateId: template.id })}
-                        t={t}
-                      />
-                    ))}
-                  </Tabs>
-                </DialogContent>
-              </Dialog>
+          {/* ═══ OVERVIEW TAB — By Client ═══ */}
+          <TabsContent value="overview" className="space-y-4">
+            {/* Status filter */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {(["all", "pendiente", "respondido", "expirado"] as const).map((status) => (
+                <Button
+                  key={status}
+                  variant={filterStatus === status ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilterStatus(status)}
+                  className={filterStatus === status ? "" : "text-muted-foreground"}
+                >
+                  {status === "all" ? "Todos" : statusConfig[status]?.label}
+                  {status !== "all" && (
+                    <span className="ml-1.5 text-xs opacity-70">
+                      {status === "respondido" ? globalStats.responded : status === "pendiente" ? globalStats.pending : globalStats.expired}
+                    </span>
+                  )}
+                </Button>
+              ))}
             </div>
-            {Object.keys(nutritionByDay).length === 0 ? (
-              <EmptyState text={t("questionnaires.noNutritionCheckins")} />
+
+            {clientSummaries.length === 0 ? (
+              <EmptyState text="No hay check-ins esta semana" />
             ) : (
-              Object.entries(nutritionByDay).map(([day, dayEntries]) => (
-                <Card key={day} className="bg-card border-border">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base flex items-center gap-2"><Utensils className="h-4 w-4 text-primary" /> {day}</CardTitle>
-                      <Badge variant="outline" className="text-xs border-border text-muted-foreground">{dayEntries.filter((e) => e.status === "respondido").length}/{dayEntries.length} {t("questionnaires.responded")}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent><div className="space-y-2">{dayEntries.map((entry) => <EntryRow key={entry.id} entry={entry} onView={() => setSelectedEntry(entry)} statusConfig={statusConfig} />)}</div></CardContent>
-                </Card>
-              ))
+              clientSummaries.map((client) => {
+                const filteredEntries = filterStatus === "all"
+                  ? client.entries
+                  : client.entries.filter((e) => e.status === filterStatus);
+
+                if (filteredEntries.length === 0) return null;
+
+                return (
+                  <ClientCheckinCard
+                    key={client.clientId}
+                    client={client}
+                    filteredEntries={filteredEntries}
+                    statusConfig={statusConfig}
+                    onViewEntry={setSelectedEntry}
+                    onNavigateToClient={() => navigate(`/admin/clients/${client.clientId}`)}
+                  />
+                );
+              })
             )}
           </TabsContent>
 
-          {/* ═══ TRAINING TAB ═══ */}
-          <TabsContent value="training" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-foreground">{t("questionnaires.weeklyTraining")}</h2>
-              <Dialog>
-                <DialogTrigger asChild><Button variant="outline" size="sm"><Settings2 className="h-4 w-4 mr-1" /> {t("questionnaires.editTemplate")}</Button></DialogTrigger>
-                <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader><DialogTitle className="text-foreground">{t("questionnaires.questionnaireQuestions")}</DialogTitle></DialogHeader>
-                  <TrainingTemplateEditor
-                    questions={trainingTemplate.questions}
-                    onEdit={(q) => { setEditingQuestion(q); setEditContext({ type: "training" }); }}
-                    onDelete={(qId) => setDeleteTarget({ type: "training", questionId: qId })}
-                    onReorder={(ids) => { reorderTrainingQuestions(ids); saveTemplate(trainingTemplate.id); }}
-                    onAdd={() => setAddContext({ type: "training" })}
-                    t={t}
-                  />
-                </DialogContent>
-              </Dialog>
-            </div>
-            {trainingEntries.length === 0 ? (
-              <EmptyState text={t("questionnaires.noTrainingRecords")} />
-            ) : (
-              <Card className="bg-card border-border">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base flex items-center gap-2"><Dumbbell className="h-4 w-4 text-primary" /> {t("questionnaires.weeklyRecord")}</CardTitle>
-                    <Badge variant="outline" className="text-xs border-border text-muted-foreground">{trainingEntries.filter((e) => e.status === "respondido").length}/{trainingEntries.length} {t("questionnaires.responded")}</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent><div className="space-y-2">{trainingEntries.map((entry) => <EntryRow key={entry.id} entry={entry} onView={() => setSelectedEntry(entry)} statusConfig={statusConfig} />)}</div></CardContent>
-              </Card>
-            )}
+          {/* ═══ TEMPLATES TAB ═══ */}
+          <TabsContent value="templates" className="space-y-6">
+            {/* Nutrition Templates */}
+            <Card className="bg-card border-border">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Utensils className="h-4 w-4 text-primary" />
+                  {t("questionnaires.nutritionTemplates")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue={nutritionTemplates[0]?.id} className="space-y-4">
+                  <TabsList className="bg-muted border border-border">
+                    {nutritionTemplates.map((tp) => (
+                      <TabsTrigger key={tp.id} value={tp.id} className="data-[state=active]:bg-card data-[state=active]:text-primary">{tp.dayLabel}</TabsTrigger>
+                    ))}
+                  </TabsList>
+                  {nutritionTemplates.map((template) => (
+                    <NutritionTemplateEditor
+                      key={template.id}
+                      template={template}
+                      onEdit={(q) => { setEditingQuestion(q); setEditContext({ type: "nutrition", templateId: template.id }); }}
+                      onDelete={(qId) => setDeleteTarget({ type: "nutrition", templateId: template.id, questionId: qId })}
+                      onReorder={(ids) => { reorderNutritionQuestions(template.id, ids); saveTemplate(template.id); }}
+                      onAdd={() => setAddContext({ type: "nutrition", templateId: template.id })}
+                      t={t}
+                    />
+                  ))}
+                </Tabs>
+              </CardContent>
+            </Card>
+
+            {/* Training Template */}
+            <Card className="bg-card border-border">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Dumbbell className="h-4 w-4 text-primary" />
+                  {t("questionnaires.questionnaireQuestions")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TrainingTemplateEditor
+                  questions={trainingTemplate.questions}
+                  onEdit={(q) => { setEditingQuestion(q); setEditContext({ type: "training" }); }}
+                  onDelete={(qId) => setDeleteTarget({ type: "training", questionId: qId })}
+                  onReorder={(ids) => { reorderTrainingQuestions(ids); saveTemplate(trainingTemplate.id); }}
+                  onAdd={() => setAddContext({ type: "training" })}
+                  t={t}
+                />
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 
@@ -503,6 +580,12 @@ const AdminQuestionnaires = () => {
                   </div>
                 )}
               </div>
+            ) : selectedEntry?.status === "expirado" ? (
+              <div className="py-8 text-center">
+                <AlertTriangle className="h-10 w-10 text-destructive mx-auto mb-3" />
+                <p className="text-sm text-destructive font-medium">{t("questionnaires.statusExpired")}</p>
+                <p className="text-xs text-muted-foreground mt-1">El cliente no completó este check-in a tiempo</p>
+              </div>
             ) : (
               <div className="py-8 text-center"><Clock className="h-10 w-10 text-muted-foreground mx-auto mb-3" /><p className="text-sm text-muted-foreground">{t("questionnaires.statusPending")}</p></div>
             )}
@@ -544,6 +627,101 @@ const AdminQuestionnaires = () => {
   );
 };
 
+// ─── Client Checkin Card ───
+function ClientCheckinCard({
+  client,
+  filteredEntries,
+  statusConfig,
+  onViewEntry,
+  onNavigateToClient,
+}: {
+  client: ClientCheckinSummary;
+  filteredEntries: QuestionnaireEntry[];
+  statusConfig: Record<string, { label: string; icon: typeof CheckCircle2; className: string }>;
+  onViewEntry: (e: QuestionnaireEntry) => void;
+  onNavigateToClient: () => void;
+}) {
+  const nutritionEntries = filteredEntries.filter((e) => e.category === "nutrition");
+  const trainingEntries = filteredEntries.filter((e) => e.category === "training");
+
+  // Completion percentage
+  const completionPct = client.total > 0 ? Math.round((client.responded / client.total) * 100) : 0;
+
+  return (
+    <Card className="bg-card border-border overflow-hidden">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center">
+              <User className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <div>
+              <button onClick={onNavigateToClient} className="text-sm font-semibold text-foreground hover:text-primary transition-colors">
+                {client.clientName}
+              </button>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xs text-muted-foreground">{client.total} check-ins</span>
+                <span className="text-xs text-muted-foreground">·</span>
+                <span className={`text-xs font-medium ${completionPct === 100 ? "text-primary" : completionPct > 0 ? "text-accent" : "text-muted-foreground"}`}>
+                  {completionPct}% completado
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {client.responded > 0 && (
+              <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
+                <CheckCircle2 className="h-3 w-3 mr-1" />{client.responded}
+              </Badge>
+            )}
+            {client.pending > 0 && (
+              <Badge variant="outline" className="text-xs bg-accent/10 text-accent border-accent/30">
+                <Clock className="h-3 w-3 mr-1" />{client.pending}
+              </Badge>
+            )}
+            {client.expired > 0 && (
+              <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/30">
+                <AlertTriangle className="h-3 w-3 mr-1" />{client.expired}
+              </Badge>
+            )}
+          </div>
+        </div>
+        {/* Progress bar */}
+        <div className="mt-3 h-1.5 w-full bg-muted rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${completionPct === 100 ? "bg-primary" : "bg-primary/60"}`}
+            style={{ width: `${completionPct}%` }}
+          />
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0 space-y-2">
+        {/* Nutrition entries */}
+        {nutritionEntries.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+              <Utensils className="h-3 w-3" /> Nutrición
+            </p>
+            {nutritionEntries.map((entry) => (
+              <EntryRow key={entry.id} entry={entry} onView={() => onViewEntry(entry)} statusConfig={statusConfig} />
+            ))}
+          </div>
+        )}
+        {/* Training entries */}
+        {trainingEntries.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+              <Dumbbell className="h-3 w-3" /> Entrenamiento
+            </p>
+            {trainingEntries.map((entry) => (
+              <EntryRow key={entry.id} entry={entry} onView={() => onViewEntry(entry)} statusConfig={statusConfig} />
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Nutrition template editor (per tab) ───
 function NutritionTemplateEditor({
   template,
@@ -584,7 +762,7 @@ function NutritionTemplateEditor({
   );
 }
 
-// ─── Training template editor (questions only, no exercises) ───
+// ─── Training template editor ───
 function TrainingTemplateEditor({
   questions,
   onEdit,
@@ -603,7 +781,7 @@ function TrainingTemplateEditor({
   const drag = useDragReorder(questions, onReorder);
 
   return (
-    <div className="mt-4 space-y-4">
+    <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
         Los ejercicios del registro se generan automáticamente desde el plan de entrenamiento activo.
       </p>
@@ -627,11 +805,13 @@ function TrainingTemplateEditor({
 }
 
 // ─── Small helpers ───
-function StatMini({ icon: Icon, label, value, accent }: { icon: typeof ClipboardList; label: string; value: number; accent?: boolean }) {
+function StatMini({ icon: Icon, label, value, accent, warn, danger }: { icon: typeof ClipboardList; label: string; value: number; accent?: boolean; warn?: boolean; danger?: boolean }) {
   return (
     <Card className="bg-card border-border">
       <CardContent className="p-4 flex items-center gap-3">
-        <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${accent ? "bg-primary/10" : "bg-muted"}`}><Icon className={`h-4 w-4 ${accent ? "text-primary" : "text-muted-foreground"}`} /></div>
+        <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${danger ? "bg-destructive/10" : warn ? "bg-accent/10" : accent ? "bg-primary/10" : "bg-muted"}`}>
+          <Icon className={`h-4 w-4 ${danger ? "text-destructive" : warn ? "text-accent" : accent ? "text-primary" : "text-muted-foreground"}`} />
+        </div>
         <div><p className="text-xl font-bold text-foreground">{value}</p><p className="text-xs text-muted-foreground">{label}</p></div>
       </CardContent>
     </Card>
@@ -639,15 +819,21 @@ function StatMini({ icon: Icon, label, value, accent }: { icon: typeof Clipboard
 }
 
 function EntryRow({ entry, onView, statusConfig }: { entry: QuestionnaireEntry; onView: () => void; statusConfig: Record<string, { label: string; icon: typeof CheckCircle2; className: string }> }) {
-  const config = statusConfig[entry.status];
+  const config = statusConfig[entry.status] || statusConfig.no_enviado;
   const StatusIcon = config.icon;
   return (
     <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer" onClick={onView}>
       <div className="flex items-center gap-3 min-w-0">
-        <StatusIcon className={`h-4 w-4 shrink-0 ${entry.status === "respondido" ? "text-primary" : entry.status === "pendiente" ? "text-accent" : "text-muted-foreground"}`} />
-        <div className="min-w-0"><span className="text-sm font-medium text-foreground truncate block">{entry.clientName}</span><p className="text-xs text-muted-foreground">{entry.date}</p></div>
+        <StatusIcon className={`h-4 w-4 shrink-0 ${entry.status === "respondido" ? "text-primary" : entry.status === "pendiente" ? "text-accent" : entry.status === "expirado" ? "text-destructive" : "text-muted-foreground"}`} />
+        <div className="min-w-0">
+          <span className="text-sm font-medium text-foreground truncate block">{entry.templateName}</span>
+          <p className="text-xs text-muted-foreground">{entry.dayLabel} · {entry.date}</p>
+        </div>
       </div>
-      <div className="flex items-center gap-2"><Badge variant="outline" className={`text-xs ${config.className}`}>{config.label}</Badge><Eye className="h-4 w-4 text-muted-foreground" /></div>
+      <div className="flex items-center gap-2">
+        <Badge variant="outline" className={`text-xs ${config.className}`}>{config.label}</Badge>
+        <Eye className="h-4 w-4 text-muted-foreground" />
+      </div>
     </div>
   );
 }
