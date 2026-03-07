@@ -62,9 +62,18 @@ const mapApiToTraining = (t: ApiTemplate, base: TrainingTemplate): TrainingTempl
 
 // ── Helpers to build API payload from frontend questions ──
 
+// Map frontend question types to DB enum values
+const typeToDb: Record<string, string> = {
+  text: "TEXT",
+  number: "NUMBER",
+  scale: "SCALE_0_10",
+  yesno: "YES_NO",
+  select: "SELECT",
+};
+
 const questionsToApi = (questions: QuestionDefinition[]) =>
   questions.map((q, idx) => ({
-    type: q.type,
+    type: typeToDb[q.type] || q.type.toUpperCase(),
     label: q.label,
     required: q.required,
     order: idx,
