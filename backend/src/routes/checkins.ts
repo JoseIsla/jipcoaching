@@ -346,7 +346,7 @@ async function generateCheckinsForClient(clientId: string, packType: string): Pr
     4: "Jueves", 5: "Viernes", 6: "Sábado",
   };
 
-  // Get current week range (Monday to Sunday)
+  // Get current week range (Monday to Sunday) — use noon to avoid timezone boundary issues
   const now = new Date();
   const dayOfWeek = now.getDay();
   const monday = new Date(now);
@@ -372,10 +372,11 @@ async function generateCheckinsForClient(clientId: string, packType: string): Pr
       if (template.dayOfWeek == null) continue;
 
       // Calculate the date for this day of week in the current week
+      // Use noon (12:00) to avoid timezone boundary issues (midnight CET = previous day UTC)
       const targetDate = new Date(monday);
       const diff = template.dayOfWeek === 0 ? 6 : template.dayOfWeek - 1;
       targetDate.setDate(monday.getDate() + diff);
-      targetDate.setHours(0, 0, 0, 0);
+      targetDate.setHours(12, 0, 0, 0);
 
       // Check if checkin already exists for this client/template/week
       const existing = await prisma.checkin.findFirst({
