@@ -42,7 +42,7 @@ export interface TrainingLogDay {
   exercises: TrainingLogExercise[];
 }
 
-export type QuestionnaireStatus = "pendiente" | "respondido" | "no_enviado";
+export type QuestionnaireStatus = "pendiente" | "respondido" | "expirado" | "no_enviado";
 
 export interface CheckinVideo {
   id: string;

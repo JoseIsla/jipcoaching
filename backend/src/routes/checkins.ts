@@ -55,7 +55,7 @@ router.get("/", async (req, res) => {
       weekLabel: c.weekLabel,
       date: c.date.toISOString().split("T")[0],
       dayLabel: c.dayLabel,
-      status: c.status === "PENDING" ? "pendiente" : c.status === "RESPONDED" ? "respondido" : "no_enviado",
+      status: c.status === "PENDING" ? "pendiente" : c.status === "RESPONDED" ? "respondido" : c.status === "EXPIRED" ? "expirado" : "no_enviado",
       responses: c.responses.reduce((acc: any, r) => {
         acc[r.questionId] = r.value;
         return acc;
