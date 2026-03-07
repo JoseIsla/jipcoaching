@@ -117,8 +117,9 @@ async function generateNutritionCheckins() {
         });
 
         if (!existing) {
+          // Use noon to avoid timezone boundary issues (midnight CET = previous day UTC)
           const targetDate = new Date(now);
-          targetDate.setHours(7, 0, 0, 0);
+          targetDate.setHours(12, 0, 0, 0);
 
           await prisma.checkin.create({
             data: {
@@ -149,8 +150,12 @@ async function generateNutritionCheckins() {
 
     console.log(`[CRON] ✅ Created ${totalCreated} nutrition check-ins for ${clients.length} clients`);
 
-    // ── Auto-expire old pending nutrition checkins (>48h) ──
+    // ── Auto-expire old pending nutrition checkins (>48h from publish time 7:00 AM) ──
+    // The date stored is noon of the publish day, so subtract 5h to get 7:00 AM equivalent
+    // Then check if 48h have passed since that 7:00 AM
     const expirationThreshold = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+    // Adjust: stored date is noon, publish is 7AM = 5h earlier, so threshold should be 5h later
+    expirationThreshold.setHours(expirationThreshold.getHours() + 5);
     const expired = await prisma.checkin.updateMany({
       where: {
         category: "NUTRITION",
@@ -231,9 +236,9 @@ async function generateTrainingCheckins() {
 
       const activeWeek = activePlan.weeks[0];
 
-      // Saturday date (today) at 7:00
+      // Saturday date at noon (avoids timezone boundary issues)
       const saturdayDate = new Date(now);
-      saturdayDate.setHours(7, 0, 0, 0);
+      saturdayDate.setHours(12, 0, 0, 0);
 
       const checkin = await prisma.checkin.create({
         data: {
@@ -304,12 +309,10 @@ async function generateTrainingCheckins() {
 async function expireTrainingCheckins() {
   try {
     const now = new Date();
-    // Find training checkins that are PENDING and whose Sunday midnight has passed
-    // Training checkins have date = Saturday 7:00 AM
-    // Deadline = that Sunday at 23:59:59 = date + ~41 hours
-    const cutoff = new Date(now);
-    cutoff.setDate(cutoff.getDate() - 1); // Yesterday
-    cutoff.setHours(23, 59, 59, 999);
+    // Training checkins have date = Saturday at noon (stored)
+    // Deadline = Sunday at 23:59:59 = ~36 hours after noon Saturday
+    // So expire if date < (now - 36h)
+    const cutoff = new Date(now.getTime() - 36 * 60 * 60 * 1000);
 
     const expired = await prisma.checkin.updateMany({
       where: {

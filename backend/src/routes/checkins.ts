@@ -44,6 +44,14 @@ router.get("/", async (req, res) => {
       orderBy: { date: "desc" },
     });
 
+    // Helper: get local date string (avoids UTC timezone shift)
+    const toLocalDateStr = (d: Date) => {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
     // Transform to match frontend QuestionnaireEntry format
     const result = checkins.map((c) => ({
       id: c.id,
@@ -53,7 +61,7 @@ router.get("/", async (req, res) => {
       templateName: c.template?.name || "",
       category: c.category.toLowerCase(),
       weekLabel: c.weekLabel,
-      date: c.date.toISOString().split("T")[0],
+      date: toLocalDateStr(c.date),
       dayLabel: c.dayLabel,
       status: c.status === "PENDING" ? "pendiente" : c.status === "RESPONDED" ? "respondido" : c.status === "EXPIRED" ? "expirado" : "no_enviado",
       responses: c.responses.reduce((acc: any, r) => {
@@ -346,7 +354,7 @@ async function generateCheckinsForClient(clientId: string, packType: string): Pr
     4: "Jueves", 5: "Viernes", 6: "Sábado",
   };
 
-  // Get current week range (Monday to Sunday)
+  // Get current week range (Monday to Sunday) — use noon to avoid timezone boundary issues
   const now = new Date();
   const dayOfWeek = now.getDay();
   const monday = new Date(now);
@@ -372,10 +380,11 @@ async function generateCheckinsForClient(clientId: string, packType: string): Pr
       if (template.dayOfWeek == null) continue;
 
       // Calculate the date for this day of week in the current week
+      // Use noon (12:00) to avoid timezone boundary issues (midnight CET = previous day UTC)
       const targetDate = new Date(monday);
       const diff = template.dayOfWeek === 0 ? 6 : template.dayOfWeek - 1;
       targetDate.setDate(monday.getDate() + diff);
-      targetDate.setHours(0, 0, 0, 0);
+      targetDate.setHours(12, 0, 0, 0);
 
       // Check if checkin already exists for this client/template/week
       const existing = await prisma.checkin.findFirst({
@@ -431,10 +440,10 @@ async function generateCheckinsForClient(clientId: string, packType: string): Pr
       if (activePlan && activePlan.weeks.length > 0) {
         const activeWeek = activePlan.weeks[0];
 
-        // Saturday of current week for training checkin
+        // Saturday of current week for training checkin — noon to avoid timezone issues
         const saturday = new Date(monday);
         saturday.setDate(monday.getDate() + 5); // Saturday
-        saturday.setHours(7, 0, 0, 0);
+        saturday.setHours(12, 0, 0, 0);
 
         const existing = await prisma.checkin.findFirst({
           where: {
