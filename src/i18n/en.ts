@@ -424,6 +424,7 @@ const en: Translations = {
     weightRecord: "Weight Records",
     statusResponded: "Responded",
     statusPending: "Pending",
+    statusExpired: "Expired",
     statusNotSent: "Not sent",
     // Training log admin
     trainingLogReview: "Exercise Log",

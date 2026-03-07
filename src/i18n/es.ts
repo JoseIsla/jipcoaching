@@ -424,6 +424,7 @@ const es = {
     weightRecord: "Registro de Pesos",
     statusResponded: "Respondido",
     statusPending: "Pendiente",
+    statusExpired: "Fuera de plazo",
     statusNotSent: "No enviado",
     // Training log admin
     trainingLogReview: "Registro de Ejercicios",
