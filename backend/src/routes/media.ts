@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { prisma } from "../server";
 import { authenticate, requireRole } from "../middleware/auth";
 import { uploadProgressPhoto, uploadVideo } from "../middleware/upload";
@@ -9,6 +9,28 @@ router.use(authenticate);
 // Helper: resolve clientId from either parent param or route param
 const resolveClientId = (req: any): string | undefined =>
   req.params.clientId || req.params.cid;
+
+/**
+ * Ownership guard: ensures CLIENT users can only access their own media.
+ * ADMINs bypass this check.
+ */
+const enforceOwnership = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  if (req.user?.role === "ADMIN") return next();
+
+  const clientId = resolveClientId(req);
+  if (!clientId) return next(); // will be caught by the handler
+
+  // Find the client record linked to this user
+  const client = await prisma.client.findUnique({ where: { id: clientId } });
+  if (!client || client.userId !== req.user?.userId) {
+    res.status(403).json({ message: "No tienes permiso para acceder a este recurso" });
+    return;
+  }
+  next();
+};
+
+// Apply ownership guard to all media routes
+router.use(enforceOwnership);
 
 // ── Progress Photos ──
 
