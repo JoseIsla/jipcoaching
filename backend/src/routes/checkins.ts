@@ -440,10 +440,10 @@ async function generateCheckinsForClient(clientId: string, packType: string): Pr
       if (activePlan && activePlan.weeks.length > 0) {
         const activeWeek = activePlan.weeks[0];
 
-        // Saturday of current week for training checkin
+        // Saturday of current week for training checkin — noon to avoid timezone issues
         const saturday = new Date(monday);
         saturday.setDate(monday.getDate() + 5); // Saturday
-        saturday.setHours(7, 0, 0, 0);
+        saturday.setHours(12, 0, 0, 0);
 
         const existing = await prisma.checkin.findFirst({
           where: {
