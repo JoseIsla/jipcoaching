@@ -42,39 +42,32 @@ app.use(cors({
 }));
 app.use(express.json({ limit: "10mb" }));
 
-// Serve uploaded files with authentication — clients can only access their own files
+// Serve uploaded files
 const uploadDir = process.env.UPLOAD_DIR || "./uploads";
 
-// Protected file serving: requires valid token, clients restricted to own files
-app.use("/uploads", authenticate, async (req, res, next) => {
-  // ADMINs can access all files
+// Avatars are public (used in <img> tags without auth headers)
+app.use("/uploads/avatars", express.static(path.resolve(uploadDir, "avatars")));
+
+// Progress photos & videos require authentication + ownership check
+app.use("/uploads/progress", authenticate, async (req, res, next) => {
   if (req.user?.role === "ADMIN") return next();
-
-  // For CLIENT role: check if the requested file belongs to them
-  const filePath = req.path; // e.g., /progress/filename.jpg or /videos/filename.mp4
-
-  if (filePath.startsWith("/progress/") || filePath.startsWith("/videos/")) {
-    // Look up the file in the database to verify ownership
-    const client = await prisma.client.findFirst({ where: { userId: req.user?.userId } });
-    if (!client) {
-      res.status(403).json({ message: "Acceso denegado" });
-      return;
-    }
-
-    const fullUrl = `/uploads${filePath}`;
-
-    // Check if this file belongs to the client (photo or video)
-    const isOwner = await prisma.progressPhoto.findFirst({ where: { clientId: client.id, url: fullUrl } })
-      || await prisma.techniqueVideo.findFirst({ where: { clientId: client.id, url: fullUrl } });
-
-    if (!isOwner) {
-      res.status(403).json({ message: "No tienes permiso para acceder a este archivo" });
-      return;
-    }
-  }
-
+  const client = await prisma.client.findFirst({ where: { userId: req.user?.userId } });
+  if (!client) { res.status(403).json({ message: "Acceso denegado" }); return; }
+  const fullUrl = `/uploads/progress${req.path}`;
+  const isOwner = await prisma.progressPhoto.findFirst({ where: { clientId: client.id, url: fullUrl } });
+  if (!isOwner) { res.status(403).json({ message: "No tienes permiso para acceder a este archivo" }); return; }
   next();
-}, express.static(path.resolve(uploadDir)));
+}, express.static(path.resolve(uploadDir, "progress")));
+
+app.use("/uploads/videos", authenticate, async (req, res, next) => {
+  if (req.user?.role === "ADMIN") return next();
+  const client = await prisma.client.findFirst({ where: { userId: req.user?.userId } });
+  if (!client) { res.status(403).json({ message: "Acceso denegado" }); return; }
+  const fullUrl = `/uploads/videos${req.path}`;
+  const isOwner = await prisma.techniqueVideo.findFirst({ where: { clientId: client.id, url: fullUrl } });
+  if (!isOwner) { res.status(403).json({ message: "No tienes permiso para acceder a este archivo" }); return; }
+  next();
+}, express.static(path.resolve(uploadDir, "videos")));
 
 // ── API Routes ──
 app.use("/api/auth", authRoutes);
