@@ -44,6 +44,14 @@ router.get("/", async (req, res) => {
       orderBy: { date: "desc" },
     });
 
+    // Helper: get local date string (avoids UTC timezone shift)
+    const toLocalDateStr = (d: Date) => {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
     // Transform to match frontend QuestionnaireEntry format
     const result = checkins.map((c) => ({
       id: c.id,
@@ -53,7 +61,7 @@ router.get("/", async (req, res) => {
       templateName: c.template?.name || "",
       category: c.category.toLowerCase(),
       weekLabel: c.weekLabel,
-      date: c.date.toISOString().split("T")[0],
+      date: toLocalDateStr(c.date),
       dayLabel: c.dayLabel,
       status: c.status === "PENDING" ? "pendiente" : c.status === "RESPONDED" ? "respondido" : c.status === "EXPIRED" ? "expirado" : "no_enviado",
       responses: c.responses.reduce((acc: any, r) => {
