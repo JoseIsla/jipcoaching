@@ -251,7 +251,8 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
 // ── Helper: seed default templates to DB and update store with real IDs ──
 
 async function seedDefaultTemplates(
-  set: (fn: (s: any) => any) => void,
+  set: (fn: (s: TemplateState) => Partial<TemplateState>) => void,
+  get: () => TemplateState,
   get: () => TemplateState,
 ) {
   try {
