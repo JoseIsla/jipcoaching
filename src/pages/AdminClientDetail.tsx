@@ -170,16 +170,14 @@ const EditClientSheet = ({
         height: payload.height,
       });
 
-      const { updateClient } = useClientStore.getState();
-      updateClient(client.id, {
-        name: payload.name,
-        email: payload.email,
-        packType,
-        status: statusMap[form.status] || "ACTIVE",
-        monthlyFee: payload.monthlyFee,
-        notes: form.notes,
-        services: form.services,
-      });
+      // Update client list store locally (don't use updateClient — it re-PATCHes the API)
+      useClientStore.setState((state) => ({
+        clients: state.clients.map((c) =>
+          c.id === client.id
+            ? { ...c, name: payload.name, email: payload.email, packType, status: statusMap[form.status] || "ACTIVE", monthlyFee: payload.monthlyFee, notes: form.notes, services: form.services }
+            : c
+        ),
+      }));
 
       toast({ title: "Cliente actualizado", description: `Los datos de ${form.name} se han guardado correctamente.` });
       onClose();
