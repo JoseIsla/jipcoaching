@@ -81,21 +81,19 @@ export const NUTRITION_PUBLISH_HOUR = 7;
 export const getEntryWindowStatus = (entry: QuestionnaireEntry): "within" | "future" | "expired" => {
   const now = new Date();
   if (entry.category === "nutrition") {
-    // Nutrition: available from publish date at 7:00 AM for 48 hours
-    const publishDate = new Date(entry.date + "T00:00:00");
-    publishDate.setHours(NUTRITION_PUBLISH_HOUR, 0, 0, 0);
+    // Nutrition: available from publish date at 7:00 AM local for 48 hours
+    const [y, m, d] = entry.date.split("-").map(Number);
+    const publishDate = new Date(y, m - 1, d, NUTRITION_PUBLISH_HOUR, 0, 0, 0);
     const windowEnd = new Date(publishDate.getTime() + 48 * 60 * 60 * 1000);
     if (now < publishDate) return "future";
     if (now <= windowEnd) return "within";
     return "expired";
   }
   // Training: available from Saturday 7:00 AM until Sunday 23:59:59
-  const entryDate = new Date(entry.date + "T00:00:00");
-  entryDate.setHours(7, 0, 0, 0);
+  const [y, m, d] = entry.date.split("-").map(Number);
+  const entryDate = new Date(y, m - 1, d, 7, 0, 0, 0);
   // Sunday midnight = next day at 00:00 from Saturday perspective
-  const windowEnd = new Date(entryDate);
-  windowEnd.setDate(windowEnd.getDate() + 1); // Sunday
-  windowEnd.setHours(23, 59, 59, 999);
+  const windowEnd = new Date(y, m - 1, d + 1, 23, 59, 59, 999);
   if (now < entryDate) return "future";
   if (now <= windowEnd) return "within";
   return "expired";
