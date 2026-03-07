@@ -4,7 +4,7 @@ import {
   ArrowLeft, Mail, Phone, Utensils, Dumbbell, CreditCard, CalendarDays,
   Scale, TrendingDown, TrendingUp, User, Pencil, Save, Eye, EyeOff, Shield, X,
   Target, Activity, AlertTriangle, Pill, Brain, Briefcase, Clock,
-  UserX, UserCheck,
+  UserX, UserCheck, CheckCircle2, Timer,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AdminPhotoComparison from "@/components/admin/AdminPhotoComparison";
@@ -508,11 +508,57 @@ const AdminClientDetail = () => {
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center"><span className="text-sm text-muted-foreground">Tarifa mensual</span><span className="text-lg font-bold text-primary">{client.monthlyRate}€/mes</span></div>
               <Separator className="bg-border" />
-              <div className="flex justify-between items-center"><span className="text-sm text-muted-foreground">Método de pago</span><span className="text-sm text-foreground">{client.paymentMethod}</span></div>
+              <div className="flex justify-between items-center"><span className="text-sm text-muted-foreground">Método de pago</span><span className="text-sm text-foreground">{client.paymentMethod || "—"}</span></div>
               <Separator className="bg-border" />
-              <div className="flex justify-between items-center"><span className="text-sm text-muted-foreground">Último pago</span><span className="text-sm text-foreground flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />{client.lastPaymentDate}</span></div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Último pago</span>
+                <span className="text-sm text-foreground flex items-center gap-1.5">
+                  <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+                  {client.lastPaymentDate}
+                </span>
+              </div>
               <Separator className="bg-border" />
-              <div className="flex justify-between items-center"><span className="text-sm text-muted-foreground">Próximo pago</span><span className="text-sm text-foreground">{client.nextPaymentDate}</span></div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Próximo pago</span>
+                {(() => {
+                  const isOverdue = client.lastPaidAt
+                    ? new Date().getTime() - new Date(client.lastPaidAt).getTime() > 30 * 24 * 60 * 60 * 1000
+                    : true;
+                  const daysLeft = client.lastPaidAt
+                    ? Math.max(0, Math.ceil((new Date(client.lastPaidAt).getTime() + 30 * 24 * 60 * 60 * 1000 - Date.now()) / (24 * 60 * 60 * 1000)))
+                    : 0;
+                  return (
+                    <span className={`text-sm font-medium flex items-center gap-1.5 ${isOverdue ? "text-destructive" : daysLeft <= 5 ? "text-accent" : "text-foreground"}`}>
+                      {isOverdue ? (
+                        <><AlertTriangle className="h-3.5 w-3.5" /> Vencido</>
+                      ) : (
+                        <><Timer className="h-3.5 w-3.5" /> {daysLeft} días ({client.nextPaymentDate})</>
+                      )}
+                    </span>
+                  );
+                })()}
+              </div>
+              <Separator className="bg-border" />
+              <Button
+                className="w-full gap-2 glow-primary-sm"
+                onClick={async () => {
+                  try {
+                    await api.patch(`/clients/${client.id}/mark-paid`, {});
+                    const now = new Date().toISOString();
+                    const nextDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+                    useClientDetailStore.getState().updateDetail(client.id, {
+                      lastPaidAt: now,
+                      lastPaymentDate: now.split("T")[0],
+                      nextPaymentDate: nextDate,
+                    });
+                    toast({ title: "Pago registrado", description: `El pago de ${client.name} ha sido confirmado. Se ha enviado un email de confirmación.` });
+                  } catch (err: any) {
+                    toast({ title: "Error", description: err?.message || "Error al registrar pago", variant: "destructive" });
+                  }
+                }}
+              >
+                <CheckCircle2 className="h-4 w-4" /> Marcar como pagado
+              </Button>
             </CardContent>
           </Card>
 
