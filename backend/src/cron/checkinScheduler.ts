@@ -462,9 +462,16 @@ export function startCheckinScheduler() {
     cleanupExpiredVideos();
   }, { timezone: "Europe/Madrid" });
 
+  // Payment reminders: every day at 9:00 AM (Europe/Madrid)
+  cron.schedule("0 9 * * *", () => {
+    console.log("[CRON] 💰 Daily payment reminder check");
+    sendPaymentReminders();
+  }, { timezone: "Europe/Madrid" });
+
   console.log("⏱️  Check-in scheduler started:");
   console.log("   📅 Nutrition: Martes y Viernes a las 7:00 (48h ventana)");
   console.log("   📅 Entrenamiento: Sábado a las 7:00 (hasta Domingo 23:59)");
   console.log("   🗑️ Limpieza videos: Diaria a la 1:00 (expiran a los 6 días)");
   console.log("   🧹 Expiración check-ins: Diaria a la 1:00");
+  console.log("   💰 Recordatorio pagos: Diaria a las 9:00");
 }
