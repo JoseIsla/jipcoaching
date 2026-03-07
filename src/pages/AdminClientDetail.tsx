@@ -124,17 +124,17 @@ const EditClientSheet = ({
 
     setSaving(true);
     try {
-      // Map services to packType
+      // Map services to packType (must match backend enum: NUTRITION, TRAINING, FULL)
       const hasNut = form.services.includes("nutrition");
       const hasTr = form.services.includes("training");
       let packType = "FULL";
-      if (hasNut && !hasTr) packType = "NUTRITION_ONLY";
-      else if (hasTr && !hasNut) packType = "TRAINING_ONLY";
+      if (hasNut && !hasTr) packType = "NUTRITION";
+      else if (hasTr && !hasNut) packType = "TRAINING";
 
       // Map status
       const statusMap: Record<string, string> = { "Activo": "ACTIVE", "Inactivo": "PAUSED", "Pendiente": "PENDING" };
 
-      await api.put(`/clients/${client.id}`, {
+      const payload = {
         name: form.name.trim(),
         email: form.email.trim(),
         phone: form.phone || undefined,
@@ -145,12 +145,41 @@ const EditClientSheet = ({
         currentWeight: form.currentWeight ? parseFloat(form.currentWeight) : undefined,
         targetWeight: form.targetWeight ? parseFloat(form.targetWeight) : undefined,
         height: form.height ? parseFloat(form.height) : undefined,
-      });
+      };
+
+      await api.put(`/clients/${client.id}`, payload);
 
       // If password was set, reset it
       if (form.newPassword) {
         await api.put(`/clients/${client.id}/password`, { newPassword: form.newPassword });
       }
+
+      // Update local stores so UI reflects changes immediately
+      const { updateDetail } = useClientDetailStore.getState();
+      updateDetail(client.id, {
+        name: payload.name,
+        email: payload.email,
+        phone: form.phone,
+        services: form.services,
+        plan: packType,
+        status: form.status,
+        monthlyRate: payload.monthlyFee ?? client.monthlyRate,
+        notes: form.notes,
+        currentWeight: payload.currentWeight,
+        targetWeight: payload.targetWeight,
+        height: payload.height,
+      });
+
+      const { updateClient } = useClientStore.getState();
+      updateClient(client.id, {
+        name: payload.name,
+        email: payload.email,
+        packType,
+        status: statusMap[form.status] || "ACTIVE",
+        monthlyFee: payload.monthlyFee,
+        notes: form.notes,
+        services: form.services,
+      });
 
       toast({ title: "Cliente actualizado", description: `Los datos de ${form.name} se han guardado correctamente.` });
       onClose();
