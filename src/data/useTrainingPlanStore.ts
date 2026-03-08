@@ -187,7 +187,7 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
       const detail: TrainingPlanFull = {
         id: apiPlan.id,
         clientId: apiPlan.clientId,
-        clientName: "",
+        clientName: getClientName(apiPlan),
         planName: apiPlan.title,
         modality: (apiPlan.modality as TrainingModality) || "Powerlifting",
         block: (apiPlan.block as TrainingBlock) || "Hipertrofia",
