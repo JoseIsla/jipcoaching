@@ -661,7 +661,7 @@ const TrainingUpcomingCard = ({ date }: { date: string }) => {
   );
 };
 
-
+const ClientCheckins = () => {
   const { t } = useTranslation();
   const { client } = useClient();
   const hasNutrition = client.services.includes("nutrition");
