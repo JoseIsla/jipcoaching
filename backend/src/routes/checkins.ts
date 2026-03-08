@@ -521,11 +521,20 @@ async function generateCheckinsForClient(clientId: string, packType: string): Pr
   }
 
   // ── Training checkins ──
+  // Training check-ins should ONLY be created on Saturday or Sunday (the fill window).
+  // Before Saturday they don't exist yet (the cron generates them Saturday 7:00 AM).
+  const todayDay = now.getDay(); // 0=Sun, 6=Sat
+  const isSaturdayOrSunday = todayDay === 6 || todayDay === 0;
+
   const hasTraining = packType === "TRAINING" || packType === "FULL";
-  if (hasTraining) {
-    const trainingTemplate = await prisma.questionnaireTemplate.findFirst({
+  if (hasTraining && isSaturdayOrSunday) {
+    // Deduplicate: pick only the most recently updated active TRAINING template
+    const allTrainingTemplates = await prisma.questionnaireTemplate.findMany({
       where: { category: "TRAINING", isActive: true },
+      orderBy: { updatedAt: "desc" },
+      take: 1,
     });
+    const trainingTemplate = allTrainingTemplates[0] ?? null;
 
     if (trainingTemplate) {
       // Find active training plan for this client
