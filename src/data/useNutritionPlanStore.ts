@@ -266,4 +266,86 @@ export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
     })),
 
   setSupplements: (sups) => set({ supplements: sups }),
+
+  fetchSupplements: async () => {
+    if (DEV_MOCK) return;
+    try {
+      const data = await api.get<ApiSupplement[]>("/supplements");
+      set({ supplements: data ?? [] });
+    } catch (err: any) {
+      console.error("fetchSupplements error:", err);
+    }
+  },
+
+  createSupplement: async (sup) => {
+    try {
+      const created = await api.post<ApiSupplement>("/supplements", sup);
+      set((s) => ({ supplements: [...s.supplements, created] }));
+      return created;
+    } catch {
+      return null;
+    }
+  },
+
+  updateSupplementApi: async (id, sup) => {
+    try {
+      const updated = await api.put<ApiSupplement>(`/supplements/${id}`, sup);
+      set((s) => ({
+        supplements: s.supplements.map((x) => (x.id === id ? updated : x)),
+      }));
+    } catch { /* toast handled by api client */ }
+  },
+
+  deleteSupplementApi: async (id) => {
+    try {
+      await api.delete(`/supplements/${id}`);
+      set((s) => ({
+        supplements: s.supplements.filter((x) => x.id !== id),
+      }));
+    } catch { /* toast handled by api client */ }
+  },
+
+  /** Diff-based sync: compare local edits with store and persist changes */
+  saveSupplements: async (edited) => {
+    if (DEV_MOCK) {
+      set({ supplements: edited });
+      return;
+    }
+
+    const current = get().supplements;
+    const currentIds = new Set(current.map((s) => s.id));
+    const editedIds = new Set(edited.filter((s) => s.id).map((s) => s.id));
+
+    // Deleted
+    for (const s of current) {
+      if (!editedIds.has(s.id)) {
+        await api.delete(`/supplements/${s.id}`, { silent: true }).catch(() => {});
+      }
+    }
+
+    // Created or updated
+    const final: ApiSupplement[] = [];
+    for (const s of edited) {
+      if (!s.id || !currentIds.has(s.id)) {
+        // New
+        try {
+          const created = await api.post<ApiSupplement>("/supplements", { name: s.name, dose: s.dose, timing: s.timing });
+          final.push(created);
+        } catch { /* skip */ }
+      } else {
+        // Possibly updated
+        const old = current.find((c) => c.id === s.id);
+        if (old && (old.name !== s.name || old.dose !== s.dose || old.timing !== s.timing)) {
+          try {
+            const updated = await api.put<ApiSupplement>(`/supplements/${s.id}`, { name: s.name, dose: s.dose, timing: s.timing });
+            final.push(updated);
+          } catch { final.push(s); }
+        } else {
+          final.push(s);
+        }
+      }
+    }
+
+    set({ supplements: final });
+  },
 }));
