@@ -224,13 +224,14 @@ router.get("/comments", async (req, res) => {
 // POST /comments
 router.post("/comments", requireRole("ADMIN"), async (req, res) => {
   try {
-    const { targetType, targetId, clientId, authorName, text } = req.body;
+    const { targetType, targetId, clientId, authorName, authorAvatarUrl, text } = req.body;
     const comment = await prisma.mediaComment.create({
       data: {
         targetType: targetType.toUpperCase(),
         targetId,
         clientId,
         authorName,
+        authorAvatarUrl: authorAvatarUrl || null,
         text,
       },
     });
