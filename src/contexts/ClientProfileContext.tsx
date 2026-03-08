@@ -49,6 +49,16 @@ export function ClientProfileProvider({ children }: { children: ReactNode }) {
     }
   }, [status, role, reload]);
 
+  // Reload profile when tab regains focus (e.g. after email verification in another tab)
+  useEffect(() => {
+    if (status !== "authenticated" || role !== "client") return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible") reload();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [status, role, reload]);
+
   const saveProfile = useCallback(async (payload: UpdateClientProfilePayload) => {
     setSaving(true);
     const res = await updateClientProfile(payload);

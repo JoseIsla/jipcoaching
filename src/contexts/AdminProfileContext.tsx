@@ -49,6 +49,16 @@ export function AdminProfileProvider({ children }: { children: ReactNode }) {
     }
   }, [status, role, reload]);
 
+  // Reload profile when tab regains focus (e.g. after email verification in another tab)
+  useEffect(() => {
+    if (status !== "authenticated" || role !== "admin") return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible") reload();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [status, role, reload]);
+
   const saveProfile = useCallback(async (payload: UpdateProfilePayload) => {
     setSaving(true);
     const res = await updateAdminProfile(payload);
