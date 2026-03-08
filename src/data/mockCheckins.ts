@@ -277,8 +277,8 @@ export const mockQuestionnaireEntries: QuestionnaireEntry[] = [
     templateName: "Registro Semanal de Entrenamiento",
     category: "training",
     weekLabel: "Semana 4",
-    date: "2026-02-16",
-    dayLabel: "Domingo",
+    date: "2026-02-14",
+    dayLabel: "Sábado",
     status: "respondido",
     responses: {
       tq1: 7, tq2: false, tq3: "", tq4: 7, tq5: 9, tq6: "Semana fuerte, RPEs altos pero controlados.",
