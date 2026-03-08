@@ -23,7 +23,7 @@ const transporter = nodemailer.createTransport({
   tls: { rejectUnauthorized: false },
 });
 
-const emailChangeLimiter = rateLimit({ windowSec: 15 * 60, max: 5 });
+const emailChangeLimiter = rateLimit({ windowSec: 15 * 60, max: 10 });
 
 // ── Admin Profile ──
 
