@@ -300,7 +300,7 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-foreground text-xs">{t("addClient.sleepHours")}</Label>
-                  <Input type="number" step="0.5" value={nutIntake.sleepHours ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, sleepHours: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} placeholder="7" />
+                  <Input type="text" inputMode="decimal" value={nutIntake.sleepHours ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, sleepHours: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="7" />
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">{t("addClient.stressLevel")}</Label>

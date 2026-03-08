@@ -128,7 +128,7 @@ const RMDialog = ({ clientId, open, onClose, editRecord }: RMDialogProps) => {
             </div>
             <div>
               <Label className="text-foreground text-xs">Reps</Label>
-              <Input type="number" value={reps} onChange={(e) => setReps(e.target.value)} className="bg-muted/50 border-border mt-1" placeholder="1" />
+              <Input type="text" inputMode="numeric" value={reps} onChange={(e) => setReps(e.target.value)} className="bg-muted/50 border-border mt-1" placeholder="1" />
             </div>
           </div>
           <div>

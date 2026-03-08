@@ -338,13 +338,11 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                               <div className="space-y-1">
                                 <Label className="text-[10px] text-muted-foreground">{t("clientCheckins.actualRPE")}</Label>
                                 <Input
-                                  type="number"
-                                  step="0.5"
-                                  min={1}
-                                  max={10}
+                                  type="text"
+                                  inputMode="decimal"
                                   className="h-8 text-xs bg-background border-border"
                                   value={ex.actualRPE ?? ""}
-                                  onChange={(e) => updateExercise(dayIdx, exIdx, "actualRPE", Number(e.target.value))}
+                                  onChange={(e) => updateExercise(dayIdx, exIdx, "actualRPE", parseDecimal(e.target.value))}
                                 />
                               </div>
                               <div className="space-y-1">

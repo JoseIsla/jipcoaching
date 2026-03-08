@@ -571,9 +571,10 @@ const AdminNutritionPlanDetail = () => {
                   {k === "calories" ? "Kcal" : k === "protein" ? "Proteínas (g)" : k === "carbs" ? "CH (g)" : "Grasas (g)"}
                 </Label>
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   value={plan[k] ?? ""}
-                  onChange={(e) => setPlan({ ...plan, [k]: e.target.value ? Number(e.target.value) : undefined })}
+                  onChange={(e) => setPlan({ ...plan, [k]: parseOptionalDecimal(e.target.value) })}
                   className="bg-muted/20 border-border text-sm"
                 />
               </div>
