@@ -147,7 +147,7 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
                       <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">{t("progress.date")}</th>
                     </tr></thead>
                     <tbody>
-                      {bestRMs.filter((r) => ["e1", "e4", "e7"].includes(r.exerciseId)).map((rm) => (
+                      {bestRMs.filter((r) => SBD_NAMES.includes(r.exerciseName)).map((rm) => (
                         <tr key={rm.exerciseId} className="border-t border-border/50">
                           <td className="px-4 py-3 text-sm font-medium text-foreground">{rm.exerciseName}</td>
                           <td className="px-4 py-3 text-sm text-muted-foreground text-right font-mono">{rm.weight} kg</td>
