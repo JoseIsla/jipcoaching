@@ -53,7 +53,7 @@ router.get("/", async (req, res) => {
     };
 
     // Transform to match frontend QuestionnaireEntry format
-    const result = checkins.map((c) => ({
+    const rawResult = checkins.map((c) => ({
       id: c.id,
       clientId: c.clientId,
       clientName: c.client.name,
@@ -102,6 +102,26 @@ router.get("/", async (req, res) => {
         options: q.optionsJson ? JSON.parse(q.optionsJson) : undefined,
       })),
     }));
+
+    // Deduplicate: if multiple check-ins exist for same client+date+category,
+    // keep the one with responses (respondido) or the most recently created
+    const seen = new Map<string, typeof rawResult[0]>();
+    for (const entry of rawResult) {
+      const key = `${entry.clientId}|${entry.date}|${entry.category}`;
+      const existing = seen.get(key);
+      if (!existing) {
+        seen.set(key, entry);
+      } else {
+        // Prefer responded over pending
+        const existingResponded = existing.status === "respondido";
+        const entryResponded = entry.status === "respondido";
+        if (entryResponded && !existingResponded) {
+          seen.set(key, entry);
+        }
+        // If both same status, keep existing (first = most recent due to orderBy desc)
+      }
+    }
+    const result = Array.from(seen.values());
 
     res.json(result);
   } catch (err: any) {
