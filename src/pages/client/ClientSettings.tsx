@@ -71,6 +71,7 @@ const ClientSettings = () => {
     if (!file) return;
     const res = await handleUploadAvatar(file);
     if (res.success) {
+      updateClientAvatar(res.data?.avatarUrl ?? null);
       toast({ title: t("clientSettings.profilePicture"), description: t("clientSettings.profileUpdatedDesc") });
     } else {
       toast({ title: "Error", description: res.error || "", variant: "destructive" });
@@ -81,6 +82,7 @@ const ClientSettings = () => {
   const handleRemoveAvatar = async () => {
     const res = await handleDeleteAvatar();
     if (res.success) {
+      updateClientAvatar(null);
       toast({ title: t("clientSettings.profilePicture"), description: t("clientSettings.profileUpdatedDesc") });
     }
   };
