@@ -644,14 +644,19 @@ const ClientCheckins = () => {
     generateMyCheckins().then(() => fetchEntries(client.id));
   }, [client.id]);
 
-  // Auto-generate training entry from active plan on mount / client change
+  const myEntries = allEntries.filter((e) => e.clientId === client.id);
+
+  // Only auto-generate training entry locally if no API-generated one exists for this week
   useEffect(() => {
     if (hasTraining) {
-      getOrCreateTrainingEntry(client.id, client.name);
+      const hasApiTrainingEntry = myEntries.some(
+        (e) => e.category === "training" && isInCurrentWeek(e.date) && !e.id.startsWith("qe-t-auto-")
+      );
+      if (!hasApiTrainingEntry) {
+        getOrCreateTrainingEntry(client.id, client.name);
+      }
     }
-  }, [client.id, hasTraining, getOrCreateTrainingEntry]);
-
-  const myEntries = allEntries.filter((e) => e.clientId === client.id);
+  }, [client.id, hasTraining, allEntries.length]);
 
   // Only show current week entries
   const nutritionEntries = myEntries.filter((e) => e.category === "nutrition" && isInCurrentWeek(e.date));
