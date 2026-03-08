@@ -629,8 +629,39 @@ const HistorySection = ({ weeks, renderCard, formatShortDate, t }: { weeks: { st
     </Collapsible>
   );
 };
+const TrainingUpcomingCard = ({ date }: { date: string }) => {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <CollapsibleTrigger className="w-full flex items-center justify-between p-3 hover:bg-muted/30 transition-colors">
+          <div className="flex items-center gap-2">
+            <AnimatedChevron open={open} />
+            <div>
+              <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <Dumbbell className="h-3.5 w-3.5 text-primary" />
+                {t("clientCheckins.trainingCheckinLabel") || "Check-in Entrenamiento"}
+              </p>
+              <p className="text-[10px] text-muted-foreground">{t("clientCheckins.upcoming")}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 text-blue-400" />
+            <span className="text-[10px] text-muted-foreground">{t("clientCheckins.upcoming")}</span>
+          </div>
+        </CollapsibleTrigger>
+        <AnimatedCollapsibleContent open={open}>
+          <div className="p-4 pt-0">
+            <p className="text-sm text-muted-foreground text-center py-4" dangerouslySetInnerHTML={{ __html: t("clientCheckins.trainingAvailableOn", { date }) }} />
+          </div>
+        </AnimatedCollapsibleContent>
+      </div>
+    </Collapsible>
+  );
+};
 
-const ClientCheckins = () => {
+
   const { t } = useTranslation();
   const { client } = useClient();
   const hasNutrition = client.services.includes("nutrition");
