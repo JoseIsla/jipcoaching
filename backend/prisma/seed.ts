@@ -4,31 +4,10 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Seeding database...");
+  console.log("🌱 Seeding database (Carlos Martínez only)...");
 
   // ════════════════════════════════════════════
-  // 1. ADMIN USER
-  // ════════════════════════════════════════════
-  const adminPassword = await bcrypt.hash("admin123", 12);
-  const adminUser = await prisma.user.upsert({
-    where: { email: "info@jipcoaching.com" },
-    update: {},
-    create: {
-      email: "info@jipcoaching.com",
-      password: adminPassword,
-      role: "ADMIN",
-      adminProfile: {
-        create: {
-          name: "Jose Isla Pérez",
-          phone: "+34 600 123 456",
-        },
-      },
-    },
-  });
-  console.log("✅ Admin user created:", adminUser.email);
-
-  // ════════════════════════════════════════════
-  // 2. CLIENT — Carlos Martínez
+  // 1. CLIENT — Carlos Martínez
   // ════════════════════════════════════════════
   const clientPassword = await bcrypt.hash("client123", 12);
   const clientUser = await prisma.user.upsert({
@@ -64,7 +43,7 @@ async function main() {
   console.log("✅ Client created:", client.name);
 
   // ════════════════════════════════════════════
-  // 3. EXERCISE LIBRARY
+  // 2. EXERCISE LIBRARY
   // ════════════════════════════════════════════
   const seedEx = async (
     name: string,
@@ -234,7 +213,7 @@ async function main() {
   console.log("✅ Exercise library seeded");
 
   // ════════════════════════════════════════════
-  // 4. SUPPLEMENTS
+  // 3. SUPPLEMENTS
   // ════════════════════════════════════════════
   const supplements = [
     { name: "Creatina monohidrato", dose: "5 g/día", timing: "A cualquier hora con agua" },
@@ -252,9 +231,8 @@ async function main() {
   console.log("✅ Supplements seeded:", supplements.length);
 
   // ════════════════════════════════════════════
-  // 5. NUTRITION PLAN — Carlos Martínez
+  // 4. NUTRITION PLAN — Carlos Martínez
   // ════════════════════════════════════════════
-  // Based on reference: Recomposición muscular plan adapted for Carlos
   const nutritionPlan = await prisma.nutritionPlan.create({
     data: {
       clientId: client.id,
@@ -289,7 +267,6 @@ async function main() {
     },
   });
 
-  // Desayuno - Opción Salada
   const desayunoSalado = await prisma.nutritionMealOption.create({
     data: { mealId: desayuno.id, name: "Opción Salada", order: 0 },
   });
@@ -304,17 +281,10 @@ async function main() {
   for (let i = 0; i < desayunoSaladoRows.length; i++) {
     const r = desayunoSaladoRows[i];
     await prisma.nutritionIngredientRow.create({
-      data: {
-        optionId: desayunoSalado.id,
-        mainIngredient: r.main,
-        alternatives: JSON.stringify(r.alts),
-        macroCategory: r.cat,
-        order: i,
-      },
+      data: { optionId: desayunoSalado.id, mainIngredient: r.main, alternatives: JSON.stringify(r.alts), macroCategory: r.cat, order: i },
     });
   }
 
-  // Desayuno - Opción Dulce
   const desayunoDulce = await prisma.nutritionMealOption.create({
     data: { mealId: desayuno.id, name: "Opción Dulce", order: 1 },
   });
@@ -329,24 +299,13 @@ async function main() {
   for (let i = 0; i < desayunoDulceRows.length; i++) {
     const r = desayunoDulceRows[i];
     await prisma.nutritionIngredientRow.create({
-      data: {
-        optionId: desayunoDulce.id,
-        mainIngredient: r.main,
-        alternatives: JSON.stringify(r.alts),
-        macroCategory: r.cat,
-        order: i,
-      },
+      data: { optionId: desayunoDulce.id, mainIngredient: r.main, alternatives: JSON.stringify(r.alts), macroCategory: r.cat, order: i },
     });
   }
 
   // MEDIA MAÑANA
   const mediaMañana = await prisma.nutritionMeal.create({
-    data: {
-      planId: nutritionPlan.id,
-      name: "Media Mañana",
-      order: 1,
-      description: "Snack de media mañana. Elige entre opción salada o dulce.",
-    },
+    data: { planId: nutritionPlan.id, name: "Media Mañana", order: 1, description: "Snack de media mañana. Elige entre opción salada o dulce." },
   });
 
   const mmSalada = await prisma.nutritionMealOption.create({
@@ -387,15 +346,9 @@ async function main() {
 
   // COMIDA
   const comida = await prisma.nutritionMeal.create({
-    data: {
-      planId: nutritionPlan.id,
-      name: "Comida",
-      order: 2,
-      description: "Comida principal. Debe ser completa: carbohidrato + proteína + verdura.",
-    },
+    data: { planId: nutritionPlan.id, name: "Comida", order: 2, description: "Comida principal. Debe ser completa: carbohidrato + proteína + verdura." },
   });
 
-  // Comida - Opción 1 (Arroz/Pasta + Carne)
   const comidaOp1 = await prisma.nutritionMealOption.create({
     data: { mealId: comida.id, name: "Opción 1 - Arroz/Pasta + Carne", order: 0 },
   });
@@ -414,7 +367,6 @@ async function main() {
     });
   }
 
-  // Comida - Opción 2 (Legumbres)
   const comidaOp2 = await prisma.nutritionMealOption.create({
     data: { mealId: comida.id, name: "Opción 2 - Legumbres", order: 1 },
   });
@@ -433,7 +385,6 @@ async function main() {
     });
   }
 
-  // Comida - Opción 3 (Huevos)
   const comidaOp3 = await prisma.nutritionMealOption.create({
     data: { mealId: comida.id, name: "Opción 3 - Huevos", order: 2 },
   });
@@ -455,12 +406,7 @@ async function main() {
 
   // CENA
   const cena = await prisma.nutritionMeal.create({
-    data: {
-      planId: nutritionPlan.id,
-      name: "Cena",
-      order: 3,
-      description: "Centrada en recuperación: proteína magra, CH ajustado y verduras.",
-    },
+    data: { planId: nutritionPlan.id, name: "Cena", order: 3, description: "Centrada en recuperación: proteína magra, CH ajustado y verduras." },
   });
 
   const cenaOp1 = await prisma.nutritionMealOption.create({
@@ -483,9 +429,8 @@ async function main() {
   console.log("✅ Nutrition plan seeded for Carlos");
 
   // ════════════════════════════════════════════
-  // 6. TRAINING PLAN — Carlos Martínez
+  // 5. TRAINING PLAN — Carlos Martínez
   // ════════════════════════════════════════════
-  // Based on reference: Macrociclo Bloque 1 — Hipertrofia, 4 days/week, Load Drop method
   const trainingPlan = await prisma.trainingPlan.create({
     data: {
       clientId: client.id,
@@ -502,7 +447,6 @@ async function main() {
     },
   });
 
-  // Helper to create a full week
   const createWeek = async (weekNum: number, status: "DRAFT" | "ACTIVE" | "COMPLETED", notes: string) => {
     const week = await prisma.trainingWeek.create({
       data: {
@@ -516,12 +460,7 @@ async function main() {
 
     // ── Day 1: SSB + Banca ──
     const day1 = await prisma.trainingDay.create({
-      data: {
-        weekId: week.id,
-        dayNumber: 1,
-        title: "SSB + Banca (base técnica + volumen controlado)",
-        warmup: "McGill Big 3 (curl-up mod., side plank, bird dog) 1-2 rondas + movilidad cadera suave (5-8 min)",
-      },
+      data: { weekId: week.id, dayNumber: 1, title: "SSB + Banca (base técnica + volumen controlado)", warmup: "McGill Big 3 (curl-up mod., side plank, bird dog) 1-2 rondas + movilidad cadera suave (5-8 min)" },
     });
 
     const day1Exercises = [
@@ -539,12 +478,7 @@ async function main() {
 
     // ── Day 2: DL Bloques + Torso ──
     const day2 = await prisma.trainingDay.create({
-      data: {
-        weekId: week.id,
-        dayNumber: 2,
-        title: "DL Bloques + Torso (confianza DL + hipertrofia torso)",
-        warmup: "Respiración/brace 2-3 min + bird dog 2x6/lado + bisagra con palo 2x8",
-      },
+      data: { weekId: week.id, dayNumber: 2, title: "DL Bloques + Torso (confianza DL + hipertrofia torso)", warmup: "Respiración/brace 2-3 min + bird dog 2x6/lado + bisagra con palo 2x8" },
     });
 
     const day2Exercises = [
@@ -562,12 +496,7 @@ async function main() {
 
     // ── Day 3: Banca Énfasis + Pierna sin carga axial ──
     const day3 = await prisma.trainingDay.create({
-      data: {
-        weekId: week.id,
-        dayNumber: 3,
-        title: "Banca énfasis + Pierna sin carga axial",
-        warmup: "Movilidad hombro/escápula + Big 3 1 ronda",
-      },
+      data: { weekId: week.id, dayNumber: 3, title: "Banca énfasis + Pierna sin carga axial", warmup: "Movilidad hombro/escápula + Big 3 1 ronda" },
     });
 
     const day3Exercises = [
@@ -583,14 +512,9 @@ async function main() {
       await prisma.exercisePrescription.create({ data: { dayId: day3.id, ...ex } });
     }
 
-    // ── Day 4: Posterior + Torso (hipertrofia + bisagra sin miedo) ──
+    // ── Day 4: Posterior + Torso ──
     const day4 = await prisma.trainingDay.create({
-      data: {
-        weekId: week.id,
-        dayNumber: 4,
-        title: "Posterior + Torso (hipertrofia, cuidando lumbar)",
-        warmup: "Bisagra ligera + activación glúteo (puentes 2x10)",
-      },
+      data: { weekId: week.id, dayNumber: 4, title: "Posterior + Torso (hipertrofia, cuidando lumbar)", warmup: "Bisagra ligera + activación glúteo (puentes 2x10)" },
     });
 
     const day4Exercises = [
@@ -616,6 +540,96 @@ async function main() {
   await createWeek(4, "DRAFT", "Semana 4: consolidar técnica y subir estímulo donde el cuerpo lo permita. Controlar donde hubo señal de riesgo.");
 
   console.log("✅ Training plan seeded for Carlos (4 weeks, 4 days each)");
+
+  // ════════════════════════════════════════════
+  // 6. WEIGHT HISTORY — Carlos Martínez
+  // ════════════════════════════════════════════
+  // Simulates ~5 weeks of daily weigh-ins from Feb 1 to Mar 8
+  // Starting at 82kg, trending down to ~80kg with natural fluctuation
+  const weightEntries: { date: Date; weight: number }[] = [];
+  const startDate = new Date("2026-02-01");
+  const endDate = new Date("2026-03-08");
+  let currentWeight = 82.0;
+
+  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    // Skip some days randomly (weekends sometimes missed)
+    const dayOfWeek = d.getDay();
+    if ((dayOfWeek === 0 || dayOfWeek === 6) && Math.random() > 0.6) continue;
+
+    // Trend downward ~0.3kg/week with daily fluctuation ±0.4kg
+    const trend = -0.3 / 7; // daily trend
+    const fluctuation = (Math.random() - 0.5) * 0.8;
+    currentWeight = Math.max(79.0, currentWeight + trend + fluctuation);
+    currentWeight = Math.round(currentWeight * 10) / 10;
+
+    weightEntries.push({ date: new Date(d), weight: currentWeight });
+  }
+
+  for (const entry of weightEntries) {
+    await prisma.weightEntry.create({
+      data: {
+        clientId: client.id,
+        date: entry.date,
+        weight: entry.weight,
+      },
+    });
+  }
+  console.log(`✅ Weight history seeded: ${weightEntries.length} entries (${weightEntries[0]?.weight}kg → ${weightEntries[weightEntries.length - 1]?.weight}kg)`);
+
+  // ════════════════════════════════════════════
+  // 7. RM RECORDS — Carlos Martínez
+  // ════════════════════════════════════════════
+  // Simulate RM progression across the completed weeks
+  const rmRecords = [
+    // ── SSB (Safety Bar Squat) — Week 1 & 2 ──
+    { exerciseName: "Safety Bar Squat (SSB)", weight: 100, reps: 6, date: new Date("2026-02-03") },  // W1 top set
+    { exerciseName: "Safety Bar Squat (SSB)", weight: 105, reps: 6, date: new Date("2026-02-10") },  // W2 top set
+    { exerciseName: "Safety Bar Squat (SSB)", weight: 107.5, reps: 6, date: new Date("2026-02-17") }, // W3 top set
+
+    // ── Banca comp. pausa — Week 1 (8 reps), Week 2-3 (6 reps) ──
+    { exerciseName: "Press Banca Pausa", weight: 80, reps: 8, date: new Date("2026-02-03") },    // W1 D1
+    { exerciseName: "Press Banca Pausa", weight: 82.5, reps: 8, date: new Date("2026-02-05") },  // W1 D3
+    { exerciseName: "Press Banca Pausa", weight: 85, reps: 6, date: new Date("2026-02-10") },    // W2 D1
+    { exerciseName: "Press Banca Pausa", weight: 87.5, reps: 6, date: new Date("2026-02-12") },  // W2 D3
+    { exerciseName: "Press Banca Pausa", weight: 87.5, reps: 6, date: new Date("2026-02-17") },  // W3 D1
+    { exerciseName: "Press Banca Pausa", weight: 90, reps: 6, date: new Date("2026-02-19") },    // W3 D3
+
+    // ── Peso Muerto desde Bloques — Week 1-3 ──
+    { exerciseName: "Peso Muerto desde Bloques", weight: 140, reps: 5, date: new Date("2026-02-04") }, // W1
+    { exerciseName: "Peso Muerto desde Bloques", weight: 145, reps: 5, date: new Date("2026-02-11") }, // W2
+    { exerciseName: "Peso Muerto desde Bloques", weight: 150, reps: 5, date: new Date("2026-02-18") }, // W3
+
+    // ── RDL — Week 1-3 ──
+    { exerciseName: "Peso Muerto Rumano", weight: 90, reps: 8, date: new Date("2026-02-06") },   // W1
+    { exerciseName: "Peso Muerto Rumano", weight: 95, reps: 8, date: new Date("2026-02-13") },   // W2
+    { exerciseName: "Peso Muerto Rumano", weight: 97.5, reps: 8, date: new Date("2026-02-20") }, // W3
+
+    // ── Prensa Inclinada — Week 1-3 ──
+    { exerciseName: "Prensa Inclinada", weight: 180, reps: 12, date: new Date("2026-02-03") },
+    { exerciseName: "Prensa Inclinada", weight: 190, reps: 12, date: new Date("2026-02-10") },
+    { exerciseName: "Prensa Inclinada", weight: 200, reps: 11, date: new Date("2026-02-17") },
+
+    // ── Remo Pecho Apoyado — Week 1-3 ──
+    { exerciseName: "Remo Pecho Apoyado", weight: 40, reps: 10, date: new Date("2026-02-03") },
+    { exerciseName: "Remo Pecho Apoyado", weight: 42.5, reps: 10, date: new Date("2026-02-10") },
+    { exerciseName: "Remo Pecho Apoyado", weight: 42.5, reps: 12, date: new Date("2026-02-17") },
+  ];
+
+  // Epley formula: e1RM = weight × (1 + reps/30)
+  for (const rm of rmRecords) {
+    const estimated1RM = Math.round(rm.weight * (1 + rm.reps / 30) * 10) / 10;
+    await prisma.rMRecord.create({
+      data: {
+        clientId: client.id,
+        exerciseName: rm.exerciseName,
+        weight: rm.weight,
+        reps: rm.reps,
+        estimated1RM,
+        date: rm.date,
+      },
+    });
+  }
+  console.log(`✅ RM records seeded: ${rmRecords.length} entries`);
 
   console.log("🎉 Seeding complete!");
 }
