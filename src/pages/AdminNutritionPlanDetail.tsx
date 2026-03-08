@@ -478,7 +478,7 @@ const AdminNutritionPlanDetail = () => {
     } finally {
       setSaving(false);
     }
-  }, [plan, planId, supplements, navigate, updateDetail, syncPlanToList, setSupplements]);
+  }, [plan, planId, supplements, navigate, updateDetail, syncPlanToList, saveSupplementsApi]);
 
   if (!plan) {
     return (
