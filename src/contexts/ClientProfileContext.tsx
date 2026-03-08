@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { compressImage } from "@/utils/compressMedia";
+import { API_BASE_URL } from "@/services/api";
 import {
   type ClientProfile,
   fetchClientProfile,
@@ -35,10 +36,17 @@ export function ClientProfileProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const resolveAvatar = (url: string | null | undefined): string | null => {
+    if (!url) return null;
+    if (url.startsWith("http") || url.startsWith("blob:")) return url;
+    const serverRoot = API_BASE_URL.replace(/\/api\/?$/, "");
+    return `${serverRoot}${url}`;
+  };
+
   const reload = useCallback(async () => {
     setLoading(true);
     const res = await fetchClientProfile();
-    if (res.success && res.data) setProfile(res.data);
+    if (res.success && res.data) setProfile({ ...res.data, avatarUrl: resolveAvatar(res.data.avatarUrl) });
     setLoading(false);
   }, []);
 
@@ -63,7 +71,7 @@ export function ClientProfileProvider({ children }: { children: ReactNode }) {
   const saveProfile = useCallback(async (payload: UpdateClientProfilePayload) => {
     setSaving(true);
     const res = await updateClientProfile(payload);
-    if (res.success && res.data) setProfile(res.data);
+    if (res.success && res.data) setProfile({ ...res.data, avatarUrl: resolveAvatar(res.data.avatarUrl) });
     setSaving(false);
     return res;
   }, []);
@@ -73,7 +81,7 @@ export function ClientProfileProvider({ children }: { children: ReactNode }) {
     const compressed = await compressImage(file, { maxSizeMB: 2, maxWidth: 800, maxHeight: 800 });
     const res = await uploadClientAvatar(compressed);
     if (res.success && res.data) {
-      setProfile((prev) => prev ? { ...prev, avatarUrl: res.data!.avatarUrl } : prev);
+      setProfile((prev) => prev ? { ...prev, avatarUrl: resolveAvatar(res.data!.avatarUrl) } : prev);
     }
     setSaving(false);
     return res;

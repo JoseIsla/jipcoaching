@@ -104,14 +104,10 @@ export async function updateClientProfile(payload: UpdateClientProfilePayload): 
 // ── Upload Avatar ──
 
 export async function uploadClientAvatar(file: File): Promise<ApiResponse<{ avatarUrl: string }>> {
-  const MAX_SIZE = 2 * 1024 * 1024;
   const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
   if (!ALLOWED_TYPES.includes(file.type)) {
     return { success: false, error: "Formato no permitido. Usa JPG, PNG o WebP." };
-  }
-  if (file.size > MAX_SIZE) {
-    return { success: false, error: "El archivo supera el tamaño máximo de 2MB." };
   }
 
   if (DEV_MOCK) {
