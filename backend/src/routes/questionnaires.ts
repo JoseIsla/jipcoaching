@@ -150,6 +150,18 @@ router.put("/:id", authenticate, requireRole("ADMIN"), async (req: Request, res:
     });
 
     if (questions) {
+      // First delete any checkin responses referencing these questions (FK constraint)
+      const existingQuestionIds = await prisma.questionnaireQuestion.findMany({
+        where: { templateId: req.params.id as string },
+        select: { id: true },
+      });
+      const qIds = existingQuestionIds.map((q) => q.id);
+      if (qIds.length > 0) {
+        await prisma.checkinResponse.deleteMany({
+          where: { questionId: { in: qIds } },
+        });
+      }
+
       await prisma.questionnaireQuestion.deleteMany({
         where: { templateId: req.params.id as string },
       });
