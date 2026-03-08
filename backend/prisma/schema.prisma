@@ -806,3 +806,26 @@ model BillingMonth {
   @@unique([billingAccountId, month])
   @@map("billing_months")
 }
+
+// ── Email Templates ──
+
+enum EmailTemplateType {
+  WELCOME
+  PAYMENT_CONFIRMATION
+  PAYMENT_REMINDER
+  PASSWORD_RESET
+}
+
+model EmailTemplate {
+  id          String            @id @default(uuid())
+  type        EmailTemplateType @unique
+  subject     String            @db.VarChar(255)
+  heading     String            @db.VarChar(255)
+  subheading  String            @db.Text
+  bodyText    String            @db.Text
+  ctaLabel    String            @db.VarChar(100) @default("")
+  extrasJson  String?           @db.Text // JSON for extra fields like warningText, disclaimerText
+  updatedAt   DateTime          @updatedAt
+
+  @@map("email_templates")
+}
