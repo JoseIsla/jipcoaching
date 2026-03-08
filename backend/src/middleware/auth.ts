@@ -14,7 +14,11 @@ declare global {
   }
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || "change-me";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error("❌ FATAL: JWT_SECRET environment variable is required. Server cannot start securely.");
+  process.exit(1);
+}
 
 export const authenticate = (req: Request, res: Response, next: NextFunction): void => {
   const header = req.headers.authorization;

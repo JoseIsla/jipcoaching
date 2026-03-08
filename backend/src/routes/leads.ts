@@ -1,17 +1,31 @@
 import { Router } from "express";
+import { z } from "zod";
 import { prisma } from "../server";
 import { authenticate, requireRole } from "../middleware/auth";
+import { rateLimit } from "../middleware/rateLimiter";
 
 const router = Router();
 
+// Rate limit: max 10 lead submissions per IP every 15 minutes
+const leadLimiter = rateLimit({ windowSec: 15 * 60, max: 10 });
+
+const leadSchema = z.object({
+  name: z.string().trim().min(1).max(100),
+  email: z.string().trim().email().max(255),
+  phone: z.string().trim().max(20).optional(),
+  message: z.string().trim().min(1).max(2000),
+});
+
 // POST /api/leads — Public (from landing page contact form)
-router.post("/", async (req, res) => {
+router.post("/", leadLimiter, async (req, res) => {
   try {
-    const { name, email, phone, message } = req.body;
-    if (!name || !email || !message) {
-      res.status(400).json({ message: "name, email y message son obligatorios" });
+    const parsed = leadSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Datos inválidos", errors: parsed.error.flatten().fieldErrors });
       return;
     }
+
+    const { name, email, phone, message } = parsed.data;
 
     const lead = await prisma.contactLead.create({
       data: { name, email, phone, message },

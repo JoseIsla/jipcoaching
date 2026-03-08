@@ -1,5 +1,6 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
+import { z } from "zod";
 import { prisma } from "../server";
 import { authenticate, generateToken } from "../middleware/auth";
 import { rateLimit } from "../middleware/rateLimiter";
@@ -9,15 +10,28 @@ const router = Router();
 // Rate limit: max 20 login attempts per IP every 15 minutes
 const loginLimiter = rateLimit({ windowSec: 15 * 60, max: 20 });
 
+const registerSchema = z.object({
+  email: z.string().trim().email().max(255),
+  password: z.string().min(6).max(128),
+  name: z.string().trim().max(100).optional(),
+});
+
+const loginSchema = z.object({
+  email: z.string().trim().email().max(255),
+  password: z.string().min(1).max(128),
+});
+
 // POST /api/auth/register
+// SECURITY: Role is ALWAYS forced to CLIENT. Only admins can promote users.
 router.post("/register", loginLimiter, async (req, res) => {
   try {
-    const { email, password, role = "CLIENT", name } = req.body;
-
-    if (!email || !password) {
-      res.status(400).json({ message: "Email y contraseña son obligatorios" });
+    const parsed = registerSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Datos inválidos", errors: parsed.error.flatten().fieldErrors });
       return;
     }
+
+    const { email, password, name } = parsed.data;
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -30,16 +44,9 @@ router.post("/register", loginLimiter, async (req, res) => {
       data: {
         email,
         password: hashedPassword,
-        role: role === "ADMIN" ? "ADMIN" : "CLIENT",
+        role: "CLIENT", // Always CLIENT — no privilege escalation
       },
     });
-
-    // If admin, create admin profile
-    if (user.role === "ADMIN") {
-      await prisma.adminProfile.create({
-        data: { userId: user.id, name: name || "Admin" },
-      });
-    }
 
     const token = generateToken({ userId: user.id, role: user.role });
     res.status(201).json({ access_token: token });
@@ -52,12 +59,13 @@ router.post("/register", loginLimiter, async (req, res) => {
 // POST /api/auth/login
 router.post("/login", loginLimiter, async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
+    const parsed = loginSchema.safeParse(req.body);
+    if (!parsed.success) {
       res.status(400).json({ message: "Email y contraseña son obligatorios" });
       return;
     }
+
+    const { email, password } = parsed.data;
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
