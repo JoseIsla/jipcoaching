@@ -262,6 +262,8 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
           </TabsContent>
         )}
       </Tabs>
+
+      {hasTraining && <AddRMDialog clientId={client.id} open={showAddRM} onClose={() => setShowAddRM(false)} />}
     </div>
   );
 };
