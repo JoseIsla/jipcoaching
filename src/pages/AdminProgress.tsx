@@ -51,7 +51,14 @@ const ClientProgressCard = ({ client, onClick, t }: { client: ApiClient; onClick
   );
 };
 
-const AddRMDialog = ({ clientId, open, onClose }: { clientId: string; open: boolean; onClose: () => void }) => {
+interface RMDialogProps {
+  clientId: string;
+  open: boolean;
+  onClose: () => void;
+  editRecord?: { id?: string; exerciseName: string; weight: number; reps: number; date: string } | null;
+}
+
+const RMDialog = ({ clientId, open, onClose, editRecord }: RMDialogProps) => {
   const { toast } = useToast();
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
   const [exerciseName, setExerciseName] = useState("Sentadilla");
@@ -59,6 +66,21 @@ const AddRMDialog = ({ clientId, open, onClose }: { clientId: string; open: bool
   const [reps, setReps] = useState("1");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [saving, setSaving] = useState(false);
+  const isEdit = !!editRecord;
+
+  useEffect(() => {
+    if (editRecord) {
+      setExerciseName(editRecord.exerciseName);
+      setWeight(String(editRecord.weight));
+      setReps(String(editRecord.reps));
+      setDate(editRecord.date);
+    } else {
+      setExerciseName("Sentadilla");
+      setWeight("");
+      setReps("1");
+      setDate(new Date().toISOString().slice(0, 10));
+    }
+  }, [editRecord, open]);
 
   const handleSave = async () => {
     if (!weight || Number(weight) <= 0) { toast({ title: "Error", description: "Introduce un peso válido", variant: "destructive" }); return; }
@@ -67,10 +89,14 @@ const AddRMDialog = ({ clientId, open, onClose }: { clientId: string; open: bool
       const w = Number(weight);
       const r = Number(reps) || 1;
       const e1rm = r === 1 ? w : Math.round(w * (1 + r / 30));
-      await api.post(`/checkins/rm/${clientId}`, { exerciseName, weight: w, reps: r, estimated1RM: e1rm, date });
+      if (isEdit && editRecord?.id) {
+        await api.put(`/checkins/rm/record/${editRecord.id}`, { exerciseName, weight: w, reps: r, estimated1RM: e1rm, date });
+        toast({ title: "RM actualizado", description: `${exerciseName}: ${w}kg x${r}` });
+      } else {
+        await api.post(`/checkins/rm/${clientId}`, { exerciseName, weight: w, reps: r, estimated1RM: e1rm, date });
+        toast({ title: "RM añadido", description: `${exerciseName}: ${w}kg x${r}` });
+      }
       await fetchRMRecords(clientId);
-      toast({ title: "RM añadido", description: `${exerciseName}: ${w}kg x${r}` });
-      setWeight(""); setReps("1");
       onClose();
     } catch (err: any) {
       toast({ title: "Error", description: err?.message || "No se pudo guardar", variant: "destructive" });
@@ -82,7 +108,7 @@ const AddRMDialog = ({ clientId, open, onClose }: { clientId: string; open: bool
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="bg-card border-border sm:max-w-sm">
-        <DialogHeader><DialogTitle className="text-foreground flex items-center gap-2"><Dumbbell className="h-5 w-5 text-primary" /> Añadir RM</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="text-foreground flex items-center gap-2"><Dumbbell className="h-5 w-5 text-primary" /> {isEdit ? "Editar RM" : "Añadir RM"}</DialogTitle></DialogHeader>
         <div className="space-y-4">
           <div>
             <Label className="text-foreground text-xs">Ejercicio</Label>
@@ -110,7 +136,7 @@ const AddRMDialog = ({ clientId, open, onClose }: { clientId: string; open: bool
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-muted/50 border-border mt-1" />
           </div>
           <Button onClick={handleSave} disabled={saving} className="w-full glow-primary-sm">
-            {saving ? "Guardando..." : "Guardar RM"}
+            {saving ? "Guardando..." : isEdit ? "Actualizar RM" : "Guardar RM"}
           </Button>
         </div>
       </DialogContent>
