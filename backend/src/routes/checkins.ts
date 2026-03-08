@@ -625,4 +625,120 @@ function getISOWeekNumber(date: Date): number {
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
+// ── POST /api/checkins/:id/videos — Upload a technique video linked to a check-in ──
+router.post("/:id/videos", uploadVideo.single("file"), async (req, res) => {
+  try {
+    if (!req.file) { res.status(400).json({ message: "No se proporcionó archivo" }); return; }
+
+    const checkinId = req.params.id as string;
+    const { exerciseName, notes } = req.body;
+
+    // Verify the checkin exists and get clientId
+    const checkin = await prisma.checkin.findUnique({ where: { id: checkinId } });
+    if (!checkin) { res.status(404).json({ message: "Check-in no encontrado" }); return; }
+
+    // Ownership check for CLIENT users
+    if (req.user?.role === "CLIENT") {
+      const client = await prisma.client.findUnique({ where: { userId: req.user.userId } });
+      if (!client || client.id !== checkin.clientId) {
+        res.status(403).json({ message: "No tienes permiso" }); return;
+      }
+    }
+
+    const url = `/uploads/videos/${req.file.filename}`;
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 6);
+
+    // Create TechniqueVideo (for 6-day expiry cleanup by cron)
+    const techniqueVideo = await prisma.techniqueVideo.create({
+      data: {
+        clientId: checkin.clientId,
+        exerciseName: exerciseName || "Sin nombre",
+        url,
+        notes,
+        expiresAt,
+      },
+    });
+
+    // Create CheckinVideo (links the video to this specific check-in)
+    const checkinVideo = await prisma.checkinVideo.create({
+      data: {
+        checkinId,
+        exerciseName: exerciseName || "Sin nombre",
+        url,
+        notes,
+      },
+    });
+
+    // Notify admins
+    try {
+      const client = await prisma.client.findUnique({ where: { id: checkin.clientId } });
+      const admins = await prisma.user.findMany({ where: { role: "ADMIN" } });
+      const clientName = client?.name ?? "Cliente";
+      for (const admin of admins) {
+        await prisma.notification.create({
+          data: {
+            userId: admin.id,
+            type: "checkin",
+            title: "Nuevo vídeo de técnica",
+            message: `${clientName} ha subido un vídeo de ${exerciseName || "técnica"}`,
+            link: `/admin/clients/${checkin.clientId}`,
+          },
+        });
+      }
+    } catch (notifErr) {
+      console.warn("Failed to create video notification:", notifErr);
+    }
+
+    res.status(201).json({
+      id: checkinVideo.id,
+      techniqueVideoId: techniqueVideo.id,
+      exerciseName: checkinVideo.exerciseName,
+      url: checkinVideo.url,
+      notes: checkinVideo.notes,
+      uploadedAt: checkinVideo.uploadedAt.toISOString(),
+    });
+  } catch (err: any) {
+    console.error("POST /checkins/:id/videos error:", err);
+    res.status(500).json({ message: "Error al subir vídeo" });
+  }
+});
+
+// ── DELETE /api/checkins/:checkinId/videos/:videoId ──
+router.delete("/:checkinId/videos/:videoId", async (req, res) => {
+  try {
+    const { checkinId, videoId } = req.params;
+
+    const checkinVideo = await prisma.checkinVideo.findUnique({ where: { id: videoId as string } });
+    if (!checkinVideo || checkinVideo.checkinId !== checkinId) {
+      res.status(404).json({ message: "Vídeo no encontrado" }); return;
+    }
+
+    // Ownership check for CLIENT users
+    if (req.user?.role === "CLIENT") {
+      const checkin = await prisma.checkin.findUnique({ where: { id: checkinId } });
+      const client = await prisma.client.findUnique({ where: { userId: req.user.userId } });
+      if (!checkin || !client || client.id !== checkin.clientId) {
+        res.status(403).json({ message: "No tienes permiso" }); return;
+      }
+    }
+
+    // Delete file from disk
+    const uploadDir = process.env.UPLOAD_DIR || "./uploads";
+    if (checkinVideo.url) {
+      const filePath = path.join(uploadDir, checkinVideo.url.replace(/^\/uploads\//, ""));
+      try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); } catch {}
+    }
+
+    // Delete both CheckinVideo and matching TechniqueVideo
+    await prisma.checkinVideo.delete({ where: { id: videoId as string } });
+    await prisma.techniqueVideo.deleteMany({ where: { url: checkinVideo.url } }).catch(() => {});
+
+    res.json({ message: "Vídeo eliminado" });
+  } catch (err: any) {
+    console.error("DELETE /checkins/:id/videos/:videoId error:", err);
+    res.status(500).json({ message: "Error al eliminar vídeo" });
+  }
+});
+
 export default router;
