@@ -130,6 +130,7 @@ export const exportNutritionPlanPDF = (
   supplements: Supplement[] = [],
 ) => {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  patchAddPage(doc);
   let y = addHeader(doc, "Plan Nutricional", planName);
 
   // Client
