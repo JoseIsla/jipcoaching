@@ -661,7 +661,7 @@ const ClientCheckins = () => {
   }, [client.id, hasTraining, allEntries.length]);
 
   // Only show current week entries — hide older ones entirely
-  const nutritionEntries = myEntries.filter((e) => e.category === "nutrition" && isInCurrentWeek(e.date));
+  const nutritionEntries = myEntries.filter((e) => e.category === "nutrition" && isInCurrentWeek(e.date)).sort((a, b) => a.date.localeCompare(b.date));
   const trainingEntries = myEntries.filter(
     (e) => e.category === "training" && e.trainingLog && e.trainingLog.length > 0 && isInCurrentWeek(e.date)
   );
