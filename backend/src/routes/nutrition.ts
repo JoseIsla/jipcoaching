@@ -22,7 +22,7 @@ router.get("/plans", async (req, res) => {
     const plans = await prisma.nutritionPlan.findMany({
       where,
       include: {
-        client: { select: { user: { select: { name: true } } } },
+        client: { include: { user: { select: { name: true } } } },
         meals: {
           include: {
             options: {
