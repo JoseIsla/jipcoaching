@@ -254,14 +254,36 @@ const AdminQuestionnaires = () => {
     no_enviado: { label: t("questionnaires.statusNotSent"), icon: XCircle, className: "bg-muted text-muted-foreground border-border" },
   };
 
+  // ── Compute week range based on offset ──
+  const weekRange = useMemo(() => {
+    const now = new Date();
+    const shifted = new Date(now);
+    shifted.setDate(now.getDate() + weekOffset * 7);
+    const day = shifted.getDay(); // 0=Sun
+    const diffToMon = day === 0 ? -6 : 1 - day;
+    const monday = new Date(shifted);
+    monday.setDate(shifted.getDate() + diffToMon);
+    monday.setHours(0, 0, 0, 0);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+    return { monday, sunday };
+  }, [weekOffset]);
+
   const weekLabel = useMemo(() => {
     if (weekOffset === 0) return t("questionnaires.thisWeek");
     if (weekOffset === -1) return t("questionnaires.lastWeek");
-    const d = new Date(); d.setDate(d.getDate() + weekOffset * 7);
+    const d = weekRange.monday;
     return t("questionnaires.weekOf", { date: `${d.getDate()} ${d.toLocaleString("es-ES", { month: "short" })}` });
-  }, [weekOffset, t]);
+  }, [weekOffset, weekRange, t]);
 
-  const entries = weekOffset === 0 ? allEntries : [];
+  // Filter entries to the selected week
+  const entries = useMemo(() => {
+    return allEntries.filter((e) => {
+      const entryDate = new Date(e.date + "T12:00:00"); // noon to avoid TZ issues
+      return entryDate >= weekRange.monday && entryDate <= weekRange.sunday;
+    });
+  }, [allEntries, weekRange]);
 
   // ── Group entries by client ──
   const clientSummaries = useMemo(() => {
