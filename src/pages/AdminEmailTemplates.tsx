@@ -89,6 +89,20 @@ const TEMPLATE_DEFS: TemplateConfig[] = [
       { key: "disclaimerText", label: "Texto de descargo", placeholder: "Si no solicitaste...", defaultValue: "Si no solicitaste este cambio, puedes ignorar este email. Tu contraseña seguirá siendo la misma." },
     ],
   },
+  {
+    id: "email_change",
+    label: "Cambio de email",
+    icon: MailCheck,
+    description: "Se envía cuando un usuario solicita cambiar su dirección de email. Incluye un enlace de verificación.",
+    subject: "Confirma tu nuevo email – JIP Coaching",
+    heading: "Confirma tu nuevo email",
+    subheading: "Hemos recibido una solicitud para cambiar el email de tu cuenta a {{nuevoEmail}}.",
+    bodyText: "Haz clic en el botón de abajo para confirmar el cambio. Este enlace expirará en 30 minutos.",
+    ctaLabel: "Confirmar nuevo email",
+    extraFields: [
+      { key: "disclaimerText", label: "Texto de descargo", placeholder: "Si no solicitaste este cambio...", defaultValue: "Si no solicitaste este cambio, puedes ignorar este email. Tu email seguirá siendo el mismo." },
+    ],
+  },
 ];
 
 /* ── Stored state per template ── */
