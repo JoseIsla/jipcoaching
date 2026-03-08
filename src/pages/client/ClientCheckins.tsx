@@ -477,7 +477,10 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                               {v.notes && <p className="text-[10px] text-muted-foreground truncate">{v.notes}</p>}
                             </div>
                             <button
-                              onClick={() => removeVideoFromEntry(entry.id, v.id)}
+                              onClick={async () => {
+                                try { await mediaApi.deleteCheckinVideo(entry.id, v.id); } catch {}
+                                removeVideoFromEntry(entry.id, v.id);
+                              }}
                               className="text-muted-foreground hover:text-destructive transition-colors p-1 shrink-0"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
