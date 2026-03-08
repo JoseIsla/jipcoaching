@@ -298,6 +298,8 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
                         key={notif.id}
                         onClick={() => {
                           useClientNotificationStore.getState().markRead(notif.id);
+                          const serverId = notif.id.startsWith("server-") ? notif.id.replace("server-", "") : null;
+                          if (serverId) api.patch(`/notifications/${serverId}/read`).catch(() => {});
                           navigate(notif.link);
                         }}
                         className={`w-full text-left p-3 border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors flex items-start gap-2.5 ${
