@@ -76,17 +76,14 @@ const addFooter = (doc: jsPDF, clientName: string) => {
   }
 };
 
-/** Hook for autoTable: paint black background whenever it creates a new page */
-const didDrawPage = (doc: jsPDF) => (data: any) => {
-  // Only fill on pages autoTable adds (page 1 is handled by addHeader)
-  if (data.pageNumber > 1 || data.pageCount > 1) {
-    // Save current graphics state
-    const pw = doc.internal.pageSize.getWidth();
-    const ph = doc.internal.pageSize.getHeight();
-    // Draw black bg behind table content — autoTable draws on top
-    doc.setFillColor(...BG_BLACK);
-    doc.rect(0, 0, pw, ph, "F");
-  }
+/** Wrap doc so any addPage() call automatically paints the black background */
+const patchAddPage = (doc: jsPDF) => {
+  const originalAddPage = doc.addPage.bind(doc);
+  doc.addPage = (...args: any[]) => {
+    const result = originalAddPage(...args);
+    fillBackground(doc);
+    return result;
+  };
 };
 
 const checkPage = (doc: jsPDF, y: number, needed = 40): number => {
