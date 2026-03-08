@@ -59,12 +59,13 @@ router.post("/register", loginLimiter, async (req, res) => {
 // POST /api/auth/login
 router.post("/login", loginLimiter, async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
+    const parsed = loginSchema.safeParse(req.body);
+    if (!parsed.success) {
       res.status(400).json({ message: "Email y contraseña son obligatorios" });
       return;
     }
+
+    const { email, password } = parsed.data;
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
