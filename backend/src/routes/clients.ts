@@ -231,6 +231,30 @@ router.post("/", requireRole("ADMIN"), async (req, res) => {
           injuries: trainingIntake.injuries || null,
         },
       });
+
+      // Create initial RM records from SBD string (e.g. "180/120/200")
+      if (trainingIntake.currentSBD) {
+        const parts = trainingIntake.currentSBD.split("/").map((s: string) => parseFloat(s.trim()));
+        const sbd = [
+          { name: "Sentadilla", weight: parts[0] },
+          { name: "Press Banca", weight: parts[1] },
+          { name: "Peso Muerto", weight: parts[2] },
+        ];
+        for (const lift of sbd) {
+          if (lift.weight && !isNaN(lift.weight) && lift.weight > 0) {
+            await prisma.rMRecord.create({
+              data: {
+                clientId: client.id,
+                exerciseName: lift.name,
+                weight: lift.weight,
+                reps: 1,
+                estimated1RM: lift.weight,
+                date: new Date(),
+              },
+            });
+          }
+        }
+      }
     }
 
     // Notify all admins about new client
