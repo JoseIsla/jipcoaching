@@ -179,7 +179,7 @@ const ClientTraining = () => {
               </Badge>
             </div>
             {currentWeek.generalNotes && <div className="bg-muted/30 border border-border/40 rounded-lg p-3"><p className="text-xs text-muted-foreground">{currentWeek.generalNotes}</p></div>}
-            <div className="space-y-2">{currentWeek.days.map((day) => <DayView key={day.id} day={day} t={t} />)}</div>
+            <div className="space-y-2">{[...currentWeek.days].sort((a, b) => a.dayNumber - b.dayNumber).map((day) => <DayView key={day.id} day={day} t={t} />)}</div>
           </motion.div>
         )}
       </motion.div>
