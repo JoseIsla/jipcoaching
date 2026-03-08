@@ -136,7 +136,7 @@ const mapApiPlanToDetail = (p: ApiNutritionPlan): NutritionPlanDetail => {
 export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
   plans: DEV_MOCK ? mockNutritionPlanList : [],
   details: DEV_MOCK ? mockNutritionDetails : {},
-  supplements: DEV_MOCK ? mockSupplements : [],
+  supplements: DEV_MOCK ? mockSupplements.map((s, i) => ({ ...s, id: `mock-sup-${i}` })) : [],
   loading: false,
   error: null,
 
