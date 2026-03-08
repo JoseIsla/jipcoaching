@@ -16,6 +16,7 @@ const faqsEs = [
   { q: "¿Puedo cambiar de plan después de empezar?", a: "Sí, puedes cambiar o ampliar tu plan en cualquier momento. Muchos clientes empiezan con nutrición y luego añaden entrenamiento." },
   { q: "¿Qué incluye el seguimiento semanal?", a: "Revisión de adherencia, ajuste de macros o volumen de entrenamiento, feedback sobre tu técnica y soporte continuo por chat para resolver dudas." },
   { q: "¿Es todo online o presencial?", a: "El coaching es 100% online, lo que te permite seguir tu plan desde cualquier lugar. La comunicación es a través de la app y chat." },
+  { q: "¿Cómo instalo la app en mi móvil?", a: "¡Es muy fácil! No necesitas App Store ni Play Store. Visita nuestra página de instalación con las instrucciones paso a paso para iPhone y Android.", isInstall: true },
 ];
 
 const faqsEn = [
