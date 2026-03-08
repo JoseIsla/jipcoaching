@@ -364,20 +364,33 @@ router.patch("/:id/mark-paid", requireRole("ADMIN"), async (req, res) => {
       data: { lastPaidAt: new Date() },
     });
 
-    // Send payment confirmation email to client
+    // Create in-app notification for the client
     try {
-      const clientUser = await prisma.user.findUnique({ where: { id: client.userId } });
-      if (clientUser) {
-        const monthName = new Date().toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+      const monthName = new Date().toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+
+      await prisma.notification.create({
+        data: {
+          userId: client.userId,
+          type: "payment",
+          title: "✅ Pago confirmado",
+          message: `Tu pago de ${client.monthlyFee}€ correspondiente a ${monthName} ha sido registrado. ¡Gracias!`,
+          link: "/client",
+        },
+      });
+
+      // Send payment confirmation email to client
+      try {
         await transporter.sendMail({
           from: FROM_EMAIL,
           to: client.email,
           subject: `Pago confirmado – ${monthName} | JIP Coaching`,
           html: buildPaymentConfirmationEmail(client.name, monthName, client.monthlyFee),
         });
+      } catch (mailErr) {
+        console.warn("Failed to send payment confirmation email:", mailErr);
       }
-    } catch (mailErr) {
-      console.warn("Failed to send payment confirmation email:", mailErr);
+    } catch (notifErr) {
+      console.warn("Failed to create payment notification:", notifErr);
     }
 
     res.json({ message: "Pago registrado", lastPaidAt: client.lastPaidAt });
