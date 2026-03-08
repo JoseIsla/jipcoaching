@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Activity, Utensils, Dumbbell, Trophy, Brain, AlertTriangle, Search, Plus } from "lucide-react";
+import { ArrowLeft, Activity, Utensils, Dumbbell, Trophy, Brain, AlertTriangle, Search, Plus, Pencil, Trash2 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,7 +51,14 @@ const ClientProgressCard = ({ client, onClick, t }: { client: ApiClient; onClick
   );
 };
 
-const AddRMDialog = ({ clientId, open, onClose }: { clientId: string; open: boolean; onClose: () => void }) => {
+interface RMDialogProps {
+  clientId: string;
+  open: boolean;
+  onClose: () => void;
+  editRecord?: { id?: string; exerciseName: string; weight: number; reps: number; date: string } | null;
+}
+
+const RMDialog = ({ clientId, open, onClose, editRecord }: RMDialogProps) => {
   const { toast } = useToast();
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
   const [exerciseName, setExerciseName] = useState("Sentadilla");
@@ -59,6 +66,21 @@ const AddRMDialog = ({ clientId, open, onClose }: { clientId: string; open: bool
   const [reps, setReps] = useState("1");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [saving, setSaving] = useState(false);
+  const isEdit = !!editRecord;
+
+  useEffect(() => {
+    if (editRecord) {
+      setExerciseName(editRecord.exerciseName);
+      setWeight(String(editRecord.weight));
+      setReps(String(editRecord.reps));
+      setDate(editRecord.date);
+    } else {
+      setExerciseName("Sentadilla");
+      setWeight("");
+      setReps("1");
+      setDate(new Date().toISOString().slice(0, 10));
+    }
+  }, [editRecord, open]);
 
   const handleSave = async () => {
     if (!weight || Number(weight) <= 0) { toast({ title: "Error", description: "Introduce un peso válido", variant: "destructive" }); return; }
@@ -67,10 +89,14 @@ const AddRMDialog = ({ clientId, open, onClose }: { clientId: string; open: bool
       const w = Number(weight);
       const r = Number(reps) || 1;
       const e1rm = r === 1 ? w : Math.round(w * (1 + r / 30));
-      await api.post(`/checkins/rm/${clientId}`, { exerciseName, weight: w, reps: r, estimated1RM: e1rm, date });
+      if (isEdit && editRecord?.id) {
+        await api.put(`/checkins/rm/record/${editRecord.id}`, { exerciseName, weight: w, reps: r, estimated1RM: e1rm, date });
+        toast({ title: "RM actualizado", description: `${exerciseName}: ${w}kg x${r}` });
+      } else {
+        await api.post(`/checkins/rm/${clientId}`, { exerciseName, weight: w, reps: r, estimated1RM: e1rm, date });
+        toast({ title: "RM añadido", description: `${exerciseName}: ${w}kg x${r}` });
+      }
       await fetchRMRecords(clientId);
-      toast({ title: "RM añadido", description: `${exerciseName}: ${w}kg x${r}` });
-      setWeight(""); setReps("1");
       onClose();
     } catch (err: any) {
       toast({ title: "Error", description: err?.message || "No se pudo guardar", variant: "destructive" });
@@ -82,7 +108,7 @@ const AddRMDialog = ({ clientId, open, onClose }: { clientId: string; open: bool
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="bg-card border-border sm:max-w-sm">
-        <DialogHeader><DialogTitle className="text-foreground flex items-center gap-2"><Dumbbell className="h-5 w-5 text-primary" /> Añadir RM</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="text-foreground flex items-center gap-2"><Dumbbell className="h-5 w-5 text-primary" /> {isEdit ? "Editar RM" : "Añadir RM"}</DialogTitle></DialogHeader>
         <div className="space-y-4">
           <div>
             <Label className="text-foreground text-xs">Ejercicio</Label>
@@ -110,7 +136,7 @@ const AddRMDialog = ({ clientId, open, onClose }: { clientId: string; open: bool
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-muted/50 border-border mt-1" />
           </div>
           <Button onClick={handleSave} disabled={saving} className="w-full glow-primary-sm">
-            {saving ? "Guardando..." : "Guardar RM"}
+            {saving ? "Guardando..." : isEdit ? "Actualizar RM" : "Guardar RM"}
           </Button>
         </div>
       </DialogContent>
@@ -128,6 +154,19 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
   const [showAddRM, setShowAddRM] = useState(false);
+  const [editRM, setEditRM] = useState<{ id?: string; exerciseName: string; weight: number; reps: number; date: string } | null>(null);
+  const { toast } = useToast();
+
+  const handleDeleteRM = async (rm: { id?: string; exerciseName: string }) => {
+    if (!rm.id) return;
+    try {
+      await api.delete(`/checkins/rm/record/${rm.id}`);
+      await fetchRMRecords(client.id);
+      toast({ title: "RM eliminado", description: rm.exerciseName });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "No se pudo eliminar", variant: "destructive" });
+    }
+  };
 
   useEffect(() => {
     fetchEntries(client.id);
@@ -219,23 +258,30 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
                       <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground">{t("progress.exercise")}</th>
                       <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">{t("progress.weight")}</th>
                       <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">{t("progress.reps")}</th>
-                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">e1RM</th>
-                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">{t("progress.date")}</th>
+                       <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">e1RM</th>
+                       <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">{t("progress.date")}</th>
+                       <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right w-20"></th>
                     </tr></thead>
                     <tbody>
-                      {bestRMs.filter((r) => SBD_NAMES.includes(r.exerciseName)).map((rm) => (
-                        <tr key={rm.exerciseId} className="border-t border-border/50">
-                          <td className="px-4 py-3 text-sm font-medium text-foreground">{rm.exerciseName}</td>
-                          <td className="px-4 py-3 text-sm text-muted-foreground text-right font-mono">{rm.weight} kg</td>
-                          <td className="px-4 py-3 text-sm text-muted-foreground text-right font-mono">{rm.reps}</td>
-                          <td className="px-4 py-3 text-sm text-primary text-right font-mono font-bold">{rm.estimated1RM} kg</td>
-                          <td className="px-4 py-3 text-xs text-muted-foreground text-right">{rm.date}</td>
-                        </tr>
-                      ))}
+                       {bestRMs.filter((r) => SBD_NAMES.includes(r.exerciseName)).map((rm) => (
+                         <tr key={rm.id || rm.exerciseId} className="border-t border-border/50">
+                           <td className="px-4 py-3 text-sm font-medium text-foreground">{rm.exerciseName}</td>
+                           <td className="px-4 py-3 text-sm text-muted-foreground text-right font-mono">{rm.weight} kg</td>
+                           <td className="px-4 py-3 text-sm text-muted-foreground text-right font-mono">{rm.reps}</td>
+                           <td className="px-4 py-3 text-sm text-primary text-right font-mono font-bold">{rm.estimated1RM} kg</td>
+                           <td className="px-4 py-3 text-xs text-muted-foreground text-right">{rm.date}</td>
+                           <td className="px-4 py-2 text-right">
+                             <div className="flex items-center justify-end gap-1">
+                               <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => setEditRM({ id: rm.id, exerciseName: rm.exerciseName, weight: rm.weight, reps: rm.reps, date: rm.date })}><Pencil className="h-3.5 w-3.5" /></Button>
+                               <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => handleDeleteRM(rm)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                             </div>
+                           </td>
+                         </tr>
+                       ))}
                     </tbody>
                     <tfoot><tr className="border-t border-border bg-muted/30">
                       <td className="px-4 py-2.5 text-sm font-semibold text-foreground">{t("progress.totalSBD")}</td>
-                      <td colSpan={4} className="px-4 py-2.5 text-sm font-bold text-primary text-right font-mono">{bestRMs.filter((r) => SBD_NAMES.includes(r.exerciseName)).reduce((s, r) => s + r.estimated1RM, 0)} kg</td>
+                      <td colSpan={5} className="px-4 py-2.5 text-sm font-bold text-primary text-right font-mono">{bestRMs.filter((r) => SBD_NAMES.includes(r.exerciseName)).reduce((s, r) => s + r.estimated1RM, 0)} kg</td>
                     </tr></tfoot>
                   </table>
                 </div>
@@ -263,7 +309,7 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
         )}
       </Tabs>
 
-      {hasTraining && <AddRMDialog clientId={client.id} open={showAddRM} onClose={() => setShowAddRM(false)} />}
+      {hasTraining && <RMDialog clientId={client.id} open={showAddRM || !!editRM} onClose={() => { setShowAddRM(false); setEditRM(null); }} editRecord={editRM} />}
     </div>
   );
 };
