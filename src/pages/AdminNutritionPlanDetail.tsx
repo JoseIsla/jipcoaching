@@ -412,7 +412,7 @@ const AdminNutritionPlanDetail = () => {
   const stored = planId ? details[planId] : undefined;
 
   const [plan, setPlan] = useState<NutritionPlanDetail | null>(stored ? { ...stored, meals: stored.meals.map((m) => ({ ...m })) } : null);
-  const [supplements, setLocalSupplements] = useState<Supplement[]>([...storeSupplements]);
+  const [supplements, setLocalSupplements] = useState<ApiSupplement[]>([...storeSupplements]);
   const [loadingPlan, setLoadingPlan] = useState(!stored);
 
   // If plan not in local store, fetch from API
