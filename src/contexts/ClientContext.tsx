@@ -19,6 +19,7 @@ interface ClientContextType {
   client: ApiClient;
   setClientId: (id: string) => void;
   allClients: ApiClient[];
+  updateClientAvatar: (url: string | null) => void;
 }
 
 const FALLBACK_CLIENT: ApiClient = {
