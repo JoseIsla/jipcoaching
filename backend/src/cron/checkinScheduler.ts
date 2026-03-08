@@ -381,14 +381,23 @@ async function sendPaymentReminders() {
         });
       }
 
-      // Send email reminder
+      // Send email reminder from DB template
       try {
-        await transporter.sendMail({
-          from: FROM_EMAIL,
-          to: client.email,
-          subject: "Recordatorio de pago – JIP Coaching",
-          html: buildPaymentReminderEmail(client.name, client.monthlyFee, loginUrl),
-        });
+        const amountBlock = `
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1a1a1a;border-radius:12px;border:1px solid #292929;margin-bottom:24px;">
+            <tr><td style="padding:20px;text-align:center;">
+              <p style="color:#999999;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;">Importe pendiente</p>
+              <p style="color:#ff6b6b;font-size:28px;font-weight:800;margin:0;">${client.monthlyFee}€</p>
+            </td></tr>
+          </table>`;
+
+        const { subject, html } = await buildEmail(
+          "PAYMENT_REMINDER",
+          { nombre: client.name, importe: `${client.monthlyFee}` },
+          { preBodyBlock: amountBlock, ctaUrl: loginUrl },
+        );
+
+        await transporter.sendMail({ from: FROM_EMAIL, to: client.email, subject, html });
         totalSent++;
       } catch (mailErr) {
         console.warn(`[CRON] ⚠️ Failed to send payment reminder to ${client.email}:`, mailErr);
