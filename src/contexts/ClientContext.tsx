@@ -3,7 +3,14 @@ import type { ApiClient } from "@/types/api";
 import { isClientActive, getServicesFromPack } from "@/types/api";
 import { useClientStore } from "@/data/useClientStore";
 import { useAuth } from "@/contexts/AuthContext";
-import { api } from "@/services/api";
+import { api, API_BASE_URL } from "@/services/api";
+
+/** Resolve relative upload URLs to full server URLs */
+const resolveUrl = (url: string | null | undefined): string | undefined => {
+  if (!url || url.startsWith("http") || url.startsWith("blob:")) return url || undefined;
+  const serverRoot = API_BASE_URL.replace(/\/api\/?$/, "");
+  return `${serverRoot}${url}`;
+};
 import { useNutritionPlanStore } from "@/data/useNutritionPlanStore";
 import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
 
