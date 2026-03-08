@@ -56,6 +56,14 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
     back: useRef<HTMLInputElement>(null),
   };
 
+  const handleRemovePending = (angle: PhotoAngle) => {
+    if (previews[angle]) URL.revokeObjectURL(previews[angle]!);
+    setPendingFiles((prev) => ({ ...prev, [angle]: null }));
+    setPreviews((prev) => ({ ...prev, [angle]: null }));
+    // Reset the file input so the same file can be re-selected
+    if (fileRefs[angle].current) fileRefs[angle].current!.value = "";
+  };
+
   const handleFileSelect = async (angle: PhotoAngle, file: File | null) => {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
