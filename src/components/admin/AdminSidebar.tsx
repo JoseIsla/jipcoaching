@@ -92,7 +92,7 @@ const AdminSidebar = () => {
       >
         <div className="flex items-center justify-center h-20 border-b border-sidebar-border px-4">
           {!collapsed ? (
-            <img src={logoJipWide} alt="JIP Performance Nutrition" className="h-10 w-auto max-w-[180px] object-contain" />
+            <img src={logoJip} alt="JIP" className="h-12 w-auto" />
           ) : (
             <span className="text-primary font-black text-xl">J</span>
           )}
