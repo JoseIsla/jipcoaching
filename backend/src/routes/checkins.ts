@@ -304,6 +304,7 @@ router.get("/rm/:clientId", async (req, res) => {
       orderBy: { date: "desc" },
     });
     res.json(records.map((r) => ({
+      id: r.id,
       exerciseId: r.exerciseId,
       exerciseName: r.exerciseName,
       weight: r.weight,
