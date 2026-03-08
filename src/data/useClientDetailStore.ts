@@ -1,7 +1,14 @@
 import { create } from "zustand";
 import { clientDetailStore as mockStore, type ClientDetail } from "@/data/clientStore";
 import { DEV_MOCK } from "@/config/devMode";
-import { api } from "@/services/api";
+import { api, API_BASE_URL } from "@/services/api";
+
+/** Resolve relative upload URLs to full server URLs */
+const resolveUrl = (url: string | null | undefined): string | undefined => {
+  if (!url || url.startsWith("http") || url.startsWith("blob:")) return url;
+  const serverRoot = API_BASE_URL.replace(/\/api\/?$/, "");
+  return `${serverRoot}${url}`;
+};
 
 // Re-export types
 export type { ClientDetail, NutritionIntake, TrainingIntake } from "@/data/clientStore";
