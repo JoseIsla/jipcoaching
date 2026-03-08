@@ -33,11 +33,10 @@ const LandingNavbar = () => {
 
   const scrollTo = (href: string) => {
     setMobileOpen(false);
-    // Delay scroll so the mobile menu animation finishes first
     setTimeout(() => {
       const el = document.querySelector(href);
       if (el) {
-        const navHeight = 80; // fixed navbar height
+        const navHeight = 80;
         const y = el.getBoundingClientRect().top + window.scrollY - navHeight;
         window.scrollTo({ top: y, behavior: "smooth" });
       }
@@ -45,10 +44,6 @@ const LandingNavbar = () => {
   };
 
   const panelPath = role === "admin" ? "/admin" : "/client";
-
-  const toggleLang = () => {
-    setAppLanguage(appLanguage === "es" ? "en" : "es");
-  };
 
   return (
     <motion.nav
@@ -60,11 +55,21 @@ const LandingNavbar = () => {
           ? "bg-background/90 backdrop-blur-xl border-b border-border shadow-lg shadow-primary/5"
           : "bg-transparent"
       }`}
+      role="navigation"
+      aria-label="Navegación principal"
     >
+      {/* Skip to content link */}
+      <a
+        href="#hero"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[60] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-primary focus:text-primary-foreground focus:text-sm focus:font-semibold"
+      >
+        Ir al contenido principal
+      </a>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 safe-area-top">
         <div className="flex items-center justify-between h-16 sm:h-20 gap-2">
           {/* Logo */}
-          <button onClick={() => scrollTo("#hero")} className="flex items-center gap-2">
+          <button onClick={() => scrollTo("#hero")} className="flex items-center gap-2" aria-label="Volver al inicio">
             <img src={logoJip} alt="JIP Performance Nutrition" className="h-10 sm:h-12 w-auto" />
           </button>
 
@@ -83,17 +88,19 @@ const LandingNavbar = () => {
 
           {/* Language + Login/Panel + Mobile toggle */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Language toggle — compact on mobile */}
-            <div className="flex items-center gap-1">
-              <Globe className="h-4 w-4 text-muted-foreground hidden sm:block" />
+            {/* Language toggle */}
+            <div className="flex items-center gap-1" role="group" aria-label="Idioma">
+              <Globe className="h-4 w-4 text-muted-foreground hidden sm:block" aria-hidden="true" />
               <button
                 onClick={() => setAppLanguage("es")}
+                aria-pressed={appLanguage === "es"}
                 className={`text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-1 rounded-md transition-colors ${appLanguage === "es" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
               >
                 ES
               </button>
               <button
                 onClick={() => setAppLanguage("en")}
+                aria-pressed={appLanguage === "en"}
                 className={`text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-1 rounded-md transition-colors ${appLanguage === "en" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
               >
                 EN
@@ -105,7 +112,7 @@ const LandingNavbar = () => {
                 to={panelPath}
                 className="flex items-center gap-1.5 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:brightness-110 transition-all"
               >
-                <LayoutDashboard className="h-4 w-4" />
+                <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">{t("landing.nav.myPanel")}</span>
               </Link>
             ) : (
@@ -113,13 +120,15 @@ const LandingNavbar = () => {
                 to="/login"
                 className="flex items-center gap-1.5 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:brightness-110 transition-all"
               >
-                <LogIn className="h-4 w-4" />
+                <LogIn className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">{t("landing.nav.login")}</span>
               </Link>
             )}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="lg:hidden p-2 rounded-lg transition-colors text-foreground bg-background/60 backdrop-blur-sm hover:bg-muted/70"
+              aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+              aria-expanded={mobileOpen}
             >
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
