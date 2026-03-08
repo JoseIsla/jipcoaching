@@ -52,6 +52,16 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
   const getWeightHistory = useQuestionnaireStore((s) => s.getWeightHistory);
   const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
   const getTrainingProgress = useQuestionnaireStore((s) => s.getTrainingProgress);
+  const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
+  const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
+  const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
+
+  useEffect(() => {
+    fetchEntries(client.id);
+    if (hasNutrition) fetchWeightHistory(client.id);
+    if (hasTraining) fetchRMRecords(client.id);
+  }, [client.id]);
+
   const weightHistory = hasNutrition ? getWeightHistory(client.id) : [];
   const bestRMs = hasTraining ? getBestRMs(client.id) : [];
   const trainingProgress = hasTraining ? getTrainingProgress(client.id) : null;
