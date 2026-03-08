@@ -109,6 +109,7 @@ const es = {
     clients: "Clientes",
     nutrition: "Nutrición",
     training: "Entrenamiento",
+    progress: "Progreso",
     library: "Biblioteca",
     leads: "Leads",
     questionnaires: "Cuestionarios",
