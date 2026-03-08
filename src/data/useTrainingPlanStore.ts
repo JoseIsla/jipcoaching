@@ -118,11 +118,15 @@ const mapApiExerciseToEntry = (ex: ApiExercisePrescription, idx: number) => ({
   technicalNotes: ex.notes ?? (ex as any).technicalNotes,
 });
 
+/** Extract client name from nested API response */
+const getClientName = (p: any): string =>
+  p?.client?.user?.name ?? p?.clientName ?? "";
+
 /** Map API plan to our list entry format */
 const mapApiPlanToListEntry = (apiPlan: ApiTrainingPlan): TrainingPlanListEntry => ({
   id: apiPlan.id,
   clientId: apiPlan.clientId,
-  clientName: "",
+  clientName: getClientName(apiPlan),
   planName: apiPlan.title,
   modality: (apiPlan.modality as TrainingModality) || "Powerlifting",
   block: (apiPlan.block as TrainingBlock) || "Hipertrofia",
@@ -183,7 +187,7 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
       const detail: TrainingPlanFull = {
         id: apiPlan.id,
         clientId: apiPlan.clientId,
-        clientName: "",
+        clientName: getClientName(apiPlan),
         planName: apiPlan.title,
         modality: (apiPlan.modality as TrainingModality) || "Powerlifting",
         block: (apiPlan.block as TrainingBlock) || "Hipertrofia",

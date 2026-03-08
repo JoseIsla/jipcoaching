@@ -79,10 +79,13 @@ interface NutritionPlanState {
 }
 
 /** Map API nutrition plan to list entry + detail */
+const getClientName = (p: any): string =>
+  p?.client?.user?.name ?? p?.clientName ?? "";
+
 const mapApiPlanToListEntry = (p: ApiNutritionPlan): NutritionPlanListEntry => ({
   id: p.id,
   clientId: p.clientId,
-  clientName: "",
+  clientName: getClientName(p),
   planName: p.title,
   type: "custom",
   calories: p.kcalMin ?? p.kcalMax ?? 0,
@@ -113,7 +116,7 @@ const mapApiPlanToDetail = (p: ApiNutritionPlan): NutritionPlanDetail => {
   return {
     id: p.id,
     clientId: p.clientId,
-    clientName: "",
+    clientName: getClientName(p),
     planName: p.title,
     objective: (p as any).objective ?? "",
     calories: p.kcalMin ?? p.kcalMax,
