@@ -196,7 +196,10 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={onBack} className="text-muted-foreground hover:text-foreground"><ArrowLeft className="h-5 w-5" /></Button>
         <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary">{client.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}</div>
+          <Avatar className="h-12 w-12">
+            <AvatarImage src={client.avatarUrl || undefined} />
+            <AvatarFallback className="bg-primary/15 text-primary text-lg font-bold">{client.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}</AvatarFallback>
+          </Avatar>
           <div>
             <h2 className="text-xl font-bold text-foreground">{client.name}</h2>
             <div className="flex gap-1.5 mt-0.5">
