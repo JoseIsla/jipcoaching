@@ -154,6 +154,19 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
   const [showAddRM, setShowAddRM] = useState(false);
+  const [editRM, setEditRM] = useState<{ id?: string; exerciseName: string; weight: number; reps: number; date: string } | null>(null);
+  const { toast } = useToast();
+
+  const handleDeleteRM = async (rm: { id?: string; exerciseName: string }) => {
+    if (!rm.id) return;
+    try {
+      await api.delete(`/checkins/rm/record/${rm.id}`);
+      await fetchRMRecords(client.id);
+      toast({ title: "RM eliminado", description: rm.exerciseName });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "No se pudo eliminar", variant: "destructive" });
+    }
+  };
 
   useEffect(() => {
     fetchEntries(client.id);
