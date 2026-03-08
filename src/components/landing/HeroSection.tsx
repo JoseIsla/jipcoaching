@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowDown, Zap, Target, TrendingUp } from "lucide-react";
+import { Zap, Target, TrendingUp } from "lucide-react";
 import coachHero from "@/assets/coach-hero.jpg";
 import { useTranslation } from "@/i18n/useTranslation";
 
@@ -32,7 +32,7 @@ const HeroSection = () => {
         <img
           src={coachHero}
           alt="Competición de powerlifting"
-          className="w-full h-full object-cover object-[center_55%] opacity-[0.18]"
+          className="w-full h-full object-cover object-center opacity-[0.18]"
           loading="eager"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
@@ -166,20 +166,6 @@ const HeroSection = () => {
           </motion.div>
         </motion.div>
 
-        <motion.button
-          onClick={scrollToAbout}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-muted-foreground hover:text-primary transition-colors"
-        >
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
-          >
-            <ArrowDown className="h-5 w-5" />
-          </motion.div>
-        </motion.button>
       </div>
     </section>
   );
