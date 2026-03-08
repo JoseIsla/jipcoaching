@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { compressImage } from "@/utils/compressMedia";
 import { type AdminProfile } from "@/services/adminProfileApi";
 import {
   fetchAdminProfile,
@@ -69,7 +70,8 @@ export function AdminProfileProvider({ children }: { children: ReactNode }) {
 
   const handleUploadAvatar = useCallback(async (file: File) => {
     setSaving(true);
-    const res = await uploadAvatar(file);
+    const compressed = await compressImage(file, { maxSizeMB: 2, maxWidth: 800, maxHeight: 800 });
+    const res = await uploadAvatar(compressed);
     if (res.success && res.data) {
       setProfile((prev) => prev ? { ...prev, avatarUrl: res.data!.avatarUrl } : prev);
     }

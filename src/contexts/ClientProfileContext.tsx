@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { compressImage } from "@/utils/compressMedia";
 import {
   type ClientProfile,
   fetchClientProfile,
@@ -69,7 +70,8 @@ export function ClientProfileProvider({ children }: { children: ReactNode }) {
 
   const handleUploadAvatar = useCallback(async (file: File) => {
     setSaving(true);
-    const res = await uploadClientAvatar(file);
+    const compressed = await compressImage(file, { maxSizeMB: 2, maxWidth: 800, maxHeight: 800 });
+    const res = await uploadClientAvatar(compressed);
     if (res.success && res.data) {
       setProfile((prev) => prev ? { ...prev, avatarUrl: res.data!.avatarUrl } : prev);
     }
