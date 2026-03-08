@@ -139,7 +139,14 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
         return;
       }
 
-      const nutritionOnes = data.filter((t) => t.category === "NUTRITION" && t.isActive);
+      // Deduplicate nutrition templates by dayOfWeek, keeping the most recent (first in desc order)
+      const allNutrition = data.filter((t) => t.category === "NUTRITION" && t.isActive);
+      const seenDays = new Map<number, ApiTemplate>();
+      for (const t of allNutrition) {
+        const day = t.dayOfWeek ?? 0;
+        if (!seenDays.has(day)) seenDays.set(day, t);
+      }
+      const nutritionOnes = Array.from(seenDays.values());
       const trainingOne = data.find((t) => t.category === "TRAINING" && t.isActive);
 
       set((s) => ({
@@ -273,6 +280,27 @@ async function seedDefaultTemplates(
   get: () => TemplateState,
 ) {
   try {
+    // Check if templates already exist to avoid duplicates
+    const existing = await api.get<ApiTemplate[]>("/questionnaires");
+    if (existing && existing.length > 0) {
+      console.log("[Templates] Templates already exist, skipping seed");
+      // Just re-fetch to update store with real IDs
+      const nutritionOnes = existing.filter((t) => t.category === "NUTRITION" && t.isActive);
+      const seenDays = new Map<number, ApiTemplate>();
+      for (const t of nutritionOnes) {
+        const day = t.dayOfWeek ?? 0;
+        if (!seenDays.has(day)) seenDays.set(day, t);
+      }
+      const trainingOne = existing.find((t) => t.category === "TRAINING" && t.isActive);
+      const state = get();
+      set({
+        nutritionTemplates: seenDays.size > 0 ? Array.from(seenDays.values()).map(mapApiToNutrition) : state.nutritionTemplates,
+        trainingTemplate: trainingOne ? mapApiToTraining(trainingOne, state.trainingTemplate) : state.trainingTemplate,
+        loading: false,
+      });
+      return;
+    }
+
     // Create nutrition templates
     const createdNutrition: NutritionTemplate[] = [];
     for (const nt of initialNutritionTemplates) {
