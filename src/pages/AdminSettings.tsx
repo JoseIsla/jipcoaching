@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useAdminProfile } from "@/contexts/AdminProfileContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -53,6 +55,9 @@ const AdminSettings = () => {
     handleChangeEmail,
     handleChangePassword,
   } = useAdminProfile();
+
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -168,8 +173,12 @@ const AdminSettings = () => {
       newPassword: passwords.new,
     });
     if (res.success) {
-      toast({ title: t("settings.passwordUpdated"), description: t("settings.passwordUpdatedDesc") });
+      toast({ title: t("settings.passwordUpdated"), description: "Sesión cerrada. Inicia sesión con tu nueva contraseña." });
       setPasswords({ current: "", new: "", confirm: "" });
+      setTimeout(async () => {
+        await logout();
+        navigate("/login");
+      }, 1200);
     } else {
       toast({ title: "Error", description: res.error || "", variant: "destructive" });
     }

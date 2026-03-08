@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClientProfile } from "@/contexts/ClientProfileContext";
@@ -20,6 +22,8 @@ import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 const ClientSettings = () => {
   const { profile, loading, saving, saveProfile, handleUploadAvatar, handleDeleteAvatar, handleChangeEmail, handleChangePassword } = useClientProfile();
   const { updateClientAvatar } = useClient();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useTranslation();
   const setAppLanguage = useLanguageStore((s) => s.setLanguage);
@@ -143,8 +147,12 @@ const ClientSettings = () => {
       newPassword: passwords.new,
     });
     if (res.success) {
-      toast({ title: t("clientSettings.passwordUpdated"), description: t("clientSettings.passwordUpdatedDesc") });
+      toast({ title: t("clientSettings.passwordUpdated"), description: "Sesión cerrada. Inicia sesión con tu nueva contraseña." });
       setPasswords({ current: "", new: "", confirm: "" });
+      setTimeout(async () => {
+        await logout();
+        navigate("/login");
+      }, 1200);
     } else {
       toast({ title: "Error", description: res.error || "", variant: "destructive" });
     }
