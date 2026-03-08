@@ -83,11 +83,11 @@ const RMDialog = ({ clientId, open, onClose, editRecord }: RMDialogProps) => {
   }, [editRecord, open]);
 
   const handleSave = async () => {
-    if (!weight || Number(weight) <= 0) { toast({ title: "Error", description: "Introduce un peso válido", variant: "destructive" }); return; }
+    if (!weight || parseDecimal(weight) <= 0) { toast({ title: "Error", description: "Introduce un peso válido", variant: "destructive" }); return; }
     setSaving(true);
     try {
-      const w = Number(weight);
-      const r = Number(reps) || 1;
+      const w = parseDecimal(weight);
+      const r = parseDecimal(reps, 1);
       const e1rm = r === 1 ? w : Math.round(w * (1 + r / 30));
       if (isEdit && editRecord?.id) {
         await api.put(`/checkins/rm/record/${editRecord.id}`, { exerciseName, weight: w, reps: r, estimated1RM: e1rm, date });
