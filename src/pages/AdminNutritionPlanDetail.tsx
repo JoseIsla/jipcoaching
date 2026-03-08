@@ -31,6 +31,7 @@ import {
   type IngredientRow,
   type Supplement,
   type MacroCategory,
+  type ApiSupplement,
 } from "@/data/useNutritionPlanStore";
 
 // ─── Macro category badge colors ───
@@ -292,8 +293,8 @@ const SupplementRow = ({
   onUpdate,
   onDelete,
 }: {
-  sup: Supplement;
-  onUpdate: (s: Supplement) => void;
+  sup: ApiSupplement;
+  onUpdate: (s: ApiSupplement) => void;
   onDelete: () => void;
 }) => (
   <div className="flex items-center gap-2">
@@ -405,12 +406,13 @@ const AdminNutritionPlanDetail = () => {
   const storeSupplements = useNutritionPlanStore((s) => s.supplements);
   const updateDetail = useNutritionPlanStore((s) => s.updateDetail);
   const syncPlanToList = useNutritionPlanStore((s) => s.syncPlanToList);
-  const setSupplements = useNutritionPlanStore((s) => s.setSupplements);
+  const saveSupplementsApi = useNutritionPlanStore((s) => s.saveSupplements);
+  const fetchSupplements = useNutritionPlanStore((s) => s.fetchSupplements);
   
   const stored = planId ? details[planId] : undefined;
 
   const [plan, setPlan] = useState<NutritionPlanDetail | null>(stored ? { ...stored, meals: stored.meals.map((m) => ({ ...m })) } : null);
-  const [supplements, setLocalSupplements] = useState<Supplement[]>([...storeSupplements]);
+  const [supplements, setLocalSupplements] = useState<ApiSupplement[]>([...storeSupplements]);
   const [loadingPlan, setLoadingPlan] = useState(!stored);
 
   // If plan not in local store, fetch from API
@@ -425,6 +427,13 @@ const AdminNutritionPlanDetail = () => {
       setLoadingPlan(false);
     });
   }, [planId, plan]);
+
+  // Fetch supplements from API on mount
+  useEffect(() => {
+    fetchSupplements().then(() => {
+      setLocalSupplements([...useNutritionPlanStore.getState().supplements]);
+    });
+  }, [fetchSupplements]);
 
   const [saving, setSaving] = useState(false);
 
@@ -460,7 +469,8 @@ const AdminNutritionPlanDetail = () => {
       const savedPlan = { ...plan, meals: plan.meals.map(m => ({ ...m, options: m.options.map(o => ({ ...o, rows: [...o.rows] })) })) };
       updateDetail(savedPlan);
       syncPlanToList(savedPlan);
-      setSupplements(supplements);
+      // Persist supplements via API
+      await saveSupplementsApi(supplements);
       toast.success("Plan guardado");
       navigate("/admin/nutrition");
     } catch (err: any) {
@@ -468,7 +478,7 @@ const AdminNutritionPlanDetail = () => {
     } finally {
       setSaving(false);
     }
-  }, [plan, planId, supplements, navigate, updateDetail, syncPlanToList, setSupplements]);
+  }, [plan, planId, supplements, navigate, updateDetail, syncPlanToList, saveSupplementsApi]);
 
   if (!plan) {
     return (
@@ -495,7 +505,7 @@ const AdminNutritionPlanDetail = () => {
     setPlan({ ...plan, meals: [...plan.meals, createEmptyMeal(name)] });
   };
 
-  const updateSupplement = (idx: number, sup: Supplement) => {
+  const updateSupplement = (idx: number, sup: ApiSupplement) => {
     const updated = [...supplements];
     updated[idx] = sup;
     setLocalSupplements(updated);
@@ -506,7 +516,7 @@ const AdminNutritionPlanDetail = () => {
   };
 
   const addSupplement = () => {
-    setLocalSupplements([...supplements, { name: "", dose: "", timing: "" }]);
+    setLocalSupplements([...supplements, { id: "", name: "", dose: "", timing: "" } as ApiSupplement]);
   };
 
   return (
