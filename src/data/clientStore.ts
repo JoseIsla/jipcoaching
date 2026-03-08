@@ -34,6 +34,7 @@ export interface ClientDetail {
   phone: string;
   age?: number;
   sex?: string;
+  avatarUrl?: string;
   services: ServiceType[];
   plan: string;
   status: "Activo" | "Pendiente" | "Inactivo";
