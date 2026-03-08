@@ -631,6 +631,266 @@ async function main() {
   }
   console.log(`✅ RM records seeded: ${rmRecords.length} entries`);
 
+  // ════════════════════════════════════════════
+  // 8. QUESTIONNAIRE TEMPLATES
+  // ════════════════════════════════════════════
+
+  // Nutrition - Martes
+  const nutTueTemplate = await prisma.questionnaireTemplate.create({
+    data: {
+      name: "Check-in Martes",
+      description: "Check-in nutricional de mitad de semana",
+      isActive: true,
+      scope: "GLOBAL",
+      category: "NUTRITION",
+      dayOfWeek: 2,
+    },
+  });
+
+  const nutTueQuestions = [
+    { type: "NUMBER" as const, label: "Peso en ayunas (kg)", required: true, order: 0 },
+    { type: "SCALE_0_10" as const, label: "¿Cómo te has sentido con la dieta esta semana?", required: true, order: 1 },
+    { type: "YES_NO" as const, label: "¿Has tenido malestares digestivos?", required: true, order: 2 },
+    { type: "TEXT" as const, label: "Describe los malestares si los hubo", required: false, order: 3 },
+    { type: "YES_NO" as const, label: "¿Has comido libre esta semana?", required: true, order: 4 },
+    { type: "NUMBER" as const, label: "Nº de comidas libres", required: false, order: 5 },
+    { type: "SCALE_0_10" as const, label: "Nivel de hambre general (1-10)", required: true, order: 6 },
+    { type: "NUMBER" as const, label: "Horas de sueño media", required: true, order: 7 },
+  ];
+
+  const tueQIds: string[] = [];
+  for (const q of nutTueQuestions) {
+    const created = await prisma.questionnaireQuestion.create({
+      data: { templateId: nutTueTemplate.id, ...q },
+    });
+    tueQIds.push(created.id);
+  }
+
+  // Nutrition - Viernes
+  const nutFriTemplate = await prisma.questionnaireTemplate.create({
+    data: {
+      name: "Check-in Viernes",
+      description: "Check-in nutricional de fin de semana",
+      isActive: true,
+      scope: "GLOBAL",
+      category: "NUTRITION",
+      dayOfWeek: 5,
+    },
+  });
+
+  const nutFriQuestions = [
+    { type: "NUMBER" as const, label: "Peso en ayunas (kg)", required: true, order: 0 },
+    { type: "YES_NO" as const, label: "¿Has seguido el plan al 100%?", required: true, order: 1 },
+    { type: "SELECT" as const, label: "¿Qué comida te ha costado más?", required: true, order: 2, optionsJson: JSON.stringify(["Desayuno", "Comida", "Merienda", "Cena", "Ninguna"]) },
+    { type: "SCALE_0_10" as const, label: "Nivel de energía en los entrenos (1-10)", required: true, order: 3 },
+    { type: "SELECT" as const, label: "Retención de líquidos percibida", required: true, order: 4, optionsJson: JSON.stringify(["Nada", "Poca", "Moderada", "Mucha"]) },
+    { type: "TEXT" as const, label: "Comentarios adicionales", required: false, order: 5 },
+  ];
+
+  const friQIds: string[] = [];
+  for (const q of nutFriQuestions) {
+    const created = await prisma.questionnaireQuestion.create({
+      data: { templateId: nutFriTemplate.id, ...q },
+    });
+    friQIds.push(created.id);
+  }
+
+  // Training template
+  const trainingTemplate = await prisma.questionnaireTemplate.create({
+    data: {
+      name: "Check-in Entrenamiento",
+      description: "Check-in semanal de entrenamiento",
+      isActive: true,
+      scope: "GLOBAL",
+      category: "TRAINING",
+      dayOfWeek: 6,
+    },
+  });
+
+  const trainingQuestions = [
+    { type: "SCALE_0_10" as const, label: "Nivel de fatiga general esta semana (0-10)", required: true, order: 0 },
+    { type: "SCALE_0_10" as const, label: "Dolor lumbar esta semana (0-10)", required: true, order: 1 },
+    { type: "SCALE_0_10" as const, label: "Calidad de sueño (0-10)", required: true, order: 2 },
+    { type: "TEXT" as const, label: "Comentarios o problemas durante los entrenos", required: false, order: 3 },
+  ];
+
+  const trainQIds: string[] = [];
+  for (const q of trainingQuestions) {
+    const created = await prisma.questionnaireQuestion.create({
+      data: { templateId: trainingTemplate.id, ...q },
+    });
+    trainQIds.push(created.id);
+  }
+
+  console.log("✅ Questionnaire templates seeded");
+
+  // ════════════════════════════════════════════
+  // 9. CHECK-INS — Semana actual (W10, Marzo 2026)
+  // ════════════════════════════════════════════
+
+  // ── Nutrition check-in Martes 3 Mar ──
+  const checkinNutTue = await prisma.checkin.create({
+    data: {
+      clientId: client.id,
+      templateId: nutTueTemplate.id,
+      category: "NUTRITION",
+      weekLabel: "Semana 10",
+      dayLabel: "Martes",
+      date: new Date("2026-03-03T08:30:00"),
+      status: "RESPONDED",
+    },
+  });
+
+  const tueResponses = [
+    { questionId: tueQIds[0], value: "80.3" },       // Peso
+    { questionId: tueQIds[1], value: "7" },           // Cómo te has sentido
+    { questionId: tueQIds[2], value: "No" },          // Malestares digestivos
+    { questionId: tueQIds[3], value: "" },             // Describe malestares
+    { questionId: tueQIds[4], value: "Sí" },          // Comida libre
+    { questionId: tueQIds[5], value: "1" },            // Nº comidas libres
+    { questionId: tueQIds[6], value: "4" },            // Hambre
+    { questionId: tueQIds[7], value: "7.5" },          // Sueño
+  ];
+
+  for (const r of tueResponses) {
+    await prisma.checkinResponse.create({
+      data: { checkinId: checkinNutTue.id, ...r },
+    });
+  }
+
+  // ── Nutrition check-in Viernes 6 Mar ──
+  const checkinNutFri = await prisma.checkin.create({
+    data: {
+      clientId: client.id,
+      templateId: nutFriTemplate.id,
+      category: "NUTRITION",
+      weekLabel: "Semana 10",
+      dayLabel: "Viernes",
+      date: new Date("2026-03-06T09:00:00"),
+      status: "RESPONDED",
+    },
+  });
+
+  const friResponses = [
+    { questionId: friQIds[0], value: "79.8" },         // Peso
+    { questionId: friQIds[1], value: "Sí" },           // Plan al 100%
+    { questionId: friQIds[2], value: "Cena" },         // Comida que más cuesta
+    { questionId: friQIds[3], value: "8" },            // Energía entrenos
+    { questionId: friQIds[4], value: "Poca" },         // Retención líquidos
+    { questionId: friQIds[5], value: "Todo bien, noto el cuerpo más definido esta semana. La banca sube bien." },
+  ];
+
+  for (const r of friResponses) {
+    await prisma.checkinResponse.create({
+      data: { checkinId: checkinNutFri.id, ...r },
+    });
+  }
+
+  // ── Training check-in Sábado 7 Mar ──
+  const checkinTraining = await prisma.checkin.create({
+    data: {
+      clientId: client.id,
+      templateId: trainingTemplate.id,
+      category: "TRAINING",
+      weekLabel: "Semana 10",
+      dayLabel: "Sábado",
+      date: new Date("2026-03-07T10:00:00"),
+      status: "RESPONDED",
+      planId: trainingPlan.id,
+      weekNumber: 3,
+    },
+  });
+
+  // Training questionnaire responses
+  const trainResponses = [
+    { questionId: trainQIds[0], value: "5" },   // Fatiga general
+    { questionId: trainQIds[1], value: "2" },   // Dolor lumbar
+    { questionId: trainQIds[2], value: "7" },   // Calidad sueño
+    { questionId: trainQIds[3], value: "Día 1 la SSB fue bien, subí 2.5kg respecto a la semana pasada. La banca del día 3 se sintió fuerte. Lumbar controlada." },
+  ];
+
+  for (const r of trainResponses) {
+    await prisma.checkinResponse.create({
+      data: { checkinId: checkinTraining.id, ...r },
+    });
+  }
+
+  // ── Training logs (actual performance for each training day of week 3) ──
+
+  // Day 1 log
+  const log1 = await prisma.checkinTrainingLog.create({
+    data: { checkinId: checkinTraining.id, dayNumber: 1, dayName: "SSB + Banca" },
+  });
+
+  const day1Actual = [
+    { exerciseName: "Safety Bar Squat (SSB)", section: "main", plannedSets: "1+3-5", plannedReps: "6", plannedLoad: "~107.5kg", plannedRPE: 7, actualWeight: 107.5, actualRPE: 7, actualSets: "1+4", actualReps: "6" },
+    { exerciseName: "Banca comp. pausa", section: "main", plannedSets: "1+2-5", plannedReps: "6", plannedLoad: "~87.5kg", plannedRPE: 7, actualWeight: 87.5, actualRPE: 6.5, actualSets: "1+4", actualReps: "6" },
+    { exerciseName: "Prensa Inclinada", section: "acc", plannedSets: "3-4", plannedReps: "10-15", actualWeight: 200, actualRPE: 7, actualSets: "4", actualReps: "12,12,11,10" },
+    { exerciseName: "Remo Pecho Apoyado", section: "acc", plannedSets: "4", plannedReps: "8-12", actualWeight: 42.5, actualRPE: 7.5, actualSets: "4", actualReps: "12,10,10,9" },
+    { exerciseName: "Curl Femoral Sentado", section: "acc", plannedSets: "3", plannedReps: "10-15", actualWeight: 55, actualRPE: 7, actualSets: "3", actualReps: "13,12,11" },
+    { exerciseName: "Dead Bug", section: "acc", plannedSets: "3-4", plannedReps: "10-12", actualSets: "3", actualReps: "12" },
+  ];
+
+  for (const ex of day1Actual) {
+    await prisma.checkinTrainingExercise.create({ data: { logId: log1.id, ...ex } });
+  }
+
+  // Day 2 log
+  const log2 = await prisma.checkinTrainingLog.create({
+    data: { checkinId: checkinTraining.id, dayNumber: 2, dayName: "DL Bloques + Torso" },
+  });
+
+  const day2Actual = [
+    { exerciseName: "Peso Muerto desde Bloques", section: "main", plannedSets: "1+2-4", plannedReps: "5", plannedLoad: "~150kg", plannedRPE: 6, actualWeight: 150, actualRPE: 6, actualSets: "1+3", actualReps: "5" },
+    { exerciseName: "Press Inclinado Mancuernas", section: "acc", plannedSets: "4", plannedReps: "8-12", actualWeight: 32, actualRPE: 7.5, actualSets: "4", actualReps: "10,10,9,8" },
+    { exerciseName: "Jalón Polea", section: "acc", plannedSets: "4", plannedReps: "8-12", actualWeight: 70, actualRPE: 7, actualSets: "4", actualReps: "12,11,10,10" },
+    { exerciseName: "Remo Dorian Yates", section: "acc", plannedSets: "3", plannedReps: "8-12", actualWeight: 60, actualRPE: 7.5, actualSets: "3", actualReps: "10,9,9" },
+    { exerciseName: "Hiperextensiones", section: "acc", plannedSets: "2-3", plannedReps: "12-15", actualSets: "3", actualReps: "15,14,12" },
+    { exerciseName: "Pallof Press", section: "acc", plannedSets: "3", plannedReps: "10-15/lado", actualSets: "3", actualReps: "12/lado" },
+  ];
+
+  for (const ex of day2Actual) {
+    await prisma.checkinTrainingExercise.create({ data: { logId: log2.id, ...ex } });
+  }
+
+  // Day 3 log
+  const log3 = await prisma.checkinTrainingLog.create({
+    data: { checkinId: checkinTraining.id, dayNumber: 3, dayName: "Banca énfasis + Pierna" },
+  });
+
+  const day3Actual = [
+    { exerciseName: "Banca comp. pausa", section: "main", plannedSets: "1+3-5", plannedReps: "6", plannedLoad: "~90kg", plannedRPE: 7, actualWeight: 90, actualRPE: 7, actualSets: "1+4", actualReps: "6" },
+    { exerciseName: "Hack Squat", section: "acc", plannedSets: "4", plannedReps: "8-12", actualWeight: 120, actualRPE: 7, actualSets: "4", actualReps: "12,11,10,10" },
+    { exerciseName: "Elevaciones Laterales", section: "acc", plannedSets: "4", plannedReps: "12-20", actualWeight: 10, actualRPE: 8, actualSets: "4", actualReps: "18,16,15,14" },
+    { exerciseName: "Tríceps Polea (cuerda)", section: "acc", plannedSets: "3-4", plannedReps: "10-15", actualWeight: 25, actualRPE: 8, actualSets: "4", actualReps: "14,12,11,10" },
+    { exerciseName: "Face Pull", section: "acc", plannedSets: "3", plannedReps: "15-25", actualWeight: 15, actualRPE: 6, actualSets: "3", actualReps: "22,20,18" },
+    { exerciseName: "Cable Crunch", section: "acc", plannedSets: "3-4", plannedReps: "12-20", actualWeight: 40, actualRPE: 7, actualSets: "3", actualReps: "18,15,14" },
+  ];
+
+  for (const ex of day3Actual) {
+    await prisma.checkinTrainingExercise.create({ data: { logId: log3.id, ...ex } });
+  }
+
+  // Day 4 log
+  const log4 = await prisma.checkinTrainingLog.create({
+    data: { checkinId: checkinTraining.id, dayNumber: 4, dayName: "Posterior + Torso" },
+  });
+
+  const day4Actual = [
+    { exerciseName: "RDL Barra", section: "main", plannedSets: "4", plannedReps: "8-10", plannedLoad: "~97.5kg", actualWeight: 97.5, actualRPE: 7, actualSets: "4", actualReps: "9,8,8,8" },
+    { exerciseName: "Curl Femoral Sentado", section: "acc", plannedSets: "3", plannedReps: "8-12", actualWeight: 55, actualRPE: 7, actualSets: "3", actualReps: "12,10,9" },
+    { exerciseName: "Press máquina inclinado", section: "acc", plannedSets: "3-4", plannedReps: "10-15", actualWeight: 60, actualRPE: 7.5, actualSets: "4", actualReps: "14,12,11,10" },
+    { exerciseName: "Remo polea baja", section: "acc", plannedSets: "4", plannedReps: "10-15", actualWeight: 65, actualRPE: 7, actualSets: "4", actualReps: "13,12,11,11" },
+    { exerciseName: "Elevación de Gemelos", section: "acc", plannedSets: "3-4", plannedReps: "10-20", actualWeight: 80, actualRPE: 8, actualSets: "4", actualReps: "16,14,12,11" },
+    { exerciseName: "Farmer Walk", section: "acc", plannedSets: "1", plannedReps: "6-10 min", actualWeight: 36, actualSets: "1", actualReps: "8 min" },
+  ];
+
+  for (const ex of day4Actual) {
+    await prisma.checkinTrainingExercise.create({ data: { logId: log4.id, ...ex } });
+  }
+
+  console.log("✅ Check-ins seeded (2 nutrition + 1 training with 4 day logs)");
+
   console.log("🎉 Seeding complete!");
 }
 
