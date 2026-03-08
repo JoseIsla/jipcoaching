@@ -505,7 +505,7 @@ const AdminNutritionPlanDetail = () => {
     setPlan({ ...plan, meals: [...plan.meals, createEmptyMeal(name)] });
   };
 
-  const updateSupplement = (idx: number, sup: Supplement) => {
+  const updateSupplement = (idx: number, sup: ApiSupplement) => {
     const updated = [...supplements];
     updated[idx] = sup;
     setLocalSupplements(updated);
@@ -516,7 +516,7 @@ const AdminNutritionPlanDetail = () => {
   };
 
   const addSupplement = () => {
-    setLocalSupplements([...supplements, { name: "", dose: "", timing: "" }]);
+    setLocalSupplements([...supplements, { id: "", name: "", dose: "", timing: "" } as ApiSupplement]);
   };
 
   return (
