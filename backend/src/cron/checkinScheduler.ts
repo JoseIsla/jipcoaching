@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
 import { prisma } from "../server";
+import { buildEmail } from "../utils/emailBuilder";
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || "https://jipcoaching.com").replace(/\/+$/, "");
 const FROM_EMAIL = process.env.FROM_EMAIL || "JIP Coaching <info@jipcoaching.com>";
@@ -18,45 +19,7 @@ const transporter = nodemailer.createTransport({
   tls: { rejectUnauthorized: false },
 });
 
-const buildPaymentReminderEmail = (name: string, amount: number, loginUrl: string) => `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#000000;font-family:'Inter',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#000000;padding:40px 20px;">
-    <tr><td align="center">
-      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#111111;border-radius:16px;border:1px solid #292929;overflow:hidden;">
-        <tr><td style="padding:32px 32px 0;text-align:center;">
-          <img src="${FRONTEND_URL}/assets/logo-jip.png" alt="JIP Coaching" width="80" style="display:block;margin:0 auto 24px;" />
-          <h1 style="color:#ffffff;font-size:22px;font-weight:700;margin:0 0 8px;">Recordatorio de pago</h1>
-          <p style="color:#999999;font-size:14px;margin:0;">Hola ${name}, tu cuota mensual está pendiente.</p>
-        </td></tr>
-        <tr><td style="padding:32px;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1a1a1a;border-radius:12px;border:1px solid #292929;margin-bottom:24px;">
-            <tr><td style="padding:20px;text-align:center;">
-              <p style="color:#999999;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;">Importe pendiente</p>
-              <p style="color:#ff6b6b;font-size:28px;font-weight:800;margin:0;">${amount}€</p>
-            </td></tr>
-          </table>
-          <p style="color:#cccccc;font-size:14px;line-height:22px;margin:0 0 24px;">
-            Por favor, realiza el pago lo antes posible para mantener tu acceso activo a todos los servicios de JIP Coaching.
-          </p>
-          <table width="100%" cellpadding="0" cellspacing="0">
-            <tr><td align="center">
-              <a href="${loginUrl}" target="_blank" style="display:inline-block;background-color:hsl(110,100%,54%);color:#000000;font-weight:700;font-size:14px;text-decoration:none;padding:14px 32px;border-radius:12px;">
-                Acceder a mi cuenta
-              </a>
-            </td></tr>
-          </table>
-        </td></tr>
-        <tr><td style="padding:0 32px 24px;text-align:center;border-top:1px solid #292929;padding-top:20px;">
-          <p style="color:#555555;font-size:11px;margin:0;">© ${new Date().getFullYear()} JIP Performance Nutrition. Todos los derechos reservados.</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
+// Payment reminder email is now rendered from DB templates via buildEmail()
 
 // ── Shared helper ──
 
@@ -418,14 +381,23 @@ async function sendPaymentReminders() {
         });
       }
 
-      // Send email reminder
+      // Send email reminder from DB template
       try {
-        await transporter.sendMail({
-          from: FROM_EMAIL,
-          to: client.email,
-          subject: "Recordatorio de pago – JIP Coaching",
-          html: buildPaymentReminderEmail(client.name, client.monthlyFee, loginUrl),
-        });
+        const amountBlock = `
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1a1a1a;border-radius:12px;border:1px solid #292929;margin-bottom:24px;">
+            <tr><td style="padding:20px;text-align:center;">
+              <p style="color:#999999;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;">Importe pendiente</p>
+              <p style="color:#ff6b6b;font-size:28px;font-weight:800;margin:0;">${client.monthlyFee}€</p>
+            </td></tr>
+          </table>`;
+
+        const { subject, html } = await buildEmail(
+          "PAYMENT_REMINDER",
+          { nombre: client.name, importe: `${client.monthlyFee}` },
+          { preBodyBlock: amountBlock, ctaUrl: loginUrl },
+        );
+
+        await transporter.sendMail({ from: FROM_EMAIL, to: client.email, subject, html });
         totalSent++;
       } catch (mailErr) {
         console.warn(`[CRON] ⚠️ Failed to send payment reminder to ${client.email}:`, mailErr);
