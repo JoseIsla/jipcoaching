@@ -102,6 +102,7 @@ const es = {
     library: "Biblioteca",
     leads: "Leads",
     questionnaires: "Cuestionarios",
+    emails: "Plantillas Email",
     settings: "Configuración",
   },
 

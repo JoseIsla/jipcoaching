@@ -104,6 +104,7 @@ const en: Translations = {
     library: "Library",
     leads: "Leads",
     questionnaires: "Questionnaires",
+    emails: "Email Templates",
     settings: "Settings",
   },
 

@@ -29,6 +29,7 @@ import AdminNutritionPlanDetail from "./pages/AdminNutritionPlanDetail";
 import AdminNutritionPlanView from "./pages/AdminNutritionPlanView";
 import AdminExerciseLibrary from "./pages/AdminExerciseLibrary";
 import AdminLeads from "./pages/AdminLeads";
+import AdminEmailTemplates from "./pages/AdminEmailTemplates";
 import ClientHome from "./pages/client/ClientHome";
 import ClientNutrition from "./pages/client/ClientNutrition";
 import ClientTraining from "./pages/client/ClientTraining";
@@ -76,6 +77,7 @@ const App = () => (
                 <Route path="/admin/training/:planId/edit" element={<RoleRoute allowedRole="admin"><AdminTrainingPlanDetail /></RoleRoute>} />
                 <Route path="/admin/exercises" element={<RoleRoute allowedRole="admin"><AdminExerciseLibrary /></RoleRoute>} />
                 <Route path="/admin/leads" element={<RoleRoute allowedRole="admin"><AdminLeads /></RoleRoute>} />
+                <Route path="/admin/emails" element={<RoleRoute allowedRole="admin"><AdminEmailTemplates /></RoleRoute>} />
                 <Route path="/admin/settings" element={<RoleRoute allowedRole="admin"><AdminSettings /></RoleRoute>} />
                 <Route path="/admin/questionnaires" element={<RoleRoute allowedRole="admin"><AdminQuestionnaires /></RoleRoute>} />
                 <Route path="/admin/progress" element={<RoleRoute allowedRole="admin"><AdminProgress /></RoleRoute>} />
