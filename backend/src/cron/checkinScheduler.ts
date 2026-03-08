@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
 import { prisma } from "../server";
+import { buildEmail } from "../utils/emailBuilder";
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || "https://jipcoaching.com").replace(/\/+$/, "");
 const FROM_EMAIL = process.env.FROM_EMAIL || "JIP Coaching <info@jipcoaching.com>";
