@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Zap, Target, TrendingUp } from "lucide-react";
-import coachHero from "@/assets/coach-hero.webp";
+import coachHero from "@/assets/coach-hero.jpg";
 import { useTranslation } from "@/i18n/useTranslation";
 
 const floatingVariants = {
