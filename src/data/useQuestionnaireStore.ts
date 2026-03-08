@@ -14,6 +14,7 @@ export interface WeightEntry {
 }
 
 export interface RMRecord {
+  id?: string;
   exerciseId: string;
   exerciseName: string;
   weight: number;

@@ -339,6 +339,7 @@ router.post("/rm/:clientId", requireRole("ADMIN"), async (req, res) => {
       },
     });
     res.status(201).json({
+      id: record.id,
       exerciseId: record.exerciseId,
       exerciseName: record.exerciseName,
       weight: record.weight,
@@ -349,6 +350,46 @@ router.post("/rm/:clientId", requireRole("ADMIN"), async (req, res) => {
   } catch (err: any) {
     console.error("POST /checkins/rm/:clientId error:", err);
     res.status(500).json({ message: "Error al crear RM" });
+  }
+});
+
+// PUT /api/checkins/rm/record/:id — Admin edits an RM record
+router.put("/rm/record/:id", requireRole("ADMIN"), async (req, res) => {
+  try {
+    const { exerciseName, weight, reps, estimated1RM, date } = req.body;
+    const record = await prisma.rMRecord.update({
+      where: { id: req.params.id as string },
+      data: {
+        ...(exerciseName && { exerciseName }),
+        ...(weight && { weight: Number(weight) }),
+        ...(reps && { reps: Number(reps) }),
+        ...(estimated1RM && { estimated1RM: Number(estimated1RM) }),
+        ...(date && { date: new Date(date) }),
+      },
+    });
+    res.json({
+      id: record.id,
+      exerciseId: record.exerciseId,
+      exerciseName: record.exerciseName,
+      weight: record.weight,
+      reps: record.reps,
+      estimated1RM: record.estimated1RM,
+      date: record.date.toISOString().split("T")[0],
+    });
+  } catch (err: any) {
+    console.error("PUT /checkins/rm/record/:id error:", err);
+    res.status(500).json({ message: "Error al editar RM" });
+  }
+});
+
+// DELETE /api/checkins/rm/record/:id — Admin deletes an RM record
+router.delete("/rm/record/:id", requireRole("ADMIN"), async (req, res) => {
+  try {
+    await prisma.rMRecord.delete({ where: { id: req.params.id as string } });
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error("DELETE /checkins/rm/record/:id error:", err);
+    res.status(500).json({ message: "Error al eliminar RM" });
   }
 });
 
