@@ -198,8 +198,17 @@ const AdminProgress = () => {
   const filtered = activeClients.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
 
-  // Fetch all check-ins for admin view
-  useEffect(() => { fetchEntries(); }, []);
+  const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
+  const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
+
+  // Fetch all check-ins and per-client weight/RM data
+  useEffect(() => {
+    fetchEntries();
+    activeClients.forEach((c) => {
+      fetchWeightHistory(c.id);
+      fetchRMRecords(c.id);
+    });
+  }, [activeClients.length]);
 
   return (
     <AdminLayout>
