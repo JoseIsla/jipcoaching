@@ -829,6 +829,7 @@ enum EmailTemplateType {
   PAYMENT_CONFIRMATION
   PAYMENT_REMINDER
   PASSWORD_RESET
+  EMAIL_CHANGE
 }
 
 model EmailTemplate {

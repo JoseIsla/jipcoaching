@@ -50,6 +50,14 @@ const DEFAULTS: Record<string, TemplateFields> = {
     ctaLabel: "Restablecer contraseña",
     extras: { disclaimerText: "Si no solicitaste este cambio, puedes ignorar este email. Tu contraseña seguirá siendo la misma." },
   },
+  EMAIL_CHANGE: {
+    subject: "Confirma tu nuevo email – JIP Coaching",
+    heading: "Confirma tu nuevo email",
+    subheading: "Hemos recibido una solicitud para cambiar el email de tu cuenta a {{nuevoEmail}}.",
+    bodyText: "Haz clic en el botón de abajo para confirmar el cambio. Este enlace expirará en 30 minutos.",
+    ctaLabel: "Confirmar nuevo email",
+    extras: { disclaimerText: "Si no solicitaste este cambio, puedes ignorar este email. Tu email seguirá siendo el mismo." },
+  },
 };
 
 /**
