@@ -691,7 +691,7 @@ const ClientCheckins = () => {
                 <p className="text-xs text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("clientCheckins.nutritionSchedule") }} />
                 {nutritionEntries.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">{t("clientCheckins.noNutrition")}</p>}
                 {nutritionEntries.map((entry) => <NutritionCheckinCard key={entry.id} entry={entry} />)}
-                <HistorySection weeks={pastNutritionWeeks} renderCard={(entry) => <NutritionCheckinCard key={entry.id} entry={entry} />} formatShortDate={formatShortDate} t={t} />
+                
               </TabsContent>
             )}
             {hasTraining && (
