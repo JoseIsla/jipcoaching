@@ -159,7 +159,7 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
                     </tbody>
                     <tfoot><tr className="border-t border-border bg-muted/30">
                       <td className="px-4 py-2.5 text-sm font-semibold text-foreground">{t("progress.totalSBD")}</td>
-                      <td colSpan={4} className="px-4 py-2.5 text-sm font-bold text-primary text-right font-mono">{bestRMs.filter((r) => ["e1", "e4", "e7"].includes(r.exerciseId)).reduce((s, r) => s + r.estimated1RM, 0)} kg</td>
+                      <td colSpan={4} className="px-4 py-2.5 text-sm font-bold text-primary text-right font-mono">{bestRMs.filter((r) => SBD_NAMES.includes(r.exerciseName)).reduce((s, r) => s + r.estimated1RM, 0)} kg</td>
                     </tr></tfoot>
                   </table>
                 </div>
