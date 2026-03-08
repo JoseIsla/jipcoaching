@@ -111,7 +111,7 @@ const LandingNavbar = () => {
             ) : (
               <Link
                 to="/login"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:brightness-110 transition-all"
+                className="flex items-center gap-1.5 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:brightness-110 transition-all"
               >
                 <LogIn className="h-4 w-4" />
                 <span className="hidden sm:inline">{t("landing.nav.login")}</span>
