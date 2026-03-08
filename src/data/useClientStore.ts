@@ -1,15 +1,23 @@
 import { create } from "zustand";
-import { api } from "@/services/api";
+import { api, API_BASE_URL } from "@/services/api";
 import type { ApiClient, CreateClientDto, ServiceType } from "@/types/api";
 import { isClientActive, getServicesFromPack } from "@/types/api";
 import { DEV_MOCK } from "@/config/devMode";
 import { mockClients } from "@/data/mockClients";
+
+/** Resolve relative upload URLs to full server URLs */
+const resolveUrl = (url: string | null | undefined): string | undefined => {
+  if (!url || url.startsWith("http") || url.startsWith("blob:")) return url;
+  const serverRoot = API_BASE_URL.replace(/\/api\/?$/, "");
+  return `${serverRoot}${url}`;
+};
 
 /** Enrich raw API response with computed `services` field */
 const enrichClient = (raw: any): ApiClient => ({
   ...raw,
   name: raw.name ?? "Sin nombre",
   email: raw.email ?? "",
+  avatarUrl: resolveUrl(raw.avatarUrl),
   services: getServicesFromPack(raw.packType),
 });
 
