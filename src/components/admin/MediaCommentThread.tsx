@@ -6,9 +6,11 @@ import { useState } from "react";
 import { MessageSquare, Send, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useMediaStore } from "@/data/useMediaStore";
 import { useAdminProfile } from "@/contexts/AdminProfileContext";
 import { useClientNotificationStore } from "@/data/useClientNotificationStore";
+import { API_BASE_URL } from "@/services/api";
 import type { MediaComment } from "@/types/media";
 
 interface Props {
@@ -20,6 +22,14 @@ interface Props {
   /** Compact mode for inline use */
   compact?: boolean;
 }
+
+/** Resolve relative upload URLs to full server URLs */
+const resolveAvatarUrl = (url?: string | null): string | undefined => {
+  if (!url) return undefined;
+  if (url.startsWith("http") || url.startsWith("blob:")) return url;
+  const serverRoot = API_BASE_URL.replace(/\/api\/?$/, "");
+  return `${serverRoot}${url}`;
+};
 
 const MediaCommentThread = ({ targetType, targetId, clientId, exerciseName, compact = false }: Props) => {
   const getComments = useMediaStore((s) => s.getComments);
@@ -41,6 +51,7 @@ const MediaCommentThread = ({ targetType, targetId, clientId, exerciseName, comp
       targetId,
       clientId,
       authorName: profile?.name || "Coach",
+      authorAvatarUrl: profile?.avatarUrl || undefined,
       text: trimmed,
       createdAt: new Date().toISOString(),
     });
@@ -113,19 +124,27 @@ const MediaCommentThread = ({ targetType, targetId, clientId, exerciseName, comp
                   className="bg-primary/5 border border-primary/10 rounded-lg px-3 py-2 group"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-semibold text-primary">{c.authorName}</span>
-                        <span className="text-[9px] text-muted-foreground">
-                          {new Date(c.createdAt).toLocaleDateString("es-ES", {
-                            day: "numeric",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
+                    <div className="flex items-start gap-2 min-w-0">
+                      <Avatar className="h-5 w-5 shrink-0 mt-0.5">
+                        <AvatarImage src={resolveAvatarUrl(c.authorAvatarUrl)} alt={c.authorName} />
+                        <AvatarFallback className="text-[8px] bg-primary/20 text-primary">
+                          {c.authorName.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-semibold text-primary">{c.authorName}</span>
+                          <span className="text-[9px] text-muted-foreground">
+                            {new Date(c.createdAt).toLocaleDateString("es-ES", {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
+                        <p className="text-xs text-foreground mt-0.5 whitespace-pre-line">{c.text}</p>
                       </div>
-                      <p className="text-xs text-foreground mt-0.5 whitespace-pre-line">{c.text}</p>
                     </div>
                     <button
                       onClick={() => removeComment(c.id)}

@@ -258,6 +258,7 @@ export const useMediaStore = create<MediaState>((set, get) => ({
         targetId: comment.targetId,
         clientId: comment.clientId,
         authorName: comment.authorName,
+        authorAvatarUrl: comment.authorAvatarUrl,
         text: comment.text,
       }).then((saved) => {
         if (saved?.id) {

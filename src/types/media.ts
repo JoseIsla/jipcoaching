@@ -38,6 +38,7 @@ export interface MediaComment {
   targetId: string; // photo id, video id, or session date
   clientId: string;
   authorName: string; // admin name
+  authorAvatarUrl?: string; // admin avatar URL
   text: string;
   createdAt: string;
 }
