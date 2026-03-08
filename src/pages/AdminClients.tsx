@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus, Utensils, Dumbbell, MoreHorizontal, UserX, UserCheck, Trash2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AddClientSheet, { type NewClientData } from "@/components/admin/AddClientSheet";
 import { Input } from "@/components/ui/input";
