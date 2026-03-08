@@ -80,11 +80,6 @@ export function AdminProfileProvider({ children }: { children: ReactNode }) {
   const handleChangeEmail = useCallback(async (payload: ChangeEmailPayload) => {
     setSaving(true);
     const res = await changeEmail(payload);
-    if (res.success) {
-      // Reload profile to reflect new email
-      const updated = await fetchAdminProfile();
-      if (updated.success && updated.data) setProfile(updated.data);
-    }
     setSaving(false);
     return res;
   }, []);
