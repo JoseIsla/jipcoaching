@@ -70,10 +70,20 @@ const addFooter = (doc: jsPDF, clientName: string) => {
     doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(...TEXT_MUTED);
-    doc.text(`JIP Coaching — ${clientName} — ${date}`, MARGIN, fy);
+    doc.text(`JIP Coaching - ${clientName} - ${date}`, MARGIN, fy);
     doc.setTextColor(...NEON_GREEN);
     doc.text(`${i}/${pages}`, pw - MARGIN, fy, { align: "right" });
   }
+};
+
+/** Wrap doc so any addPage() call automatically paints the black background */
+const patchAddPage = (doc: jsPDF) => {
+  const originalAddPage = doc.addPage.bind(doc);
+  doc.addPage = (...args: any[]) => {
+    const result = originalAddPage(...args);
+    fillBackground(doc);
+    return result;
+  };
 };
 
 const checkPage = (doc: jsPDF, y: number, needed = 40): number => {
@@ -120,6 +130,7 @@ export const exportNutritionPlanPDF = (
   supplements: Supplement[] = [],
 ) => {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  patchAddPage(doc);
   let y = addHeader(doc, "Plan Nutricional", planName);
 
   // Client
@@ -263,6 +274,7 @@ export const exportTrainingWeekPDF = (
   clientName: string,
 ) => {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  patchAddPage(doc);
   let y = addHeader(doc, "Plan de Entrenamiento", plan.planName);
 
   // Subtitle
