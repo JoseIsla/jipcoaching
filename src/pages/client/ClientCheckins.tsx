@@ -629,6 +629,37 @@ const HistorySection = ({ weeks, renderCard, formatShortDate, t }: { weeks: { st
     </Collapsible>
   );
 };
+const TrainingUpcomingCard = ({ date }: { date: string }) => {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <CollapsibleTrigger className="w-full flex items-center justify-between p-3 hover:bg-muted/30 transition-colors">
+          <div className="flex items-center gap-2">
+            <AnimatedChevron open={open} />
+            <div>
+              <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <Dumbbell className="h-3.5 w-3.5 text-primary" />
+                {t("clientCheckins.trainingCheckinLabel") || "Check-in Entrenamiento"}
+              </p>
+              <p className="text-[10px] text-muted-foreground">{t("clientCheckins.upcoming")}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 text-blue-400" />
+            <span className="text-[10px] text-muted-foreground">{t("clientCheckins.upcoming")}</span>
+          </div>
+        </CollapsibleTrigger>
+        <AnimatedCollapsibleContent open={open}>
+          <div className="p-4 pt-0">
+            <p className="text-sm text-muted-foreground text-center py-4" dangerouslySetInnerHTML={{ __html: t("clientCheckins.trainingAvailableOn", { date }) }} />
+          </div>
+        </AnimatedCollapsibleContent>
+      </div>
+    </Collapsible>
+  );
+};
 
 const ClientCheckins = () => {
   const { t } = useTranslation();
@@ -666,7 +697,6 @@ const ClientCheckins = () => {
     (e) => e.category === "training" && e.trainingLog && e.trainingLog.length > 0 && isInCurrentWeek(e.date)
   );
 
-  
 
   const defaultTab = hasNutrition ? "nutrition" : "training";
 
@@ -700,30 +730,24 @@ const ClientCheckins = () => {
             {hasTraining && (
               <TabsContent value="training" className="space-y-3">
                 <p className="text-xs text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("clientCheckins.trainingSchedule") }} />
-                {trainingEntries.length === 0 && (
-                  <div className="text-center py-8 space-y-2">
-                    <Dumbbell className="h-8 w-8 text-muted-foreground mx-auto" />
-                    {(() => {
-                      const day = new Date().getDay();
-                      const isTrainingWindow = day === 6 || day === 0;
-                      if (!isTrainingWindow) {
-                        // Calculate next Saturday
-                        const now = new Date();
-                        const daysUntilSat = (6 - day + 7) % 7 || 7;
-                        const nextSat = new Date(now);
-                        nextSat.setDate(now.getDate() + daysUntilSat);
-                        const formatted = nextSat.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
-                        return (
-                          <>
-                            <p className="text-sm font-medium text-foreground">{t("clientCheckins.trainingUpcoming")}</p>
-                            <p className="text-xs text-muted-foreground">{t("clientCheckins.trainingAvailableOn", { date: formatted })}</p>
-                          </>
-                        );
-                      }
-                      return <p className="text-sm text-muted-foreground">{t("clientCheckins.noActivePlan")}</p>;
-                    })()}
-                  </div>
-                )}
+                {trainingEntries.length === 0 && (() => {
+                  const day = new Date().getDay();
+                  const isTrainingWindow = day === 6 || day === 0;
+                  if (!isTrainingWindow) {
+                    const now = new Date();
+                    const daysUntilSat = (6 - day + 7) % 7 || 7;
+                    const nextSat = new Date(now);
+                    nextSat.setDate(now.getDate() + daysUntilSat);
+                    const formatted = nextSat.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+                    return <TrainingUpcomingCard date={formatted} />;
+                  }
+                  return (
+                    <div className="text-center py-8">
+                      <Dumbbell className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">{t("clientCheckins.noActivePlan")}</p>
+                    </div>
+                  );
+                })()}
                 {trainingEntries.map((entry) => <TrainingLogCard key={entry.id} entry={entry} />)}
                 
               </TabsContent>
