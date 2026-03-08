@@ -17,6 +17,7 @@ import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
 import { api } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+import { parseDecimal } from "@/utils/parseDecimal";
 
 const SBD_NAMES = ["Sentadilla", "Press Banca", "Peso Muerto"];
 
@@ -83,11 +84,11 @@ const RMDialog = ({ clientId, open, onClose, editRecord }: RMDialogProps) => {
   }, [editRecord, open]);
 
   const handleSave = async () => {
-    if (!weight || Number(weight) <= 0) { toast({ title: "Error", description: "Introduce un peso válido", variant: "destructive" }); return; }
+    if (!weight || parseDecimal(weight) <= 0) { toast({ title: "Error", description: "Introduce un peso válido", variant: "destructive" }); return; }
     setSaving(true);
     try {
-      const w = Number(weight);
-      const r = Number(reps) || 1;
+      const w = parseDecimal(weight);
+      const r = parseDecimal(reps, 1);
       const e1rm = r === 1 ? w : Math.round(w * (1 + r / 30));
       if (isEdit && editRecord?.id) {
         await api.put(`/checkins/rm/record/${editRecord.id}`, { exerciseName, weight: w, reps: r, estimated1RM: e1rm, date });
@@ -124,11 +125,11 @@ const RMDialog = ({ clientId, open, onClose, editRecord }: RMDialogProps) => {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-foreground text-xs">Peso (kg) *</Label>
-              <Input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className="bg-muted/50 border-border mt-1" placeholder="0" />
+              <Input type="text" inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value)} className="bg-muted/50 border-border mt-1" placeholder="0" />
             </div>
             <div>
               <Label className="text-foreground text-xs">Reps</Label>
-              <Input type="number" value={reps} onChange={(e) => setReps(e.target.value)} className="bg-muted/50 border-border mt-1" placeholder="1" />
+              <Input type="text" inputMode="numeric" value={reps} onChange={(e) => setReps(e.target.value)} className="bg-muted/50 border-border mt-1" placeholder="1" />
             </div>
           </div>
           <div>

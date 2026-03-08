@@ -27,6 +27,7 @@ import ClientMediaComments from "@/components/client/ClientMediaComments";
 import { useMediaStore } from "@/data/useMediaStore";
 import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 import { mediaApi } from "@/services/mediaApi";
+import { parseDecimal } from "@/utils/parseDecimal";
 
 /** Returns the deadline Date for an entry's fill window. */
 const getEntryDeadline = (entry: QuestionnaireEntry): Date => {
@@ -71,7 +72,7 @@ const useCountdown = (entry: QuestionnaireEntry, isActive: boolean): string => {
 
 const QuestionField = ({ q, value, onChange }: { q: QuestionDefinition; value: string | number | boolean | undefined; onChange: (v: string | number | boolean) => void }) => {
   switch (q.type) {
-    case "number": return (<div className="space-y-1"><Label className="text-sm text-foreground">{q.label}{q.required && " *"}</Label><Input type="number" step="0.1" className="bg-background border-border h-10" value={value as number ?? ""} onChange={(e) => onChange(Number(e.target.value))} /></div>);
+    case "number": return (<div className="space-y-1"><Label className="text-sm text-foreground">{q.label}{q.required && " *"}</Label><Input type="text" inputMode="decimal" className="bg-background border-border h-10" value={value as number ?? ""} onChange={(e) => onChange(parseDecimal(e.target.value))} /></div>);
     case "scale": return (<div className="space-y-2"><Label className="text-sm text-foreground">{q.label}{q.required && " *"}</Label><div className="flex items-center gap-3"><Slider value={[typeof value === "number" ? value : 5]} onValueChange={([v]) => onChange(v)} min={1} max={10} step={1} className="flex-1" /><span className="text-sm font-bold text-primary w-6 text-right">{typeof value === "number" ? value : "—"}</span></div></div>);
     case "yesno": return (<div className="flex items-center justify-between"><Label className="text-sm text-foreground">{q.label}{q.required && " *"}</Label><Switch checked={value === true} onCheckedChange={(v) => onChange(v)} /></div>);
     case "select": return (<div className="space-y-1"><Label className="text-sm text-foreground">{q.label}{q.required && " *"}</Label><Select value={value as string || ""} onValueChange={onChange}><SelectTrigger className="bg-background border-border h-10"><SelectValue placeholder="..." /></SelectTrigger><SelectContent>{q.options?.map((opt) => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent></Select></div>);
@@ -328,23 +329,21 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                               <div className="space-y-1">
                                 <Label className="text-[10px] text-muted-foreground">{t("clientCheckins.actualWeight")}</Label>
                                 <Input
-                                  type="number"
-                                  step="0.5"
+                                  type="text"
+                                  inputMode="decimal"
                                   className="h-8 text-xs bg-background border-border"
                                   value={ex.actualWeight ?? ""}
-                                  onChange={(e) => updateExercise(dayIdx, exIdx, "actualWeight", Number(e.target.value))}
+                                  onChange={(e) => updateExercise(dayIdx, exIdx, "actualWeight", parseDecimal(e.target.value))}
                                 />
                               </div>
                               <div className="space-y-1">
                                 <Label className="text-[10px] text-muted-foreground">{t("clientCheckins.actualRPE")}</Label>
                                 <Input
-                                  type="number"
-                                  step="0.5"
-                                  min={1}
-                                  max={10}
+                                  type="text"
+                                  inputMode="decimal"
                                   className="h-8 text-xs bg-background border-border"
                                   value={ex.actualRPE ?? ""}
-                                  onChange={(e) => updateExercise(dayIdx, exIdx, "actualRPE", Number(e.target.value))}
+                                  onChange={(e) => updateExercise(dayIdx, exIdx, "actualRPE", parseDecimal(e.target.value))}
                                 />
                               </div>
                               <div className="space-y-1">

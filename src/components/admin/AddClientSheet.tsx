@@ -12,6 +12,7 @@ import { useClientStore } from "@/data/useClientStore";
 import { useClientDetailStore } from "@/data/useClientDetailStore";
 import { PackType, ClientStatus, packTypeLabels, getServicesFromPack, type CreateClientDto, type NutritionIntakeDto, type TrainingIntakeDto } from "@/types/api";
 import { useTranslation } from "@/i18n/useTranslation";
+import { parseDecimal, parseOptionalDecimal } from "@/utils/parseDecimal";
 
 export interface NewClientData {
   name: string;
@@ -105,7 +106,7 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
       password,
       packType,
       status,
-      monthlyFee: monthlyFee ? Number(monthlyFee) : 0,
+      monthlyFee: monthlyFee ? parseDecimal(monthlyFee) : 0,
       notes: notes.trim() || undefined,
       ...(hasNutrition && Object.keys(nutIntake).length > 0 && { nutritionIntake: nutIntake }),
       ...(hasTraining && Object.keys(trainIntake).length > 0 && { trainingIntake: trainIntake }),
@@ -227,7 +228,7 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
               </div>
               <div>
                 <Label className="text-foreground text-xs">Tarifa mensual (€)</Label>
-                <Input type="number" value={monthlyFee} onChange={(e) => setMonthlyFee(e.target.value)} className={inputCls} placeholder="0" />
+                <Input type="text" inputMode="decimal" value={monthlyFee} onChange={(e) => setMonthlyFee(e.target.value)} className={inputCls} placeholder="0" />
               </div>
             </div>
           )}
@@ -257,22 +258,22 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">{t("addClient.targetWeight")}</Label>
-                  <Input type="number" value={nutIntake.targetWeight ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, targetWeight: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} placeholder="kg" />
+                  <Input type="text" inputMode="decimal" value={nutIntake.targetWeight ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, targetWeight: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="kg" />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <Label className="text-foreground text-xs">Altura</Label>
-                  <Input type="number" value={nutIntake.height ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, height: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} placeholder="cm" />
+                  <Input type="text" inputMode="decimal" value={nutIntake.height ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, height: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="cm" />
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">Peso actual</Label>
-                  <Input type="number" value={nutIntake.currentWeight ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, currentWeight: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} placeholder="kg" />
+                  <Input type="text" inputMode="decimal" value={nutIntake.currentWeight ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, currentWeight: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="kg" />
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">Edad</Label>
-                  <Input type="number" value={nutIntake.age ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, age: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} placeholder="años" />
+                  <Input type="text" inputMode="numeric" value={nutIntake.age ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, age: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="años" />
                 </div>
               </div>
 
@@ -293,14 +294,14 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">{t("addClient.mealsPerDay")}</Label>
-                  <Input type="number" value={nutIntake.mealsPerDay ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, mealsPerDay: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} placeholder="4" />
+                  <Input type="text" inputMode="numeric" value={nutIntake.mealsPerDay ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, mealsPerDay: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="4" />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-foreground text-xs">{t("addClient.sleepHours")}</Label>
-                  <Input type="number" step="0.5" value={nutIntake.sleepHours ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, sleepHours: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} placeholder="7" />
+                  <Input type="text" inputMode="decimal" value={nutIntake.sleepHours ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, sleepHours: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="7" />
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">{t("addClient.stressLevel")}</Label>
