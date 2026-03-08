@@ -45,8 +45,9 @@ async function generateNutritionCheckins() {
       where: { status: "ACTIVE", packType: { in: ["NUTRITION", "FULL"] } },
     });
 
-    const templates = await prisma.questionnaireTemplate.findMany({
+    const allTemplates = await prisma.questionnaireTemplate.findMany({
       where: { category: "NUTRITION", isActive: true },
+      orderBy: { updatedAt: "desc" },
     });
 
     const now = new Date();
