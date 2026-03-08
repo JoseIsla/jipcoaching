@@ -163,7 +163,7 @@ export const exportNutritionPlanPDF = (
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...NEON_GREEN);
-    doc.text(`🍽 ${meal.name}`, MARGIN, y);
+    doc.text(meal.name.toUpperCase(), MARGIN, y);
     y += 2;
 
     if (meal.description) {
@@ -177,25 +177,31 @@ export const exportNutritionPlanPDF = (
     meal.options.forEach((opt, optIdx) => {
       y = checkPage(doc, y, 20);
 
+      const CATEGORY_LABELS: Record<string, string> = {
+        PROTEIN: "Proteina",
+        CARB: "Carbohidrato",
+        FAT: "Grasa",
+        FRUIT: "Fruta",
+        VEG: "Verdura",
+      };
+
       const tableBody = opt.rows.map((row) => {
-        const cat = row.macroCategory
-          ? ({ PROTEIN: "🥩 Prot", CARB: "🍚 CH", FAT: "🥑 Grasas", FRUIT: "🍎 Fruta", VEG: "🥦 Verd" } as Record<string, string>)[row.macroCategory] || row.macroCategory
-          : "";
-        const alts = row.alternatives.length > 0 ? `Alt: ${row.alternatives.join(", ")}` : "";
+        const cat = row.macroCategory ? CATEGORY_LABELS[row.macroCategory] || row.macroCategory : "";
+        const alts = row.alternatives.length > 0 ? row.alternatives.join(" | ") : "";
         return [cat, row.mainIngredient, alts];
       });
 
       autoTable(doc, {
         startY: y,
         margin: { left: MARGIN, right: MARGIN },
-        head: [[{ content: `Opción ${optIdx + 1}${opt.notes ? ` — ${opt.notes}` : ""}`, colSpan: 3 }]],
+        head: [[{ content: `Opcion ${optIdx + 1}${opt.notes ? ` - ${opt.notes}` : ""}`, colSpan: 3 }]],
         body: tableBody,
         theme: "grid",
         styles: { ...baseStyles, cellPadding: 2.5 },
         headStyles: headStylesSecondary,
         alternateRowStyles: { fillColor: [...altRowColor] },
         columnStyles: {
-          0: { cellWidth: 25, halign: "center", fontSize: 7, textColor: [...NEON_GREEN] },
+          0: { cellWidth: 28, halign: "center", fontSize: 7, textColor: [...NEON_GREEN] },
           1: { fontStyle: "bold", textColor: [...WHITE] },
           2: { fontSize: 7, textColor: [...TEXT_MUTED] },
         },
