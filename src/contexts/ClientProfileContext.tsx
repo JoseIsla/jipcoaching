@@ -36,10 +36,17 @@ export function ClientProfileProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const resolveAvatar = (url: string | null | undefined): string | null => {
+    if (!url) return null;
+    if (url.startsWith("http") || url.startsWith("blob:")) return url;
+    const serverRoot = API_BASE_URL.replace(/\/api\/?$/, "");
+    return `${serverRoot}${url}`;
+  };
+
   const reload = useCallback(async () => {
     setLoading(true);
     const res = await fetchClientProfile();
-    if (res.success && res.data) setProfile(res.data);
+    if (res.success && res.data) setProfile({ ...res.data, avatarUrl: resolveAvatar(res.data.avatarUrl) });
     setLoading(false);
   }, []);
 
