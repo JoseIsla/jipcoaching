@@ -124,7 +124,7 @@ const RMDialog = ({ clientId, open, onClose, editRecord }: RMDialogProps) => {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-foreground text-xs">Peso (kg) *</Label>
-              <Input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className="bg-muted/50 border-border mt-1" placeholder="0" />
+              <Input type="text" inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value)} className="bg-muted/50 border-border mt-1" placeholder="0" />
             </div>
             <div>
               <Label className="text-foreground text-xs">Reps</Label>
