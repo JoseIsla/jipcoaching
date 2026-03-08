@@ -62,7 +62,7 @@ const AdminHeader = () => {
     : "";
 
   const handleNotificationClick = (id: string, link?: string) => {
-    markAsRead(id);
+    removeNotification(id);
     if (link) {
       setOpen(false);
       navigate(link);
