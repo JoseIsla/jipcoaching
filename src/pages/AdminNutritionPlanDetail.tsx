@@ -406,7 +406,8 @@ const AdminNutritionPlanDetail = () => {
   const storeSupplements = useNutritionPlanStore((s) => s.supplements);
   const updateDetail = useNutritionPlanStore((s) => s.updateDetail);
   const syncPlanToList = useNutritionPlanStore((s) => s.syncPlanToList);
-  const setSupplements = useNutritionPlanStore((s) => s.setSupplements);
+  const saveSupplementsApi = useNutritionPlanStore((s) => s.saveSupplements);
+  const fetchSupplements = useNutritionPlanStore((s) => s.fetchSupplements);
   
   const stored = planId ? details[planId] : undefined;
 
