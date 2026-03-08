@@ -209,8 +209,8 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
     }
     setUploadingVideo(true);
     try {
-      const uploaded = await mediaApi.uploadTechniqueVideo(
-        client.id,
+      const uploaded = await mediaApi.uploadCheckinVideo(
+        entry.id,
         videoFile,
         videoExerciseName.trim(),
         videoNotes.trim() || undefined,
