@@ -363,6 +363,11 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   getOrCreateTrainingEntry: (clientId, clientName) => {
     const state = get();
 
+    // Training check-ins should only exist on Saturday or Sunday (the fill window)
+    const now = new Date();
+    const todayDay = now.getDay(); // 0=Sun, 6=Sat
+    if (todayDay !== 0 && todayDay !== 6) return null;
+
     const tpStore = useTrainingPlanStore.getState();
     const activePlan = tpStore.getActivePlanForClient(clientId);
     if (!activePlan) return null;
@@ -400,16 +405,10 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
 
     if (trainingLog.length === 0) return null;
 
-    const now = new Date();
-    const day = now.getDay();
-    // Use Saturday as the entry date (consistent with backend cron)
-    const diffToSat = day <= 6 ? 6 - day : 0;
+    // Use Saturday as the entry date
     const saturday = new Date(now);
-    // If it's Sunday (day=0), go back 1 day to get this week's Saturday
-    if (day === 0) {
-      saturday.setDate(now.getDate() - 1);
-    } else {
-      saturday.setDate(now.getDate() + diffToSat);
+    if (todayDay === 0) {
+      saturday.setDate(now.getDate() - 1); // Sunday → previous Saturday
     }
     const dateStr = saturday.toISOString().split("T")[0];
 
