@@ -70,7 +70,8 @@ export function AdminProfileProvider({ children }: { children: ReactNode }) {
 
   const handleUploadAvatar = useCallback(async (file: File) => {
     setSaving(true);
-    const res = await uploadAvatar(file);
+    const compressed = await compressImage(file, { maxSizeMB: 2, maxWidth: 800, maxHeight: 800 });
+    const res = await uploadAvatar(compressed);
     if (res.success && res.data) {
       setProfile((prev) => prev ? { ...prev, avatarUrl: res.data!.avatarUrl } : prev);
     }
