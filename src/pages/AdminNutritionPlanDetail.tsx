@@ -428,6 +428,13 @@ const AdminNutritionPlanDetail = () => {
     });
   }, [planId, plan]);
 
+  // Fetch supplements from API on mount
+  useEffect(() => {
+    fetchSupplements().then(() => {
+      setLocalSupplements([...useNutritionPlanStore.getState().supplements]);
+    });
+  }, [fetchSupplements]);
+
   const [saving, setSaving] = useState(false);
 
   const save = useCallback(async () => {
