@@ -60,6 +60,10 @@ const addFooter = (doc: jsPDF, clientName: string) => {
   const date = new Date().toLocaleDateString("es-ES");
   for (let i = 1; i <= pages; i++) {
     doc.setPage(i);
+
+    // Ensure every page has the black background (covers autoTable-created pages)
+    fillBackground(doc);
+
     const fy = doc.internal.pageSize.getHeight() - 10;
 
     // Subtle separator
@@ -70,7 +74,7 @@ const addFooter = (doc: jsPDF, clientName: string) => {
     doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(...TEXT_MUTED);
-    doc.text(`JIP Coaching — ${clientName} — ${date}`, MARGIN, fy);
+    doc.text(`JIP Coaching - ${clientName} - ${date}`, MARGIN, fy);
     doc.setTextColor(...NEON_GREEN);
     doc.text(`${i}/${pages}`, pw - MARGIN, fy, { align: "right" });
   }
