@@ -79,11 +79,12 @@ const ClientNutrition = () => {
   const supplements = useNutritionPlanStore((s) => s.supplements);
   const fetchPlans = useNutritionPlanStore((s) => s.fetchPlans);
   const fetchSupplements = useNutritionPlanStore((s) => s.fetchSupplements);
+  const fetchFoods = useExerciseLibraryStore((s) => s.fetchFoods);
   const fruits = useExerciseLibraryStore((s) => s.fruits);
   const vegetables = useExerciseLibraryStore((s) => s.vegetables);
 
-  // Fetch plans and supplements from API on mount
-  useEffect(() => { fetchPlans(client.id); fetchSupplements(); }, [client.id]);
+  // Fetch plans, supplements, and foods from API on mount
+  useEffect(() => { fetchPlans(client.id); fetchSupplements(); fetchFoods(); }, [client.id]);
 
   const activePlanSummary = plans.find((p) => p.clientId === client.id && p.active);
   const planDetail = activePlanSummary ? details[activePlanSummary.id] : null;
