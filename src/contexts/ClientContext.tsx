@@ -61,7 +61,7 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
           status: data.status,
           monthlyFee: data.monthlyFee,
           notes: data.notes,
-          avatarUrl: data.avatarUrl,
+          avatarUrl: resolveUrl(data.avatarUrl),
           services: getServicesFromPack(data.packType),
         };
         setSelfClient(enriched);
