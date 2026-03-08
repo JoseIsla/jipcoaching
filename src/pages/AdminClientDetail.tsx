@@ -12,7 +12,7 @@ import AdminVideoReview from "@/components/admin/AdminVideoReview";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
@@ -479,6 +479,7 @@ const AdminClientDetail = () => {
         <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-5">
             <Avatar className="h-16 w-16 border-2 border-primary/30">
+              <AvatarImage src={client.avatarUrl ?? undefined} alt={client.name} />
               <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">{initials}</AvatarFallback>
             </Avatar>
             <div className="flex-1 space-y-1">
