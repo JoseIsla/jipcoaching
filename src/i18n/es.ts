@@ -471,9 +471,11 @@ const es = {
     newEmail: "Nuevo correo",
     newEmailPlaceholder: "nuevo@email.com",
     currentPasswordLabel: "Contraseña actual",
-    sendVerification: "Enviar verificación",
+    sendVerification: "Cambiar email",
     verificationSent: "Verificación enviada",
     verificationSentDesc: "Se ha enviado un enlace de verificación a {email}. El email se actualizará en la base de datos tras la verificación.",
+    emailChanged: "Email actualizado",
+    emailChangedDesc: "Tu email se ha cambiado correctamente a {email}.",
     // Password
     passwordTitle: "Contraseña",
     passwordDesc: "Actualiza tu contraseña de acceso",
