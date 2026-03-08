@@ -469,7 +469,8 @@ const AdminNutritionPlanDetail = () => {
       const savedPlan = { ...plan, meals: plan.meals.map(m => ({ ...m, options: m.options.map(o => ({ ...o, rows: [...o.rows] })) })) };
       updateDetail(savedPlan);
       syncPlanToList(savedPlan);
-      setSupplements(supplements);
+      // Persist supplements via API
+      await saveSupplementsApi(supplements);
       toast.success("Plan guardado");
       navigate("/admin/nutrition");
     } catch (err: any) {
