@@ -258,8 +258,9 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
                       <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground">{t("progress.exercise")}</th>
                       <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">{t("progress.weight")}</th>
                       <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">{t("progress.reps")}</th>
-                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">e1RM</th>
-                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">{t("progress.date")}</th>
+                       <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">e1RM</th>
+                       <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">{t("progress.date")}</th>
+                       <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right w-20"></th>
                     </tr></thead>
                     <tbody>
                       {bestRMs.filter((r) => SBD_NAMES.includes(r.exerciseName)).map((rm) => (
