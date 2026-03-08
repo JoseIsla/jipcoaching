@@ -22,12 +22,15 @@ const VerifyEmailPage = () => {
       return;
     }
 
+    let cancelled = false;
+
     const verify = async () => {
       try {
         const data = await api.get<{ success: boolean; newEmail: string }>(
           `/verify-email?token=${token}`,
           { skipAuth: true, silent: true }
         );
+        if (cancelled) return;
         if (data?.success) {
           setNewEmail(data.newEmail);
           setStatus("success");
@@ -36,12 +39,15 @@ const VerifyEmailPage = () => {
           setErrorMsg(t("verifyEmail.genericError"));
         }
       } catch (err: any) {
+        if (cancelled) return;
         setStatus("error");
         setErrorMsg(err?.body?.message || err?.message || t("verifyEmail.genericError"));
       }
     };
 
     verify();
+
+    return () => { cancelled = true; };
   }, [token, t]);
 
   return (
