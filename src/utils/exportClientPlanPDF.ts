@@ -60,10 +60,6 @@ const addFooter = (doc: jsPDF, clientName: string) => {
   const date = new Date().toLocaleDateString("es-ES");
   for (let i = 1; i <= pages; i++) {
     doc.setPage(i);
-
-    // Ensure every page has the black background (covers autoTable-created pages)
-    fillBackground(doc);
-
     const fy = doc.internal.pageSize.getHeight() - 10;
 
     // Subtle separator
@@ -77,6 +73,19 @@ const addFooter = (doc: jsPDF, clientName: string) => {
     doc.text(`JIP Coaching - ${clientName} - ${date}`, MARGIN, fy);
     doc.setTextColor(...NEON_GREEN);
     doc.text(`${i}/${pages}`, pw - MARGIN, fy, { align: "right" });
+  }
+};
+
+/** Hook for autoTable: paint black background whenever it creates a new page */
+const didDrawPage = (doc: jsPDF) => (data: any) => {
+  // Only fill on pages autoTable adds (page 1 is handled by addHeader)
+  if (data.pageNumber > 1 || data.pageCount > 1) {
+    // Save current graphics state
+    const pw = doc.internal.pageSize.getWidth();
+    const ph = doc.internal.pageSize.getHeight();
+    // Draw black bg behind table content — autoTable draws on top
+    doc.setFillColor(...BG_BLACK);
+    doc.rect(0, 0, pw, ph, "F");
   }
 };
 
