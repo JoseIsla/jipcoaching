@@ -16,6 +16,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { parseOptionalDecimal } from "@/utils/parseDecimal";
 import {
   useNutritionPlanStore,
   globalFruitTable,

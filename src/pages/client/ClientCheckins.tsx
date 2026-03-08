@@ -27,6 +27,7 @@ import ClientMediaComments from "@/components/client/ClientMediaComments";
 import { useMediaStore } from "@/data/useMediaStore";
 import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 import { mediaApi } from "@/services/mediaApi";
+import { parseDecimal } from "@/utils/parseDecimal";
 
 /** Returns the deadline Date for an entry's fill window. */
 const getEntryDeadline = (entry: QuestionnaireEntry): Date => {

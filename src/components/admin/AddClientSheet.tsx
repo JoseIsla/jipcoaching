@@ -12,6 +12,7 @@ import { useClientStore } from "@/data/useClientStore";
 import { useClientDetailStore } from "@/data/useClientDetailStore";
 import { PackType, ClientStatus, packTypeLabels, getServicesFromPack, type CreateClientDto, type NutritionIntakeDto, type TrainingIntakeDto } from "@/types/api";
 import { useTranslation } from "@/i18n/useTranslation";
+import { parseDecimal, parseOptionalDecimal } from "@/utils/parseDecimal";
 
 export interface NewClientData {
   name: string;

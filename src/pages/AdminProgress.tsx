@@ -17,6 +17,7 @@ import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
 import { api } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+import { parseDecimal } from "@/utils/parseDecimal";
 
 const SBD_NAMES = ["Sentadilla", "Press Banca", "Peso Muerto"];
 
