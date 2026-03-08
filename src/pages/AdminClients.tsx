@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus, Utensils, Dumbbell, MoreHorizontal, UserX, UserCheck, Trash2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AddClientSheet, { type NewClientData } from "@/components/admin/AddClientSheet";
 import { Input } from "@/components/ui/input";
@@ -122,7 +123,17 @@ const AdminClients = () => {
             <TableBody>
               {filtered.map((client) => (
                 <TableRow key={client.id} className="border-border/50 hover:bg-muted/30 cursor-pointer" onClick={() => navigate(`/admin/clients/${client.id}`)}>
-                  <TableCell className="font-medium text-foreground">{client.name}</TableCell>
+                  <TableCell className="font-medium text-foreground">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={client.avatarUrl || undefined} />
+                        <AvatarFallback className="bg-primary/15 text-primary text-xs font-bold">
+                          {client.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      {client.name}
+                    </div>
+                  </TableCell>
                   <TableCell className="text-muted-foreground">{client.email}</TableCell>
                   <TableCell>
                     <div className="flex gap-1.5">
