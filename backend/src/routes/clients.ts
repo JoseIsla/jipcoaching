@@ -69,6 +69,36 @@ router.get("/me", async (req, res) => {
   }
 });
 
+// GET /api/clients/stats/evolution — Admin only: monthly client signups
+router.get("/stats/evolution", requireRole("ADMIN"), async (_req, res) => {
+  try {
+    const rows: any[] = await prisma.$queryRaw`
+      SELECT
+        DATE_FORMAT(createdAt, '%Y-%m') AS month,
+        COUNT(*) AS newClients
+      FROM Client
+      GROUP BY month
+      ORDER BY month ASC
+    `;
+
+    // Build cumulative total
+    let cumulative = 0;
+    const data = rows.map((r) => {
+      cumulative += Number(r.newClients);
+      return {
+        month: r.month,
+        newClients: Number(r.newClients),
+        total: cumulative,
+      };
+    });
+
+    res.json(data);
+  } catch (err: any) {
+    console.error("GET /clients/stats/evolution error:", err);
+    res.status(500).json({ message: "Error al obtener evolución" });
+  }
+});
+
 // GET /api/clients — Admin only
 router.get("/", requireRole("ADMIN"), async (_req, res) => {
   try {
