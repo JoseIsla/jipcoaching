@@ -584,6 +584,8 @@ const en: Translations = {
     noNutrition: "No nutrition check-ins yet.",
     noTraining: "No training check-ins yet.",
     noActivePlan: "You don't have an active training plan.",
+    trainingUpcoming: "📅 Coming soon",
+    trainingAvailableOn: "Your training check-in will be available on {date} at 7:00 AM.",
     responded: "Responded",
     pendingLabel: "Pending",
     upcoming: "Upcoming",
