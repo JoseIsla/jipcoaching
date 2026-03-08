@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Eye, Save, RotateCcw, Mail, UserPlus, CreditCard, AlertTriangle, KeyRound, Loader2, CloudOff } from "lucide-react";
+import { Eye, Save, RotateCcw, Mail, UserPlus, CreditCard, AlertTriangle, KeyRound, MailCheck, Loader2, CloudOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/services/api";
 import { DEV_MOCK } from "@/config/devMode";
@@ -87,6 +87,20 @@ const TEMPLATE_DEFS: TemplateConfig[] = [
     ctaLabel: "Restablecer contraseña",
     extraFields: [
       { key: "disclaimerText", label: "Texto de descargo", placeholder: "Si no solicitaste...", defaultValue: "Si no solicitaste este cambio, puedes ignorar este email. Tu contraseña seguirá siendo la misma." },
+    ],
+  },
+  {
+    id: "email_change",
+    label: "Cambio de email",
+    icon: MailCheck,
+    description: "Se envía cuando un usuario solicita cambiar su dirección de email. Incluye un enlace de verificación.",
+    subject: "Confirma tu nuevo email – JIP Coaching",
+    heading: "Confirma tu nuevo email",
+    subheading: "Hemos recibido una solicitud para cambiar el email de tu cuenta a {{nuevoEmail}}.",
+    bodyText: "Haz clic en el botón de abajo para confirmar el cambio. Este enlace expirará en 30 minutos.",
+    ctaLabel: "Confirmar nuevo email",
+    extraFields: [
+      { key: "disclaimerText", label: "Texto de descargo", placeholder: "Si no solicitaste este cambio...", defaultValue: "Si no solicitaste este cambio, puedes ignorar este email. Tu email seguirá siendo el mismo." },
     ],
   },
 ];
@@ -294,7 +308,7 @@ const TemplateEditor = ({ def, apiData, onSaved }: { def: TemplateConfig; apiDat
           ))}
           <div className="pt-2 border-t border-border">
             <p className="text-[11px] text-muted-foreground">
-              Variables disponibles: <code className="text-primary/80">{"{{nombre}}"}</code>, <code className="text-primary/80">{"{{email}}"}</code>, <code className="text-primary/80">{"{{mes}}"}</code>, <code className="text-primary/80">{"{{importe}}"}</code>
+              Variables disponibles: <code className="text-primary/80">{"{{nombre}}"}</code>, <code className="text-primary/80">{"{{email}}"}</code>, <code className="text-primary/80">{"{{mes}}"}</code>, <code className="text-primary/80">{"{{importe}}"}</code>, <code className="text-primary/80">{"{{nuevoEmail}}"}</code>
             </p>
           </div>
         </CardContent>

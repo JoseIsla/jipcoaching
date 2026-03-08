@@ -37,6 +37,7 @@ router.put("/:type", async (req, res) => {
       payment_confirmation: "PAYMENT_CONFIRMATION",
       payment_reminder: "PAYMENT_REMINDER",
       password_reset: "PASSWORD_RESET",
+      email_change: "EMAIL_CHANGE",
     };
     const dbType = typeMap[req.params.type];
     if (!dbType) {
