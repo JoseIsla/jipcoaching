@@ -71,7 +71,7 @@ export function ClientProfileProvider({ children }: { children: ReactNode }) {
   const saveProfile = useCallback(async (payload: UpdateClientProfilePayload) => {
     setSaving(true);
     const res = await updateClientProfile(payload);
-    if (res.success && res.data) setProfile(res.data);
+    if (res.success && res.data) setProfile({ ...res.data, avatarUrl: resolveAvatar(res.data.avatarUrl) });
     setSaving(false);
     return res;
   }, []);
