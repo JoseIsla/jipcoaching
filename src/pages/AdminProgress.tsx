@@ -51,6 +51,73 @@ const ClientProgressCard = ({ client, onClick, t }: { client: ApiClient; onClick
   );
 };
 
+const AddRMDialog = ({ clientId, open, onClose }: { clientId: string; open: boolean; onClose: () => void }) => {
+  const { toast } = useToast();
+  const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
+  const [exerciseName, setExerciseName] = useState("Sentadilla");
+  const [weight, setWeight] = useState("");
+  const [reps, setReps] = useState("1");
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!weight || Number(weight) <= 0) { toast({ title: "Error", description: "Introduce un peso válido", variant: "destructive" }); return; }
+    setSaving(true);
+    try {
+      const w = Number(weight);
+      const r = Number(reps) || 1;
+      const e1rm = r === 1 ? w : Math.round(w * (1 + r / 30));
+      await api.post(`/checkins/rm/${clientId}`, { exerciseName, weight: w, reps: r, estimated1RM: e1rm, date });
+      await fetchRMRecords(clientId);
+      toast({ title: "RM añadido", description: `${exerciseName}: ${w}kg x${r}` });
+      setWeight(""); setReps("1");
+      onClose();
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "No se pudo guardar", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="bg-card border-border sm:max-w-sm">
+        <DialogHeader><DialogTitle className="text-foreground flex items-center gap-2"><Dumbbell className="h-5 w-5 text-primary" /> Añadir RM</DialogTitle></DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label className="text-foreground text-xs">Ejercicio</Label>
+            <Select value={exerciseName} onValueChange={setExerciseName}>
+              <SelectTrigger className="bg-muted/50 border-border mt-1"><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-card border-border">
+                <SelectItem value="Sentadilla">Sentadilla</SelectItem>
+                <SelectItem value="Press Banca">Press Banca</SelectItem>
+                <SelectItem value="Peso Muerto">Peso Muerto</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-foreground text-xs">Peso (kg) *</Label>
+              <Input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className="bg-muted/50 border-border mt-1" placeholder="0" />
+            </div>
+            <div>
+              <Label className="text-foreground text-xs">Reps</Label>
+              <Input type="number" value={reps} onChange={(e) => setReps(e.target.value)} className="bg-muted/50 border-border mt-1" placeholder="1" />
+            </div>
+          </div>
+          <div>
+            <Label className="text-foreground text-xs">Fecha</Label>
+            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-muted/50 border-border mt-1" />
+          </div>
+          <Button onClick={handleSave} disabled={saving} className="w-full glow-primary-sm">
+            {saving ? "Guardando..." : "Guardar RM"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => void; t: (k: string) => string }) => {
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
@@ -60,6 +127,7 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
   const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
+  const [showAddRM, setShowAddRM] = useState(false);
 
   useEffect(() => {
     fetchEntries(client.id);
