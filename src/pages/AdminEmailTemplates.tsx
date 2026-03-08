@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AnimatedPage from "@/components/admin/AnimatedPage";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Eye, Save, RotateCcw, Mail, UserPlus, CreditCard, AlertTriangle, KeyRound } from "lucide-react";
+import { Eye, Save, RotateCcw, Mail, UserPlus, CreditCard, AlertTriangle, KeyRound, Loader2, CloudOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { api } from "@/services/api";
+import { DEV_MOCK } from "@/config/devMode";
 
 /* ── Shared style tokens ── */
 const DEFAULTS = {
@@ -99,18 +101,14 @@ interface TemplateState {
   extras: Record<string, string>;
 }
 
-const loadTemplateState = (id: string, def: TemplateConfig): TemplateState => {
-  const saved = localStorage.getItem(`email-tpl-${id}`);
-  if (saved) return JSON.parse(saved);
-  return {
-    subject: def.subject,
-    heading: def.heading,
-    subheading: def.subheading,
-    bodyText: def.bodyText,
-    ctaLabel: def.ctaLabel,
-    extras: Object.fromEntries((def.extraFields ?? []).map((f) => [f.key, f.defaultValue])),
-  };
-};
+const defaultStateFrom = (def: TemplateConfig): TemplateState => ({
+  subject: def.subject,
+  heading: def.heading,
+  subheading: def.subheading,
+  bodyText: def.bodyText,
+  ctaLabel: def.ctaLabel,
+  extras: Object.fromEntries((def.extraFields ?? []).map((f) => [f.key, f.defaultValue])),
+});
 
 /* ── HTML renderer ── */
 const renderPreview = (tpl: TemplateState, def: TemplateConfig): string => {
@@ -189,10 +187,16 @@ const renderPreview = (tpl: TemplateState, def: TemplateConfig): string => {
 
 /* ── Component ── */
 
-const TemplateEditor = ({ def }: { def: TemplateConfig }) => {
-  const [state, setState] = useState<TemplateState>(() => loadTemplateState(def.id, def));
+const TemplateEditor = ({ def, apiData, onSaved }: { def: TemplateConfig; apiData?: TemplateState; onSaved: () => void }) => {
+  const [state, setState] = useState<TemplateState>(() => apiData ?? defaultStateFrom(def));
   const [showPreview, setShowPreview] = useState(true);
+  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+
+  // Sync when API data arrives
+  useEffect(() => {
+    if (apiData) setState(apiData);
+  }, [apiData]);
 
   const update = (field: keyof TemplateState, value: string) => {
     setState((prev) => ({ ...prev, [field]: value }));
@@ -202,23 +206,34 @@ const TemplateEditor = ({ def }: { def: TemplateConfig }) => {
     setState((prev) => ({ ...prev, extras: { ...prev.extras, [key]: value } }));
   };
 
-  const handleSave = () => {
-    localStorage.setItem(`email-tpl-${def.id}`, JSON.stringify(state));
-    toast({ title: "Plantilla guardada", description: "Los cambios se han guardado localmente. Recuerda actualizar el backend para aplicarlos." });
+  const handleSave = async () => {
+    if (DEV_MOCK) {
+      toast({ title: "Modo desarrollo", description: "Los cambios no se guardan en modo mock." });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await api.put(`/email-templates/${def.id}`, {
+        subject: state.subject,
+        heading: state.heading,
+        subheading: state.subheading,
+        bodyText: state.bodyText,
+        ctaLabel: state.ctaLabel,
+        extras: state.extras,
+      });
+      toast({ title: "Plantilla guardada ✅", description: "Los cambios se aplicarán en los próximos envíos de email." });
+      onSaved();
+    } catch {
+      // api.ts already shows error toast
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleReset = () => {
-    const fresh: TemplateState = {
-      subject: def.subject,
-      heading: def.heading,
-      subheading: def.subheading,
-      bodyText: def.bodyText,
-      ctaLabel: def.ctaLabel,
-      extras: Object.fromEntries((def.extraFields ?? []).map((f) => [f.key, f.defaultValue])),
-    };
-    setState(fresh);
-    localStorage.removeItem(`email-tpl-${def.id}`);
-    toast({ title: "Plantilla restaurada", description: "Se han restaurado los valores por defecto." });
+    setState(defaultStateFrom(def));
+    toast({ title: "Plantilla restaurada", description: "Se han restaurado los valores por defecto. Guarda para aplicar." });
   };
 
   return (
@@ -235,8 +250,9 @@ const TemplateEditor = ({ def }: { def: TemplateConfig }) => {
               <Button variant="ghost" size="sm" onClick={handleReset} className="text-muted-foreground">
                 <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restaurar
               </Button>
-              <Button size="sm" onClick={handleSave} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Save className="h-3.5 w-3.5 mr-1" /> Guardar
+              <Button size="sm" onClick={handleSave} disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                {saving ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-1" />}
+                Guardar
               </Button>
             </div>
           </div>
@@ -316,6 +332,34 @@ const TemplateEditor = ({ def }: { def: TemplateConfig }) => {
 };
 
 const AdminEmailTemplates = () => {
+  const [apiTemplates, setApiTemplates] = useState<Record<string, TemplateState>>({});
+  const [loading, setLoading] = useState(true);
+
+  const fetchTemplates = useCallback(async () => {
+    if (DEV_MOCK) { setLoading(false); return; }
+    try {
+      const data = await api.get<any[]>("/email-templates");
+      const map: Record<string, TemplateState> = {};
+      for (const t of data) {
+        map[t.type] = {
+          subject: t.subject,
+          heading: t.heading,
+          subheading: t.subheading,
+          bodyText: t.bodyText,
+          ctaLabel: t.ctaLabel,
+          extras: t.extras || {},
+        };
+      }
+      setApiTemplates(map);
+    } catch {
+      // Error toast shown by api client
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchTemplates(); }, [fetchTemplates]);
+
   return (
     <AdminLayout>
       <AnimatedPage>
@@ -323,30 +367,46 @@ const AdminEmailTemplates = () => {
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Plantillas de Email</h1>
             <p className="text-muted-foreground text-sm mt-1">
-              Previsualiza y personaliza los correos automáticos que reciben tus clientes.
+              Personaliza los correos automáticos. Los cambios se aplican en tiempo real a los próximos envíos.
             </p>
+            {DEV_MOCK && (
+              <div className="flex items-center gap-2 mt-2 text-xs text-amber-500">
+                <CloudOff className="h-3.5 w-3.5" />
+                Modo desarrollo — los cambios no se guardan en servidor.
+              </div>
+            )}
           </div>
 
-          <Tabs defaultValue="welcome" className="space-y-6">
-            <TabsList className="bg-muted/50 h-auto flex-wrap gap-1 p-1">
-              {TEMPLATE_DEFS.map((def) => (
-                <TabsTrigger
-                  key={def.id}
-                  value={def.id}
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2 text-xs sm:text-sm"
-                >
-                  <def.icon className="h-3.5 w-3.5" />
-                  {def.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <Tabs defaultValue="welcome" className="space-y-6">
+              <TabsList className="bg-muted/50 h-auto flex-wrap gap-1 p-1">
+                {TEMPLATE_DEFS.map((def) => (
+                  <TabsTrigger
+                    key={def.id}
+                    value={def.id}
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2 text-xs sm:text-sm"
+                  >
+                    <def.icon className="h-3.5 w-3.5" />
+                    {def.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
 
-            {TEMPLATE_DEFS.map((def) => (
-              <TabsContent key={def.id} value={def.id}>
-                <TemplateEditor def={def} />
-              </TabsContent>
-            ))}
-          </Tabs>
+              {TEMPLATE_DEFS.map((def) => (
+                <TabsContent key={def.id} value={def.id}>
+                  <TemplateEditor
+                    def={def}
+                    apiData={apiTemplates[def.id]}
+                    onSaved={fetchTemplates}
+                  />
+                </TabsContent>
+              ))}
+            </Tabs>
+          )}
         </div>
       </AnimatedPage>
     </AdminLayout>
