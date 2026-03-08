@@ -204,6 +204,14 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
                 {previews[key] && (
                   <div className="flex items-center justify-center gap-1 text-[10px] text-primary">
                     <CheckCircle2 className="h-3 w-3" /> {label}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleRemovePending(key); }}
+                      className="ml-1 p-0.5 rounded-full bg-destructive/20 text-destructive hover:bg-destructive/30 transition-colors"
+                      title="Quitar foto"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
                   </div>
                 )}
               </div>
