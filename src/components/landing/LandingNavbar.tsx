@@ -82,19 +82,19 @@ const LandingNavbar = () => {
           </div>
 
           {/* Language + Login/Panel + Mobile toggle */}
-          <div className="flex items-center gap-2">
-            {/* Language toggle */}
-            <div className="flex items-center gap-1.5">
-              <Globe className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Language toggle — compact on mobile */}
+            <div className="flex items-center gap-1">
+              <Globe className="h-4 w-4 text-muted-foreground hidden sm:block" />
               <button
                 onClick={() => setAppLanguage("es")}
-                className={`text-xs font-medium px-2 py-1 rounded-md transition-colors ${appLanguage === "es" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                className={`text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-1 rounded-md transition-colors ${appLanguage === "es" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
               >
                 ES
               </button>
               <button
                 onClick={() => setAppLanguage("en")}
-                className={`text-xs font-medium px-2 py-1 rounded-md transition-colors ${appLanguage === "en" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                className={`text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-1 rounded-md transition-colors ${appLanguage === "en" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
               >
                 EN
               </button>
