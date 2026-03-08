@@ -165,12 +165,12 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const markCommentsSeen = useClientPreferencesStore((s) => s.markCommentsSeen);
 
   const videoComments = videos.flatMap((v) => getComments("video", v.id));
-  const unseenCount = videoComments.filter((c) => !seenCommentIds.has(c.id)).length;
+  const unseenCount = videoComments.filter((c) => !seenCommentIds.includes(c.id)).length;
 
   // Mark comments as seen when expanded
   useEffect(() => {
     if (open && videoComments.length > 0) {
-      const unseenIds = videoComments.filter((c) => !seenCommentIds.has(c.id)).map((c) => c.id);
+      const unseenIds = videoComments.filter((c) => !seenCommentIds.includes(c.id)).map((c) => c.id);
       if (unseenIds.length > 0) {
         markCommentsSeen(unseenIds);
       }
