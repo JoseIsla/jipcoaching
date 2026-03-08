@@ -89,6 +89,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/billing", billingRoutes);
 app.use("/api/supplements", supplementRoutes);
 app.use("/api/questionnaires", questionnaireRoutes);
+app.use("/api/email-templates", emailTemplateRoutes);
 
 // Mount media routes also under /api/clients/:clientId/media
 // so frontend calls like /clients/abc/media/photos work
