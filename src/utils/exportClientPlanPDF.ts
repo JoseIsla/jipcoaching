@@ -295,7 +295,7 @@ export const exportTrainingWeekPDF = (
   }
 
   // Days
-  week.days.forEach((day) => {
+  [...week.days].sort((a, b) => a.dayNumber - b.dayNumber).forEach((day) => {
     y = checkPage(doc, y, 35);
 
     // Day header with neon green accent
