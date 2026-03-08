@@ -173,8 +173,12 @@ const AdminSettings = () => {
       newPassword: passwords.new,
     });
     if (res.success) {
-      toast({ title: t("settings.passwordUpdated"), description: t("settings.passwordUpdatedDesc") });
+      toast({ title: t("settings.passwordUpdated"), description: "Sesión cerrada. Inicia sesión con tu nueva contraseña." });
       setPasswords({ current: "", new: "", confirm: "" });
+      setTimeout(async () => {
+        await logout();
+        navigate("/login");
+      }, 1200);
     } else {
       toast({ title: "Error", description: res.error || "", variant: "destructive" });
     }

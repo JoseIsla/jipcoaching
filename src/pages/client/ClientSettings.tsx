@@ -147,8 +147,12 @@ const ClientSettings = () => {
       newPassword: passwords.new,
     });
     if (res.success) {
-      toast({ title: t("clientSettings.passwordUpdated"), description: t("clientSettings.passwordUpdatedDesc") });
+      toast({ title: t("clientSettings.passwordUpdated"), description: "Sesión cerrada. Inicia sesión con tu nueva contraseña." });
       setPasswords({ current: "", new: "", confirm: "" });
+      setTimeout(async () => {
+        await logout();
+        navigate("/login");
+      }, 1200);
     } else {
       toast({ title: "Error", description: res.error || "", variant: "destructive" });
     }
