@@ -701,9 +701,27 @@ const ClientCheckins = () => {
               <TabsContent value="training" className="space-y-3">
                 <p className="text-xs text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("clientCheckins.trainingSchedule") }} />
                 {trainingEntries.length === 0 && (
-                  <div className="text-center py-8">
-                    <Dumbbell className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">{t("clientCheckins.noActivePlan")}</p>
+                  <div className="text-center py-8 space-y-2">
+                    <Dumbbell className="h-8 w-8 text-muted-foreground mx-auto" />
+                    {(() => {
+                      const day = new Date().getDay();
+                      const isTrainingWindow = day === 6 || day === 0;
+                      if (!isTrainingWindow) {
+                        // Calculate next Saturday
+                        const now = new Date();
+                        const daysUntilSat = (6 - day + 7) % 7 || 7;
+                        const nextSat = new Date(now);
+                        nextSat.setDate(now.getDate() + daysUntilSat);
+                        const formatted = nextSat.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+                        return (
+                          <>
+                            <p className="text-sm font-medium text-foreground">{t("clientCheckins.trainingUpcoming")}</p>
+                            <p className="text-xs text-muted-foreground">{t("clientCheckins.trainingAvailableOn", { date: formatted })}</p>
+                          </>
+                        );
+                      }
+                      return <p className="text-sm text-muted-foreground">{t("clientCheckins.noActivePlan")}</p>;
+                    })()}
                   </div>
                 )}
                 {trainingEntries.map((entry) => <TrainingLogCard key={entry.id} entry={entry} />)}
