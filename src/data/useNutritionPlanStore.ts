@@ -94,14 +94,28 @@ const mapApiPlanToListEntry = (p: ApiNutritionPlan): NutritionPlanListEntry => (
 const mapApiPlanToDetail = (p: ApiNutritionPlan): NutritionPlanDetail => {
   let recommendations: string[] = [];
   if (p.recommendations) {
-    try { recommendations = JSON.parse(p.recommendations); } catch { recommendations = [p.recommendations]; }
+    try {
+      const parsed = JSON.parse(p.recommendations);
+      if (Array.isArray(parsed)) {
+        recommendations = parsed;
+      } else if (typeof parsed === "object" && parsed !== null) {
+        // Object like { descanso: "...", hidratacion: "..." } → convert to labeled strings
+        recommendations = Object.entries(parsed).map(
+          ([key, val]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${val}`
+        );
+      } else {
+        recommendations = [String(parsed)];
+      }
+    } catch {
+      recommendations = [p.recommendations];
+    }
   }
   return {
     id: p.id,
     clientId: p.clientId,
     clientName: "",
     planName: p.title,
-    objective: p.recommendations ?? "",
+    objective: (p as any).objective ?? "",
     calories: p.kcalMin ?? p.kcalMax,
     protein: p.proteinG,
     carbs: p.carbsG,
@@ -112,7 +126,7 @@ const mapApiPlanToDetail = (p: ApiNutritionPlan): NutritionPlanDetail => {
     meals: (p.meals ?? []).map((m) => ({
       id: m.id,
       name: m.name,
-      description: m.notes,
+      description: (m as any).description ?? m.notes,
       options: (m.options ?? []).map((o) => ({
         id: o.id,
         name: o.name ?? "",
