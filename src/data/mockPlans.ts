@@ -108,23 +108,28 @@ const carlosWeek1 = {
   ],
 };
 
-const carlosWeek2 = {
-  id: "tw-mock-carlos-w2",
+const makeWeekFromBase = (weekNum: number, status: "completed" | "active" | "draft", rpeOffset: number, notes: string) => ({
+  id: `tw-mock-carlos-w${weekNum}`,
   planId: "t-mock-carlos",
-  weekNumber: 2,
+  weekNumber: weekNum,
   block: "Hipertrofia" as const,
-  status: "active" as const,
-  generalNotes: "Subimos RPE a 8. Mantener técnica.",
+  status,
+  generalNotes: notes,
   days: carlosWeek1.days.map((d) => ({
     ...d,
-    id: d.id.replace("w1", "w2"),
+    id: d.id.replace("w1", `w${weekNum}`),
     exercises: d.exercises.map((e: any) => ({
       ...e,
-      id: `${e.id}-w2`,
-      topSetRPE: e.topSetRPE ? e.topSetRPE + 1 : undefined,
+      id: `${e.id}-w${weekNum}`,
+      topSetRPE: e.topSetRPE ? e.topSetRPE + rpeOffset : undefined,
     })),
   })),
-};
+});
+
+const carlosWeek2 = makeWeekFromBase(2, "completed", 1, "Subimos RPE a 8. Mantener técnica.");
+const carlosWeek3 = makeWeekFromBase(3, "completed", 1.5, "Semana 3: consolidación de cargas.");
+const carlosWeek4 = makeWeekFromBase(4, "completed", 2, "Semana fuerte. RPEs altos pero controlados.");
+const carlosWeek5 = makeWeekFromBase(5, "active", 2, "Semana 5: última subida antes de deload.");
 
 export const mockTrainingPlans: MockTrainingPlanList[] = [
   {
