@@ -3,6 +3,7 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import path from "path";
 import { PrismaClient } from "@prisma/client";
 
@@ -33,7 +34,13 @@ export const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ── Middleware ──
+// ── Security headers ──
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow serving uploads cross-origin
+  contentSecurityPolicy: false, // CSP managed by frontend
+}));
+
+// ── CORS ──
 const allowedOrigins = (process.env.CORS_ORIGIN || "https://jipcoaching.com,https://www.jipcoaching.com").split(",").map(s => s.trim());
 app.use(cors({
   origin: (origin, callback) => {
