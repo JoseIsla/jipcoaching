@@ -46,7 +46,7 @@ router.get("/plans/:id", async (req, res) => {
     const plan = await prisma.trainingPlan.findUnique({
       where: { id: req.params.id as string },
       include: {
-        client: { select: { user: { select: { name: true } } } },
+        client: { include: { user: { select: { name: true } } } },
         weeks: {
           include: { days: { include: { exercises: { orderBy: { order: "asc" } } } } },
           orderBy: { weekNumber: "asc" },
