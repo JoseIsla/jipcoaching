@@ -227,7 +227,7 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
               </div>
               <div>
                 <Label className="text-foreground text-xs">Tarifa mensual (€)</Label>
-                <Input type="number" value={monthlyFee} onChange={(e) => setMonthlyFee(e.target.value)} className={inputCls} placeholder="0" />
+                <Input type="text" inputMode="decimal" value={monthlyFee} onChange={(e) => setMonthlyFee(e.target.value)} className={inputCls} placeholder="0" />
               </div>
             </div>
           )}
