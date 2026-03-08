@@ -186,7 +186,7 @@ router.post("/", requireRole("ADMIN"), async (req, res) => {
 
     // Create initial weight history entry if weight provided
     if (initialWeight) {
-      await prisma.weightHistory.create({
+      await prisma.weightEntry.create({
         data: {
           clientId: client.id,
           date: new Date(),
