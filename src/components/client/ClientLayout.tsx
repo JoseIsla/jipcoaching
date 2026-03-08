@@ -81,16 +81,32 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
 
         for (const n of data) {
           if (existingIds.has(`server-${n.id}`)) continue;
+
+          // Map backend notification type to client notification type
+          const mapType = (serverType: string, title: string): import("@/data/useClientNotificationStore").ClientNotificationType => {
+            if (serverType === "checkin_reminder" || serverType === "checkin") {
+              return title.toLowerCase().includes("nutrición") || title.toLowerCase().includes("nutrition")
+                ? "nutrition_checkin" : "training_checkin";
+            }
+            if (serverType === "payment") return "payment";
+            if (serverType === "plan") return "plan";
+            if (serverType === "video_comment" || serverType === "media") return "video_comment";
+            return "system";
+          };
+
+          const notifType = mapType(n.type, n.title);
+          const defaultLink = notifType === "payment" ? "/client"
+            : notifType === "video_comment" ? "/client/progress"
+            : "/client/checkins";
+
           addNotification({
             id: `server-${n.id}`,
-            type: n.type === "checkin_reminder"
-              ? (n.title.includes("nutrición") ? "nutrition_checkin" : "training_checkin")
-              : "video_comment",
+            type: notifType,
             titleKey: n.title,
             descriptionKey: n.message,
             timestamp: new Date(n.createdAt),
             read: n.read,
-            link: n.link || "/client/checkins",
+            link: n.link || defaultLink,
           });
         }
       } catch { /* silent */ }
