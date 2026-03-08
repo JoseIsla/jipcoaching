@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Utensils, Apple, Salad, Pill, Target, Pencil,
@@ -30,16 +30,28 @@ const AdminNutritionPlanView = () => {
   const details = useNutritionPlanStore((s) => s.details);
   const supplements = useNutritionPlanStore((s) => s.supplements);
   const fetchSupplements = useNutritionPlanStore((s) => s.fetchSupplements);
+  const fetchPlans = useNutritionPlanStore((s) => s.fetchPlans);
+  const [loading, setLoading] = useState(false);
   const plan = planId ? details[planId] : undefined;
 
   useEffect(() => { fetchSupplements(); }, [fetchSupplements]);
 
-  if (!plan) {
+  // Fetch plan detail from API if not in store
+  useEffect(() => {
+    if (!planId) return;
+    const detail = useNutritionPlanStore.getState().details[planId];
+    if (!detail || detail.meals.length === 0) {
+      setLoading(true);
+      fetchPlans().finally(() => setLoading(false));
+    }
+  }, [planId, fetchPlans]);
+
+  if (!plan || loading) {
     return (
       <AdminLayout>
         <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-          <p className="text-muted-foreground">Plan no encontrado</p>
-          <Button variant="outline" onClick={() => navigate("/admin/nutrition")}>Volver a Nutrición</Button>
+          <p className="text-muted-foreground">{loading ? "Cargando plan…" : "Plan no encontrado"}</p>
+          {!loading && <Button variant="outline" onClick={() => navigate("/admin/nutrition")}>Volver a Nutrición</Button>}
         </div>
       </AdminLayout>
     );
