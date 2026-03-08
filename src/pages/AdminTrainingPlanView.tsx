@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Pencil, Dumbbell, Calendar, User, Info } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -90,19 +90,34 @@ const AdminTrainingPlanView = () => {
   const { planId } = useParams<{ planId: string }>();
   const navigate = useNavigate();
   const getDetail = useTrainingPlanStore((s) => s.getDetail);
+  const fetchPlanDetail = useTrainingPlanStore((s) => s.fetchPlanDetail);
+  const [loading, setLoading] = useState(false);
   const plan = planId ? getDetail(planId) : null;
+
+  // Fetch full plan detail from API on mount
+  useEffect(() => {
+    if (!planId) return;
+    const detail = useTrainingPlanStore.getState().details[planId];
+    // If detail has no real data (empty weeks or no exercises), fetch from API
+    const hasRealData = detail?.weeks?.some((w) => w.days?.some((d) => d.exercises?.length > 0));
+    if (!hasRealData) {
+      setLoading(true);
+      fetchPlanDetail(planId).finally(() => setLoading(false));
+    }
+  }, [planId, fetchPlanDetail]);
+
   const [selectedWeek, setSelectedWeek] = useState(() => {
     if (!plan) return 0;
     const activeIdx = plan.weeks.findIndex((w) => w.status === "active");
     return activeIdx >= 0 ? activeIdx : plan.weeks.length - 1;
   });
 
-  if (!plan) {
+  if (!plan || loading) {
     return (
       <AdminLayout>
         <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-          <p className="text-muted-foreground">Plan no encontrado</p>
-          <Button variant="outline" onClick={() => navigate("/admin/training")}>Volver</Button>
+          <p className="text-muted-foreground">{loading ? "Cargando plan…" : "Plan no encontrado"}</p>
+          {!loading && <Button variant="outline" onClick={() => navigate("/admin/training")}>Volver</Button>}
         </div>
       </AdminLayout>
     );
