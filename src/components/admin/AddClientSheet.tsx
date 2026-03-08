@@ -268,7 +268,7 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">Peso actual</Label>
-                  <Input type="number" value={nutIntake.currentWeight ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, currentWeight: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} placeholder="kg" />
+                  <Input type="text" inputMode="decimal" value={nutIntake.currentWeight ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, currentWeight: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="kg" />
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">Edad</Label>
