@@ -47,6 +47,7 @@ const mapApiClient = (c: any): ClientDetail => {
     phone: c.phone ?? "",
     age: c.age ?? undefined,
     sex: c.sex ?? undefined,
+    avatarUrl: resolveUrl(c.avatarUrl),
     services: packToServices(c.packType),
     plan: c.packType,
     status: mapStatus(c.status),
