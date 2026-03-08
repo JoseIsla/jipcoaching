@@ -112,12 +112,12 @@ const AdminTrainingPlanView = () => {
     return activeIdx >= 0 ? activeIdx : plan.weeks.length - 1;
   });
 
-  if (!plan) {
+  if (!plan || loading) {
     return (
       <AdminLayout>
         <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-          <p className="text-muted-foreground">Plan no encontrado</p>
-          <Button variant="outline" onClick={() => navigate("/admin/training")}>Volver</Button>
+          <p className="text-muted-foreground">{loading ? "Cargando plan…" : "Plan no encontrado"}</p>
+          {!loading && <Button variant="outline" onClick={() => navigate("/admin/training")}>Volver</Button>}
         </div>
       </AdminLayout>
     );
