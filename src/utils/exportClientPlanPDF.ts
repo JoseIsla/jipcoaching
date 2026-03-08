@@ -245,7 +245,7 @@ export const exportNutritionPlanPDF = (
     doc.setTextColor(...TEXT_LIGHT);
     plan.recommendations.forEach((r) => {
       y = checkPage(doc, y, 8);
-      const lines = doc.splitTextToSize(`• ${r}`, doc.internal.pageSize.getWidth() - MARGIN * 2);
+      const lines = doc.splitTextToSize(`- ${r}`, doc.internal.pageSize.getWidth() - MARGIN * 2);
       doc.text(lines, MARGIN, y);
       y += lines.length * 3.5 + 2;
     });
