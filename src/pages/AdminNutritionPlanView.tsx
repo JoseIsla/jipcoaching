@@ -29,7 +29,10 @@ const AdminNutritionPlanView = () => {
   const navigate = useNavigate();
   const details = useNutritionPlanStore((s) => s.details);
   const supplements = useNutritionPlanStore((s) => s.supplements);
+  const fetchSupplements = useNutritionPlanStore((s) => s.fetchSupplements);
   const plan = planId ? details[planId] : undefined;
+
+  useEffect(() => { fetchSupplements(); }, [fetchSupplements]);
 
   if (!plan) {
     return (
