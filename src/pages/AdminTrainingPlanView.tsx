@@ -90,7 +90,22 @@ const AdminTrainingPlanView = () => {
   const { planId } = useParams<{ planId: string }>();
   const navigate = useNavigate();
   const getDetail = useTrainingPlanStore((s) => s.getDetail);
+  const fetchPlanDetail = useTrainingPlanStore((s) => s.fetchPlanDetail);
+  const [loading, setLoading] = useState(false);
   const plan = planId ? getDetail(planId) : null;
+
+  // Fetch full plan detail from API on mount
+  useEffect(() => {
+    if (!planId) return;
+    const detail = useTrainingPlanStore.getState().details[planId];
+    // If detail has no real data (empty weeks or no exercises), fetch from API
+    const hasRealData = detail?.weeks?.some((w) => w.days?.some((d) => d.exercises?.length > 0));
+    if (!hasRealData) {
+      setLoading(true);
+      fetchPlanDetail(planId).finally(() => setLoading(false));
+    }
+  }, [planId, fetchPlanDetail]);
+
   const [selectedWeek, setSelectedWeek] = useState(() => {
     if (!plan) return 0;
     const activeIdx = plan.weeks.findIndex((w) => w.status === "active");
