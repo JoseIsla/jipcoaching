@@ -71,6 +71,9 @@ export async function fetchClientProfile(): Promise<ApiResponse<ClientProfile>> 
 
   try {
     const data = await api.get<ClientProfile>("/profile/client");
+    if (data) {
+      data.avatarUrl = resolveAvatarUrl(data.avatarUrl);
+    }
     return { success: true, data };
   } catch (err: any) {
     return { success: false, error: err?.message ?? "Error al obtener perfil" };
