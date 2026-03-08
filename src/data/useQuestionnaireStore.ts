@@ -402,10 +402,16 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
 
     const now = new Date();
     const day = now.getDay();
-    const diffToSun = day === 0 ? 0 : 7 - day;
-    const sunday = new Date(now);
-    sunday.setDate(now.getDate() + diffToSun);
-    const dateStr = sunday.toISOString().split("T")[0];
+    // Use Saturday as the entry date (consistent with backend cron)
+    const diffToSat = day <= 6 ? 6 - day : 0;
+    const saturday = new Date(now);
+    // If it's Sunday (day=0), go back 1 day to get this week's Saturday
+    if (day === 0) {
+      saturday.setDate(now.getDate() - 1);
+    } else {
+      saturday.setDate(now.getDate() + diffToSat);
+    }
+    const dateStr = saturday.toISOString().split("T")[0];
 
     const newEntry: QuestionnaireEntry = {
       id: autoId,
@@ -416,7 +422,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
       category: "training",
       weekLabel: `Semana ${activeWeek.weekNumber}`,
       date: dateStr,
-      dayLabel: "Domingo",
+      dayLabel: "Sábado",
       status: "pendiente",
       trainingLog,
       planId: activePlan.id,
