@@ -250,18 +250,29 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                 </Select>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-foreground text-xs">{t("addClient.goalTimeframe")}</Label>
                   <Input value={nutIntake.goalTimeframe || ""} onChange={(e) => setNutIntake({ ...nutIntake, goalTimeframe: e.target.value })} className={inputCls} placeholder="Ej: 3 meses" />
+                </div>
+                <div>
+                  <Label className="text-foreground text-xs">{t("addClient.targetWeight")}</Label>
+                  <Input type="number" value={nutIntake.targetWeight ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, targetWeight: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} placeholder="kg" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label className="text-foreground text-xs">Altura</Label>
+                  <Input type="number" value={nutIntake.height ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, height: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} placeholder="cm" />
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">Peso actual</Label>
                   <Input type="number" value={nutIntake.currentWeight ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, currentWeight: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} placeholder="kg" />
                 </div>
                 <div>
-                  <Label className="text-foreground text-xs">{t("addClient.targetWeight")}</Label>
-                  <Input type="number" value={nutIntake.targetWeight ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, targetWeight: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} placeholder="kg" />
+                  <Label className="text-foreground text-xs">Edad</Label>
+                  <Input type="number" value={nutIntake.age ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, age: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} placeholder="años" />
                 </div>
               </div>
 
