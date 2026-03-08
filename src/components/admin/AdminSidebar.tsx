@@ -16,7 +16,7 @@ import {
   Mail,
   TrendingUp,
 } from "lucide-react";
-import logoJip from "@/assets/logo-jip.png";
+import logoJipWide from "@/assets/logo-jip-wide.png";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "@/i18n/useTranslation";
 
@@ -92,7 +92,7 @@ const AdminSidebar = () => {
       >
         <div className="flex items-center justify-center h-20 border-b border-sidebar-border px-4">
           {!collapsed ? (
-            <img src={logoJip} alt="JIP" className="h-12 w-auto" />
+            <img src={logoJipWide} alt="JIP Performance Nutrition" className="h-10 w-auto max-w-[180px] object-contain" />
           ) : (
             <span className="text-primary font-black text-xl">J</span>
           )}
@@ -126,7 +126,7 @@ const AdminSidebar = () => {
         }`}
       >
         <div className="flex items-center justify-between h-16 border-b border-sidebar-border px-4">
-          <img src={logoJip} alt="JIP" className="h-10 w-auto" />
+          <img src={logoJipWide} alt="JIP Performance Nutrition" className="h-9 w-auto max-w-[160px] object-contain" />
           <button
             onClick={() => setMobileOpen(false)}
             className="text-muted-foreground hover:text-foreground"
