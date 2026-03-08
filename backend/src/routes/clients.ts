@@ -165,6 +165,8 @@ router.post("/", requireRole("ADMIN"), async (req, res) => {
       data: { email, password: hashedPassword, role: "CLIENT" },
     });
 
+    const initialWeight = nutritionIntake?.currentWeight ? Number(nutritionIntake.currentWeight) : null;
+
     const client = await prisma.client.create({
       data: {
         userId: user.id,
@@ -175,8 +177,21 @@ router.post("/", requireRole("ADMIN"), async (req, res) => {
         monthlyFee: monthlyFee || 0,
         notes,
         startDate: new Date(),
+        ...(initialWeight && { currentWeight: initialWeight }),
+        ...(nutritionIntake?.targetWeight && { targetWeight: Number(nutritionIntake.targetWeight) }),
       },
     });
+
+    // Create initial weight history entry if weight provided
+    if (initialWeight) {
+      await prisma.weightHistory.create({
+        data: {
+          clientId: client.id,
+          date: new Date(),
+          weight: initialWeight,
+        },
+      });
+    }
 
     // Save intake forms if provided
     if (nutritionIntake && (packType === "NUTRITION" || packType === "FULL")) {

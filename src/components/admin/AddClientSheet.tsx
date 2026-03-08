@@ -250,10 +250,14 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                 </Select>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <Label className="text-foreground text-xs">{t("addClient.goalTimeframe")}</Label>
                   <Input value={nutIntake.goalTimeframe || ""} onChange={(e) => setNutIntake({ ...nutIntake, goalTimeframe: e.target.value })} className={inputCls} placeholder="Ej: 3 meses" />
+                </div>
+                <div>
+                  <Label className="text-foreground text-xs">Peso actual</Label>
+                  <Input type="number" value={nutIntake.currentWeight ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, currentWeight: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} placeholder="kg" />
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">{t("addClient.targetWeight")}</Label>
