@@ -3,7 +3,7 @@
  * Shows in Progress tab for nutrition clients.
  */
 import { useState, useRef, useEffect } from "react";
-import { Camera, Upload, Clock, CheckCircle2, ImageIcon, Loader2 } from "lucide-react";
+import { Camera, Upload, Clock, CheckCircle2, ImageIcon, Loader2, X } from "lucide-react";
 import ClientMediaComments from "./ClientMediaComments";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
