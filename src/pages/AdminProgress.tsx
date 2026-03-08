@@ -208,7 +208,10 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
         {hasTraining && (
           <TabsContent value="training" className="space-y-6">
             <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><Trophy className="h-4 w-4" /> {t("progress.bestRMs")}</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><Trophy className="h-4 w-4" /> {t("progress.bestRMs")}</h3>
+                <Button variant="outline" size="sm" onClick={() => setShowAddRM(true)} className="gap-1 text-xs border-border"><Plus className="h-3.5 w-3.5" /> Añadir RM</Button>
+              </div>
               {bestRMs.length > 0 ? (
                 <div className="rounded-lg border border-border overflow-hidden">
                   <table className="w-full">
