@@ -138,7 +138,8 @@ export async function uploadClientAvatar(file: File): Promise<ApiResponse<{ avat
     }
 
     const data = await res.json();
-    return { success: true, data: { avatarUrl: data.avatarUrl } };
+    const resolved = resolveAvatarUrl(data.avatarUrl) || data.avatarUrl;
+    return { success: true, data: { avatarUrl: resolved } };
   } catch (err: any) {
     return { success: false, error: err?.message ?? "Error al subir avatar" };
   }
