@@ -263,15 +263,21 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
                        <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right w-20"></th>
                     </tr></thead>
                     <tbody>
-                      {bestRMs.filter((r) => SBD_NAMES.includes(r.exerciseName)).map((rm) => (
-                        <tr key={rm.exerciseId} className="border-t border-border/50">
-                          <td className="px-4 py-3 text-sm font-medium text-foreground">{rm.exerciseName}</td>
-                          <td className="px-4 py-3 text-sm text-muted-foreground text-right font-mono">{rm.weight} kg</td>
-                          <td className="px-4 py-3 text-sm text-muted-foreground text-right font-mono">{rm.reps}</td>
-                          <td className="px-4 py-3 text-sm text-primary text-right font-mono font-bold">{rm.estimated1RM} kg</td>
-                          <td className="px-4 py-3 text-xs text-muted-foreground text-right">{rm.date}</td>
-                        </tr>
-                      ))}
+                       {bestRMs.filter((r) => SBD_NAMES.includes(r.exerciseName)).map((rm) => (
+                         <tr key={rm.id || rm.exerciseId} className="border-t border-border/50">
+                           <td className="px-4 py-3 text-sm font-medium text-foreground">{rm.exerciseName}</td>
+                           <td className="px-4 py-3 text-sm text-muted-foreground text-right font-mono">{rm.weight} kg</td>
+                           <td className="px-4 py-3 text-sm text-muted-foreground text-right font-mono">{rm.reps}</td>
+                           <td className="px-4 py-3 text-sm text-primary text-right font-mono font-bold">{rm.estimated1RM} kg</td>
+                           <td className="px-4 py-3 text-xs text-muted-foreground text-right">{rm.date}</td>
+                           <td className="px-4 py-2 text-right">
+                             <div className="flex items-center justify-end gap-1">
+                               <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => setEditRM({ id: rm.id, exerciseName: rm.exerciseName, weight: rm.weight, reps: rm.reps, date: rm.date })}><Pencil className="h-3.5 w-3.5" /></Button>
+                               <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => handleDeleteRM(rm)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                             </div>
+                           </td>
+                         </tr>
+                       ))}
                     </tbody>
                     <tfoot><tr className="border-t border-border bg-muted/30">
                       <td className="px-4 py-2.5 text-sm font-semibold text-foreground">{t("progress.totalSBD")}</td>
