@@ -98,8 +98,28 @@ app.get("/api/verify-email", async (req, res) => {
 
     const changeToken = await prisma.emailChangeToken.findUnique({ where: { token } });
 
-    if (!changeToken || changeToken.usedAt || new Date() > changeToken.expiresAt) {
+    if (!changeToken) {
+      console.error("Verify email: token not found in DB");
       res.status(400).json({ message: "El enlace ha expirado o ya fue utilizado. Solicita uno nuevo." });
+      return;
+    }
+
+    console.log("Verify email debug:", {
+      tokenId: changeToken.id,
+      usedAt: changeToken.usedAt,
+      expiresAt: changeToken.expiresAt,
+      now: new Date(),
+      nowMs: Date.now(),
+      expiresMs: new Date(changeToken.expiresAt).getTime(),
+    });
+
+    if (changeToken.usedAt) {
+      res.status(400).json({ message: "El enlace ya fue utilizado. Solicita uno nuevo." });
+      return;
+    }
+
+    if (new Date() > new Date(changeToken.expiresAt)) {
+      res.status(400).json({ message: "El enlace ha expirado. Solicita uno nuevo." });
       return;
     }
 
