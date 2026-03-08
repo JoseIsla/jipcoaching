@@ -140,7 +140,7 @@ export const mockTrainingPlans: MockTrainingPlanList[] = [
     modality: "Powerlifting",
     block: "Hipertrofia",
     weeksDuration: 8,
-    currentWeek: 2,
+    currentWeek: 5,
     active: true,
     startDate: "2026-01-20",
     endDate: null,
