@@ -293,8 +293,8 @@ const SupplementRow = ({
   onUpdate,
   onDelete,
 }: {
-  sup: Supplement;
-  onUpdate: (s: Supplement) => void;
+  sup: ApiSupplement;
+  onUpdate: (s: ApiSupplement) => void;
   onDelete: () => void;
 }) => (
   <div className="flex items-center gap-2">
