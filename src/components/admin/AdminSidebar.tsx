@@ -126,7 +126,7 @@ const AdminSidebar = () => {
         }`}
       >
         <div className="flex items-center justify-between h-16 border-b border-sidebar-border px-4">
-          <img src={logoJip} alt="JIP" className="h-10 w-auto" />
+          <img src={logoJipWide} alt="JIP Performance Nutrition" className="h-9 w-auto max-w-[160px] object-contain" />
           <button
             onClick={() => setMobileOpen(false)}
             className="text-muted-foreground hover:text-foreground"
