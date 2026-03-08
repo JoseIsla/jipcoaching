@@ -297,7 +297,7 @@ export const exportTrainingWeekPDF = (
       doc.setFontSize(7);
       doc.setFont("helvetica", "italic");
       doc.setTextColor(...TEXT_MUTED);
-      doc.text(`🔥 ${day.warmup}`, MARGIN, y + 3);
+      doc.text(`Calentamiento: ${day.warmup}`, MARGIN, y + 3);
       y += 6;
     }
 
