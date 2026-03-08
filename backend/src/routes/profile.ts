@@ -1,11 +1,29 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
 import { prisma } from "../server";
 import { authenticate } from "../middleware/auth";
 import { uploadAvatar } from "../middleware/upload";
+import { rateLimit } from "../middleware/rateLimiter";
+import { buildEmail } from "../utils/emailBuilder";
 
 const router = Router();
 router.use(authenticate);
+
+const FRONTEND_URL = (process.env.FRONTEND_URL || "https://jipcoaching.com").replace(/\/+$/, "");
+const FROM_EMAIL = process.env.FROM_EMAIL || "JIP Coaching <info@jipcoaching.com>";
+const TOKEN_EXPIRY_MINUTES = 30;
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || "localhost",
+  port: Number(process.env.SMTP_PORT) || 465,
+  secure: (process.env.SMTP_SECURE ?? "true") === "true",
+  auth: { user: process.env.SMTP_USER || "", pass: process.env.SMTP_PASS || "" },
+  tls: { rejectUnauthorized: false },
+});
+
+const emailChangeLimiter = rateLimit({ windowSec: 15 * 60, max: 5 });
 
 // ── Admin Profile ──
 
@@ -136,37 +154,62 @@ router.delete("/avatar", async (req, res) => {
   }
 });
 
-// ── Change Email ──
+// ── Change Email (with verification) ──
 
-// PUT /api/profile/email
-router.put("/email", async (req, res) => {
+// PUT /api/profile/email — sends verification email to newEmail
+router.put("/email", emailChangeLimiter, async (req, res) => {
   try {
     const { newEmail, currentPassword } = req.body;
+    if (!newEmail || !currentPassword) {
+      res.status(400).json({ message: "Email y contraseña son obligatorios" });
+      return;
+    }
+
     const user = await prisma.user.findUnique({ where: { id: req.user!.userId } });
     if (!user) { res.status(404).json({ message: "Usuario no encontrado" }); return; }
 
     const valid = await bcrypt.compare(currentPassword, user.password);
     if (!valid) { res.status(400).json({ message: "Contraseña incorrecta" }); return; }
 
+    if (user.email === newEmail) {
+      res.status(400).json({ message: "El nuevo email es igual al actual" });
+      return;
+    }
+
     const existing = await prisma.user.findUnique({ where: { email: newEmail } });
     if (existing) { res.status(400).json({ message: "El email ya está en uso" }); return; }
 
-    await prisma.user.update({
-      where: { id: req.user!.userId },
-      data: { email: newEmail },
+    // Invalidate previous tokens
+    await prisma.emailChangeToken.updateMany({
+      where: { userId: user.id, usedAt: null },
+      data: { usedAt: new Date() },
     });
 
-    // Also update client email if exists
-    await prisma.client.updateMany({
-      where: { userId: req.user!.userId },
-      data: { email: newEmail },
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MINUTES * 60 * 1000);
+
+    await prisma.emailChangeToken.create({
+      data: { userId: user.id, newEmail, token, expiresAt },
     });
 
-    res.json({ success: true });
+    const verifyUrl = `${FRONTEND_URL}/verify-email?token=${token}`;
+
+    const { subject, html } = await buildEmail(
+      "EMAIL_CHANGE",
+      { nombre: user.email, nuevoEmail: newEmail },
+      { ctaUrl: verifyUrl },
+    );
+
+    await transporter.sendMail({ from: FROM_EMAIL, to: newEmail, subject, html });
+
+    res.json({ success: true, message: "Se ha enviado un email de verificación." });
   } catch (err: any) {
-    res.status(500).json({ message: "Error al cambiar email" });
+    console.error("Email change error:", err);
+    res.status(500).json({ message: "Error al solicitar cambio de email" });
   }
 });
+
+
 
 // ── Change Password ──
 

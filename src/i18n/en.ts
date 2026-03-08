@@ -94,6 +94,16 @@ const en: Translations = {
     requestNewLink: "Request new link",
     errorGeneric: "Failed to reset the password.",
   },
+  verifyEmail: {
+    verifying: "Verifying...",
+    pleaseWait: "We're confirming your new email.",
+    successTitle: "Email verified!",
+    successDesc: "Your email has been changed to {email}. Sign in with your new email.",
+    errorTitle: "Verification error",
+    invalidLink: "This verification link is invalid.",
+    genericError: "Failed to verify email.",
+    loginBtn: "Sign in",
+  },
 
   // ── Admin Sidebar ──
   sidebar: {
@@ -470,9 +480,9 @@ const en: Translations = {
     newEmail: "New email",
     newEmailPlaceholder: "new@email.com",
     currentPasswordLabel: "Current password",
-    sendVerification: "Change email",
+    sendVerification: "Send verification",
     verificationSent: "Verification sent",
-    verificationSentDesc: "A verification link has been sent to {email}. Your email will be updated after verification.",
+    verificationSentDesc: "A verification link has been sent to {email}. Your email will be updated when you click the link.",
     emailChanged: "Email updated",
     emailChangedDesc: "Your email has been successfully changed to {email}.",
     passwordTitle: "Password",

@@ -15,6 +15,7 @@ import PoliticaCookies from "./pages/legal/PoliticaCookies";
 import LoginPage from "./pages/LoginPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminClients from "./pages/AdminClients";
 import AdminClientDetail from "./pages/AdminClientDetail";
@@ -66,6 +67,7 @@ const App = () => (
                 />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/verify-email" element={<VerifyEmailPage />} />
                 <Route path="/admin" element={<RoleRoute allowedRole="admin"><AdminDashboard /></RoleRoute>} />
                 <Route path="/admin/clients" element={<RoleRoute allowedRole="admin"><AdminClients /></RoleRoute>} />
                 <Route path="/admin/clients/:id" element={<RoleRoute allowedRole="admin"><AdminClientDetail /></RoleRoute>} />

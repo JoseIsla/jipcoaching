@@ -92,6 +92,16 @@ const es = {
     requestNewLink: "Solicitar nuevo enlace",
     errorGeneric: "Error al restablecer la contraseña.",
   },
+  verifyEmail: {
+    verifying: "Verificando...",
+    pleaseWait: "Estamos confirmando tu nuevo email.",
+    successTitle: "¡Email verificado!",
+    successDesc: "Tu email se ha cambiado correctamente a {email}. Inicia sesión con tu nuevo email.",
+    errorTitle: "Error de verificación",
+    invalidLink: "El enlace de verificación no es válido.",
+    genericError: "Error al verificar el email.",
+    loginBtn: "Iniciar sesión",
+  },
 
   // ── Admin Sidebar ──
   sidebar: {
@@ -471,9 +481,9 @@ const es = {
     newEmail: "Nuevo correo",
     newEmailPlaceholder: "nuevo@email.com",
     currentPasswordLabel: "Contraseña actual",
-    sendVerification: "Cambiar email",
+    sendVerification: "Enviar verificación",
     verificationSent: "Verificación enviada",
-    verificationSentDesc: "Se ha enviado un enlace de verificación a {email}. El email se actualizará en la base de datos tras la verificación.",
+    verificationSentDesc: "Se ha enviado un enlace de verificación a {email}. Tu email se actualizará cuando hagas clic en el enlace.",
     emailChanged: "Email actualizado",
     emailChangedDesc: "Tu email se ha cambiado correctamente a {email}.",
     // Password

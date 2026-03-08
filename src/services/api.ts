@@ -27,7 +27,7 @@ const clearSessionAndRedirect = () => {
   // Don't interfere during login flow or on login/landing pages
   if (_loginInProgress) return;
   const path = window.location.pathname;
-  if (path === "/login" || path === "/" || path === "/forgot-password" || path === "/reset-password") return;
+  if (path === "/login" || path === "/" || path === "/forgot-password" || path === "/reset-password" || path === "/verify-email") return;
   localStorage.removeItem(AUTH_TOKEN_KEY);
   window.location.href = "/login";
 };

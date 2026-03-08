@@ -191,8 +191,8 @@ const AdminSettings = () => {
     });
     if (res.success) {
       toast({
-        title: t("settings.emailChanged"),
-        description: t("settings.emailChangedDesc", { email: emailChange.newEmail }),
+        title: t("settings.verificationSent"),
+        description: t("settings.verificationSentDesc", { email: emailChange.newEmail }),
       });
       setEmailChange({ newEmail: "", password: "" });
     } else {
