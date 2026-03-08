@@ -170,7 +170,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   // Mark comments as seen when expanded
   useEffect(() => {
     if (open && videoComments.length > 0) {
-      const unseenIds = videoComments.filter((c) => !seenCommentIds.has(c.id)).map((c) => c.id);
+      const unseenIds = videoComments.filter((c) => !seenCommentIds.includes(c.id)).map((c) => c.id);
       if (unseenIds.length > 0) {
         markCommentsSeen(unseenIds);
       }
