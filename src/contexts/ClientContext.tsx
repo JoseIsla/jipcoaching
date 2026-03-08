@@ -19,6 +19,7 @@ interface ClientContextType {
   client: ApiClient;
   setClientId: (id: string) => void;
   allClients: ApiClient[];
+  updateClientAvatar: (url: string | null) => void;
 }
 
 const FALLBACK_CLIENT: ApiClient = {
@@ -91,8 +92,12 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
     return activeClients[0] ?? FALLBACK_CLIENT;
   })();
 
+  const updateClientAvatar = (url: string | null) => {
+    setSelfClient((prev) => prev ? { ...prev, avatarUrl: url ?? undefined } : prev);
+  };
+
   return (
-    <ClientContext.Provider value={{ client, setClientId, allClients: activeClients }}>
+    <ClientContext.Provider value={{ client, setClientId, allClients: activeClients, updateClientAvatar }}>
       {children}
     </ClientContext.Provider>
   );

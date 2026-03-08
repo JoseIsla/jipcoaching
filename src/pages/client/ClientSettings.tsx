@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClientProfile } from "@/contexts/ClientProfileContext";
+import { useClient } from "@/contexts/ClientContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 
 const ClientSettings = () => {
   const { profile, loading, saving, saveProfile, handleUploadAvatar, handleDeleteAvatar, handleChangeEmail, handleChangePassword } = useClientProfile();
+  const { updateClientAvatar } = useClient();
   const { toast } = useToast();
   const { t } = useTranslation();
   const setAppLanguage = useLanguageStore((s) => s.setLanguage);
@@ -69,6 +71,7 @@ const ClientSettings = () => {
     if (!file) return;
     const res = await handleUploadAvatar(file);
     if (res.success) {
+      updateClientAvatar(res.data?.avatarUrl ?? null);
       toast({ title: t("clientSettings.profilePicture"), description: t("clientSettings.profileUpdatedDesc") });
     } else {
       toast({ title: "Error", description: res.error || "", variant: "destructive" });
@@ -79,6 +82,7 @@ const ClientSettings = () => {
   const handleRemoveAvatar = async () => {
     const res = await handleDeleteAvatar();
     if (res.success) {
+      updateClientAvatar(null);
       toast({ title: t("clientSettings.profilePicture"), description: t("clientSettings.profileUpdatedDesc") });
     }
   };
