@@ -644,6 +644,8 @@ const ClientCheckins = () => {
     generateMyCheckins().then(() => fetchEntries(client.id));
   }, [client.id]);
 
+  const myEntries = allEntries.filter((e) => e.clientId === client.id);
+
   // Only auto-generate training entry locally if no API-generated one exists for this week
   useEffect(() => {
     if (hasTraining) {
@@ -655,8 +657,6 @@ const ClientCheckins = () => {
       }
     }
   }, [client.id, hasTraining, allEntries.length]);
-
-  const myEntries = allEntries.filter((e) => e.clientId === client.id);
 
   // Only show current week entries
   const nutritionEntries = myEntries.filter((e) => e.category === "nutrition" && isInCurrentWeek(e.date));
