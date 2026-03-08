@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Smartphone } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   Accordion,
   AccordionContent,
@@ -15,6 +16,7 @@ const faqsEs = [
   { q: "¿Puedo cambiar de plan después de empezar?", a: "Sí, puedes cambiar o ampliar tu plan en cualquier momento. Muchos clientes empiezan con nutrición y luego añaden entrenamiento." },
   { q: "¿Qué incluye el seguimiento semanal?", a: "Revisión de adherencia, ajuste de macros o volumen de entrenamiento, feedback sobre tu técnica y soporte continuo por chat para resolver dudas." },
   { q: "¿Es todo online o presencial?", a: "El coaching es 100% online, lo que te permite seguir tu plan desde cualquier lugar. La comunicación es a través de la app y chat." },
+  { q: "¿Cómo instalo la app en mi móvil?", a: "¡Es muy fácil! No necesitas App Store ni Play Store. Visita nuestra página de instalación con las instrucciones paso a paso para iPhone y Android.", isInstall: true },
 ];
 
 const faqsEn = [
@@ -24,6 +26,7 @@ const faqsEn = [
   { q: "Can I change plans after starting?", a: "Yes, you can change or upgrade your plan at any time. Many clients start with nutrition and then add training." },
   { q: "What does weekly tracking include?", a: "Adherence review, macro or training volume adjustments, technique feedback, and ongoing chat support for any questions." },
   { q: "Is everything online or in-person?", a: "Coaching is 100% online, allowing you to follow your plan from anywhere. Communication is through the app and chat." },
+  { q: "How do I install the app on my phone?", a: "It's very easy! No App Store or Play Store needed. Visit our installation page with step-by-step instructions for iPhone and Android.", isInstall: true },
 ];
 
 const FAQSection = () => {
@@ -64,6 +67,15 @@ const FAQSection = () => {
                 </AccordionTrigger>
                 <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-4 pl-7">
                   {faq.a}
+                  {(faq as any).isInstall && (
+                    <Link
+                      to="/install"
+                      className="inline-flex items-center gap-1.5 mt-2 text-primary hover:text-primary/80 font-medium transition-colors"
+                    >
+                      <Smartphone className="h-3.5 w-3.5" />
+                      Ver instrucciones de instalación
+                    </Link>
+                  )}
                 </AccordionContent>
               </AccordionItem>
             ))}

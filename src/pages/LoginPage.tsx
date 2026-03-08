@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import LoadingScreen from "@/components/LoadingScreen";
+import PWAInstallBanner from "@/components/PWAInstallBanner";
 import logoJip from "@/assets/logo-jip.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "@/services/api";
@@ -154,6 +155,7 @@ const LoginPage = () => {
           </p>
         )}
       </div>
+      <PWAInstallBanner />
     </div>
   );
 };
