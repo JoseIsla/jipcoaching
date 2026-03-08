@@ -13,6 +13,13 @@
 import { api, API_BASE_URL, AUTH_TOKEN_KEY } from "@/services/api";
 import { DEV_MOCK } from "@/config/devMode";
 
+/** Resolve relative upload URLs to full server URLs */
+const resolveAvatarUrl = (url: string | null): string | null => {
+  if (!url || url.startsWith("http") || url.startsWith("blob:")) return url;
+  const serverRoot = API_BASE_URL.replace(/\/api\/?$/, "");
+  return `${serverRoot}${url}`;
+};
+
 export interface ClientProfile {
   id: string;
   name: string;
