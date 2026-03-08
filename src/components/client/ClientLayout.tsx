@@ -1,7 +1,7 @@
 import { type ReactNode, useState, useEffect, useRef } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings, LogOut, Loader2, Bell, MessageSquare } from "lucide-react";
+import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings, LogOut, Loader2, Bell, MessageSquare, CreditCard, FileText, Info } from "lucide-react";
 import PullToRefresh from "./PullToRefresh";
 import { useClient } from "@/contexts/ClientContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -81,16 +81,32 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
 
         for (const n of data) {
           if (existingIds.has(`server-${n.id}`)) continue;
+
+          // Map backend notification type to client notification type
+          const mapType = (serverType: string, title: string): import("@/data/useClientNotificationStore").ClientNotificationType => {
+            if (serverType === "checkin_reminder" || serverType === "checkin") {
+              return title.toLowerCase().includes("nutrición") || title.toLowerCase().includes("nutrition")
+                ? "nutrition_checkin" : "training_checkin";
+            }
+            if (serverType === "payment") return "payment";
+            if (serverType === "plan") return "plan";
+            if (serverType === "video_comment" || serverType === "media") return "video_comment";
+            return "system";
+          };
+
+          const notifType = mapType(n.type, n.title);
+          const defaultLink = notifType === "payment" ? "/client"
+            : notifType === "video_comment" ? "/client/progress"
+            : "/client/checkins";
+
           addNotification({
             id: `server-${n.id}`,
-            type: n.type === "checkin_reminder"
-              ? (n.title.includes("nutrición") ? "nutrition_checkin" : "training_checkin")
-              : "video_comment",
+            type: notifType,
             titleKey: n.title,
             descriptionKey: n.message,
             timestamp: new Date(n.createdAt),
             read: n.read,
-            link: n.link || "/client/checkins",
+            link: n.link || defaultLink,
           });
         }
       } catch { /* silent */ }
@@ -310,16 +326,26 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
                         <span className={`mt-0.5 shrink-0 flex items-center justify-center h-6 w-6 rounded-full ${
                           notif.type === "video_comment"
                             ? "bg-accent/15 text-accent"
-                            : notif.type === "nutrition_checkin"
-                            ? "bg-primary/15 text-primary"
+                            : notif.type === "payment"
+                            ? "bg-green-500/15 text-green-500"
+                            : notif.type === "plan"
+                            ? "bg-blue-500/15 text-blue-500"
+                            : notif.type === "system"
+                            ? "bg-muted-foreground/15 text-muted-foreground"
                             : "bg-primary/15 text-primary"
                         }`}>
                           {notif.type === "video_comment" ? (
                             <MessageSquare className="h-3 w-3" />
                           ) : notif.type === "nutrition_checkin" ? (
                             <Utensils className="h-3 w-3" />
-                          ) : (
+                          ) : notif.type === "training_checkin" ? (
                             <Dumbbell className="h-3 w-3" />
+                          ) : notif.type === "payment" ? (
+                            <CreditCard className="h-3 w-3" />
+                          ) : notif.type === "plan" ? (
+                            <FileText className="h-3 w-3" />
+                          ) : (
+                            <Info className="h-3 w-3" />
                           )}
                         </span>
                         <div className="min-w-0 flex-1">

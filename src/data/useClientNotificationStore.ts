@@ -1,9 +1,17 @@
 import { create } from "zustand";
 import type { ServiceType } from "@/types/api";
 
+export type ClientNotificationType =
+  | "nutrition_checkin"
+  | "training_checkin"
+  | "video_comment"
+  | "payment"
+  | "plan"
+  | "system";
+
 export interface ClientNotification {
   id: string;
-  type: "nutrition_checkin" | "training_checkin" | "video_comment";
+  type: ClientNotificationType;
   titleKey: string;
   descriptionKey: string;
   titleVars?: Record<string, string | number>;
