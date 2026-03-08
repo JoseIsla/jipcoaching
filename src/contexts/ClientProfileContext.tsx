@@ -81,7 +81,7 @@ export function ClientProfileProvider({ children }: { children: ReactNode }) {
     const compressed = await compressImage(file, { maxSizeMB: 2, maxWidth: 800, maxHeight: 800 });
     const res = await uploadClientAvatar(compressed);
     if (res.success && res.data) {
-      setProfile((prev) => prev ? { ...prev, avatarUrl: res.data!.avatarUrl } : prev);
+      setProfile((prev) => prev ? { ...prev, avatarUrl: resolveAvatar(res.data!.avatarUrl) } : prev);
     }
     setSaving(false);
     return res;
