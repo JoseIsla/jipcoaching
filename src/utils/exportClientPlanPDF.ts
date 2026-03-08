@@ -238,7 +238,7 @@ export const exportNutritionPlanPDF = (
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...NEON_GREEN);
-    doc.text("📌 Recomendaciones", MARGIN, y);
+    doc.text("RECOMENDACIONES", MARGIN, y);
     y += 5;
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
