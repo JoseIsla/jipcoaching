@@ -308,7 +308,7 @@ const TemplateEditor = ({ def, apiData, onSaved }: { def: TemplateConfig; apiDat
           ))}
           <div className="pt-2 border-t border-border">
             <p className="text-[11px] text-muted-foreground">
-              Variables disponibles: <code className="text-primary/80">{"{{nombre}}"}</code>, <code className="text-primary/80">{"{{email}}"}</code>, <code className="text-primary/80">{"{{mes}}"}</code>, <code className="text-primary/80">{"{{importe}}"}</code>
+              Variables disponibles: <code className="text-primary/80">{"{{nombre}}"}</code>, <code className="text-primary/80">{"{{email}}"}</code>, <code className="text-primary/80">{"{{mes}}"}</code>, <code className="text-primary/80">{"{{importe}}"}</code>, <code className="text-primary/80">{"{{nuevoEmail}}"}</code>
             </p>
           </div>
         </CardContent>
