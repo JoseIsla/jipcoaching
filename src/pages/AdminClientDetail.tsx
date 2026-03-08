@@ -4,7 +4,7 @@ import {
   ArrowLeft, Mail, Phone, Utensils, Dumbbell, CreditCard, CalendarDays,
   Scale, TrendingDown, TrendingUp, User, Pencil, Save, Eye, EyeOff, Shield, X,
   Target, Activity, AlertTriangle, Pill, Brain, Briefcase, Clock,
-  UserX, UserCheck, CheckCircle2, Timer,
+  UserX, UserCheck, CheckCircle2, Timer, CalendarClock,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AdminPhotoComparison from "@/components/admin/AdminPhotoComparison";
@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -567,26 +568,70 @@ const AdminClientDetail = () => {
                 })()}
               </div>
               <Separator className="bg-border" />
-              <Button
-                className="w-full gap-2 glow-primary-sm"
-                onClick={async () => {
-                  try {
-                    await api.patch(`/clients/${client.id}/mark-paid`, {});
-                    const now = new Date().toISOString();
-                    const nextDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-                    useClientDetailStore.getState().updateDetail(client.id, {
-                      lastPaidAt: now,
-                      lastPaymentDate: now.split("T")[0],
-                      nextPaymentDate: nextDate,
-                    });
-                    toast({ title: "Pago registrado", description: `El pago de ${client.name} ha sido confirmado. Se ha enviado un email de confirmación.` });
-                  } catch (err: any) {
-                    toast({ title: "Error", description: err?.message || "Error al registrar pago", variant: "destructive" });
-                  }
-                }}
-              >
-                <CheckCircle2 className="h-4 w-4" /> Marcar como pagado
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  className="flex-1 gap-2 glow-primary-sm"
+                  onClick={async () => {
+                    try {
+                      await api.patch(`/clients/${client.id}/mark-paid`, {});
+                      const now = new Date().toISOString();
+                      const nextDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+                      useClientDetailStore.getState().updateDetail(client.id, {
+                        lastPaidAt: now,
+                        lastPaymentDate: now.split("T")[0],
+                        nextPaymentDate: nextDate,
+                      });
+                      toast({ title: "Pago registrado", description: `El pago de ${client.name} ha sido confirmado. Se ha enviado un email de confirmación.` });
+                    } catch (err: any) {
+                      toast({ title: "Error", description: err?.message || "Error al registrar pago", variant: "destructive" });
+                    }
+                  }}
+                >
+                  <CheckCircle2 className="h-4 w-4" /> Marcar como pagado
+                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon" className="shrink-0" title="Ajustar fecha de pago">
+                      <CalendarClock className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 bg-card border-border" align="end">
+                    <div className="space-y-3">
+                      <p className="text-xs text-muted-foreground">Ajustar fecha del último pago sin enviar email ni notificación.</p>
+                      <Input
+                        type="date"
+                        id="adjust-paid-date"
+                        defaultValue={client.lastPaidAt ? new Date(client.lastPaidAt).toISOString().split("T")[0] : ""}
+                        className="bg-muted/30 border-border text-sm"
+                      />
+                      <Button
+                        size="sm"
+                        className="w-full text-xs"
+                        onClick={async () => {
+                          const input = document.getElementById("adjust-paid-date") as HTMLInputElement;
+                          const dateVal = input?.value;
+                          if (!dateVal) return;
+                          try {
+                            await api.patch(`/clients/${client.id}/set-paid-date`, { date: dateVal });
+                            const paid = new Date(dateVal);
+                            const nextDate = new Date(paid.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+                            useClientDetailStore.getState().updateDetail(client.id, {
+                              lastPaidAt: paid.toISOString(),
+                              lastPaymentDate: dateVal,
+                              nextPaymentDate: nextDate,
+                            });
+                            toast({ title: "Fecha actualizada", description: "La fecha de pago se ha ajustado correctamente." });
+                          } catch (err: any) {
+                            toast({ title: "Error", description: err?.message || "Error al ajustar fecha", variant: "destructive" });
+                          }
+                        }}
+                      >
+                        Guardar fecha
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
             </CardContent>
           </Card>
 

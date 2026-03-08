@@ -442,7 +442,25 @@ router.patch("/:id/mark-paid", requireRole("ADMIN"), async (req, res) => {
   }
 });
 
-// PATCH /api/clients/:id/status — Admin only
+// PATCH /api/clients/:id/set-paid-date — Admin adjusts lastPaidAt silently (no email/notification)
+router.patch("/:id/set-paid-date", requireRole("ADMIN"), async (req, res) => {
+  try {
+    const { date } = req.body;
+    if (!date) { res.status(400).json({ message: "Se requiere una fecha" }); return; }
+
+    const client = await prisma.client.update({
+      where: { id: req.params.id as string },
+      data: { lastPaidAt: new Date(date) },
+    });
+
+    res.json({ message: "Fecha de pago actualizada", lastPaidAt: client.lastPaidAt });
+  } catch (err: any) {
+    console.error("PATCH /clients/:id/set-paid-date error:", err);
+    res.status(500).json({ message: "Error al actualizar fecha de pago" });
+  }
+});
+
+
 router.patch("/:id/status", requireRole("ADMIN"), async (req, res) => {
   try {
     const { status } = req.body;
