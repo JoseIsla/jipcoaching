@@ -75,7 +75,7 @@ router.get("/stats/evolution", requireRole("ADMIN"), async (_req, res) => {
     const rows: any[] = await prisma.$queryRaw`
       SELECT
         DATE_FORMAT(createdAt, '%Y-%m') AS month,
-        COUNT(*) AS newClients
+        CAST(COUNT(*) AS UNSIGNED) AS newClients
       FROM Client
       GROUP BY month
       ORDER BY month ASC
@@ -84,10 +84,11 @@ router.get("/stats/evolution", requireRole("ADMIN"), async (_req, res) => {
     // Build cumulative total
     let cumulative = 0;
     const data = rows.map((r) => {
-      cumulative += Number(r.newClients);
+      const nc = Number(r.newClients);
+      cumulative += nc;
       return {
         month: r.month,
-        newClients: Number(r.newClients),
+        newClients: nc,
         total: cumulative,
       };
     });
