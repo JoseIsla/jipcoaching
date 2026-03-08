@@ -326,16 +326,26 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
                         <span className={`mt-0.5 shrink-0 flex items-center justify-center h-6 w-6 rounded-full ${
                           notif.type === "video_comment"
                             ? "bg-accent/15 text-accent"
-                            : notif.type === "nutrition_checkin"
-                            ? "bg-primary/15 text-primary"
+                            : notif.type === "payment"
+                            ? "bg-green-500/15 text-green-500"
+                            : notif.type === "plan"
+                            ? "bg-blue-500/15 text-blue-500"
+                            : notif.type === "system"
+                            ? "bg-muted-foreground/15 text-muted-foreground"
                             : "bg-primary/15 text-primary"
                         }`}>
                           {notif.type === "video_comment" ? (
                             <MessageSquare className="h-3 w-3" />
                           ) : notif.type === "nutrition_checkin" ? (
                             <Utensils className="h-3 w-3" />
-                          ) : (
+                          ) : notif.type === "training_checkin" ? (
                             <Dumbbell className="h-3 w-3" />
+                          ) : notif.type === "payment" ? (
+                            <CreditCard className="h-3 w-3" />
+                          ) : notif.type === "plan" ? (
+                            <FileText className="h-3 w-3" />
+                          ) : (
+                            <Info className="h-3 w-3" />
                           )}
                         </span>
                         <div className="min-w-0 flex-1">
