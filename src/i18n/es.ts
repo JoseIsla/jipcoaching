@@ -588,6 +588,8 @@ const es = {
     noNutrition: "No hay check-ins de nutrición aún.",
     noTraining: "No hay check-ins de entrenamiento aún.",
     noActivePlan: "No tienes un plan de entrenamiento activo.",
+    trainingUpcoming: "📅 Próximamente",
+    trainingAvailableOn: "Tu check-in de entrenamiento estará disponible el {date} a las 7:00.",
     responded: "Respondido",
     pendingLabel: "Pendiente",
     upcoming: "Próximamente",
