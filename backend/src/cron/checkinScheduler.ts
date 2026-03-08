@@ -153,9 +153,13 @@ async function generateTrainingCheckins() {
       where: { status: "ACTIVE", packType: { in: ["TRAINING", "FULL"] } },
     });
 
-    const trainingTemplate = await prisma.questionnaireTemplate.findFirst({
+    // Pick only the most recently updated active TRAINING template (deduplicate)
+    const allTrainingTemplates = await prisma.questionnaireTemplate.findMany({
       where: { category: "TRAINING", isActive: true },
+      orderBy: { updatedAt: "desc" },
+      take: 1,
     });
+    const trainingTemplate = allTrainingTemplates[0] ?? null;
 
     if (!trainingTemplate) {
       console.log("[CRON] ⚠️ No active training template found");
