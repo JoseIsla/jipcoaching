@@ -13,6 +13,13 @@
 import { api, API_BASE_URL, AUTH_TOKEN_KEY } from "@/services/api";
 import { DEV_MOCK } from "@/config/devMode";
 
+/** Resolve relative upload URLs to full server URLs */
+const resolveAvatarUrl = (url: string | null): string | null => {
+  if (!url || url.startsWith("http") || url.startsWith("blob:")) return url;
+  const serverRoot = API_BASE_URL.replace(/\/api\/?$/, "");
+  return `${serverRoot}${url}`;
+};
+
 export interface ClientProfile {
   id: string;
   name: string;
@@ -64,6 +71,9 @@ export async function fetchClientProfile(): Promise<ApiResponse<ClientProfile>> 
 
   try {
     const data = await api.get<ClientProfile>("/profile/client");
+    if (data) {
+      data.avatarUrl = resolveAvatarUrl(data.avatarUrl);
+    }
     return { success: true, data };
   } catch (err: any) {
     return { success: false, error: err?.message ?? "Error al obtener perfil" };
@@ -82,6 +92,9 @@ export async function updateClientProfile(payload: UpdateClientProfilePayload): 
   try {
     await api.put("/profile/client", payload);
     const data = await api.get<ClientProfile>("/profile/client");
+    if (data) {
+      data.avatarUrl = resolveAvatarUrl(data.avatarUrl);
+    }
     return { success: true, data };
   } catch (err: any) {
     return { success: false, error: err?.message ?? "Error al actualizar perfil" };
@@ -125,7 +138,8 @@ export async function uploadClientAvatar(file: File): Promise<ApiResponse<{ avat
     }
 
     const data = await res.json();
-    return { success: true, data: { avatarUrl: data.avatarUrl } };
+    const resolved = resolveAvatarUrl(data.avatarUrl) || data.avatarUrl;
+    return { success: true, data: { avatarUrl: resolved } };
   } catch (err: any) {
     return { success: false, error: err?.message ?? "Error al subir avatar" };
   }
