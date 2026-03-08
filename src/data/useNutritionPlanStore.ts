@@ -42,16 +42,22 @@ export interface NutritionPlanListEntry {
 let nextId = 200;
 export const genId = () => `np-${++nextId}`;
 
+/** API supplement shape (has id) */
+export interface ApiSupplement extends Supplement {
+  id: string;
+}
+
 interface NutritionPlanState {
   plans: NutritionPlanListEntry[];
   details: Record<string, NutritionPlanDetail>;
-  supplements: Supplement[];
+  supplements: ApiSupplement[];
   loading: boolean;
   error: string | null;
 
   // Fetch from API
   fetchPlans: (clientId?: string) => Promise<void>;
   fetchActiveClientPlan: () => Promise<ApiNutritionPlan | null>;
+  fetchSupplements: () => Promise<void>;
 
   // Plan list (local for admin — backend doesn't have admin list endpoint yet)
   addPlan: (plan: NutritionPlanListEntry) => void;
@@ -65,7 +71,11 @@ interface NutritionPlanState {
   syncPlanToList: (detail: NutritionPlanDetail) => void;
 
   // Supplements
-  setSupplements: (sups: Supplement[]) => void;
+  setSupplements: (sups: ApiSupplement[]) => void;
+  createSupplement: (sup: Supplement) => Promise<ApiSupplement | null>;
+  updateSupplementApi: (id: string, sup: Supplement) => Promise<void>;
+  deleteSupplementApi: (id: string) => Promise<void>;
+  saveSupplements: (sups: ApiSupplement[]) => Promise<void>;
 }
 
 /** Map API nutrition plan to list entry + detail */
