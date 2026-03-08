@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Users, Utensils, Dumbbell, TrendingUp, type LucideIcon } from "lucide-react";
+import { Users, Utensils, Dumbbell, TrendingUp, Wallet, type LucideIcon } from "lucide-react";
 import { useClientStore } from "@/data/useClientStore";
 import { useNutritionPlanStore } from "@/data/useNutritionPlanStore";
 import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
@@ -20,6 +20,7 @@ const StatCards = () => {
   const activeNutrition = nutritionPlans.filter((p) => p.active);
   const activeTraining = trainingPlans.filter((p) => p.active);
   const retention = getRetentionRate();
+  const monthlyRevenue = activeClients.reduce((sum, c) => sum + (c.monthlyFee ?? 0), 0);
 
   const stats = [
     {
@@ -47,6 +48,14 @@ const StatCards = () => {
       positive: true,
     },
     {
+      title: "Facturación mensual",
+      value: `${monthlyRevenue.toLocaleString("es-ES")}€`,
+      sub: `${activeClients.length} suscripciones`,
+      icon: Wallet,
+      color: "primary" as const,
+      positive: monthlyRevenue > 0,
+    },
+    {
       title: t("dashboard.retention"),
       value: `${retention}%`,
       sub: `${activeClients.length}/${clients.length}`,
@@ -57,7 +66,7 @@ const StatCards = () => {
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
       {stats.map((stat, i) => (
         <motion.div
           key={i}
