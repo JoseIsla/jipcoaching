@@ -14,6 +14,7 @@ import {
   X,
   Inbox,
   Mail,
+  TrendingUp,
 } from "lucide-react";
 import logoJip from "@/assets/logo-jip.png";
 import { useIsMobile } from "@/hooks/use-mobile";
