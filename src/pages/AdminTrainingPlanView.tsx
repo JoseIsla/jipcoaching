@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Pencil, Dumbbell, Calendar, User, Info } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
