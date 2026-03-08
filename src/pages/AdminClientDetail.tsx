@@ -4,7 +4,7 @@ import {
   ArrowLeft, Mail, Phone, Utensils, Dumbbell, CreditCard, CalendarDays,
   Scale, TrendingDown, TrendingUp, User, Pencil, Save, Eye, EyeOff, Shield, X,
   Target, Activity, AlertTriangle, Pill, Brain, Briefcase, Clock,
-  UserX, UserCheck, CheckCircle2, Timer,
+  UserX, UserCheck, CheckCircle2, Timer, CalendarClock,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AdminPhotoComparison from "@/components/admin/AdminPhotoComparison";
