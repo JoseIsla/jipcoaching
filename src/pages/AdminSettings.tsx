@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useAdminProfile } from "@/contexts/AdminProfileContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
