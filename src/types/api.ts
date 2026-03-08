@@ -34,6 +34,8 @@ export interface NutritionIntakeDto {
   goalMotivation?: string;
   currentWeight?: number;
   targetWeight?: number;
+  height?: number;
+  age?: number;
   mealsPerDay?: number;
   sleepHours?: number;
   stressLevel?: number;
