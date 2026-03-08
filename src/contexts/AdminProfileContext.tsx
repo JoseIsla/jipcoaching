@@ -70,7 +70,7 @@ export function AdminProfileProvider({ children }: { children: ReactNode }) {
   const saveProfile = useCallback(async (payload: UpdateProfilePayload) => {
     setSaving(true);
     const res = await updateAdminProfile(payload);
-    if (res.success && res.data) setProfile(res.data);
+    if (res.success && res.data) setProfile({ ...res.data, avatarUrl: resolveAvatar(res.data.avatarUrl) });
     setSaving(false);
     return res;
   }, []);
