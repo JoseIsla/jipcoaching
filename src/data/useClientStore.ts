@@ -84,7 +84,7 @@ export const useClientStore = create<ClientStore>((set, get) => ({
     }));
     // Persist to API
     if (!DEV_MOCK) {
-      api.patch(`/clients/${id}`, updates).catch((err) => {
+      api.put(`/clients/${id}`, updates).catch((err) => {
         console.error("Failed to update client:", err);
       });
     }
