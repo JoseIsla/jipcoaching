@@ -52,7 +52,6 @@ const AdminClients = () => {
     if (filter === "both") return matchesSearch && c.services.length === 2;
     return matchesSearch && c.services.includes(filter) && c.services.length === 1;
   }).sort((a, b) => a.name.localeCompare(b.name, "es"));
-  });
 
   const statusClass = (status?: string) => {
     const s = String(status ?? "").toUpperCase();
