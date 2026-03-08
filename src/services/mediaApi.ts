@@ -47,7 +47,7 @@ export const mediaApi = {
 
   // ── Technique Videos ──
 
-  /** Upload a technique video */
+  /** Upload a technique video (standalone, not linked to a check-in) */
   uploadTechniqueVideo: (clientId: string, file: File, exerciseName: string, notes?: string) =>
     uploadFile<TechniqueVideo>(`/clients/${clientId}/media/videos`, file, {
       exerciseName,
@@ -61,4 +61,18 @@ export const mediaApi = {
   /** Delete a technique video */
   deleteTechniqueVideo: (clientId: string, videoId: string) =>
     api.delete(`/clients/${clientId}/media/videos/${videoId}`),
+
+  // ── Check-in Videos (linked to a specific check-in) ──
+
+  /** Upload a technique video linked to a check-in */
+  uploadCheckinVideo: (checkinId: string, file: File, exerciseName: string, notes?: string) =>
+    uploadFile<{ id: string; techniqueVideoId: string; exerciseName: string; url: string; notes?: string; uploadedAt: string }>(
+      `/checkins/${checkinId}/videos`, file, {
+        exerciseName,
+        ...(notes ? { notes } : {}),
+      }),
+
+  /** Delete a check-in video */
+  deleteCheckinVideo: (checkinId: string, videoId: string) =>
+    api.delete(`/checkins/${checkinId}/videos/${videoId}`),
 };
