@@ -13,6 +13,8 @@ import { useClientStore } from "@/data/useClientStore";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
 
+const SBD_NAMES = ["Sentadilla", "Press Banca", "Peso Muerto"];
+
 const ClientProgressCard = ({ client, onClick, t }: { client: ApiClient; onClick: () => void; t: (k: string) => string }) => {
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
@@ -20,7 +22,7 @@ const ClientProgressCard = ({ client, onClick, t }: { client: ApiClient; onClick
   const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
   const wh = hasNutrition ? getWeightHistory(client.id) : [];
   const bestRMs = hasTraining ? getBestRMs(client.id) : [];
-  const sbdTotal = bestRMs.filter((r) => ["e1", "e4", "e7"].includes(r.exerciseId)).reduce((s, r) => s + r.estimated1RM, 0);
+  const sbdTotal = bestRMs.filter((r) => SBD_NAMES.includes(r.exerciseName)).reduce((s, r) => s + r.estimated1RM, 0);
   const latestWeight = wh.length > 0 ? wh[wh.length - 1].weight : null;
   const packLabel = client.packType ? (packTypeLabels[String(client.packType)] ?? String(client.packType)) : "";
 
@@ -50,6 +52,16 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
   const getWeightHistory = useQuestionnaireStore((s) => s.getWeightHistory);
   const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
   const getTrainingProgress = useQuestionnaireStore((s) => s.getTrainingProgress);
+  const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
+  const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
+  const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
+
+  useEffect(() => {
+    fetchEntries(client.id);
+    if (hasNutrition) fetchWeightHistory(client.id);
+    if (hasTraining) fetchRMRecords(client.id);
+  }, [client.id]);
+
   const weightHistory = hasNutrition ? getWeightHistory(client.id) : [];
   const bestRMs = hasTraining ? getBestRMs(client.id) : [];
   const trainingProgress = hasTraining ? getTrainingProgress(client.id) : null;
@@ -135,7 +147,7 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
                       <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground text-right">{t("progress.date")}</th>
                     </tr></thead>
                     <tbody>
-                      {bestRMs.filter((r) => ["e1", "e4", "e7"].includes(r.exerciseId)).map((rm) => (
+                      {bestRMs.filter((r) => SBD_NAMES.includes(r.exerciseName)).map((rm) => (
                         <tr key={rm.exerciseId} className="border-t border-border/50">
                           <td className="px-4 py-3 text-sm font-medium text-foreground">{rm.exerciseName}</td>
                           <td className="px-4 py-3 text-sm text-muted-foreground text-right font-mono">{rm.weight} kg</td>
@@ -147,7 +159,7 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
                     </tbody>
                     <tfoot><tr className="border-t border-border bg-muted/30">
                       <td className="px-4 py-2.5 text-sm font-semibold text-foreground">{t("progress.totalSBD")}</td>
-                      <td colSpan={4} className="px-4 py-2.5 text-sm font-bold text-primary text-right font-mono">{bestRMs.filter((r) => ["e1", "e4", "e7"].includes(r.exerciseId)).reduce((s, r) => s + r.estimated1RM, 0)} kg</td>
+                      <td colSpan={4} className="px-4 py-2.5 text-sm font-bold text-primary text-right font-mono">{bestRMs.filter((r) => SBD_NAMES.includes(r.exerciseName)).reduce((s, r) => s + r.estimated1RM, 0)} kg</td>
                     </tr></tfoot>
                   </table>
                 </div>
@@ -186,8 +198,17 @@ const AdminProgress = () => {
   const filtered = activeClients.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
 
-  // Fetch all check-ins for admin view
-  useEffect(() => { fetchEntries(); }, []);
+  const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
+  const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
+
+  // Fetch all check-ins and per-client weight/RM data
+  useEffect(() => {
+    fetchEntries();
+    activeClients.forEach((c) => {
+      fetchWeightHistory(c.id);
+      fetchRMRecords(c.id);
+    });
+  }, [activeClients.length]);
 
   return (
     <AdminLayout>
