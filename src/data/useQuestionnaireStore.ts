@@ -434,8 +434,9 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
     const records = get().rmRecords[clientId] || [];
     const bestByExercise: Record<string, RMRecord> = {};
     records.forEach((r) => {
-      if (!bestByExercise[r.exerciseId] || r.estimated1RM > bestByExercise[r.exerciseId].estimated1RM) {
-        bestByExercise[r.exerciseId] = r;
+      const key = r.exerciseName || r.exerciseId;
+      if (!bestByExercise[key] || r.estimated1RM > bestByExercise[key].estimated1RM) {
+        bestByExercise[key] = r;
       }
     });
     return Object.values(bestByExercise);
