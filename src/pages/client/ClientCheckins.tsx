@@ -697,8 +697,7 @@ const TrainingUpcomingCard = ({ date }: { date: string }) => {
     (e) => e.category === "training" && e.trainingLog && e.trainingLog.length > 0 && isInCurrentWeek(e.date)
   );
 
-  
-
+const ClientCheckins = () => {
   const defaultTab = hasNutrition ? "nutrition" : "training";
 
   const stagger = { animate: { transition: { staggerChildren: 0.07 } } };
