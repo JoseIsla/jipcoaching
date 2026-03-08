@@ -38,11 +38,13 @@ const ExerciseForm = ({
   onRemove: () => void;
   section: "basic" | "accessory";
 }) => {
-  const libraryItems = exerciseLibrary.filter((e) =>
-    section === "basic"
-      ? e.category === "basico" || e.category === "variante"
-      : e.category === "accesorio"
-  );
+  const libraryItems = exerciseLibrary
+    .filter((e) =>
+      section === "basic"
+        ? e.category === "basico" || e.category === "variante"
+        : e.category === "accesorio"
+    )
+    .sort((a, b) => a.name.localeCompare(b.name, "es"));
 
   const update = (patch: Partial<TrainingExerciseEntry>) => onChange({ ...exercise, ...patch });
 
