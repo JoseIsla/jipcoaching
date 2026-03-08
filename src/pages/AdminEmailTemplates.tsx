@@ -11,6 +11,7 @@ import { Eye, Save, RotateCcw, Mail, UserPlus, CreditCard, AlertTriangle, KeyRou
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/services/api";
 import { DEV_MOCK } from "@/config/devMode";
+import { useTranslation } from "@/i18n/useTranslation";
 
 /* ── Shared style tokens ── */
 const DEFAULTS = {
@@ -27,37 +28,37 @@ const DEFAULTS = {
 /* ── Template definitions ── */
 interface TemplateConfig {
   id: string;
-  label: string;
+  labelKey: string;
   icon: typeof Mail;
-  description: string;
+  descriptionKey: string;
   subject: string;
   heading: string;
   subheading: string;
   bodyText: string;
   ctaLabel: string;
-  extraFields?: { key: string; label: string; placeholder: string; defaultValue: string }[];
+  extraFields?: { key: string; labelKey: string; placeholderKey: string; defaultValue: string }[];
 }
 
 const TEMPLATE_DEFS: TemplateConfig[] = [
   {
     id: "welcome",
-    label: "Bienvenida",
+    labelKey: "emailTemplates.welcomeLabel",
     icon: UserPlus,
-    description: "Se envía al crear un nuevo cliente con sus credenciales de acceso.",
+    descriptionKey: "emailTemplates.welcomeDesc",
     subject: "Bienvenido/a a JIP Coaching – Tu cuenta está lista",
     heading: "¡Bienvenido/a, {{nombre}}!",
     subheading: "Tu cuenta en JIP Coaching ha sido creada correctamente.",
     bodyText: "Ya puedes acceder a tu panel de cliente donde encontrarás tus planes de entrenamiento, nutrición, check-ins y mucho más.",
     ctaLabel: "Acceder a mi cuenta",
     extraFields: [
-      { key: "warningText", label: "Texto de advertencia", placeholder: "Recomendación de cambio de contraseña...", defaultValue: "⚠️ Te recomendamos cambiar tu contraseña después del primer inicio de sesión." },
+      { key: "warningText", labelKey: "emailTemplates.warningTextLabel", placeholderKey: "emailTemplates.warningTextPlaceholder", defaultValue: "⚠️ Te recomendamos cambiar tu contraseña después del primer inicio de sesión." },
     ],
   },
   {
     id: "payment_confirmation",
-    label: "Pago confirmado",
+    labelKey: "emailTemplates.paymentConfirmationLabel",
     icon: CreditCard,
-    description: "Se envía cuando el admin marca un pago como registrado.",
+    descriptionKey: "emailTemplates.paymentConfirmationDesc",
     subject: "Pago confirmado – {{mes}} | JIP Coaching",
     heading: "Pago confirmado ✅",
     subheading: "Hola {{nombre}}, tu pago ha sido registrado correctamente.",
@@ -66,9 +67,9 @@ const TEMPLATE_DEFS: TemplateConfig[] = [
   },
   {
     id: "payment_reminder",
-    label: "Recordatorio de pago",
+    labelKey: "emailTemplates.paymentReminderLabel",
     icon: AlertTriangle,
-    description: "Se envía diariamente (9:00 AM) a clientes con pagos vencidos (+30 días).",
+    descriptionKey: "emailTemplates.paymentReminderDesc",
     subject: "Recordatorio de pago – JIP Coaching",
     heading: "Recordatorio de pago",
     subheading: "Hola {{nombre}}, tu cuota mensual está pendiente.",
@@ -77,30 +78,30 @@ const TEMPLATE_DEFS: TemplateConfig[] = [
   },
   {
     id: "password_reset",
-    label: "Recuperar contraseña",
+    labelKey: "emailTemplates.passwordResetLabel",
     icon: KeyRound,
-    description: "Se envía cuando un usuario solicita restablecer su contraseña.",
+    descriptionKey: "emailTemplates.passwordResetDesc",
     subject: "Recupera tu contraseña – JIP Coaching",
     heading: "Recupera tu contraseña",
     subheading: "Hemos recibido una solicitud para restablecer la contraseña de tu cuenta.",
     bodyText: "Haz clic en el botón de abajo para crear una nueva contraseña. Este enlace expirará en 30 minutos.",
     ctaLabel: "Restablecer contraseña",
     extraFields: [
-      { key: "disclaimerText", label: "Texto de descargo", placeholder: "Si no solicitaste...", defaultValue: "Si no solicitaste este cambio, puedes ignorar este email. Tu contraseña seguirá siendo la misma." },
+      { key: "disclaimerText", labelKey: "emailTemplates.disclaimerTextLabel", placeholderKey: "emailTemplates.disclaimerTextPlaceholder", defaultValue: "Si no solicitaste este cambio, puedes ignorar este email. Tu contraseña seguirá siendo la misma." },
     ],
   },
   {
     id: "email_change",
-    label: "Cambio de email",
+    labelKey: "emailTemplates.emailChangeLabel",
     icon: MailCheck,
-    description: "Se envía cuando un usuario solicita cambiar su dirección de email. Incluye un enlace de verificación.",
+    descriptionKey: "emailTemplates.emailChangeDesc",
     subject: "Confirma tu nuevo email – JIP Coaching",
     heading: "Confirma tu nuevo email",
     subheading: "Hemos recibido una solicitud para cambiar el email de tu cuenta a {{nuevoEmail}}.",
     bodyText: "Haz clic en el botón de abajo para confirmar el cambio. Este enlace expirará en 30 minutos.",
     ctaLabel: "Confirmar nuevo email",
     extraFields: [
-      { key: "disclaimerText", label: "Texto de descargo", placeholder: "Si no solicitaste este cambio...", defaultValue: "Si no solicitaste este cambio, puedes ignorar este email. Tu email seguirá siendo el mismo." },
+      { key: "disclaimerText", labelKey: "emailTemplates.disclaimerTextLabel", placeholderKey: "emailTemplates.disclaimerTextPlaceholder", defaultValue: "Si no solicitaste este cambio, puedes ignorar este email. Tu email seguirá siendo el mismo." },
     ],
   },
 ];
@@ -206,6 +207,7 @@ const TemplateEditor = ({ def, apiData, onSaved }: { def: TemplateConfig; apiDat
   const [showPreview, setShowPreview] = useState(true);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   // Sync when API data arrives
   useEffect(() => {
@@ -222,7 +224,7 @@ const TemplateEditor = ({ def, apiData, onSaved }: { def: TemplateConfig; apiDat
 
   const handleSave = async () => {
     if (DEV_MOCK) {
-      toast({ title: "Modo desarrollo", description: "Los cambios no se guardan en modo mock." });
+      toast({ title: t("emailTemplates.devSaveTitle"), description: t("emailTemplates.devSaveDesc") });
       return;
     }
 
@@ -236,7 +238,7 @@ const TemplateEditor = ({ def, apiData, onSaved }: { def: TemplateConfig; apiDat
         ctaLabel: state.ctaLabel,
         extras: state.extras,
       });
-      toast({ title: "Plantilla guardada ✅", description: "Los cambios se aplicarán en los próximos envíos de email." });
+      toast({ title: t("emailTemplates.savedTitle"), description: t("emailTemplates.savedDesc") });
       onSaved();
     } catch {
       // api.ts already shows error toast
@@ -247,7 +249,7 @@ const TemplateEditor = ({ def, apiData, onSaved }: { def: TemplateConfig; apiDat
 
   const handleReset = () => {
     setState(defaultStateFrom(def));
-    toast({ title: "Plantilla restaurada", description: "Se han restaurado los valores por defecto. Guarda para aplicar." });
+    toast({ title: t("emailTemplates.restoredTitle"), description: t("emailTemplates.restoredDesc") });
   };
 
   return (
@@ -258,57 +260,57 @@ const TemplateEditor = ({ def, apiData, onSaved }: { def: TemplateConfig; apiDat
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <def.icon className="h-4 w-4 text-primary" />
-              Editar plantilla
+              {t("emailTemplates.editTemplate")}
             </CardTitle>
             <div className="flex gap-2">
               <Button variant="ghost" size="sm" onClick={handleReset} className="text-muted-foreground">
-                <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restaurar
+                <RotateCcw className="h-3.5 w-3.5 mr-1" /> {t("emailTemplates.restore")}
               </Button>
               <Button size="sm" onClick={handleSave} disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 {saving ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-1" />}
-                Guardar
+                {t("emailTemplates.save")}
               </Button>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">{def.description}</p>
+          <p className="text-xs text-muted-foreground mt-1">{t(def.descriptionKey)}</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label className="text-xs text-muted-foreground">Asunto del email</Label>
+            <Label className="text-xs text-muted-foreground">{t("emailTemplates.subjectLabel")}</Label>
             <Input value={state.subject} onChange={(e) => update("subject", e.target.value)} className="mt-1 bg-background" />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Título principal</Label>
+            <Label className="text-xs text-muted-foreground">{t("emailTemplates.headingLabel")}</Label>
             <Input value={state.heading} onChange={(e) => update("heading", e.target.value)} className="mt-1 bg-background" />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Subtítulo</Label>
+            <Label className="text-xs text-muted-foreground">{t("emailTemplates.subheadingLabel")}</Label>
             <Input value={state.subheading} onChange={(e) => update("subheading", e.target.value)} className="mt-1 bg-background" />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Texto del cuerpo</Label>
+            <Label className="text-xs text-muted-foreground">{t("emailTemplates.bodyTextLabel")}</Label>
             <Textarea value={state.bodyText} onChange={(e) => update("bodyText", e.target.value)} className="mt-1 bg-background min-h-[80px]" />
           </div>
           {state.ctaLabel !== undefined && (
             <div>
-              <Label className="text-xs text-muted-foreground">Texto del botón (vacío = sin botón)</Label>
+              <Label className="text-xs text-muted-foreground">{t("emailTemplates.ctaLabelField")}</Label>
               <Input value={state.ctaLabel} onChange={(e) => update("ctaLabel", e.target.value)} className="mt-1 bg-background" />
             </div>
           )}
           {(def.extraFields ?? []).map((ef) => (
             <div key={ef.key}>
-              <Label className="text-xs text-muted-foreground">{ef.label}</Label>
+              <Label className="text-xs text-muted-foreground">{t(ef.labelKey)}</Label>
               <Textarea
                 value={state.extras[ef.key] ?? ""}
                 onChange={(e) => updateExtra(ef.key, e.target.value)}
-                placeholder={ef.placeholder}
+                placeholder={t(ef.placeholderKey)}
                 className="mt-1 bg-background min-h-[60px]"
               />
             </div>
           ))}
           <div className="pt-2 border-t border-border">
             <p className="text-[11px] text-muted-foreground">
-              Variables disponibles: <code className="text-primary/80">{"{{nombre}}"}</code>, <code className="text-primary/80">{"{{email}}"}</code>, <code className="text-primary/80">{"{{mes}}"}</code>, <code className="text-primary/80">{"{{importe}}"}</code>, <code className="text-primary/80">{"{{nuevoEmail}}"}</code>
+              {t("emailTemplates.variablesHint")} <code className="text-primary/80">{"{{nombre}}"}</code>, <code className="text-primary/80">{"{{email}}"}</code>, <code className="text-primary/80">{"{{mes}}"}</code>, <code className="text-primary/80">{"{{importe}}"}</code>, <code className="text-primary/80">{"{{nuevoEmail}}"}</code>
             </p>
           </div>
         </CardContent>
@@ -320,13 +322,13 @@ const TemplateEditor = ({ def, apiData, onSaved }: { def: TemplateConfig; apiDat
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <Eye className="h-4 w-4 text-primary" />
-              Vista previa
+              {t("emailTemplates.preview")}
             </CardTitle>
             <Button variant="outline" size="sm" onClick={() => setShowPreview((v) => !v)}>
-              {showPreview ? "Ocultar" : "Mostrar"}
+              {showPreview ? t("emailTemplates.hide") : t("emailTemplates.show")}
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground">Asunto: <span className="text-foreground">{state.subject}</span></p>
+          <p className="text-xs text-muted-foreground">{t("emailTemplates.previewSubject")} <span className="text-foreground">{state.subject}</span></p>
         </CardHeader>
         {showPreview && (
           <CardContent className="p-0">
@@ -335,7 +337,7 @@ const TemplateEditor = ({ def, apiData, onSaved }: { def: TemplateConfig; apiDat
                 srcDoc={renderPreview(state, def)}
                 className="w-full border-0 rounded-b-lg"
                 style={{ minHeight: 520 }}
-                title={`Preview ${def.label}`}
+                title={`Preview ${t(def.labelKey)}`}
               />
             </div>
           </CardContent>
@@ -348,6 +350,7 @@ const TemplateEditor = ({ def, apiData, onSaved }: { def: TemplateConfig; apiDat
 const AdminEmailTemplates = () => {
   const [apiTemplates, setApiTemplates] = useState<Record<string, TemplateState>>({});
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   const fetchTemplates = useCallback(async () => {
     if (DEV_MOCK) { setLoading(false); return; }
@@ -379,14 +382,14 @@ const AdminEmailTemplates = () => {
       <AnimatedPage>
         <div className="space-y-6">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Plantillas de Email</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{t("emailTemplates.title")}</h1>
             <p className="text-muted-foreground text-sm mt-1">
-              Personaliza los correos automáticos. Los cambios se aplican en tiempo real a los próximos envíos.
+              {t("emailTemplates.subtitle")}
             </p>
             {DEV_MOCK && (
               <div className="flex items-center gap-2 mt-2 text-xs text-amber-500">
                 <CloudOff className="h-3.5 w-3.5" />
-                Modo desarrollo — los cambios no se guardan en servidor.
+                {t("emailTemplates.devMode")}
               </div>
             )}
           </div>
@@ -405,7 +408,7 @@ const AdminEmailTemplates = () => {
                     className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2 text-xs sm:text-sm"
                   >
                     <def.icon className="h-3.5 w-3.5" />
-                    {def.label}
+                    {t(def.labelKey)}
                   </TabsTrigger>
                 ))}
               </TabsList>
