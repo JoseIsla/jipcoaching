@@ -1,6 +1,9 @@
 import { Router } from "express";
+import fs from "fs";
+import path from "path";
 import { prisma } from "../server";
 import { authenticate, requireRole } from "../middleware/auth";
+import { uploadVideo } from "../middleware/upload";
 
 const router = Router();
 router.use(authenticate);
