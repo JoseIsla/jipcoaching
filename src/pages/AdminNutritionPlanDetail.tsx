@@ -31,6 +31,7 @@ import {
   type IngredientRow,
   type Supplement,
   type MacroCategory,
+  type ApiSupplement,
 } from "@/data/useNutritionPlanStore";
 
 // ─── Macro category badge colors ───
