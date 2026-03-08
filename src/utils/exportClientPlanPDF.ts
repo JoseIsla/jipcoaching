@@ -217,7 +217,7 @@ export const exportNutritionPlanPDF = (
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...NEON_GREEN);
-    doc.text("💊 Suplementación", MARGIN, y);
+    doc.text("SUPLEMENTACION", MARGIN, y);
     y += 2;
     autoTable(doc, {
       startY: y,
