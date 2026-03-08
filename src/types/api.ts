@@ -28,6 +28,33 @@ export enum PackType {
   FULL = "FULL",
 }
 
+export interface NutritionIntakeDto {
+  goal?: string;
+  goalTimeframe?: string;
+  goalMotivation?: string;
+  targetWeight?: number;
+  mealsPerDay?: number;
+  sleepHours?: number;
+  stressLevel?: number;
+  occupation?: string;
+  supplements?: string;
+  excludedFoods?: string;
+  allergies?: string;
+  pathologies?: string;
+  digestiveIssues?: string;
+}
+
+export interface TrainingIntakeDto {
+  experience?: string;
+  sessionsPerWeek?: string;
+  intensity?: number;
+  otherSports?: string;
+  modality?: string;
+  goal?: string;
+  currentSBD?: string;
+  injuries?: string;
+}
+
 export interface CreateClientDto {
   name: string;
   email: string;
@@ -36,6 +63,8 @@ export interface CreateClientDto {
   status: ClientStatus;
   monthlyFee: number;
   notes?: string;
+  nutritionIntake?: NutritionIntakeDto;
+  trainingIntake?: TrainingIntakeDto;
 }
 
 export type ServiceType = "nutrition" | "training";
