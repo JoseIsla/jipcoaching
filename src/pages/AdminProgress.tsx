@@ -33,21 +33,30 @@ const ClientProgressCard = ({ client, onClick, t }: { client: ApiClient; onClick
   const latestWeight = wh.length > 0 ? wh[wh.length - 1].weight : null;
   const packLabel = client.packType ? (packTypeLabels[String(client.packType)] ?? String(client.packType)) : "";
 
+  const initials = client.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+
   return (
-    <button onClick={onClick} className="w-full bg-card border border-border rounded-xl p-5 hover:border-primary/30 transition-all text-left group">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary group-hover:bg-primary/20 transition-colors">{client.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}</div>
-          <div><p className="font-medium text-foreground">{client.name}</p><p className="text-xs text-muted-foreground">{packLabel}</p></div>
+    <button onClick={onClick} className="w-full bg-card border border-border rounded-xl px-4 py-3 hover:border-primary/30 transition-all text-left group">
+      <div className="flex items-center gap-3">
+        <Avatar className="h-10 w-10 shrink-0">
+          <AvatarImage src={client.avatarUrl || undefined} />
+          <AvatarFallback className="bg-primary/15 text-primary text-sm font-bold">{initials}</AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <p className="font-medium text-foreground truncate">{client.name}</p>
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
+          </div>
+          <div className="flex items-center gap-3 mt-0.5">
+            <span className="text-xs text-muted-foreground">{packLabel}</span>
+            {latestWeight && <span className="text-xs font-mono text-foreground">{latestWeight} kg</span>}
+            {sbdTotal > 0 && <span className="text-xs font-mono text-foreground">SBD {sbdTotal}</span>}
+          </div>
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex gap-1 shrink-0">
           {hasNutrition && <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10 text-[10px] px-1.5 py-0.5">Nutri</Badge>}
           {hasTraining && <Badge variant="outline" className="border-accent/30 text-accent bg-accent/10 text-[10px] px-1.5 py-0.5">{t("common.training")}</Badge>}
         </div>
-      </div>
-      <div className="flex items-center gap-4">
-        {latestWeight && <div className="flex items-center gap-1.5"><Utensils className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-sm font-mono text-foreground">{latestWeight} kg</span></div>}
-        {sbdTotal > 0 && <div className="flex items-center gap-1.5"><Trophy className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-sm font-mono text-foreground">SBD {sbdTotal} kg</span></div>}
       </div>
     </button>
   );
