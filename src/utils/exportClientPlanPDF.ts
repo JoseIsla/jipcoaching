@@ -163,7 +163,7 @@ export const exportNutritionPlanPDF = (
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...NEON_GREEN);
-    doc.text(`🍽 ${meal.name}`, MARGIN, y);
+    doc.text(meal.name.toUpperCase(), MARGIN, y);
     y += 2;
 
     if (meal.description) {
@@ -177,25 +177,31 @@ export const exportNutritionPlanPDF = (
     meal.options.forEach((opt, optIdx) => {
       y = checkPage(doc, y, 20);
 
+      const CATEGORY_LABELS: Record<string, string> = {
+        PROTEIN: "Proteina",
+        CARB: "Carbohidrato",
+        FAT: "Grasa",
+        FRUIT: "Fruta",
+        VEG: "Verdura",
+      };
+
       const tableBody = opt.rows.map((row) => {
-        const cat = row.macroCategory
-          ? ({ PROTEIN: "🥩 Prot", CARB: "🍚 CH", FAT: "🥑 Grasas", FRUIT: "🍎 Fruta", VEG: "🥦 Verd" } as Record<string, string>)[row.macroCategory] || row.macroCategory
-          : "";
-        const alts = row.alternatives.length > 0 ? `Alt: ${row.alternatives.join(", ")}` : "";
+        const cat = row.macroCategory ? CATEGORY_LABELS[row.macroCategory] || row.macroCategory : "";
+        const alts = row.alternatives.length > 0 ? row.alternatives.join(" | ") : "";
         return [cat, row.mainIngredient, alts];
       });
 
       autoTable(doc, {
         startY: y,
         margin: { left: MARGIN, right: MARGIN },
-        head: [[{ content: `Opción ${optIdx + 1}${opt.notes ? ` — ${opt.notes}` : ""}`, colSpan: 3 }]],
+        head: [[{ content: `Opcion ${optIdx + 1}${opt.notes ? ` - ${opt.notes}` : ""}`, colSpan: 3 }]],
         body: tableBody,
         theme: "grid",
         styles: { ...baseStyles, cellPadding: 2.5 },
         headStyles: headStylesSecondary,
         alternateRowStyles: { fillColor: [...altRowColor] },
         columnStyles: {
-          0: { cellWidth: 25, halign: "center", fontSize: 7, textColor: [...NEON_GREEN] },
+          0: { cellWidth: 28, halign: "center", fontSize: 7, textColor: [...NEON_GREEN] },
           1: { fontStyle: "bold", textColor: [...WHITE] },
           2: { fontSize: 7, textColor: [...TEXT_MUTED] },
         },
@@ -211,7 +217,7 @@ export const exportNutritionPlanPDF = (
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...NEON_GREEN);
-    doc.text("💊 Suplementación", MARGIN, y);
+    doc.text("SUPLEMENTACION", MARGIN, y);
     y += 2;
     autoTable(doc, {
       startY: y,
@@ -232,14 +238,14 @@ export const exportNutritionPlanPDF = (
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...NEON_GREEN);
-    doc.text("📌 Recomendaciones", MARGIN, y);
+    doc.text("RECOMENDACIONES", MARGIN, y);
     y += 5;
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(...TEXT_LIGHT);
     plan.recommendations.forEach((r) => {
       y = checkPage(doc, y, 8);
-      const lines = doc.splitTextToSize(`• ${r}`, doc.internal.pageSize.getWidth() - MARGIN * 2);
+      const lines = doc.splitTextToSize(`- ${r}`, doc.internal.pageSize.getWidth() - MARGIN * 2);
       doc.text(lines, MARGIN, y);
       y += lines.length * 3.5 + 2;
     });
@@ -291,7 +297,7 @@ export const exportTrainingWeekPDF = (
       doc.setFontSize(7);
       doc.setFont("helvetica", "italic");
       doc.setTextColor(...TEXT_MUTED);
-      doc.text(`🔥 ${day.warmup}`, MARGIN, y + 3);
+      doc.text(`Calentamiento: ${day.warmup}`, MARGIN, y + 3);
       y += 6;
     }
 

@@ -553,7 +553,7 @@ const es = {
     noActivePlan: "Sin plan activo",
     noActivePlanDesc: "Tu coach aún no te ha asignado un plan nutricional.",
     activePlan: "Plan nutricional activo",
-    dailyGoal: "Objetivo diario",
+    dailyGoal: "Objetivo del plan nutricional",
     meals: "Comidas",
     option: "Opción {n}",
     supplementation: "💊 Suplementación",

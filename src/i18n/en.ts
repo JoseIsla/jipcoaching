@@ -549,7 +549,7 @@ const en: Translations = {
     noActivePlan: "No active plan",
     noActivePlanDesc: "Your coach hasn't assigned you a nutrition plan yet.",
     activePlan: "Active nutrition plan",
-    dailyGoal: "Daily goal",
+    dailyGoal: "Nutrition plan objective",
     meals: "Meals",
     option: "Option {n}",
     supplementation: "💊 Supplementation",
