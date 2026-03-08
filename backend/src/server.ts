@@ -87,6 +87,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/foods", foodRoutes);
 
 // Public email verification endpoint (no auth needed — user clicks link from email)
 app.get("/api/verify-email", async (req, res) => {
