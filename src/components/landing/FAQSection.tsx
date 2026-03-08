@@ -26,6 +26,7 @@ const faqsEn = [
   { q: "Can I change plans after starting?", a: "Yes, you can change or upgrade your plan at any time. Many clients start with nutrition and then add training." },
   { q: "What does weekly tracking include?", a: "Adherence review, macro or training volume adjustments, technique feedback, and ongoing chat support for any questions." },
   { q: "Is everything online or in-person?", a: "Coaching is 100% online, allowing you to follow your plan from anywhere. Communication is through the app and chat." },
+  { q: "How do I install the app on my phone?", a: "It's very easy! No App Store or Play Store needed. Visit our installation page with step-by-step instructions for iPhone and Android.", isInstall: true },
 ];
 
 const FAQSection = () => {

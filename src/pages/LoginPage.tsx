@@ -155,6 +155,7 @@ const LoginPage = () => {
           </p>
         )}
       </div>
+      <PWAInstallBanner />
     </div>
   );
 };
