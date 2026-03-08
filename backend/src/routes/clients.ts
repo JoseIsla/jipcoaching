@@ -16,87 +16,6 @@ const transporter = nodemailer.createTransport({
   tls: { rejectUnauthorized: false },
 });
 
-const buildWelcomeEmail = (name: string, email: string, password: string, loginUrl: string) => `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#000000;font-family:'Inter',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#000000;padding:40px 20px;">
-    <tr><td align="center">
-      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#111111;border-radius:16px;border:1px solid #292929;overflow:hidden;">
-        <!-- Header -->
-        <tr><td style="padding:32px 32px 0;text-align:center;">
-          <img src="${FRONTEND_URL}/assets/logo-jip.png" alt="JIP Coaching" width="80" style="display:block;margin:0 auto 24px;" />
-          <h1 style="color:#ffffff;font-size:22px;font-weight:700;margin:0 0 8px;">¡Bienvenido/a, ${name}!</h1>
-          <p style="color:#999999;font-size:14px;margin:0;">Tu cuenta en JIP Coaching ha sido creada correctamente.</p>
-        </td></tr>
-        <!-- Body -->
-        <tr><td style="padding:32px;">
-          <p style="color:#cccccc;font-size:14px;line-height:22px;margin:0 0 20px;">
-            Ya puedes acceder a tu panel de cliente donde encontrarás tus planes de entrenamiento, nutrición, check-ins y mucho más.
-          </p>
-          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1a1a1a;border-radius:12px;border:1px solid #292929;margin-bottom:24px;">
-            <tr><td style="padding:20px;">
-              <p style="color:#999999;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;">Tus credenciales</p>
-              <p style="color:#ffffff;font-size:14px;margin:0 0 4px;"><strong>Email:</strong> ${email}</p>
-              <p style="color:#ffffff;font-size:14px;margin:0;"><strong>Contraseña:</strong> ${password}</p>
-            </td></tr>
-          </table>
-          <p style="color:#ff6b6b;font-size:12px;line-height:18px;margin:0 0 24px;">
-            ⚠️ Te recomendamos cambiar tu contraseña después del primer inicio de sesión.
-          </p>
-          <table width="100%" cellpadding="0" cellspacing="0">
-            <tr><td align="center">
-              <a href="${loginUrl}" target="_blank" style="display:inline-block;background-color:hsl(110,100%,54%);color:#000000;font-weight:700;font-size:14px;text-decoration:none;padding:14px 32px;border-radius:12px;">
-                Acceder a mi cuenta
-              </a>
-            </td></tr>
-          </table>
-        </td></tr>
-        <!-- Footer -->
-        <tr><td style="padding:0 32px 24px;text-align:center;border-top:1px solid #292929;padding-top:20px;">
-          <p style="color:#555555;font-size:11px;margin:0;">© ${new Date().getFullYear()} JIP Performance Nutrition. Todos los derechos reservados.</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-
-const buildPaymentConfirmationEmail = (name: string, monthName: string, amount: number) => `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#000000;font-family:'Inter',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#000000;padding:40px 20px;">
-    <tr><td align="center">
-      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#111111;border-radius:16px;border:1px solid #292929;overflow:hidden;">
-        <tr><td style="padding:32px 32px 0;text-align:center;">
-          <img src="${FRONTEND_URL}/assets/logo-jip.png" alt="JIP Coaching" width="80" style="display:block;margin:0 auto 24px;" />
-          <h1 style="color:#ffffff;font-size:22px;font-weight:700;margin:0 0 8px;">Pago confirmado ✅</h1>
-          <p style="color:#999999;font-size:14px;margin:0;">Hola ${name}, tu pago ha sido registrado correctamente.</p>
-        </td></tr>
-        <tr><td style="padding:32px;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1a1a1a;border-radius:12px;border:1px solid #292929;margin-bottom:24px;">
-            <tr><td style="padding:20px;">
-              <p style="color:#999999;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;">Detalle</p>
-              <p style="color:#ffffff;font-size:14px;margin:0 0 4px;"><strong>Período:</strong> ${monthName}</p>
-              <p style="color:#ffffff;font-size:14px;margin:0;"><strong>Importe:</strong> ${amount}€</p>
-            </td></tr>
-          </table>
-          <p style="color:#cccccc;font-size:14px;line-height:22px;margin:0;">
-            Gracias por confiar en JIP Coaching. ¡Seguimos trabajando juntos! 💪
-          </p>
-        </td></tr>
-        <tr><td style="padding:0 32px 24px;text-align:center;border-top:1px solid #292929;padding-top:20px;">
-          <p style="color:#555555;font-size:11px;margin:0;">© ${new Date().getFullYear()} JIP Performance Nutrition. Todos los derechos reservados.</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-
 const router = Router();
 
 // All routes require authentication
@@ -234,7 +153,6 @@ router.post("/", requireRole("ADMIN"), async (req, res) => {
       return;
     }
 
-    // Check if user already exists
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       res.status(400).json({ message: "El email ya está registrado" });
@@ -278,15 +196,25 @@ router.post("/", requireRole("ADMIN"), async (req, res) => {
       console.warn("Failed to create new client notification:", notifErr);
     }
 
-    // Send welcome email to the new client
+    // Send welcome email to the new client (from DB template)
     try {
       const loginUrl = `${FRONTEND_URL}/login`;
-      await transporter.sendMail({
-        from: FROM_EMAIL,
-        to: email,
-        subject: "Bienvenido/a a JIP Coaching – Tu cuenta está lista",
-        html: buildWelcomeEmail(name, email, password, loginUrl),
-      });
+      const credentialsBlock = `
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1a1a1a;border-radius:12px;border:1px solid #292929;margin-bottom:24px;">
+          <tr><td style="padding:20px;">
+            <p style="color:#999999;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;">Tus credenciales</p>
+            <p style="color:#ffffff;font-size:14px;margin:0 0 4px;"><strong>Email:</strong> ${email}</p>
+            <p style="color:#ffffff;font-size:14px;margin:0;"><strong>Contraseña:</strong> ${password}</p>
+          </td></tr>
+        </table>`;
+
+      const { subject, html } = await buildEmail(
+        "WELCOME",
+        { nombre: name, email },
+        { preBodyBlock: credentialsBlock, ctaUrl: loginUrl },
+      );
+
+      await transporter.sendMail({ from: FROM_EMAIL, to: email, subject, html });
     } catch (mailErr) {
       console.warn("Failed to send welcome email:", mailErr);
     }
@@ -345,7 +273,6 @@ router.delete("/:id", requireRole("ADMIN"), async (req, res) => {
       return;
     }
 
-    // Delete user (cascades to client)
     await prisma.user.delete({ where: { id: client.userId } });
     res.json({ message: "Cliente eliminado" });
   } catch (err: any) {
@@ -362,7 +289,6 @@ router.patch("/:id/mark-paid", requireRole("ADMIN"), async (req, res) => {
       data: { lastPaidAt: new Date() },
     });
 
-    // Create in-app notification for the client
     try {
       const monthName = new Date().toLocaleDateString("es-ES", { month: "long", year: "numeric" });
 
@@ -376,14 +302,24 @@ router.patch("/:id/mark-paid", requireRole("ADMIN"), async (req, res) => {
         },
       });
 
-      // Send payment confirmation email to client
+      // Send payment confirmation email from DB template
       try {
-        await transporter.sendMail({
-          from: FROM_EMAIL,
-          to: client.email,
-          subject: `Pago confirmado – ${monthName} | JIP Coaching`,
-          html: buildPaymentConfirmationEmail(client.name, monthName, client.monthlyFee),
-        });
+        const paymentBlock = `
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1a1a1a;border-radius:12px;border:1px solid #292929;margin-bottom:24px;">
+            <tr><td style="padding:20px;">
+              <p style="color:#999999;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;">Detalle</p>
+              <p style="color:#ffffff;font-size:14px;margin:0 0 4px;"><strong>Período:</strong> ${monthName}</p>
+              <p style="color:#ffffff;font-size:14px;margin:0;"><strong>Importe:</strong> ${client.monthlyFee}€</p>
+            </td></tr>
+          </table>`;
+
+        const { subject, html } = await buildEmail(
+          "PAYMENT_CONFIRMATION",
+          { nombre: client.name, mes: monthName, importe: `${client.monthlyFee}` },
+          { preBodyBlock: paymentBlock },
+        );
+
+        await transporter.sendMail({ from: FROM_EMAIL, to: client.email, subject, html });
       } catch (mailErr) {
         console.warn("Failed to send payment confirmation email:", mailErr);
       }

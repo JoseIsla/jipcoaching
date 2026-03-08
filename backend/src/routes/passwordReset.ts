@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
 import { prisma } from "../server";
 import { rateLimit } from "../middleware/rateLimiter";
+import { buildEmail } from "../utils/emailBuilder";
 
 const router = Router();
 
@@ -11,62 +12,15 @@ const FRONTEND_URL = (process.env.FRONTEND_URL || "https://jipcoaching.com").rep
 const FROM_EMAIL = process.env.FROM_EMAIL || "JIP Coaching <info@jipcoaching.com>";
 const TOKEN_EXPIRY_MINUTES = 30;
 
-// ── SMTP transporter (Plesk mail server) ──
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "localhost",
   port: Number(process.env.SMTP_PORT) || 465,
-  secure: (process.env.SMTP_SECURE ?? "true") === "true", // true = SSL/465
-  auth: {
-    user: process.env.SMTP_USER || "",
-    pass: process.env.SMTP_PASS || "",
-  },
-  // Allow self-signed certs common in Plesk setups
+  secure: (process.env.SMTP_SECURE ?? "true") === "true",
+  auth: { user: process.env.SMTP_USER || "", pass: process.env.SMTP_PASS || "" },
   tls: { rejectUnauthorized: false },
 });
 
-// Rate limit: max 5 requests per 15 min
 const resetLimiter = rateLimit({ windowSec: 15 * 60, max: 5 });
-
-// ── Build HTML email template ──
-const buildResetEmail = (resetUrl: string) => `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#000000;font-family:'Inter',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#000000;padding:40px 20px;">
-    <tr><td align="center">
-      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#111111;border-radius:16px;border:1px solid #292929;overflow:hidden;">
-        <!-- Header -->
-        <tr><td style="padding:32px 32px 0;text-align:center;">
-          <img src="${FRONTEND_URL}/assets/logo-jip.png" alt="JIP Coaching" width="80" style="display:block;margin:0 auto 24px;" />
-          <h1 style="color:#ffffff;font-size:22px;font-weight:700;margin:0 0 8px;">Recupera tu contraseña</h1>
-          <p style="color:#999999;font-size:14px;margin:0;">Hemos recibido una solicitud para restablecer la contraseña de tu cuenta.</p>
-        </td></tr>
-        <!-- Body -->
-        <tr><td style="padding:32px;">
-          <p style="color:#cccccc;font-size:14px;line-height:22px;margin:0 0 24px;">
-            Haz clic en el botón de abajo para crear una nueva contraseña. Este enlace expirará en <strong style="color:#ffffff;">${TOKEN_EXPIRY_MINUTES} minutos</strong>.
-          </p>
-          <table width="100%" cellpadding="0" cellspacing="0">
-            <tr><td align="center">
-              <a href="${resetUrl}" target="_blank" style="display:inline-block;background-color:hsl(110,100%,54%);color:#000000;font-weight:700;font-size:14px;text-decoration:none;padding:14px 32px;border-radius:12px;">
-                Restablecer contraseña
-              </a>
-            </td></tr>
-          </table>
-          <p style="color:#666666;font-size:12px;line-height:18px;margin:24px 0 0;">
-            Si no solicitaste este cambio, puedes ignorar este email. Tu contraseña seguirá siendo la misma.
-          </p>
-        </td></tr>
-        <!-- Footer -->
-        <tr><td style="padding:0 32px 24px;text-align:center;border-top:1px solid #292929;padding-top:20px;">
-          <p style="color:#555555;font-size:11px;margin:0;">© ${new Date().getFullYear()} JIP Performance Nutrition. Todos los derechos reservados.</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
 
 // POST /api/auth/forgot-password
 router.post("/forgot-password", resetLimiter, async (req, res) => {
@@ -79,19 +33,16 @@ router.post("/forgot-password", resetLimiter, async (req, res) => {
 
     const user = await prisma.user.findUnique({ where: { email } });
 
-    // Always return success to prevent email enumeration
     if (!user) {
       res.json({ message: "Si el email existe, recibirás un enlace de recuperación." });
       return;
     }
 
-    // Invalidate previous tokens
     await prisma.passwordResetToken.updateMany({
       where: { userId: user.id, usedAt: null },
       data: { usedAt: new Date() },
     });
 
-    // Generate secure token
     const token = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MINUTES * 60 * 1000);
 
@@ -101,12 +52,14 @@ router.post("/forgot-password", resetLimiter, async (req, res) => {
 
     const resetUrl = `${FRONTEND_URL}/reset-password?token=${token}`;
 
-    await transporter.sendMail({
-      from: FROM_EMAIL,
-      to: email,
-      subject: "Recupera tu contraseña – JIP Coaching",
-      html: buildResetEmail(resetUrl),
-    });
+    // Use DB template for password reset email
+    const { subject, html } = await buildEmail(
+      "PASSWORD_RESET",
+      { nombre: user.email },
+      { ctaUrl: resetUrl },
+    );
+
+    await transporter.sendMail({ from: FROM_EMAIL, to: email, subject, html });
 
     res.json({ message: "Si el email existe, recibirás un enlace de recuperación." });
   } catch (err: any) {
