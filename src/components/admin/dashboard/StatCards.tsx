@@ -20,6 +20,7 @@ const StatCards = () => {
   const activeNutrition = nutritionPlans.filter((p) => p.active);
   const activeTraining = trainingPlans.filter((p) => p.active);
   const retention = getRetentionRate();
+  const monthlyRevenue = activeClients.reduce((sum, c) => sum + (c.monthlyFee ?? 0), 0);
 
   const stats = [
     {
@@ -45,6 +46,14 @@ const StatCards = () => {
       icon: Dumbbell,
       color: "accent" as const,
       positive: true,
+    },
+    {
+      title: "Facturación mensual",
+      value: `${monthlyRevenue.toLocaleString("es-ES")}€`,
+      sub: `${activeClients.length} suscripciones`,
+      icon: Wallet,
+      color: "primary" as const,
+      positive: monthlyRevenue > 0,
     },
     {
       title: t("dashboard.retention"),
