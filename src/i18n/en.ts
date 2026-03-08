@@ -111,6 +111,7 @@ const en: Translations = {
     clients: "Clients",
     nutrition: "Nutrition",
     training: "Training",
+    progress: "Progress",
     library: "Library",
     leads: "Leads",
     questionnaires: "Questionnaires",
