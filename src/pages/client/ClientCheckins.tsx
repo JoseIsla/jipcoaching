@@ -657,32 +657,13 @@ const ClientCheckins = () => {
     }
   }, [client.id, hasTraining, allEntries.length]);
 
-  // Only show current week entries
+  // Only show current week entries — hide older ones entirely
   const nutritionEntries = myEntries.filter((e) => e.category === "nutrition" && isInCurrentWeek(e.date));
   const trainingEntries = myEntries.filter(
     (e) => e.category === "training" && e.trainingLog && e.trainingLog.length > 0 && isInCurrentWeek(e.date)
   );
 
-  // Past week entries grouped by week
-  const pastNutrition = myEntries.filter((e) => e.category === "nutrition" && !isInCurrentWeek(e.date));
-  const pastTraining = myEntries.filter((e) => e.category === "training" && e.trainingLog && e.trainingLog.length > 0 && !isInCurrentWeek(e.date));
-
-  const groupByWeek = (entries: QuestionnaireEntry[]) => {
-    const groups: Record<string, { start: Date; end: Date; entries: QuestionnaireEntry[] }> = {};
-    entries.forEach((e) => {
-      const d = new Date(e.date + "T12:00:00");
-      const [mon, sun] = getCurrentWeekRange(d);
-      const key = mon.toISOString();
-      if (!groups[key]) groups[key] = { start: mon, end: sun, entries: [] };
-      groups[key].entries.push(e);
-    });
-    return Object.values(groups).sort((a, b) => b.start.getTime() - a.start.getTime());
-  };
-
-  const pastNutritionWeeks = groupByWeek(pastNutrition);
-  const pastTrainingWeeks = groupByWeek(pastTraining);
-
-  const formatShortDate = (d: Date) => `${d.getDate()}/${d.getMonth() + 1}`;
+  
 
   const defaultTab = hasNutrition ? "nutrition" : "training";
 
@@ -710,7 +691,7 @@ const ClientCheckins = () => {
                 <p className="text-xs text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("clientCheckins.nutritionSchedule") }} />
                 {nutritionEntries.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">{t("clientCheckins.noNutrition")}</p>}
                 {nutritionEntries.map((entry) => <NutritionCheckinCard key={entry.id} entry={entry} />)}
-                <HistorySection weeks={pastNutritionWeeks} renderCard={(entry) => <NutritionCheckinCard key={entry.id} entry={entry} />} formatShortDate={formatShortDate} t={t} />
+                
               </TabsContent>
             )}
             {hasTraining && (
@@ -723,7 +704,7 @@ const ClientCheckins = () => {
                   </div>
                 )}
                 {trainingEntries.map((entry) => <TrainingLogCard key={entry.id} entry={entry} />)}
-                <HistorySection weeks={pastTrainingWeeks} renderCard={(entry) => <TrainingLogCard key={entry.id} entry={entry} />} formatShortDate={formatShortDate} t={t} />
+                
               </TabsContent>
             )}
           </Tabs>

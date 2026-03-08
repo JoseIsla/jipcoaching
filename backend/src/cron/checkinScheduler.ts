@@ -45,8 +45,9 @@ async function generateNutritionCheckins() {
       where: { status: "ACTIVE", packType: { in: ["NUTRITION", "FULL"] } },
     });
 
-    const templates = await prisma.questionnaireTemplate.findMany({
+    const allTemplates = await prisma.questionnaireTemplate.findMany({
       where: { category: "NUTRITION", isActive: true },
+      orderBy: { updatedAt: "desc" },
     });
 
     const now = new Date();
@@ -64,6 +65,14 @@ async function generateNutritionCheckins() {
     sunday.setHours(23, 59, 59, 999);
 
     let totalCreated = 0;
+
+    // Deduplicate: keep only the latest template per dayOfWeek
+    const seenDays = new Set<number>();
+    const templates = allTemplates.filter((t) => {
+      if (t.dayOfWeek == null || seenDays.has(t.dayOfWeek)) return false;
+      seenDays.add(t.dayOfWeek);
+      return true;
+    });
 
     // Only create checkins for templates matching today's day of week
     const todayTemplates = templates.filter((t) => t.dayOfWeek === today);
