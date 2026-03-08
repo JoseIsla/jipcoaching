@@ -56,6 +56,9 @@ const AdminSettings = () => {
     handleChangePassword,
   } = useAdminProfile();
 
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [timezone, setTimezone] = useState("");
