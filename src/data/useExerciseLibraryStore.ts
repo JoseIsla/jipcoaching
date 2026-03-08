@@ -24,10 +24,19 @@ const toLibraryItem = (e: ApiExercise): ExerciseLibraryItem => ({
   parentExerciseId: e.parentExerciseId,
 });
 
+interface GlobalFoodItem {
+  id: string;
+  type: "FRUIT" | "VEGETABLE";
+  name: string;
+  order: number;
+}
+
 interface ExerciseLibraryState {
   exercises: ExerciseLibraryItem[];
   fruits: string[];
   vegetables: string[];
+  fruitsRaw: GlobalFoodItem[];
+  vegetablesRaw: GlobalFoodItem[];
   loading: boolean;
   error: string | null;
 
@@ -38,12 +47,13 @@ interface ExerciseLibraryState {
   removeExercise: (id: string) => Promise<void>;
   getByCategory: (category: ExerciseLibraryItem["category"]) => ExerciseLibraryItem[];
 
-  // Fruits (local — no backend endpoint yet)
+  // Fruits (API-backed)
+  fetchFoods: () => Promise<void>;
   addFruit: (name: string) => void;
   removeFruit: (index: number) => void;
   editFruit: (index: number, name: string) => void;
 
-  // Vegetables (local — no backend endpoint yet)
+  // Vegetables (API-backed)
   addVegetable: (name: string) => void;
   removeVegetable: (index: number) => void;
   editVegetable: (index: number, name: string) => void;
