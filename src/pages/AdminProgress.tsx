@@ -302,7 +302,7 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
         )}
       </Tabs>
 
-      {hasTraining && <AddRMDialog clientId={client.id} open={showAddRM} onClose={() => setShowAddRM(false)} />}
+      {hasTraining && <RMDialog clientId={client.id} open={showAddRM || !!editRM} onClose={() => { setShowAddRM(false); setEditRM(null); }} editRecord={editRM} />}
     </div>
   );
 };
