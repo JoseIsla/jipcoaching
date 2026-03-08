@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowDown, Zap, Target, TrendingUp } from "lucide-react";
+import { Zap, Target, TrendingUp } from "lucide-react";
 import coachHero from "@/assets/coach-hero.jpg";
 import { useTranslation } from "@/i18n/useTranslation";
 
