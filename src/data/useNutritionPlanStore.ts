@@ -116,7 +116,7 @@ const mapApiPlanToDetail = (p: ApiNutritionPlan): NutritionPlanDetail => {
   return {
     id: p.id,
     clientId: p.clientId,
-    clientName: "",
+    clientName: getClientName(p),
     planName: p.title,
     objective: (p as any).objective ?? "",
     calories: p.kcalMin ?? p.kcalMax,
