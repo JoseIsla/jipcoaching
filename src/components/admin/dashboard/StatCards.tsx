@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Users, Utensils, Dumbbell, TrendingUp, type LucideIcon } from "lucide-react";
+import { Users, Utensils, Dumbbell, TrendingUp, Wallet, type LucideIcon } from "lucide-react";
 import { useClientStore } from "@/data/useClientStore";
 import { useNutritionPlanStore } from "@/data/useNutritionPlanStore";
 import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
