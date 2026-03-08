@@ -16,7 +16,7 @@ import {
   Mail,
   TrendingUp,
 } from "lucide-react";
-import logoJipWide from "@/assets/logo-jip-wide.png";
+import logoJip from "@/assets/logo-jip.png";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "@/i18n/useTranslation";
 
