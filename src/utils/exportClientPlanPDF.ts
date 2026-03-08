@@ -274,6 +274,7 @@ export const exportTrainingWeekPDF = (
   clientName: string,
 ) => {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  patchAddPage(doc);
   let y = addHeader(doc, "Plan de Entrenamiento", plan.planName);
 
   // Subtitle
