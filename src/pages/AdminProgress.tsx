@@ -333,7 +333,7 @@ const AdminProgress = () => {
   const [selectedClient, setSelectedClient] = useState<ApiClient | null>(null);
   const [search, setSearch] = useState("");
   const activeClients = useClientStore((s) => s.getActiveClients)();
-  const filtered = activeClients.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = activeClients.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())).sort((a, b) => a.name.localeCompare(b.name, "es"));
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
 
   const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
