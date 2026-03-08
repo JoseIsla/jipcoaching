@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { compressImage } from "@/utils/compressMedia";
+import { API_BASE_URL } from "@/services/api";
 import { type AdminProfile } from "@/services/adminProfileApi";
 import {
   fetchAdminProfile,
