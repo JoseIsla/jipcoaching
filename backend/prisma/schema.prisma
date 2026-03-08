@@ -845,3 +845,21 @@ model EmailTemplate {
 
   @@map("email_templates")
 }
+
+// ── Global Food Tables (fruits, vegetables, etc.) ──
+
+enum GlobalFoodType {
+  FRUIT
+  VEGETABLE
+}
+
+model GlobalFoodItem {
+  id        String         @id @default(uuid())
+  type      GlobalFoodType
+  name      String         @db.VarChar(150)
+  order     Int            @default(0)
+  createdAt DateTime       @default(now())
+
+  @@unique([type, name])
+  @@map("global_food_items")
+}

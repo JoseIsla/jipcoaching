@@ -401,6 +401,7 @@ const AdminExerciseLibrary = () => {
 
   const exercises = useExerciseLibraryStore((s) => s.exercises);
   const fetchExercises = useExerciseLibraryStore((s) => s.fetchExercises);
+  const fetchFoods = useExerciseLibraryStore((s) => s.fetchFoods);
   const removeExercise = useExerciseLibraryStore((s) => s.removeExercise);
   const fruits = useExerciseLibraryStore((s) => s.fruits);
   const vegetables = useExerciseLibraryStore((s) => s.vegetables);
@@ -413,7 +414,8 @@ const AdminExerciseLibrary = () => {
 
   useEffect(() => {
     fetchExercises();
-  }, [fetchExercises]);
+    fetchFoods();
+  }, [fetchExercises, fetchFoods]);
 
   const handleRemove = async (id: string) => {
     const ex = exercises.find((e) => e.id === id);

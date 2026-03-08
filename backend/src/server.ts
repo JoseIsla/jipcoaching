@@ -26,6 +26,7 @@ import billingRoutes from "./routes/billing";
 import supplementRoutes from "./routes/supplements";
 import questionnaireRoutes from "./routes/questionnaires";
 import emailTemplateRoutes from "./routes/emailTemplates";
+import foodRoutes from "./routes/foods";
 
 export const prisma = new PrismaClient();
 
@@ -86,6 +87,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/foods", foodRoutes);
 
 // Public email verification endpoint (no auth needed — user clicks link from email)
 app.get("/api/verify-email", async (req, res) => {

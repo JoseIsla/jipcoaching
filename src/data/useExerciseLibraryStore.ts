@@ -24,10 +24,19 @@ const toLibraryItem = (e: ApiExercise): ExerciseLibraryItem => ({
   parentExerciseId: e.parentExerciseId,
 });
 
+interface GlobalFoodItem {
+  id: string;
+  type: "FRUIT" | "VEGETABLE";
+  name: string;
+  order: number;
+}
+
 interface ExerciseLibraryState {
   exercises: ExerciseLibraryItem[];
   fruits: string[];
   vegetables: string[];
+  fruitsRaw: GlobalFoodItem[];
+  vegetablesRaw: GlobalFoodItem[];
   loading: boolean;
   error: string | null;
 
@@ -38,12 +47,13 @@ interface ExerciseLibraryState {
   removeExercise: (id: string) => Promise<void>;
   getByCategory: (category: ExerciseLibraryItem["category"]) => ExerciseLibraryItem[];
 
-  // Fruits (local — no backend endpoint yet)
+  // Fruits (API-backed)
+  fetchFoods: () => Promise<void>;
   addFruit: (name: string) => void;
   removeFruit: (index: number) => void;
   editFruit: (index: number, name: string) => void;
 
-  // Vegetables (local — no backend endpoint yet)
+  // Vegetables (API-backed)
   addVegetable: (name: string) => void;
   removeVegetable: (index: number) => void;
   editVegetable: (index: number, name: string) => void;
@@ -53,14 +63,33 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
   exercises: [...initialExercises],
   fruits: [...initialFruits],
   vegetables: [...initialVegetables],
+  fruitsRaw: [],
+  vegetablesRaw: [],
   loading: false,
   error: null,
+
+  // ── Fetch global food items from API ──
+  fetchFoods: async () => {
+    if (DEV_MOCK) return;
+    try {
+      const data = await api.get<GlobalFoodItem[]>("/foods");
+      const fruitsRaw = (data ?? []).filter((f) => f.type === "FRUIT").sort((a, b) => a.order - b.order);
+      const vegetablesRaw = (data ?? []).filter((f) => f.type === "VEGETABLE").sort((a, b) => a.order - b.order);
+      set({
+        fruitsRaw,
+        vegetablesRaw,
+        fruits: fruitsRaw.map((f) => f.name),
+        vegetables: vegetablesRaw.map((f) => f.name),
+      });
+    } catch (err: any) {
+      console.warn("Failed to fetch foods from API, using local fallback:", err?.message);
+    }
+  },
 
   // ── API-backed exercises ──
 
   fetchExercises: async () => {
     if (DEV_MOCK) {
-      // In dev mode, use local exercise library (already loaded as initialExercises)
       set({ loading: false });
       return;
     }
@@ -89,7 +118,6 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
       set((s) => ({ exercises: [...s.exercises, newItem] }));
       return newItem;
     } catch (err: any) {
-      // Fallback: add locally if API is unavailable
       console.warn("Failed to add exercise via API, adding locally:", err?.message);
       const newItem: ExerciseLibraryItem = { ...item, id: `ex-local-${Date.now()}` };
       set((s) => ({ exercises: [...s.exercises, newItem] }));
@@ -98,7 +126,6 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
   },
 
   updateExercise: async (id, updates) => {
-    // Optimistic update
     set((s) => ({
       exercises: s.exercises.map((e) => (e.id === id ? { ...e, ...updates } : e)),
     }));
@@ -117,7 +144,6 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
   },
 
   removeExercise: async (id) => {
-    // Optimistic delete
     const prev = get().exercises;
     set((s) => ({ exercises: s.exercises.filter((e) => e.id !== id) }));
 
@@ -125,7 +151,6 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
       await api.delete(`/exercises/${id}`);
     } catch (err: any) {
       console.warn("Failed to delete exercise via API:", err?.message);
-      // Revert on failure
       set({ exercises: prev });
     }
   },
@@ -133,19 +158,71 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
   getByCategory: (category) =>
     get().exercises.filter((e) => e.category === category),
 
-  // ── Fruits (local) ──
-  addFruit: (name) =>
-    set((s) => ({ fruits: [...s.fruits, name] })),
-  removeFruit: (index) =>
-    set((s) => ({ fruits: s.fruits.filter((_, i) => i !== index) })),
-  editFruit: (index, name) =>
-    set((s) => ({ fruits: s.fruits.map((f, i) => (i === index ? name : f)) })),
+  // ── Fruits (API-backed) ──
+  addFruit: (name) => {
+    set((s) => ({ fruits: [...s.fruits, name] }));
+    if (!DEV_MOCK) {
+      api.post("/foods", { type: "FRUIT", name }).catch((err) =>
+        console.warn("Failed to add fruit:", err?.message)
+      );
+    }
+  },
+  removeFruit: (index) => {
+    const raw = get().fruitsRaw[index];
+    set((s) => ({
+      fruits: s.fruits.filter((_, i) => i !== index),
+      fruitsRaw: s.fruitsRaw.filter((_, i) => i !== index),
+    }));
+    if (!DEV_MOCK && raw?.id) {
+      api.delete(`/foods/${raw.id}`).catch((err) =>
+        console.warn("Failed to delete fruit:", err?.message)
+      );
+    }
+  },
+  editFruit: (index, name) => {
+    const raw = get().fruitsRaw[index];
+    set((s) => ({
+      fruits: s.fruits.map((f, i) => (i === index ? name : f)),
+      fruitsRaw: s.fruitsRaw.map((f, i) => (i === index ? { ...f, name } : f)),
+    }));
+    if (!DEV_MOCK && raw?.id) {
+      api.put(`/foods/${raw.id}`, { name }).catch((err) =>
+        console.warn("Failed to update fruit:", err?.message)
+      );
+    }
+  },
 
-  // ── Vegetables (local) ──
-  addVegetable: (name) =>
-    set((s) => ({ vegetables: [...s.vegetables, name] })),
-  removeVegetable: (index) =>
-    set((s) => ({ vegetables: s.vegetables.filter((_, i) => i !== index) })),
-  editVegetable: (index, name) =>
-    set((s) => ({ vegetables: s.vegetables.map((v, i) => (i === index ? name : v)) })),
+  // ── Vegetables (API-backed) ──
+  addVegetable: (name) => {
+    set((s) => ({ vegetables: [...s.vegetables, name] }));
+    if (!DEV_MOCK) {
+      api.post("/foods", { type: "VEGETABLE", name }).catch((err) =>
+        console.warn("Failed to add vegetable:", err?.message)
+      );
+    }
+  },
+  removeVegetable: (index) => {
+    const raw = get().vegetablesRaw[index];
+    set((s) => ({
+      vegetables: s.vegetables.filter((_, i) => i !== index),
+      vegetablesRaw: s.vegetablesRaw.filter((_, i) => i !== index),
+    }));
+    if (!DEV_MOCK && raw?.id) {
+      api.delete(`/foods/${raw.id}`).catch((err) =>
+        console.warn("Failed to delete vegetable:", err?.message)
+      );
+    }
+  },
+  editVegetable: (index, name) => {
+    const raw = get().vegetablesRaw[index];
+    set((s) => ({
+      vegetables: s.vegetables.map((v, i) => (i === index ? name : v)),
+      vegetablesRaw: s.vegetablesRaw.map((v, i) => (i === index ? { ...v, name } : v)),
+    }));
+    if (!DEV_MOCK && raw?.id) {
+      api.put(`/foods/${raw.id}`, { name }).catch((err) =>
+        console.warn("Failed to update vegetable:", err?.message)
+      );
+    }
+  },
 }));
