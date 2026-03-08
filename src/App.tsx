@@ -29,6 +29,7 @@ import AdminNutritionPlanDetail from "./pages/AdminNutritionPlanDetail";
 import AdminNutritionPlanView from "./pages/AdminNutritionPlanView";
 import AdminExerciseLibrary from "./pages/AdminExerciseLibrary";
 import AdminLeads from "./pages/AdminLeads";
+import AdminEmailTemplates from "./pages/AdminEmailTemplates";
 import ClientHome from "./pages/client/ClientHome";
 import ClientNutrition from "./pages/client/ClientNutrition";
 import ClientTraining from "./pages/client/ClientTraining";
