@@ -114,6 +114,12 @@ app.get("/api/verify-email", async (req, res) => {
     });
 
     if (changeToken.usedAt) {
+      // Idempotent: if token was used very recently (< 60s), return success
+      const usedAgo = Date.now() - new Date(changeToken.usedAt).getTime();
+      if (usedAgo < 60_000) {
+        res.json({ success: true, newEmail: changeToken.newEmail });
+        return;
+      }
       res.status(400).json({ message: "El enlace ya fue utilizado. Solicita uno nuevo." });
       return;
     }
