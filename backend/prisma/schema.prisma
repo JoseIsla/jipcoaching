@@ -148,6 +148,7 @@ model User {
   mediaUploads  MediaUpload[]
 
   passwordResetTokens PasswordResetToken[]
+  emailChangeTokens   EmailChangeToken[]
 
   @@map("users")
 }
@@ -163,6 +164,20 @@ model PasswordResetToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("password_reset_tokens")
+}
+
+model EmailChangeToken {
+  id        String   @id @default(uuid())
+  userId    String
+  newEmail  String   @db.VarChar(255)
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_change_tokens")
 }
 
 model AdminProfile {
