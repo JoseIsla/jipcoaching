@@ -72,25 +72,23 @@ router.get("/me", async (req, res) => {
 // GET /api/clients/stats/evolution — Admin only: monthly client signups
 router.get("/stats/evolution", requireRole("ADMIN"), async (_req, res) => {
   try {
-    const rows: any[] = await prisma.$queryRaw`
-      SELECT
-        DATE_FORMAT(createdAt, '%Y-%m') AS month,
-        CAST(COUNT(*) AS UNSIGNED) AS newClients
-      FROM Client
-      GROUP BY month
-      ORDER BY month ASC
-    `;
+    const clients = await prisma.client.findMany({
+      select: { createdAt: true },
+      orderBy: { createdAt: "asc" },
+    });
 
-    // Build cumulative total
+    // Group by month
+    const monthMap = new Map<string, number>();
+    for (const c of clients) {
+      const key = c.createdAt.toISOString().slice(0, 7); // "YYYY-MM"
+      monthMap.set(key, (monthMap.get(key) || 0) + 1);
+    }
+
+    // Build cumulative
     let cumulative = 0;
-    const data = rows.map((r) => {
-      const nc = Number(r.newClients);
-      cumulative += nc;
-      return {
-        month: r.month,
-        newClients: nc,
-        total: cumulative,
-      };
+    const data = Array.from(monthMap.entries()).map(([month, newClients]) => {
+      cumulative += newClients;
+      return { month, newClients, total: cumulative };
     });
 
     res.json(data);
