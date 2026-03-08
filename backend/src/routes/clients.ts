@@ -179,6 +179,8 @@ router.post("/", requireRole("ADMIN"), async (req, res) => {
         startDate: new Date(),
         ...(initialWeight && { currentWeight: initialWeight }),
         ...(nutritionIntake?.targetWeight && { targetWeight: Number(nutritionIntake.targetWeight) }),
+        ...(nutritionIntake?.height && { height: Number(nutritionIntake.height) }),
+        ...(nutritionIntake?.age && { age: Number(nutritionIntake.age) }),
       },
     });
 
