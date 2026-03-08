@@ -13,6 +13,8 @@ import { useClientStore } from "@/data/useClientStore";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
 
+const SBD_NAMES = ["Sentadilla", "Press Banca", "Peso Muerto"];
+
 const ClientProgressCard = ({ client, onClick, t }: { client: ApiClient; onClick: () => void; t: (k: string) => string }) => {
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
@@ -20,7 +22,7 @@ const ClientProgressCard = ({ client, onClick, t }: { client: ApiClient; onClick
   const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
   const wh = hasNutrition ? getWeightHistory(client.id) : [];
   const bestRMs = hasTraining ? getBestRMs(client.id) : [];
-  const sbdTotal = bestRMs.filter((r) => ["e1", "e4", "e7"].includes(r.exerciseId)).reduce((s, r) => s + r.estimated1RM, 0);
+  const sbdTotal = bestRMs.filter((r) => SBD_NAMES.includes(r.exerciseName)).reduce((s, r) => s + r.estimated1RM, 0);
   const latestWeight = wh.length > 0 ? wh[wh.length - 1].weight : null;
   const packLabel = client.packType ? (packTypeLabels[String(client.packType)] ?? String(client.packType)) : "";
 
