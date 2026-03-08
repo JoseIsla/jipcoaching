@@ -397,6 +397,7 @@ export interface ApiNutritionPlan {
   clientId: string;
   title: string;
   isActive: boolean;
+  objective?: string;
   recommendations?: string;
   kcalMin?: number;
   kcalMax?: number;
