@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClientProfile } from "@/contexts/ClientProfileContext";
+import { useClient } from "@/contexts/ClientContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
