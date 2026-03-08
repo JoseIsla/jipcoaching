@@ -105,7 +105,7 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
       password,
       packType,
       status,
-      monthlyFee: monthlyFee ? Number(monthlyFee) : 0,
+      monthlyFee: monthlyFee ? parseDecimal(monthlyFee) : 0,
       notes: notes.trim() || undefined,
       ...(hasNutrition && Object.keys(nutIntake).length > 0 && { nutritionIntake: nutIntake }),
       ...(hasTraining && Object.keys(trainIntake).length > 0 && { trainingIntake: trainIntake }),
