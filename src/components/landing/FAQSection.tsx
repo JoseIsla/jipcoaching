@@ -67,6 +67,15 @@ const FAQSection = () => {
                 </AccordionTrigger>
                 <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-4 pl-7">
                   {faq.a}
+                  {(faq as any).isInstall && (
+                    <Link
+                      to="/install"
+                      className="inline-flex items-center gap-1.5 mt-2 text-primary hover:text-primary/80 font-medium transition-colors"
+                    >
+                      <Smartphone className="h-3.5 w-3.5" />
+                      Ver instrucciones de instalación
+                    </Link>
+                  )}
                 </AccordionContent>
               </AccordionItem>
             ))}
