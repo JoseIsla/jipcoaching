@@ -316,6 +316,41 @@ router.get("/rm/:clientId", async (req, res) => {
   }
 });
 
+// POST /api/checkins/rm/:clientId — Admin manually adds an RM record
+router.post("/rm/:clientId", requireRole("ADMIN"), async (req, res) => {
+  try {
+    const { exerciseName, weight, reps, estimated1RM, date } = req.body;
+    if (!exerciseName || !weight) {
+      res.status(400).json({ message: "exerciseName y weight son obligatorios" });
+      return;
+    }
+    const w = Number(weight);
+    const r = Number(reps) || 1;
+    const e1rm = Number(estimated1RM) || w;
+    const record = await prisma.rMRecord.create({
+      data: {
+        clientId: req.params.clientId as string,
+        exerciseName,
+        weight: w,
+        reps: r,
+        estimated1RM: e1rm,
+        date: date ? new Date(date) : new Date(),
+      },
+    });
+    res.status(201).json({
+      exerciseId: record.exerciseId,
+      exerciseName: record.exerciseName,
+      weight: record.weight,
+      reps: record.reps,
+      estimated1RM: record.estimated1RM,
+      date: record.date.toISOString().split("T")[0],
+    });
+  } catch (err: any) {
+    console.error("POST /checkins/rm/:clientId error:", err);
+    res.status(500).json({ message: "Error al crear RM" });
+  }
+});
+
 // ── POST /api/checkins/generate-mine — Auto-generate pending checkins for the current client
 router.post("/generate-mine", async (req, res) => {
   try {

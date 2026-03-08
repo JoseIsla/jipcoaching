@@ -1,17 +1,22 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Activity, Utensils, Dumbbell, Trophy, Brain, AlertTriangle, Search } from "lucide-react";
+import { ArrowLeft, Activity, Utensils, Dumbbell, Trophy, Brain, AlertTriangle, Search, Plus } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { ApiClient } from "@/types/api";
 import { packTypeLabels } from "@/types/api";
 import { useClientStore } from "@/data/useClientStore";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
+import { api } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
 
 const SBD_NAMES = ["Sentadilla", "Press Banca", "Peso Muerto"];
 
@@ -46,6 +51,73 @@ const ClientProgressCard = ({ client, onClick, t }: { client: ApiClient; onClick
   );
 };
 
+const AddRMDialog = ({ clientId, open, onClose }: { clientId: string; open: boolean; onClose: () => void }) => {
+  const { toast } = useToast();
+  const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
+  const [exerciseName, setExerciseName] = useState("Sentadilla");
+  const [weight, setWeight] = useState("");
+  const [reps, setReps] = useState("1");
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!weight || Number(weight) <= 0) { toast({ title: "Error", description: "Introduce un peso válido", variant: "destructive" }); return; }
+    setSaving(true);
+    try {
+      const w = Number(weight);
+      const r = Number(reps) || 1;
+      const e1rm = r === 1 ? w : Math.round(w * (1 + r / 30));
+      await api.post(`/checkins/rm/${clientId}`, { exerciseName, weight: w, reps: r, estimated1RM: e1rm, date });
+      await fetchRMRecords(clientId);
+      toast({ title: "RM añadido", description: `${exerciseName}: ${w}kg x${r}` });
+      setWeight(""); setReps("1");
+      onClose();
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "No se pudo guardar", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="bg-card border-border sm:max-w-sm">
+        <DialogHeader><DialogTitle className="text-foreground flex items-center gap-2"><Dumbbell className="h-5 w-5 text-primary" /> Añadir RM</DialogTitle></DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label className="text-foreground text-xs">Ejercicio</Label>
+            <Select value={exerciseName} onValueChange={setExerciseName}>
+              <SelectTrigger className="bg-muted/50 border-border mt-1"><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-card border-border">
+                <SelectItem value="Sentadilla">Sentadilla</SelectItem>
+                <SelectItem value="Press Banca">Press Banca</SelectItem>
+                <SelectItem value="Peso Muerto">Peso Muerto</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-foreground text-xs">Peso (kg) *</Label>
+              <Input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className="bg-muted/50 border-border mt-1" placeholder="0" />
+            </div>
+            <div>
+              <Label className="text-foreground text-xs">Reps</Label>
+              <Input type="number" value={reps} onChange={(e) => setReps(e.target.value)} className="bg-muted/50 border-border mt-1" placeholder="1" />
+            </div>
+          </div>
+          <div>
+            <Label className="text-foreground text-xs">Fecha</Label>
+            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-muted/50 border-border mt-1" />
+          </div>
+          <Button onClick={handleSave} disabled={saving} className="w-full glow-primary-sm">
+            {saving ? "Guardando..." : "Guardar RM"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => void; t: (k: string) => string }) => {
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
@@ -55,6 +127,7 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
   const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
+  const [showAddRM, setShowAddRM] = useState(false);
 
   useEffect(() => {
     fetchEntries(client.id);
@@ -135,7 +208,10 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
         {hasTraining && (
           <TabsContent value="training" className="space-y-6">
             <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><Trophy className="h-4 w-4" /> {t("progress.bestRMs")}</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><Trophy className="h-4 w-4" /> {t("progress.bestRMs")}</h3>
+                <Button variant="outline" size="sm" onClick={() => setShowAddRM(true)} className="gap-1 text-xs border-border"><Plus className="h-3.5 w-3.5" /> Añadir RM</Button>
+              </div>
               {bestRMs.length > 0 ? (
                 <div className="rounded-lg border border-border overflow-hidden">
                   <table className="w-full">
@@ -186,6 +262,8 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
           </TabsContent>
         )}
       </Tabs>
+
+      {hasTraining && <AddRMDialog clientId={client.id} open={showAddRM} onClose={() => setShowAddRM(false)} />}
     </div>
   );
 };
