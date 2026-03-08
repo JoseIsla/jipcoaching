@@ -3,9 +3,7 @@ import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
 import { prisma } from "../server";
 import { authenticate, requireRole } from "../middleware/auth";
-
-const FRONTEND_URL = (process.env.FRONTEND_URL || "https://jipcoaching.com").replace(/\/+$/, "");
-const FROM_EMAIL = process.env.FROM_EMAIL || "JIP Coaching <info@jipcoaching.com>";
+import { buildEmail } from "../utils/emailBuilder";
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || "https://jipcoaching.com").replace(/\/+$/, "");
 const FROM_EMAIL = process.env.FROM_EMAIL || "JIP Coaching <info@jipcoaching.com>";
