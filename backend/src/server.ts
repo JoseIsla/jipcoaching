@@ -88,7 +88,6 @@ app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/profile", profileRoutes);
 
 // Public email verification endpoint (no auth needed — user clicks link from email)
-import { prisma as db } from "./server";
 app.get("/api/verify-email", async (req, res) => {
   try {
     const { token } = req.query;
