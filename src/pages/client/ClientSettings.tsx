@@ -22,6 +22,8 @@ import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 const ClientSettings = () => {
   const { profile, loading, saving, saveProfile, handleUploadAvatar, handleDeleteAvatar, handleChangeEmail, handleChangePassword } = useClientProfile();
   const { updateClientAvatar } = useClient();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useTranslation();
   const setAppLanguage = useLanguageStore((s) => s.setLanguage);
