@@ -146,7 +146,7 @@ router.get("/:id", requireRole("ADMIN"), async (req, res) => {
 // POST /api/clients — Admin only
 router.post("/", requireRole("ADMIN"), async (req, res) => {
   try {
-    const { name, email, password, packType, status, monthlyFee, notes } = req.body;
+    const { name, email, password, packType, status, monthlyFee, notes, nutritionIntake, trainingIntake } = req.body;
 
     if (!name || !email || !password || !packType) {
       res.status(400).json({ message: "Campos obligatorios: name, email, password, packType" });
@@ -177,6 +177,44 @@ router.post("/", requireRole("ADMIN"), async (req, res) => {
         startDate: new Date(),
       },
     });
+
+    // Save intake forms if provided
+    if (nutritionIntake && (packType === "NUTRITION" || packType === "FULL")) {
+      await prisma.nutritionIntake.create({
+        data: {
+          clientId: client.id,
+          goal: nutritionIntake.goal || null,
+          goalTimeframe: nutritionIntake.goalTimeframe || null,
+          goalMotivation: nutritionIntake.goalMotivation || null,
+          targetWeight: nutritionIntake.targetWeight ? Number(nutritionIntake.targetWeight) : null,
+          mealsPerDay: nutritionIntake.mealsPerDay ? Number(nutritionIntake.mealsPerDay) : null,
+          sleepHours: nutritionIntake.sleepHours ? Number(nutritionIntake.sleepHours) : null,
+          stressLevel: nutritionIntake.stressLevel ? Number(nutritionIntake.stressLevel) : null,
+          occupation: nutritionIntake.occupation || null,
+          supplements: nutritionIntake.supplements || null,
+          excludedFoods: nutritionIntake.excludedFoods || null,
+          allergies: nutritionIntake.allergies || null,
+          pathologies: nutritionIntake.pathologies || null,
+          digestiveIssues: nutritionIntake.digestiveIssues || null,
+        },
+      });
+    }
+
+    if (trainingIntake && (packType === "TRAINING" || packType === "FULL")) {
+      await prisma.trainingIntake.create({
+        data: {
+          clientId: client.id,
+          experience: trainingIntake.experience || null,
+          sessionsPerWeek: trainingIntake.sessionsPerWeek || null,
+          intensity: trainingIntake.intensity ? Number(trainingIntake.intensity) : null,
+          otherSports: trainingIntake.otherSports || null,
+          modality: trainingIntake.modality || null,
+          goal: trainingIntake.goal || null,
+          currentSBD: trainingIntake.currentSBD || null,
+          injuries: trainingIntake.injuries || null,
+        },
+      });
+    }
 
     // Notify all admins about new client
     try {
