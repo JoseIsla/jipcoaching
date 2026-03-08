@@ -3,7 +3,7 @@
  * Shows in Progress tab for nutrition clients.
  */
 import { useState, useRef, useEffect } from "react";
-import { Camera, Upload, Clock, CheckCircle2, ImageIcon, Loader2 } from "lucide-react";
+import { Camera, Upload, Clock, CheckCircle2, ImageIcon, Loader2, X } from "lucide-react";
 import ClientMediaComments from "./ClientMediaComments";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +54,14 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
     front: useRef<HTMLInputElement>(null),
     side: useRef<HTMLInputElement>(null),
     back: useRef<HTMLInputElement>(null),
+  };
+
+  const handleRemovePending = (angle: PhotoAngle) => {
+    if (previews[angle]) URL.revokeObjectURL(previews[angle]!);
+    setPendingFiles((prev) => ({ ...prev, [angle]: null }));
+    setPreviews((prev) => ({ ...prev, [angle]: null }));
+    // Reset the file input so the same file can be re-selected
+    if (fileRefs[angle].current) fileRefs[angle].current!.value = "";
   };
 
   const handleFileSelect = async (angle: PhotoAngle, file: File | null) => {
@@ -196,6 +204,14 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
                 {previews[key] && (
                   <div className="flex items-center justify-center gap-1 text-[10px] text-primary">
                     <CheckCircle2 className="h-3 w-3" /> {label}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleRemovePending(key); }}
+                      className="ml-1 p-0.5 rounded-full bg-destructive/20 text-destructive hover:bg-destructive/30 transition-colors"
+                      title="Quitar foto"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
                   </div>
                 )}
               </div>
