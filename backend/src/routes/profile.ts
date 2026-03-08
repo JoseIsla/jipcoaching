@@ -209,50 +209,7 @@ router.put("/email", emailChangeLimiter, async (req, res) => {
   }
 });
 
-// GET /api/profile/verify-email?token=xxx — confirms the email change (no auth required)
-router.get("/verify-email", async (req, res) => {
-  try {
-    const { token } = req.query;
-    if (!token || typeof token !== "string") {
-      res.status(400).json({ message: "Token inválido" });
-      return;
-    }
 
-    const changeToken = await prisma.emailChangeToken.findUnique({ where: { token } });
-
-    if (!changeToken || changeToken.usedAt || new Date() > changeToken.expiresAt) {
-      res.status(400).json({ message: "El enlace ha expirado o ya fue utilizado. Solicita uno nuevo." });
-      return;
-    }
-
-    // Check new email is still available
-    const existing = await prisma.user.findUnique({ where: { email: changeToken.newEmail } });
-    if (existing) {
-      res.status(400).json({ message: "El email ya está en uso por otra cuenta." });
-      return;
-    }
-
-    await prisma.$transaction([
-      prisma.user.update({
-        where: { id: changeToken.userId },
-        data: { email: changeToken.newEmail },
-      }),
-      prisma.client.updateMany({
-        where: { userId: changeToken.userId },
-        data: { email: changeToken.newEmail },
-      }),
-      prisma.emailChangeToken.update({
-        where: { id: changeToken.id },
-        data: { usedAt: new Date() },
-      }),
-    ]);
-
-    res.json({ success: true, newEmail: changeToken.newEmail });
-  } catch (err: any) {
-    console.error("Verify email error:", err);
-    res.status(500).json({ message: "Error al verificar email" });
-  }
-});
 
 // ── Change Password ──
 
