@@ -704,7 +704,7 @@ const ClientCheckins = () => {
                   </div>
                 )}
                 {trainingEntries.map((entry) => <TrainingLogCard key={entry.id} entry={entry} />)}
-                <HistorySection weeks={pastTrainingWeeks} renderCard={(entry) => <TrainingLogCard key={entry.id} entry={entry} />} formatShortDate={formatShortDate} t={t} />
+                
               </TabsContent>
             )}
           </Tabs>
