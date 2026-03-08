@@ -25,6 +25,7 @@ import profileRoutes from "./routes/profile";
 import billingRoutes from "./routes/billing";
 import supplementRoutes from "./routes/supplements";
 import questionnaireRoutes from "./routes/questionnaires";
+import emailTemplateRoutes from "./routes/emailTemplates";
 
 export const prisma = new PrismaClient();
 
