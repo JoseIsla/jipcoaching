@@ -24,7 +24,7 @@ router.get("/plans", async (req, res) => {
     const plans = await prisma.trainingPlan.findMany({
       where,
       include: {
-        client: { include: { user: { select: { name: true } } } },
+        client: { select: { name: true } },
         weeks: {
           include: { days: { include: { exercises: { orderBy: { order: "asc" } } } } },
           orderBy: { weekNumber: "asc" },
