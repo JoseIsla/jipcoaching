@@ -20,7 +20,8 @@ const transporter = nodemailer.createTransport({
   tls: { rejectUnauthorized: false },
 });
 
-const resetLimiter = rateLimit({ windowSec: 15 * 60, max: 5 });
+const forgotLimiter = rateLimit({ windowSec: 15 * 60, max: 5 });
+const resetLimiter = rateLimit({ windowSec: 15 * 60, max: 10 });
 
 // POST /api/auth/forgot-password
 router.post("/forgot-password", resetLimiter, async (req, res) => {
