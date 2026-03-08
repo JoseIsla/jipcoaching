@@ -94,6 +94,16 @@ const en: Translations = {
     requestNewLink: "Request new link",
     errorGeneric: "Failed to reset the password.",
   },
+  verifyEmail: {
+    verifying: "Verifying...",
+    pleaseWait: "We're confirming your new email.",
+    successTitle: "Email verified!",
+    successDesc: "Your email has been changed to {email}. Sign in with your new email.",
+    errorTitle: "Verification error",
+    invalidLink: "This verification link is invalid.",
+    genericError: "Failed to verify email.",
+    loginBtn: "Sign in",
+  },
 
   // ── Admin Sidebar ──
   sidebar: {

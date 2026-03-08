@@ -92,6 +92,16 @@ const es = {
     requestNewLink: "Solicitar nuevo enlace",
     errorGeneric: "Error al restablecer la contraseña.",
   },
+  verifyEmail: {
+    verifying: "Verificando...",
+    pleaseWait: "Estamos confirmando tu nuevo email.",
+    successTitle: "¡Email verificado!",
+    successDesc: "Tu email se ha cambiado correctamente a {email}. Inicia sesión con tu nuevo email.",
+    errorTitle: "Error de verificación",
+    invalidLink: "El enlace de verificación no es válido.",
+    genericError: "Error al verificar el email.",
+    loginBtn: "Iniciar sesión",
+  },
 
   // ── Admin Sidebar ──
   sidebar: {
