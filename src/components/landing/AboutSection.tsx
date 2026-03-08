@@ -1,7 +1,7 @@
 import { motion, useInView } from "framer-motion";
 import { Award, Users, Calendar, GraduationCap } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
-import coachAbout from "@/assets/coach-about.jpg";
+import coachAbout from "@/assets/coach-about.webp";
 import { useTranslation } from "@/i18n/useTranslation";
 
 const AnimatedNumber = ({ value, suffix = "" }: { value: number; suffix?: string }) => {
