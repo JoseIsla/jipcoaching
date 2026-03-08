@@ -449,8 +449,17 @@ async function generateCheckinsForClient(clientId: string, packType: string): Pr
   // ── Nutrition checkins ──
   const hasNutrition = packType === "NUTRITION" || packType === "FULL";
   if (hasNutrition) {
-    const nutritionTemplates = await prisma.questionnaireTemplate.findMany({
+    const allNutritionTemplates = await prisma.questionnaireTemplate.findMany({
       where: { category: "NUTRITION", isActive: true },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    // Deduplicate: keep only the latest template per dayOfWeek
+    const seenDays = new Set<number>();
+    const nutritionTemplates = allNutritionTemplates.filter((t) => {
+      if (t.dayOfWeek == null || seenDays.has(t.dayOfWeek)) return false;
+      seenDays.add(t.dayOfWeek);
+      return true;
     });
 
     for (const template of nutritionTemplates) {

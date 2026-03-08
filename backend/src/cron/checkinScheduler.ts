@@ -66,6 +66,14 @@ async function generateNutritionCheckins() {
 
     let totalCreated = 0;
 
+    // Deduplicate: keep only the latest template per dayOfWeek
+    const seenDays = new Set<number>();
+    const templates = allTemplates.filter((t) => {
+      if (t.dayOfWeek == null || seenDays.has(t.dayOfWeek)) return false;
+      seenDays.add(t.dayOfWeek);
+      return true;
+    });
+
     // Only create checkins for templates matching today's day of week
     const todayTemplates = templates.filter((t) => t.dayOfWeek === today);
 

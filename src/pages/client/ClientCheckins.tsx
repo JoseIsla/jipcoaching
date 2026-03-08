@@ -663,7 +663,7 @@ const ClientCheckins = () => {
     (e) => e.category === "training" && e.trainingLog && e.trainingLog.length > 0 && isInCurrentWeek(e.date)
   );
 
-  const formatShortDate = (d: Date) => `${d.getDate()}/${d.getMonth() + 1}`;
+  
 
   const defaultTab = hasNutrition ? "nutrition" : "training";
 
