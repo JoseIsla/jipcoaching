@@ -454,6 +454,11 @@ const AdminNutritionPlanDetail = () => {
             })),
           })),
         })),
+        planSupplements: plan.planSupplements.map((s) => ({
+          name: s.name,
+          dose: s.dose,
+          timing: s.timing,
+        })),
       });
       // Update local store too
       const savedPlan = { ...plan, meals: plan.meals.map(m => ({ ...m, options: m.options.map(o => ({ ...o, rows: [...o.rows] })) })) };
