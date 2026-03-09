@@ -582,14 +582,17 @@ const AdminNutritionPlanDetail = () => {
               <Pill className="h-4 w-4 text-primary" />
               Suplementación Recomendada
             </h2>
-            <Button variant="ghost" size="sm" className="text-primary text-xs" onClick={addSupplement}>
-              <Plus className="h-3 w-3 mr-1" />Añadir
-            </Button>
+            <Badge variant="outline" className="text-[10px] text-muted-foreground">
+              Gestionar en Biblioteca
+            </Badge>
           </div>
           <div className="space-y-2">
-            {supplements.map((sup, i) => (
-              <SupplementRow key={i} sup={sup} onUpdate={(s) => updateSupplement(i, s)} onDelete={() => deleteSupplement(i)} />
+            {storeSupplements.map((sup) => (
+              <SupplementReadOnly key={sup.id} sup={sup} />
             ))}
+            {storeSupplements.length === 0 && (
+              <p className="text-xs text-muted-foreground">No hay suplementos configurados. Añádelos desde la Biblioteca.</p>
+            )}
           </div>
         </div>
 
