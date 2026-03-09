@@ -178,8 +178,8 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
         });
       } catch (err: any) {
         console.error("[Templates] Error saving nutrition template:", err);
-        // If PUT fails (template doesn't exist), try creating
-        if (err?.message?.includes("404") || err?.message?.includes("500")) {
+        // If PUT fails, only seed if it's strictly a 404 (not found). 500 might be a transient error.
+        if (err?.message?.includes("404")) {
           await seedDefaultTemplates(set, get);
         }
       }
@@ -194,7 +194,7 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
         });
       } catch (err: any) {
         console.error("[Templates] Error saving training template:", err);
-        if (err?.message?.includes("404") || err?.message?.includes("500")) {
+        if (err?.message?.includes("404")) {
           await seedDefaultTemplates(set, get);
         }
       }
