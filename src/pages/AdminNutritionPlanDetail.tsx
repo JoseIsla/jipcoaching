@@ -408,6 +408,9 @@ const AdminNutritionPlanDetail = () => {
   const syncPlanToList = useNutritionPlanStore((s) => s.syncPlanToList);
   const saveSupplementsApi = useNutritionPlanStore((s) => s.saveSupplements);
   const fetchSupplements = useNutritionPlanStore((s) => s.fetchSupplements);
+  const fruits = useExerciseLibraryStore((s) => s.fruits);
+  const vegetables = useExerciseLibraryStore((s) => s.vegetables);
+  const fetchFoods = useExerciseLibraryStore((s) => s.fetchFoods);
   
   const stored = planId ? details[planId] : undefined;
 
@@ -428,12 +431,13 @@ const AdminNutritionPlanDetail = () => {
     });
   }, [planId, plan]);
 
-  // Fetch supplements from API on mount
+  // Fetch supplements and foods from API on mount
   useEffect(() => {
     fetchSupplements().then(() => {
       setLocalSupplements([...useNutritionPlanStore.getState().supplements]);
     });
-  }, [fetchSupplements]);
+    fetchFoods();
+  }, [fetchSupplements, fetchFoods]);
 
   const [saving, setSaving] = useState(false);
 
