@@ -36,7 +36,9 @@ const AdminPhotoComparison = ({ clientId }: Props) => {
   const [dateA, setDateA] = useState<string>("");
   const [dateB, setDateB] = useState<string>("");
   const [selectedAngle, setSelectedAngle] = useState<PhotoAngle>("front");
-
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxPhotos, setLightboxPhotos] = useState<{ url: string; label?: string }[]>([]);
   const sessionA = useMemo(() => sessions.find((s) => s.date === dateA), [sessions, dateA]);
   const sessionB = useMemo(() => sessions.find((s) => s.date === dateB), [sessions, dateB]);
 
