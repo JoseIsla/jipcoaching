@@ -394,6 +394,176 @@ const FoodTableSection = ({
   );
 };
 
+// ==================== SUPPLEMENT SECTION ====================
+
+const SupplementSection = ({
+  supplements,
+  onAdd,
+  onEdit,
+  onRemove,
+}: {
+  supplements: ApiSupplement[];
+  onAdd: (name: string, dose: string, timing: string) => void;
+  onEdit: (id: string, name: string, dose: string, timing: string) => void;
+  onRemove: (id: string) => void;
+}) => {
+  const [newName, setNewName] = useState("");
+  const [newDose, setNewDose] = useState("");
+  const [newTiming, setNewTiming] = useState("");
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDose, setEditDose] = useState("");
+  const [editTiming, setEditTiming] = useState("");
+
+  const handleAdd = () => {
+    if (!newName.trim()) return;
+    onAdd(newName.trim(), newDose.trim(), newTiming.trim());
+    setNewName("");
+    setNewDose("");
+    setNewTiming("");
+  };
+
+  const handleSaveEdit = () => {
+    if (editId && editName.trim()) {
+      onEdit(editId, editName.trim(), editDose.trim(), editTiming.trim());
+      setEditId(null);
+    }
+  };
+
+  return (
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <div className="p-4 border-b border-border">
+        <div className="flex items-center gap-3 mb-4">
+          <Pill className="h-5 w-5 text-primary" />
+          <h2 className="text-base font-semibold text-foreground">Suplementos Recomendados</h2>
+          <Badge variant="outline" className="text-xs">{supplements.length}</Badge>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+          <Input
+            placeholder="Nombre..."
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            className="bg-background border-border text-sm h-9"
+          />
+          <Input
+            placeholder="Dosis..."
+            value={newDose}
+            onChange={(e) => setNewDose(e.target.value)}
+            className="bg-background border-border text-sm h-9"
+          />
+          <Input
+            placeholder="Cuándo..."
+            value={newTiming}
+            onChange={(e) => setNewTiming(e.target.value)}
+            className="bg-background border-border text-sm h-9"
+            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-9 text-xs gap-1"
+            disabled={!newName.trim()}
+            onClick={handleAdd}
+          >
+            <Plus className="h-3.5 w-3.5" /> Añadir
+          </Button>
+        </div>
+      </div>
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/30 hover:bg-muted/30">
+            <TableHead className="text-xs font-medium">Suplemento</TableHead>
+            <TableHead className="text-xs font-medium">Dosis</TableHead>
+            <TableHead className="text-xs font-medium">Cuándo</TableHead>
+            <TableHead className="text-xs font-medium w-[80px]">Acciones</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {supplements.map((sup) => (
+            <TableRow key={sup.id} className="group">
+              {editId === sup.id ? (
+                <>
+                  <TableCell>
+                    <Input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="h-7 text-xs bg-background border-border"
+                      autoFocus
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      value={editDose}
+                      onChange={(e) => setEditDose(e.target.value)}
+                      className="h-7 text-xs bg-background border-border"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      value={editTiming}
+                      onChange={(e) => setEditTiming(e.target.value)}
+                      className="h-7 text-xs bg-background border-border"
+                      onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={handleSaveEdit}>
+                        Guardar
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setEditId(null)}>
+                        ✕
+                      </Button>
+                    </div>
+                  </TableCell>
+                </>
+              ) : (
+                <>
+                  <TableCell className="text-sm text-foreground font-medium">{sup.name}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{sup.dose}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{sup.timing}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                        onClick={() => {
+                          setEditId(sup.id);
+                          setEditName(sup.name);
+                          setEditDose(sup.dose);
+                          setEditTiming(sup.timing);
+                        }}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-destructive/60 hover:text-destructive"
+                        onClick={() => onRemove(sup.id)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </>
+              )}
+            </TableRow>
+          ))}
+          {supplements.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center text-muted-foreground text-sm py-8">
+                No hay suplementos. Añade uno arriba.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};
+
 // ==================== MAIN PAGE ====================
 
 const AdminExerciseLibrary = () => {
