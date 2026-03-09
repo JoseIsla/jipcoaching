@@ -19,8 +19,6 @@ import { toast } from "sonner";
 import { parseOptionalDecimal } from "@/utils/parseDecimal";
 import {
   useNutritionPlanStore,
-  globalFruitTable,
-  globalVegetableTable,
   createEmptyMeal,
   createEmptyOption,
   createEmptyRow,
@@ -34,6 +32,7 @@ import {
   type MacroCategory,
   type ApiSupplement,
 } from "@/data/useNutritionPlanStore";
+import { useExerciseLibraryStore } from "@/data/useExerciseLibraryStore";
 
 // ─── Macro category badge colors ───
 const macroCategoryColors: Record<MacroCategory, string> = {

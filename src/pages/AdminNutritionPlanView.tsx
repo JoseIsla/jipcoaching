@@ -208,7 +208,7 @@ const AdminNutritionPlanView = () => {
               <h3 className="text-sm font-semibold text-foreground">Tabla 01 — Frutas</h3>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {globalFruitTable.map((item, i) => (
+              {fruits.map((item, i) => (
                 <span key={i} className="text-xs text-muted-foreground bg-muted/30 rounded px-2 py-0.5">{item}</span>
               ))}
             </div>
@@ -219,7 +219,7 @@ const AdminNutritionPlanView = () => {
               <h3 className="text-sm font-semibold text-foreground">Tabla 02 — Verduras</h3>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {globalVegetableTable.map((item, i) => (
+              {vegetables.map((item, i) => (
                 <span key={i} className="text-xs text-muted-foreground bg-muted/30 rounded px-2 py-0.5">{item}</span>
               ))}
             </div>
