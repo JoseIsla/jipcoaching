@@ -249,6 +249,18 @@ router.put("/plans/:id", requireRole("ADMIN"), async (req, res) => {
       }
     }
 
+    // If planSupplements provided, rebuild them
+    if (planSupplements !== undefined) {
+      await prisma.planSupplement.deleteMany({ where: { planId: plan.id } });
+      if (Array.isArray(planSupplements)) {
+        for (const s of planSupplements) {
+          await prisma.planSupplement.create({
+            data: { planId: plan.id, name: s.name, dose: s.dose || "", timing: s.timing || "" },
+          });
+        }
+      }
+    }
+
     const result = await prisma.nutritionPlan.findUnique({
       where: { id: plan.id },
       include: {
@@ -257,6 +269,7 @@ router.put("/plans/:id", requireRole("ADMIN"), async (req, res) => {
           orderBy: { order: "asc" },
         },
         sections: { orderBy: { order: "asc" } },
+        planSupplements: { orderBy: { createdAt: "asc" } },
       },
     });
 
