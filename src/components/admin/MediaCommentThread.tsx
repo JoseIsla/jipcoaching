@@ -126,7 +126,7 @@ const MediaCommentThread = ({ targetType, targetId, clientId, exerciseName, comp
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-2 min-w-0">
                       <Avatar className="h-5 w-5 shrink-0 mt-0.5">
-                        <AvatarImage src={resolveAvatarUrl(c.authorAvatarUrl)} alt={c.authorName} />
+                        <AvatarImage src={c.authorAvatarUrl} alt={c.authorName} />
                         <AvatarFallback className="text-[8px] bg-primary/20 text-primary">
                           {c.authorName.charAt(0).toUpperCase()}
                         </AvatarFallback>

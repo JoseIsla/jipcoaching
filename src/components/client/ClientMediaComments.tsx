@@ -36,7 +36,7 @@ const ClientMediaComments = ({ targetType, targetId }: Props) => {
         >
           <div className="flex items-start gap-2 mb-0.5">
             <Avatar className="h-5 w-5 shrink-0 mt-0.5">
-              <AvatarImage src={resolveAvatarUrl(c.authorAvatarUrl)} alt={c.authorName} />
+              <AvatarImage src={c.authorAvatarUrl} alt={c.authorName} />
               <AvatarFallback className="text-[8px] bg-primary/20 text-primary">
                 {c.authorName.charAt(0).toUpperCase()}
               </AvatarFallback>
