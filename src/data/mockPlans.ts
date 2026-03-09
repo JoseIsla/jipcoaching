@@ -359,9 +359,10 @@ export const mockNutritionDetails: Record<string, NutritionPlanDetail> = {
 };
 
 export const mockSupplements: Supplement[] = [
-  { name: "Creatina monohidrato", dose: "5 g/día", timing: "A cualquier hora con agua" },
-  { name: "Proteína whey isolate", dose: "1 scoop (30g)", timing: "Post-entreno o entre comidas" },
+  { name: "Creatina", dose: "5 g/día", timing: "A cualquier hora" },
+  { name: "Cafeína o preentreno", dose: "Dosis recomendada por fabricante", timing: "60-30 min antes de entrenar" },
+  { name: "Magnesio bisglicinato", dose: "200–300 mg/día", timing: "Noche" },
+  { name: "Ashwagandha", dose: "1 pastilla", timing: "1 vez por día" },
   { name: "Vitamina D3 + K2", dose: "2000 UI/día", timing: "Con comida rica en grasa" },
-  { name: "Magnesio bisglicinato", dose: "400 mg", timing: "Antes de dormir" },
-  { name: "Omega-3 (EPA+DHA)", dose: "2 cápsulas", timing: "Con comida principal" },
+  { name: "Omega-3 (EPA+DHA)", dose: "1–2 g/día", timing: "Con comidas principales" },
 ];

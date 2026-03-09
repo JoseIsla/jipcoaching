@@ -215,14 +215,16 @@ async function main() {
   // ════════════════════════════════════════════
   // 3. SUPPLEMENTS
   // ════════════════════════════════════════════
+  // Clear existing supplements to avoid duplicates
+  await prisma.supplement.deleteMany({});
+
   const supplements = [
-    { name: "Creatina monohidrato", dose: "5 g/día", timing: "A cualquier hora con agua" },
-    { name: "Proteína whey isolate", dose: "1 scoop (30g)", timing: "Post-entreno o entre comidas" },
+    { name: "Creatina", dose: "5 g/día", timing: "A cualquier hora" },
+    { name: "Cafeína o preentreno", dose: "Dosis recomendada por fabricante", timing: "60-30 min antes de entrenar" },
+    { name: "Magnesio bisglicinato", dose: "200–300 mg/día", timing: "Noche" },
+    { name: "Ashwagandha", dose: "1 pastilla", timing: "1 vez por día" },
     { name: "Vitamina D3 + K2", dose: "2000 UI/día", timing: "Con comida rica en grasa" },
-    { name: "Magnesio bisglicinato", dose: "200-300 mg/día", timing: "Antes de dormir" },
-    { name: "Omega-3 (EPA+DHA)", dose: "1-2 g/día", timing: "Con comidas principales" },
-    { name: "Cafeína o pre-entreno", dose: "Dosis recomendada por fabricante", timing: "60-30 min antes de entrenar" },
-    { name: "Ashwagandha", dose: "1 pastilla", timing: "1 vez al día" },
+    { name: "Omega-3 (EPA+DHA)", dose: "1–2 g/día", timing: "Con comidas principales" },
   ];
 
   for (const sup of supplements) {
