@@ -4,6 +4,7 @@ import type { ApiTrainingPlan, ApiExercisePrescription } from "@/types/api";
 import { useClientStore } from "./useClientStore";
 import { DEV_MOCK } from "@/config/devMode";
 import { mockTrainingPlans, mockTrainingDetails } from "@/data/mockPlans";
+import { useExerciseLibraryStore } from "./useExerciseLibraryStore";
 
 // Re-export types
 export type {
