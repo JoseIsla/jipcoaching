@@ -145,6 +145,12 @@ const mapApiPlanToDetail = (p: ApiNutritionPlan): NutritionPlanDetail => {
       })),
     })),
     recommendations,
+    planSupplements: (p.planSupplements ?? []).map((s) => ({
+      id: s.id,
+      name: s.name,
+      dose: s.dose,
+      timing: s.timing,
+    })),
   };
 };
 

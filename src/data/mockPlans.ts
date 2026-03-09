@@ -355,6 +355,7 @@ export const mockNutritionDetails: Record<string, NutritionPlanDetail> = {
       "Si hay hinchazón, reducir fibra insoluble en la cena.",
       "Suplementar con creatina 5g/día y vitamina D 2000UI/día.",
     ],
+    planSupplements: [],
   },
 };
 
