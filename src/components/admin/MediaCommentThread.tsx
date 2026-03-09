@@ -55,24 +55,27 @@ const MediaCommentThread = ({ targetType, targetId, clientId, exerciseName, comp
       text: trimmed,
       createdAt: new Date().toISOString(),
     });
-    // Notify client about the new comment (video or photo)
-    if (targetType === "video" && exerciseName) {
+    // Notify client with a single notification per comment submission
+    const notifKey = targetType === "video" ? `cn-vc-${clientId}` : `cn-pc-${clientId}`;
+    // Deduplicate: only add if no notification with same key was added in the last 2 seconds
+    const existing = useClientNotificationStore
+      .getState()
+      .notifications.find((n) => n.id === notifKey);
+    if (!existing) {
       addClientNotification({
-        id: `cn-vc-${Date.now()}`,
+        id: notifKey,
         type: "video_comment",
-        titleKey: "clientNotifications.videoCommentTitle",
-        descriptionKey: "clientNotifications.videoCommentDesc",
-        descriptionVars: { exercise: exerciseName },
-        timestamp: new Date(),
-        read: false,
-        link: "/client/progress",
-      });
-    } else if (targetType === "photo_session") {
-      addClientNotification({
-        id: `cn-pc-${Date.now()}`,
-        type: "video_comment",
-        titleKey: "clientNotifications.photoCommentTitle",
-        descriptionKey: "clientNotifications.photoCommentDesc",
+        titleKey:
+          targetType === "video"
+            ? "clientNotifications.videoCommentTitle"
+            : "clientNotifications.photoCommentTitle",
+        descriptionKey:
+          targetType === "video"
+            ? "clientNotifications.videoCommentDesc"
+            : "clientNotifications.photoCommentDesc",
+        ...(targetType === "video" && exerciseName
+          ? { descriptionVars: { exercise: exerciseName } }
+          : {}),
         timestamp: new Date(),
         read: false,
         link: "/client/progress",
