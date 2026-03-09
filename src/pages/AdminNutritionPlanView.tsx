@@ -173,7 +173,17 @@ const AdminNutritionPlanView = () => {
               </thead>
               <tbody>
                 {supplements.map((sup, i) => (
-                  <tr key={i} className="border-b border-border/50 last:border-0">
+                  <tr key={`g-${i}`} className="border-b border-border/50 last:border-0">
+                    <td className="p-3 text-foreground">{sup.name}</td>
+                    <td className="p-3 text-muted-foreground">{sup.dose}</td>
+                    <td className="p-3 text-muted-foreground">{sup.timing}</td>
+                  </tr>
+                ))}
+                {plan.planSupplements?.length > 0 && supplements.length > 0 && (
+                  <tr><td colSpan={3} className="px-3 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider bg-muted/10">Extra para este plan</td></tr>
+                )}
+                {(plan.planSupplements ?? []).map((sup, i) => (
+                  <tr key={`e-${i}`} className="border-b border-border/50 last:border-0 bg-primary/5">
                     <td className="p-3 text-foreground">{sup.name}</td>
                     <td className="p-3 text-muted-foreground">{sup.dose}</td>
                     <td className="p-3 text-muted-foreground">{sup.timing}</td>
