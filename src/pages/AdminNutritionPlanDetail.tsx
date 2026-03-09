@@ -492,19 +492,6 @@ const AdminNutritionPlanDetail = () => {
     setPlan({ ...plan, meals: [...plan.meals, createEmptyMeal(name)] });
   };
 
-  const updateSupplement = (idx: number, sup: ApiSupplement) => {
-    const updated = [...supplements];
-    updated[idx] = sup;
-    setLocalSupplements(updated);
-  };
-
-  const deleteSupplement = (idx: number) => {
-    setLocalSupplements(supplements.filter((_, i) => i !== idx));
-  };
-
-  const addSupplement = () => {
-    setLocalSupplements([...supplements, { id: "", name: "", dose: "", timing: "" } as ApiSupplement]);
-  };
 
   return (
     <AdminLayout>
