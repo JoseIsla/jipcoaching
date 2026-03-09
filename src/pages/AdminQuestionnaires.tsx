@@ -500,7 +500,7 @@ const AdminQuestionnaires = () => {
                                 <th className="px-3 py-2 text-xs font-medium text-muted-foreground">{t("progress.exercise")}</th>
                                 <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-center">{t("questionnaires.planned")}</th>
                                 <th className="px-3 py-2 text-xs font-medium text-primary text-center">{t("questionnaires.actual")}</th>
-                                <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-center">{t("questionnaires.rpe")}</th>
+                                <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-center">RPE / RPE real</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -517,8 +517,8 @@ const AdminQuestionnaires = () => {
                                       <p className="text-[10px] text-muted-foreground">{ex.plannedLoad}</p>
                                     </td>
                                     <td className="px-3 py-2 text-center">
-                                      <p className="text-sm font-mono font-medium text-foreground">{ex.actualWeight ? `${ex.actualWeight}kg` : "—"}</p>
-                                      <p className="text-[10px] text-muted-foreground">{ex.actualSets ? `${ex.actualSets}×${ex.actualReps || "?"}` : "—"}</p>
+                                      <p className="text-xs text-foreground font-medium">{ex.actualSets ? `${ex.actualSets}×${ex.actualReps || "?"}` : "—"}</p>
+                                      <p className="text-[10px] font-mono font-bold text-foreground">{ex.actualWeight ? `${ex.actualWeight}kg` : "—"}</p>
                                     </td>
                                     <td className="px-3 py-2 text-center">
                                       <div className="flex flex-col items-center">
@@ -828,7 +828,7 @@ function TrainingTemplateEditor({
                 <th className="px-3 py-2 text-xs font-medium text-muted-foreground">Ejercicio</th>
                 <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-center">Pautado</th>
                 <th className="px-3 py-2 text-xs font-medium text-primary text-center">Real</th>
-                <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-center">RPE</th>
+                <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-center">RPE / RPE real</th>
               </tr>
             </thead>
             <tbody>
@@ -842,8 +842,8 @@ function TrainingTemplateEditor({
                   <p className="text-[10px] text-muted-foreground">100kg</p>
                 </td>
                 <td className="px-3 py-2 text-center">
-                  <p className="text-sm font-mono font-medium text-foreground">—</p>
-                  <p className="text-[10px] text-muted-foreground">—</p>
+                  <p className="text-xs text-foreground font-medium">—</p>
+                  <p className="text-[10px] font-mono font-bold text-foreground">—</p>
                 </td>
                 <td className="px-3 py-2 text-center flex flex-col items-center">
                   <span className="text-xs text-muted-foreground">8</span>
@@ -860,8 +860,8 @@ function TrainingTemplateEditor({
                   <p className="text-[10px] text-muted-foreground">80kg</p>
                 </td>
                 <td className="px-3 py-2 text-center">
-                  <p className="text-sm font-mono font-medium text-foreground">—</p>
-                  <p className="text-[10px] text-muted-foreground">—</p>
+                  <p className="text-xs text-foreground font-medium">—</p>
+                  <p className="text-[10px] font-mono font-bold text-foreground">—</p>
                 </td>
                 <td className="px-3 py-2 text-center flex flex-col items-center">
                   <span className="text-xs text-muted-foreground">7</span>
