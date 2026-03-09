@@ -38,7 +38,8 @@ const ExerciseForm = ({
   onRemove: () => void;
   section: "basic" | "accessory";
 }) => {
-  const libraryItems = exerciseLibrary
+  const allExercises = useExerciseLibraryStore((s) => s.exercises);
+  const libraryItems = allExercises
     .filter((e) =>
       section === "basic"
         ? e.category === "basico" || e.category === "variante"
