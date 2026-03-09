@@ -59,7 +59,7 @@ const ExerciseForm = ({
           <Select
             value={exercise.exerciseId || ""}
             onValueChange={(v) => {
-              const item = exerciseLibrary.find((e) => e.id === v);
+              const item = allExercises.find((e) => e.id === v);
               update({
                 exerciseId: v,
                 exerciseName: item?.name || "",
