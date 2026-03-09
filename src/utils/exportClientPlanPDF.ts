@@ -222,8 +222,12 @@ export const exportNutritionPlanPDF = (
     y += 2;
   });
 
-  // Supplements
-  if (supplements.length > 0) {
+  // Supplements (global + plan-specific extras)
+  const allSupplements = [
+    ...supplements,
+    ...(plan.planSupplements ?? []),
+  ];
+  if (allSupplements.length > 0) {
     y = checkPage(doc, y, 30);
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
@@ -234,7 +238,7 @@ export const exportNutritionPlanPDF = (
       startY: y,
       margin: { left: MARGIN, right: MARGIN },
       head: [["Suplemento", "Dosis", "Momento"]],
-      body: supplements.map((s) => [s.name, s.dose, s.timing]),
+      body: allSupplements.map((s) => [s.name, s.dose, s.timing]),
       theme: "grid",
       styles: baseStyles,
       headStyles: headStylesPrimary,

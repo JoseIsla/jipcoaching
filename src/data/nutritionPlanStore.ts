@@ -29,6 +29,13 @@ export interface Supplement {
   timing: string;
 }
 
+export interface PlanSupplement {
+  id?: string;
+  name: string;
+  dose: string;
+  timing: string;
+}
+
 export interface NutritionPlanDetail {
   id: string;
   clientId: string;
@@ -44,6 +51,7 @@ export interface NutritionPlanDetail {
   endDate: string | null;
   meals: Meal[];
   recommendations: string[];
+  planSupplements: PlanSupplement[];
 }
 
 // Global reference tables are now fetched from the API via useExerciseLibraryStore

@@ -34,6 +34,7 @@ router.get("/plans", async (req, res) => {
         },
         sections: { orderBy: { order: "asc" } },
         foodItems: { include: { portions: true } },
+        planSupplements: { orderBy: { createdAt: "asc" } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -62,6 +63,7 @@ router.get("/plans/:id", async (req, res) => {
         },
         sections: { orderBy: { order: "asc" } },
         foodItems: { include: { portions: true } },
+        planSupplements: { orderBy: { createdAt: "asc" } },
       },
     });
 
@@ -92,6 +94,7 @@ router.get("/me/active", async (req, res) => {
         },
         sections: { orderBy: { order: "asc" } },
         foodItems: { include: { portions: true } },
+        planSupplements: { orderBy: { createdAt: "asc" } },
       },
     });
 
@@ -105,7 +108,7 @@ router.get("/me/active", async (req, res) => {
 // POST /api/nutrition/plans — Admin only
 router.post("/plans", requireRole("ADMIN"), async (req, res) => {
   try {
-    const { clientId, title, objective, recommendations, kcalMin, kcalMax, proteinG, carbsG, fatsG, meals, startDate } = req.body;
+    const { clientId, title, objective, recommendations, kcalMin, kcalMax, proteinG, carbsG, fatsG, meals, startDate, planSupplements } = req.body;
 
     if (!clientId || !title) {
       res.status(400).json({ message: "clientId y title son obligatorios" });
@@ -153,11 +156,19 @@ router.post("/plans", requireRole("ADMIN"), async (req, res) => {
             } : undefined,
           })),
         } : undefined,
+        planSupplements: planSupplements?.length ? {
+          create: planSupplements.map((s: any) => ({
+            name: s.name,
+            dose: s.dose || "",
+            timing: s.timing || "",
+          })),
+        } : undefined,
       },
       include: {
         meals: {
           include: { options: { include: { rows: true } } },
         },
+        planSupplements: { orderBy: { createdAt: "asc" } },
       },
     });
 
@@ -189,7 +200,7 @@ router.post("/plans", requireRole("ADMIN"), async (req, res) => {
 // PUT /api/nutrition/plans/:id — Admin only
 router.put("/plans/:id", requireRole("ADMIN"), async (req, res) => {
   try {
-    const { title, objective, recommendations, kcalMin, kcalMax, proteinG, carbsG, fatsG, isActive, meals } = req.body;
+    const { title, objective, recommendations, kcalMin, kcalMax, proteinG, carbsG, fatsG, isActive, meals, planSupplements } = req.body;
 
     const plan = await prisma.nutritionPlan.update({
       where: { id: req.params.id as string },
@@ -238,6 +249,18 @@ router.put("/plans/:id", requireRole("ADMIN"), async (req, res) => {
       }
     }
 
+    // If planSupplements provided, rebuild them
+    if (planSupplements !== undefined) {
+      await prisma.planSupplement.deleteMany({ where: { planId: plan.id } });
+      if (Array.isArray(planSupplements)) {
+        for (const s of planSupplements) {
+          await prisma.planSupplement.create({
+            data: { planId: plan.id, name: s.name, dose: s.dose || "", timing: s.timing || "" },
+          });
+        }
+      }
+    }
+
     const result = await prisma.nutritionPlan.findUnique({
       where: { id: plan.id },
       include: {
@@ -246,6 +269,7 @@ router.put("/plans/:id", requireRole("ADMIN"), async (req, res) => {
           orderBy: { order: "asc" },
         },
         sections: { orderBy: { order: "asc" } },
+        planSupplements: { orderBy: { createdAt: "asc" } },
       },
     });
 

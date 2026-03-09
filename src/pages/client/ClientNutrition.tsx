@@ -148,8 +148,11 @@ const ClientNutrition = () => {
           </motion.div>
         )}
 
-        {supplements.length > 0 && <motion.div variants={fadeUp}><ControlledCollapsible trigger={<div className="flex items-center gap-2"><span className="font-semibold text-foreground">{t("clientNutrition.supplementation")}</span><Badge variant="outline" className="text-[10px]">{supplements.length}</Badge></div>}>
-          <div className="px-4 pb-4 space-y-2">{supplements.map((s, i) => <div key={i} className="bg-background/50 border border-border/40 rounded-lg p-3 flex items-center justify-between"><div><p className="text-sm font-medium text-foreground">{s.name}</p><p className="text-xs text-muted-foreground">{s.dose}</p></div><Badge variant="outline" className="text-[10px]">{s.timing}</Badge></div>)}</div>
+        {(supplements.length > 0 || (planDetail?.planSupplements?.length ?? 0) > 0) && <motion.div variants={fadeUp}><ControlledCollapsible trigger={<div className="flex items-center gap-2"><span className="font-semibold text-foreground">{t("clientNutrition.supplementation")}</span><Badge variant="outline" className="text-[10px]">{supplements.length + (planDetail?.planSupplements?.length ?? 0)}</Badge></div>}>
+          <div className="px-4 pb-4 space-y-2">
+            {supplements.map((s, i) => <div key={`g-${i}`} className="bg-background/50 border border-border/40 rounded-lg p-3 flex items-center justify-between"><div><p className="text-sm font-medium text-foreground">{s.name}</p><p className="text-xs text-muted-foreground">{s.dose}</p></div><Badge variant="outline" className="text-[10px]">{s.timing}</Badge></div>)}
+            {(planDetail?.planSupplements ?? []).map((s, i) => <div key={`e-${i}`} className="bg-primary/5 border border-primary/20 rounded-lg p-3 flex items-center justify-between"><div><p className="text-sm font-medium text-foreground">{s.name}</p><p className="text-xs text-muted-foreground">{s.dose}</p></div><Badge variant="outline" className="text-[10px] border-primary/30">{s.timing}</Badge></div>)}
+          </div>
         </ControlledCollapsible></motion.div>}
 
         {planDetail && planDetail.recommendations.length > 0 && (

@@ -28,6 +28,7 @@ import {
   type Meal,
   type MealOption,
   type IngredientRow,
+  type PlanSupplement,
   type Supplement,
   type MacroCategory,
   type ApiSupplement,
@@ -453,6 +454,11 @@ const AdminNutritionPlanDetail = () => {
             })),
           })),
         })),
+        planSupplements: plan.planSupplements.map((s) => ({
+          name: s.name,
+          dose: s.dose,
+          timing: s.timing,
+        })),
       });
       // Update local store too
       const savedPlan = { ...plan, meals: plan.meals.map(m => ({ ...m, options: m.options.map(o => ({ ...o, rows: [...o.rows] })) })) };
@@ -575,7 +581,7 @@ const AdminNutritionPlanDetail = () => {
 
         <Separator className="bg-border" />
 
-        {/* Suplementación Recomendada */}
+        {/* Suplementación Recomendada (global — read only) */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
@@ -591,7 +597,78 @@ const AdminNutritionPlanDetail = () => {
               <SupplementReadOnly key={sup.id} sup={sup} />
             ))}
             {storeSupplements.length === 0 && (
-              <p className="text-xs text-muted-foreground">No hay suplementos configurados. Añádelos desde la Biblioteca.</p>
+              <p className="text-xs text-muted-foreground">No hay suplementos globales. Añádelos desde la Biblioteca.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Suplementos extra para este plan */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <Plus className="h-3.5 w-3.5 text-muted-foreground" />
+              Suplementos extra (solo este plan)
+            </h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-primary text-xs"
+              onClick={() => setPlan({
+                ...plan,
+                planSupplements: [...plan.planSupplements, { name: "", dose: "", timing: "" }],
+              })}
+            >
+              <Plus className="h-3 w-3 mr-1" /> Añadir extra
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {plan.planSupplements.map((sup, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <Input
+                  value={sup.name}
+                  onChange={(e) => {
+                    const updated = [...plan.planSupplements];
+                    updated[i] = { ...updated[i], name: e.target.value };
+                    setPlan({ ...plan, planSupplements: updated });
+                  }}
+                  placeholder="Nombre"
+                  className="bg-muted/20 border-border text-sm flex-1"
+                />
+                <Input
+                  value={sup.dose}
+                  onChange={(e) => {
+                    const updated = [...plan.planSupplements];
+                    updated[i] = { ...updated[i], dose: e.target.value };
+                    setPlan({ ...plan, planSupplements: updated });
+                  }}
+                  placeholder="Dosis"
+                  className="bg-muted/20 border-border text-sm w-32"
+                />
+                <Input
+                  value={sup.timing}
+                  onChange={(e) => {
+                    const updated = [...plan.planSupplements];
+                    updated[i] = { ...updated[i], timing: e.target.value };
+                    setPlan({ ...plan, planSupplements: updated });
+                  }}
+                  placeholder="Cuándo"
+                  className="bg-muted/20 border-border text-sm w-40"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive shrink-0"
+                  onClick={() => setPlan({
+                    ...plan,
+                    planSupplements: plan.planSupplements.filter((_, j) => j !== i),
+                  })}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            ))}
+            {plan.planSupplements.length === 0 && (
+              <p className="text-xs text-muted-foreground italic">Sin suplementos extra para este plan.</p>
             )}
           </div>
         </div>
