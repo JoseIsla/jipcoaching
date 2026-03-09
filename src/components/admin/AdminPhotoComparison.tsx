@@ -221,6 +221,14 @@ const AdminPhotoComparison = ({ clientId }: Props) => {
           ))}
         </div>
       )}
+
+      {/* Lightbox */}
+      <PhotoLightbox
+        photos={lightboxPhotos}
+        initialIndex={lightboxIndex}
+        open={lightboxOpen}
+        onOpenChange={setLightboxOpen}
+      />
     </div>
   );
 };
