@@ -513,6 +513,19 @@ model Supplement {
   @@map("supplements")
 }
 
+model PlanSupplement {
+  id     String @id @default(uuid())
+  planId String
+  name   String
+  dose   String
+  timing String
+  createdAt DateTime @default(now())
+
+  plan NutritionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("plan_supplements")
+}
+
 // ── Check-ins / Questionnaires ──
 
 model QuestionnaireTemplate {
