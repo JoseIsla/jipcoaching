@@ -150,6 +150,8 @@ router.post("/plans", requireRole("ADMIN"), async (req, res) => {
                     backoffSets: e.backoffSets,
                     backoffPercent: e.backoffPercent,
                     technicalNotes: e.technicalNotes,
+                    reps: e.reps || null,
+                    plannedLoad: e.plannedLoad || null,
                   })),
                 } : undefined,
               })),
