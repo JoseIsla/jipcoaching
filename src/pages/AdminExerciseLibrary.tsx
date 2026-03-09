@@ -621,14 +621,15 @@ const AdminExerciseLibrary = () => {
             Biblioteca
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Gestiona ejercicios, frutas y verduras disponibles para tus planes
+            Gestiona ejercicios, alimentos y suplementos disponibles para tus planes
           </p>
         </div>
 
         <Tabs defaultValue="exercises" className="space-y-6">
           <TabsList className="bg-card border border-border">
             <TabsTrigger value="exercises" className="gap-1.5"><Dumbbell className="h-4 w-4" /> Ejercicios</TabsTrigger>
-            <TabsTrigger value="foods" className="gap-1.5"><Apple className="h-4 w-4" /> Frutas y Verduras</TabsTrigger>
+            <TabsTrigger value="foods" className="gap-1.5"><Apple className="h-4 w-4" /> Alimentos</TabsTrigger>
+            <TabsTrigger value="supplements" className="gap-1.5"><Pill className="h-4 w-4" /> Suplementos</TabsTrigger>
           </TabsList>
 
           {/* ======= EXERCISES TAB ======= */}
