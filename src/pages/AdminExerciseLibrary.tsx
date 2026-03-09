@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Library, Dumbbell, Target, Plus, Trash2, Search, Pencil, ChevronDown, Layers, Apple, Leaf } from "lucide-react";
+import { Library, Dumbbell, Target, Plus, Trash2, Search, Pencil, ChevronDown, Layers, Apple, Leaf, Pill } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useExerciseLibraryStore, type ExerciseLibraryItem } from "@/data/useExerciseLibraryStore";
+import { useNutritionPlanStore, type ApiSupplement } from "@/data/useNutritionPlanStore";
 
 const MUSCLE_GROUPS = [
   "Pierna", "Posterior", "Glúteo", "Pecho", "Hombro",
@@ -393,6 +394,176 @@ const FoodTableSection = ({
   );
 };
 
+// ==================== SUPPLEMENT SECTION ====================
+
+const SupplementSection = ({
+  supplements,
+  onAdd,
+  onEdit,
+  onRemove,
+}: {
+  supplements: ApiSupplement[];
+  onAdd: (name: string, dose: string, timing: string) => void;
+  onEdit: (id: string, name: string, dose: string, timing: string) => void;
+  onRemove: (id: string) => void;
+}) => {
+  const [newName, setNewName] = useState("");
+  const [newDose, setNewDose] = useState("");
+  const [newTiming, setNewTiming] = useState("");
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDose, setEditDose] = useState("");
+  const [editTiming, setEditTiming] = useState("");
+
+  const handleAdd = () => {
+    if (!newName.trim()) return;
+    onAdd(newName.trim(), newDose.trim(), newTiming.trim());
+    setNewName("");
+    setNewDose("");
+    setNewTiming("");
+  };
+
+  const handleSaveEdit = () => {
+    if (editId && editName.trim()) {
+      onEdit(editId, editName.trim(), editDose.trim(), editTiming.trim());
+      setEditId(null);
+    }
+  };
+
+  return (
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <div className="p-4 border-b border-border">
+        <div className="flex items-center gap-3 mb-4">
+          <Pill className="h-5 w-5 text-primary" />
+          <h2 className="text-base font-semibold text-foreground">Suplementos Recomendados</h2>
+          <Badge variant="outline" className="text-xs">{supplements.length}</Badge>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+          <Input
+            placeholder="Nombre..."
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            className="bg-background border-border text-sm h-9"
+          />
+          <Input
+            placeholder="Dosis..."
+            value={newDose}
+            onChange={(e) => setNewDose(e.target.value)}
+            className="bg-background border-border text-sm h-9"
+          />
+          <Input
+            placeholder="Cuándo..."
+            value={newTiming}
+            onChange={(e) => setNewTiming(e.target.value)}
+            className="bg-background border-border text-sm h-9"
+            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-9 text-xs gap-1"
+            disabled={!newName.trim()}
+            onClick={handleAdd}
+          >
+            <Plus className="h-3.5 w-3.5" /> Añadir
+          </Button>
+        </div>
+      </div>
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/30 hover:bg-muted/30">
+            <TableHead className="text-xs font-medium">Suplemento</TableHead>
+            <TableHead className="text-xs font-medium">Dosis</TableHead>
+            <TableHead className="text-xs font-medium">Cuándo</TableHead>
+            <TableHead className="text-xs font-medium w-[80px]">Acciones</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {supplements.map((sup) => (
+            <TableRow key={sup.id} className="group">
+              {editId === sup.id ? (
+                <>
+                  <TableCell>
+                    <Input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="h-7 text-xs bg-background border-border"
+                      autoFocus
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      value={editDose}
+                      onChange={(e) => setEditDose(e.target.value)}
+                      className="h-7 text-xs bg-background border-border"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      value={editTiming}
+                      onChange={(e) => setEditTiming(e.target.value)}
+                      className="h-7 text-xs bg-background border-border"
+                      onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={handleSaveEdit}>
+                        Guardar
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setEditId(null)}>
+                        ✕
+                      </Button>
+                    </div>
+                  </TableCell>
+                </>
+              ) : (
+                <>
+                  <TableCell className="text-sm text-foreground font-medium">{sup.name}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{sup.dose}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{sup.timing}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                        onClick={() => {
+                          setEditId(sup.id);
+                          setEditName(sup.name);
+                          setEditDose(sup.dose);
+                          setEditTiming(sup.timing);
+                        }}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-destructive/60 hover:text-destructive"
+                        onClick={() => onRemove(sup.id)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </>
+              )}
+            </TableRow>
+          ))}
+          {supplements.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center text-muted-foreground text-sm py-8">
+                No hay suplementos. Añade uno arriba.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};
+
 // ==================== MAIN PAGE ====================
 
 const AdminExerciseLibrary = () => {
@@ -412,10 +583,18 @@ const AdminExerciseLibrary = () => {
   const removeVegetable = useExerciseLibraryStore((s) => s.removeVegetable);
   const editVegetable = useExerciseLibraryStore((s) => s.editVegetable);
 
+  // Supplements
+  const supplements = useNutritionPlanStore((s) => s.supplements);
+  const fetchSupplements = useNutritionPlanStore((s) => s.fetchSupplements);
+  const createSupplement = useNutritionPlanStore((s) => s.createSupplement);
+  const updateSupplementApi = useNutritionPlanStore((s) => s.updateSupplementApi);
+  const deleteSupplementApi = useNutritionPlanStore((s) => s.deleteSupplementApi);
+
   useEffect(() => {
     fetchExercises();
     fetchFoods();
-  }, [fetchExercises, fetchFoods]);
+    fetchSupplements();
+  }, [fetchExercises, fetchFoods, fetchSupplements]);
 
   const handleRemove = async (id: string) => {
     const ex = exercises.find((e) => e.id === id);
@@ -442,14 +621,15 @@ const AdminExerciseLibrary = () => {
             Biblioteca
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Gestiona ejercicios, frutas y verduras disponibles para tus planes
+            Gestiona ejercicios, alimentos y suplementos disponibles para tus planes
           </p>
         </div>
 
         <Tabs defaultValue="exercises" className="space-y-6">
           <TabsList className="bg-card border border-border">
             <TabsTrigger value="exercises" className="gap-1.5"><Dumbbell className="h-4 w-4" /> Ejercicios</TabsTrigger>
-            <TabsTrigger value="foods" className="gap-1.5"><Apple className="h-4 w-4" /> Frutas y Verduras</TabsTrigger>
+            <TabsTrigger value="foods" className="gap-1.5"><Apple className="h-4 w-4" /> Alimentos</TabsTrigger>
+            <TabsTrigger value="supplements" className="gap-1.5"><Pill className="h-4 w-4" /> Suplementos</TabsTrigger>
           </TabsList>
 
           {/* ======= EXERCISES TAB ======= */}
@@ -563,6 +743,40 @@ const AdminExerciseLibrary = () => {
                 }}
               />
             </div>
+          </TabsContent>
+
+          {/* ======= SUPPLEMENTS TAB ======= */}
+          <TabsContent value="supplements" className="space-y-6">
+            <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 max-w-xs">
+              <div className="h-10 w-10 rounded-lg bg-primary/15 flex items-center justify-center">
+                <Pill className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{supplements.length}</p>
+                <p className="text-xs text-muted-foreground">Suplementos</p>
+              </div>
+            </div>
+
+            <SupplementSection
+              supplements={supplements}
+              onAdd={async (name, dose, timing) => {
+                if (supplements.some((s) => s.name.toLowerCase() === name.toLowerCase())) {
+                  toast({ title: "Duplicado", description: `"${name}" ya existe.`, variant: "destructive" });
+                  return;
+                }
+                await createSupplement({ name, dose, timing });
+                toast({ title: "Suplemento añadido", description: `"${name}" añadido.` });
+              }}
+              onEdit={async (id, name, dose, timing) => {
+                await updateSupplementApi(id, { name, dose, timing });
+                toast({ title: "Suplemento actualizado", description: `"${name}" actualizado.` });
+              }}
+              onRemove={async (id) => {
+                const sup = supplements.find((s) => s.id === id);
+                await deleteSupplementApi(id);
+                toast({ title: "Suplemento eliminado", description: `"${sup?.name}" eliminado.` });
+              }}
+            />
           </TabsContent>
         </Tabs>
       </div>
