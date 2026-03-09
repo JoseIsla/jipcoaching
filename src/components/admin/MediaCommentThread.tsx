@@ -32,13 +32,15 @@ const resolveAvatarUrl = (url?: string | null): string | undefined => {
 };
 
 const MediaCommentThread = ({ targetType, targetId, clientId, exerciseName, compact = false }: Props) => {
-  const comments = useMediaStore((s) =>
-    s.comments
-      .filter((c) => c.targetType.toLowerCase() === targetType.toLowerCase() && c.targetId === targetId)
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  );
+  const allComments = useMediaStore((s) => s.comments);
   const addComment = useMediaStore((s) => s.addComment);
   const removeComment = useMediaStore((s) => s.removeComment);
+  const comments = useMemo(
+    () => allComments
+      .filter((c) => c.targetType.toLowerCase() === targetType.toLowerCase() && c.targetId === targetId)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    [allComments, targetType, targetId]
+  );
   const addClientNotification = useClientNotificationStore((s) => s.addNotification);
   const { profile } = useAdminProfile();
   const [text, setText] = useState("");

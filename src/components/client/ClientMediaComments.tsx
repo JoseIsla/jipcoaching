@@ -23,10 +23,12 @@ const resolveAvatarUrl = (url?: string | null): string | undefined => {
 };
 
 const ClientMediaComments = ({ targetType, targetId }: Props) => {
-  const comments = useMediaStore((s) =>
-    s.comments
+  const allComments = useMediaStore((s) => s.comments);
+  const comments = useMemo(
+    () => allComments
       .filter((c) => c.targetType.toLowerCase() === targetType.toLowerCase() && c.targetId === targetId)
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    [allComments, targetType, targetId]
   );
 
   if (comments.length === 0) return null;
