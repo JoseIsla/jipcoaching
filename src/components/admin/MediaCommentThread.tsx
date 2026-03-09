@@ -39,6 +39,8 @@ const MediaCommentThread = ({ targetType, targetId, clientId, exerciseName, comp
   );
   const addComment = useMediaStore((s) => s.addComment);
   const removeComment = useMediaStore((s) => s.removeComment);
+  const addClientNotification = useClientNotificationStore((s) => s.addNotification);
+  const { profile } = useAdminProfile();
   const [text, setText] = useState("");
   const [expanded, setExpanded] = useState(false);
 
