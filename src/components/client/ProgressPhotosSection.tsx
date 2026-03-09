@@ -50,7 +50,18 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
     back: null,
   });
   const [showUpload, setShowUpload] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxPhotos, setLightboxPhotos] = useState<{ url: string; label?: string }[]>([]);
 
+  const angleLabels: Record<PhotoAngle, string> = { front: "Frente", side: "Lateral", back: "Espalda" };
+
+  const openLightbox = (photos: ProgressPhoto[], startIndex: number, sessionDate: string) => {
+    const formattedDate = new Date(sessionDate).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
+    setLightboxPhotos(photos.map((p) => ({ url: p.url, label: `${angleLabels[p.angle]} — ${formattedDate}` })));
+    setLightboxIndex(startIndex);
+    setLightboxOpen(true);
+  };
   const fileRefs = {
     front: useRef<HTMLInputElement>(null),
     side: useRef<HTMLInputElement>(null),
