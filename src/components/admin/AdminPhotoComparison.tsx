@@ -192,8 +192,12 @@ const AdminPhotoComparison = ({ clientId }: Props) => {
                 {formatDate(session.date)}
               </p>
               <div className="grid grid-cols-3 gap-2">
-                {session.photos.map((photo) => (
-                  <div key={photo.id} className="relative aspect-[3/4] rounded-lg overflow-hidden bg-muted/50 group">
+                {session.photos.map((photo, idx) => (
+                  <button
+                    key={photo.id}
+                    onClick={() => openLightbox(session.photos, idx, session.date)}
+                    className="relative aspect-[3/4] rounded-lg overflow-hidden bg-muted/50 group cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+                  >
                     <img
                       src={photo.url}
                       alt={`${photo.angle} - ${session.date}`}
@@ -203,7 +207,7 @@ const AdminPhotoComparison = ({ clientId }: Props) => {
                     <span className="absolute bottom-1 left-1 text-[9px] bg-background/80 text-foreground px-1.5 py-0.5 rounded capitalize">
                       {angleLabels[photo.angle]}
                     </span>
-                  </div>
+                  </button>
                 ))}
               </div>
               {/* Session-level comment thread */}
