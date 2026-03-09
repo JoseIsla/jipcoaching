@@ -108,7 +108,7 @@ router.get("/me/active", async (req, res) => {
 // POST /api/nutrition/plans — Admin only
 router.post("/plans", requireRole("ADMIN"), async (req, res) => {
   try {
-    const { clientId, title, objective, recommendations, kcalMin, kcalMax, proteinG, carbsG, fatsG, meals, startDate } = req.body;
+    const { clientId, title, objective, recommendations, kcalMin, kcalMax, proteinG, carbsG, fatsG, meals, startDate, planSupplements } = req.body;
 
     if (!clientId || !title) {
       res.status(400).json({ message: "clientId y title son obligatorios" });
