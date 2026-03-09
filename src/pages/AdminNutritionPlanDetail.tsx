@@ -19,8 +19,6 @@ import { toast } from "sonner";
 import { parseOptionalDecimal } from "@/utils/parseDecimal";
 import {
   useNutritionPlanStore,
-  globalFruitTable,
-  globalVegetableTable,
   createEmptyMeal,
   createEmptyOption,
   createEmptyRow,
@@ -34,6 +32,7 @@ import {
   type MacroCategory,
   type ApiSupplement,
 } from "@/data/useNutritionPlanStore";
+import { useExerciseLibraryStore } from "@/data/useExerciseLibraryStore";
 
 // ─── Macro category badge colors ───
 const macroCategoryColors: Record<MacroCategory, string> = {
@@ -409,6 +408,9 @@ const AdminNutritionPlanDetail = () => {
   const syncPlanToList = useNutritionPlanStore((s) => s.syncPlanToList);
   const saveSupplementsApi = useNutritionPlanStore((s) => s.saveSupplements);
   const fetchSupplements = useNutritionPlanStore((s) => s.fetchSupplements);
+  const fruits = useExerciseLibraryStore((s) => s.fruits);
+  const vegetables = useExerciseLibraryStore((s) => s.vegetables);
+  const fetchFoods = useExerciseLibraryStore((s) => s.fetchFoods);
   
   const stored = planId ? details[planId] : undefined;
 
@@ -429,12 +431,13 @@ const AdminNutritionPlanDetail = () => {
     });
   }, [planId, plan]);
 
-  // Fetch supplements from API on mount
+  // Fetch supplements and foods from API on mount
   useEffect(() => {
     fetchSupplements().then(() => {
       setLocalSupplements([...useNutritionPlanStore.getState().supplements]);
     });
-  }, [fetchSupplements]);
+    fetchFoods();
+  }, [fetchSupplements, fetchFoods]);
 
   const [saving, setSaving] = useState(false);
 
@@ -637,8 +640,8 @@ const AdminNutritionPlanDetail = () => {
 
         {/* Global reference tables */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ReferenceTable title="Tabla 01 — Frutas" icon={<Apple className="h-4 w-4 text-primary" />} items={globalFruitTable} />
-          <ReferenceTable title="Tabla 02 — Verduras" icon={<Salad className="h-4 w-4 text-primary" />} items={globalVegetableTable} />
+          <ReferenceTable title="Tabla 01 — Frutas" icon={<Apple className="h-4 w-4 text-primary" />} items={fruits} />
+          <ReferenceTable title="Tabla 02 — Verduras" icon={<Salad className="h-4 w-4 text-primary" />} items={vegetables} />
         </div>
       </div>
     </AdminLayout>

@@ -9,11 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   useNutritionPlanStore,
-  globalFruitTable,
-  globalVegetableTable,
   macroCategoryLabels,
   type MacroCategory,
 } from "@/data/useNutritionPlanStore";
+import { useExerciseLibraryStore } from "@/data/useExerciseLibraryStore";
 
 const macroCategoryColors: Record<MacroCategory, string> = {
   carbohidratos: "border-amber-500/40 text-amber-400 bg-amber-500/10",
@@ -33,8 +32,11 @@ const AdminNutritionPlanView = () => {
   const fetchPlans = useNutritionPlanStore((s) => s.fetchPlans);
   const [loading, setLoading] = useState(false);
   const plan = planId ? details[planId] : undefined;
+  const fruits = useExerciseLibraryStore((s) => s.fruits);
+  const vegetables = useExerciseLibraryStore((s) => s.vegetables);
+  const fetchFoods = useExerciseLibraryStore((s) => s.fetchFoods);
 
-  useEffect(() => { fetchSupplements(); }, [fetchSupplements]);
+  useEffect(() => { fetchSupplements(); fetchFoods(); }, [fetchSupplements, fetchFoods]);
 
   // Fetch plan detail from API if not in store
   useEffect(() => {
@@ -206,7 +208,7 @@ const AdminNutritionPlanView = () => {
               <h3 className="text-sm font-semibold text-foreground">Tabla 01 — Frutas</h3>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {globalFruitTable.map((item, i) => (
+              {fruits.map((item, i) => (
                 <span key={i} className="text-xs text-muted-foreground bg-muted/30 rounded px-2 py-0.5">{item}</span>
               ))}
             </div>
@@ -217,7 +219,7 @@ const AdminNutritionPlanView = () => {
               <h3 className="text-sm font-semibold text-foreground">Tabla 02 — Verduras</h3>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {globalVegetableTable.map((item, i) => (
+              {vegetables.map((item, i) => (
                 <span key={i} className="text-xs text-muted-foreground bg-muted/30 rounded px-2 py-0.5">{item}</span>
               ))}
             </div>
