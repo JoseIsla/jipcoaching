@@ -621,7 +621,7 @@ const AdminTrainingPlanDetail = () => {
           })()}
 
           {/* Add new week */}
-          <AddWeekDialog onAdd={handleAddWeek} />
+          <AddWeekDialog onAdd={handleAddWeek} onDuplicate={handleDuplicateWeek} weeks={plan.weeks} />
         </div>
 
         {/* Week notes */}
