@@ -150,6 +150,8 @@ router.post("/plans", requireRole("ADMIN"), async (req, res) => {
                     backoffSets: e.backoffSets,
                     backoffPercent: e.backoffPercent,
                     technicalNotes: e.technicalNotes,
+                    reps: e.reps || null,
+                    plannedLoad: e.plannedLoad || null,
                   })),
                 } : undefined,
               })),
@@ -355,6 +357,8 @@ router.put("/days/:dayId", requireRole("ADMIN"), async (req, res) => {
             backoffSets: e.backoffSets ? parseInt(e.backoffSets) : null,
             backoffPercent: e.backoffPercent ? parseFloat(e.backoffPercent) : null,
             technicalNotes: e.technicalNotes || null,
+            reps: e.reps || null,
+            plannedLoad: e.plannedLoad || null,
           })),
         });
       }

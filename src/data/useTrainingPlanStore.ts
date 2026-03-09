@@ -120,9 +120,10 @@ const mapApiExerciseToEntry = (ex: ApiExercisePrescription, idx: number, exercis
     sets: ex.setsMin != null && ex.setsMax != null
       ? (ex.setsMin === ex.setsMax ? `${ex.setsMin}` : `${ex.setsMin}-${ex.setsMax}`)
       : undefined,
-    reps: ex.dropReps != null ? `${ex.dropReps}` : undefined,
+    reps: (ex as any).reps ?? (ex.dropReps != null ? `${ex.dropReps}` : undefined),
     intensityValue: ex.rirMin,
     technicalNotes: ex.notes ?? (ex as any).technicalNotes,
+    plannedLoad: (ex as any).plannedLoad,
   };
 };
 
