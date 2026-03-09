@@ -293,9 +293,12 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
               <PopoverContent className="w-72 p-0 bg-card border-border" align="end" sideOffset={8}>
                 <div className="p-3 border-b border-border flex items-center justify-between">
                   <p className="text-sm font-semibold text-foreground">{t("clientNotifications.title")}</p>
-                  {unreadCount > 0 && (
+                  {notifications.length > 0 && (
                     <button
-                      onClick={() => { markAllRead(); api.patch("/notifications/read-all").catch(() => {}); }}
+                      onClick={() => {
+                        api.patch("/notifications/read-all").catch(() => {});
+                        useClientNotificationStore.getState().clear();
+                      }}
                       className="text-[10px] text-primary hover:underline"
                     >
                       {t("clientNotifications.markAll")}
