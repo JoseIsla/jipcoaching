@@ -140,22 +140,11 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
       }
 
       const nutritionOnes = data.filter((t) => t.category === "NUTRITION" && t.isActive);
-      
-      // Deduplicate by dayOfWeek, keeping the most recent one (backend returns orderBy createdAt desc)
-      const uniqueNutrition: ApiTemplate[] = [];
-      const seenDays = new Set<number>();
-      for (const t of nutritionOnes) {
-        if (t.dayOfWeek !== null && !seenDays.has(t.dayOfWeek)) {
-          seenDays.add(t.dayOfWeek);
-          uniqueNutrition.push(t);
-        }
-      }
-
       const trainingOne = data.find((t) => t.category === "TRAINING" && t.isActive);
 
       set((s) => ({
-        nutritionTemplates: uniqueNutrition.length > 0
-          ? uniqueNutrition.map(mapApiToNutrition)
+        nutritionTemplates: nutritionOnes.length > 0
+          ? nutritionOnes.map(mapApiToNutrition)
           : s.nutritionTemplates,
         trainingTemplate: trainingOne
           ? mapApiToTraining(trainingOne, s.trainingTemplate)
