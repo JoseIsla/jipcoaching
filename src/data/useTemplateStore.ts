@@ -194,7 +194,7 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
         });
       } catch (err: any) {
         console.error("[Templates] Error saving training template:", err);
-        if (err?.message?.includes("404") || err?.message?.includes("500")) {
+        if (err?.message?.includes("404")) {
           await seedDefaultTemplates(set, get);
         }
       }
