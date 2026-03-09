@@ -744,6 +744,40 @@ const AdminExerciseLibrary = () => {
               />
             </div>
           </TabsContent>
+
+          {/* ======= SUPPLEMENTS TAB ======= */}
+          <TabsContent value="supplements" className="space-y-6">
+            <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 max-w-xs">
+              <div className="h-10 w-10 rounded-lg bg-primary/15 flex items-center justify-center">
+                <Pill className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{supplements.length}</p>
+                <p className="text-xs text-muted-foreground">Suplementos</p>
+              </div>
+            </div>
+
+            <SupplementSection
+              supplements={supplements}
+              onAdd={async (name, dose, timing) => {
+                if (supplements.some((s) => s.name.toLowerCase() === name.toLowerCase())) {
+                  toast({ title: "Duplicado", description: `"${name}" ya existe.`, variant: "destructive" });
+                  return;
+                }
+                await createSupplement({ name, dose, timing });
+                toast({ title: "Suplemento añadido", description: `"${name}" añadido.` });
+              }}
+              onEdit={async (id, name, dose, timing) => {
+                await updateSupplementApi(id, { name, dose, timing });
+                toast({ title: "Suplemento actualizado", description: `"${name}" actualizado.` });
+              }}
+              onRemove={async (id) => {
+                const sup = supplements.find((s) => s.id === id);
+                await deleteSupplementApi(id);
+                toast({ title: "Suplemento eliminado", description: `"${sup?.name}" eliminado.` });
+              }}
+            />
+          </TabsContent>
         </Tabs>
       </div>
     </AdminLayout>
