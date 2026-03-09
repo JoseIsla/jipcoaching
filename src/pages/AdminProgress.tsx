@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Activity, Utensils, Dumbbell, Trophy, Brain, AlertTriangle, Search, Plus, Pencil, Trash2, ChevronRight } from "lucide-react";
+import { ArrowLeft, Activity, Utensils, Dumbbell, Trophy, Brain, AlertTriangle, Search, Plus, Pencil, Trash2, ChevronRight, Camera } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import { useTranslation } from "@/i18n/useTranslation";
 import { api } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { parseDecimal } from "@/utils/parseDecimal";
-
+import AdminPhotoComparison from "@/components/admin/AdminPhotoComparison";
 const SBD_NAMES = ["Sentadilla", "Press Banca", "Peso Muerto"];
 
 const ClientProgressCard = ({ client, onClick, t }: { client: ApiClient; onClick: () => void; t: (k: string) => string }) => {
@@ -255,6 +255,9 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
                 <p className="text-sm text-muted-foreground py-8 text-center">{t("progress.noWeightData")}</p>
               )}
             </div>
+
+            {/* Progress Photos Section */}
+            <AdminPhotoComparison clientId={client.id} />
           </TabsContent>
         )}
 
