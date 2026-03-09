@@ -48,6 +48,12 @@ const AdminPhotoComparison = ({ clientId }: Props) => {
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" });
 
+  const openLightbox = (photos: ProgressPhoto[], startIndex: number, sessionDate: string) => {
+    setLightboxPhotos(photos.map((p) => ({ url: p.url, label: `${angleLabels[p.angle]} — ${formatDate(sessionDate)}` })));
+    setLightboxIndex(startIndex);
+    setLightboxOpen(true);
+  };
+
   if (initialLoad || loading) {
     return (
       <div className="bg-card border border-border rounded-xl p-6 text-center">
