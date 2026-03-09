@@ -412,8 +412,9 @@ const AdminTrainingPlanDetail = () => {
 
   useEffect(() => {
     if (!planId) return;
-    // Try to fetch from API first, fallback to local store
     const loadPlan = async () => {
+      // Ensure exercise library is loaded before mapping plan exercises
+      await useExerciseLibraryStore.getState().fetchExercises();
       const fetched = await useTrainingPlanStore.getState().fetchPlanDetail(planId);
       const detail = fetched || getDetail(planId);
       if (!detail) { navigate("/admin/training"); return; }
