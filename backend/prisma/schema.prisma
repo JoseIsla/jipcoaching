@@ -410,6 +410,7 @@ model NutritionPlan {
   sections  NutritionSection[]
   meals     NutritionMeal[]
   foodItems NutritionFoodItem[]
+  planSupplements PlanSupplement[]
 
   @@map("nutrition_plans")
 }
