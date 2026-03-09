@@ -19,7 +19,7 @@ import { useTranslation } from "@/i18n/useTranslation";
 import { api } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { parseDecimal } from "@/utils/parseDecimal";
-
+import AdminPhotoComparison from "@/components/admin/AdminPhotoComparison";
 const SBD_NAMES = ["Sentadilla", "Press Banca", "Peso Muerto"];
 
 const ClientProgressCard = ({ client, onClick, t }: { client: ApiClient; onClick: () => void; t: (k: string) => string }) => {
