@@ -205,7 +205,7 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
           block: (w.block as TrainingBlock) || (apiPlan.block as TrainingBlock) || "Hipertrofia",
           status: w.status as "draft" | "active" | "completed" || "draft",
           generalNotes: w.notes,
-          days: (w.days ?? []).map((d) => ({
+          days: (w.days ?? []).sort((a, b) => (a.dayNumber ?? 0) - (b.dayNumber ?? 0)).map((d) => ({
             id: d.id,
             dayNumber: d.dayNumber,
             name: d.title ?? `Día ${d.dayNumber}`,

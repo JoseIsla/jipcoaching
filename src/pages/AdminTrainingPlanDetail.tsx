@@ -439,12 +439,13 @@ const AdminTrainingPlanDetail = () => {
     try {
       // Save each day's exercises via API
       for (const day of currentWeek.days) {
+        const exercisesToSave = day.exercises.filter((e) => e.exerciseName?.trim());
         await api.put(`/training/days/${day.id}`, {
           title: day.name,
           warmup: day.warmup,
-          exercises: day.exercises.map((e, i) => ({
+          exercises: exercisesToSave.map((e, i) => ({
             name: e.exerciseName,
-            type: e.exerciseType || (e.section === "basic" ? "BASIC" : "ACCESSORY"),
+            type: e.section === "basic" ? (e.exerciseType === "Variante" ? "VARIANT" : "BASIC") : "ACCESSORY",
             method: e.method?.toUpperCase() || "STRAIGHT_SETS",
             topSetReps: e.topSetReps,
             topSetRpe: e.topSetRPE,
