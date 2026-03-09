@@ -539,6 +539,8 @@ const AdminTrainingPlanDetail = () => {
             backoffSets: e.backoffSets,
             backoffPercent: e.backoffPercent,
             technicalNotes: e.technicalNotes,
+            reps: e.reps || undefined,
+            plannedLoad: e.plannedLoad || undefined,
           })),
         });
       }
