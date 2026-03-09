@@ -277,6 +277,14 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
           <p className="text-sm text-muted-foreground">Aún no has subido fotos de progreso</p>
         </div>
       )}
+
+      {/* Lightbox */}
+      <PhotoLightbox
+        photos={lightboxPhotos}
+        initialIndex={lightboxIndex}
+        open={lightboxOpen}
+        onOpenChange={setLightboxOpen}
+      />
     </div>
   );
 };
