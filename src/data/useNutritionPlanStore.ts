@@ -9,11 +9,12 @@ import {
   type MealOption,
   type IngredientRow,
   type Supplement,
+  type PlanSupplement,
   type MacroCategory,
 } from "@/data/nutritionPlanStore";
 
 // Re-export types for convenience
-export type { NutritionPlanDetail, Meal, MealOption, IngredientRow, Supplement, MacroCategory };
+export type { NutritionPlanDetail, Meal, MealOption, IngredientRow, Supplement, PlanSupplement, MacroCategory };
 
 // Re-export constants and helpers that don't need to be in the store
 export {
