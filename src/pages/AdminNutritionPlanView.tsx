@@ -9,11 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   useNutritionPlanStore,
-  globalFruitTable,
-  globalVegetableTable,
   macroCategoryLabels,
   type MacroCategory,
 } from "@/data/useNutritionPlanStore";
+import { useExerciseLibraryStore } from "@/data/useExerciseLibraryStore";
 
 const macroCategoryColors: Record<MacroCategory, string> = {
   carbohidratos: "border-amber-500/40 text-amber-400 bg-amber-500/10",
