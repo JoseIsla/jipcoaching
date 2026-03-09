@@ -2,6 +2,7 @@
  * Read-only comment display for client-facing media sections.
  * Shows coach feedback on photos/videos with avatar.
  */
+import { useMemo } from "react";
 import { MessageSquare } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useMediaStore } from "@/data/useMediaStore";
