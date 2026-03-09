@@ -192,6 +192,9 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
         return null;
       }
 
+      // Get exercise library for ID resolution
+      const exerciseList = useExerciseLibraryStore.getState().exercises;
+
       const detail: TrainingPlanFull = {
         id: apiPlan.id,
         clientId: apiPlan.clientId,
@@ -218,7 +221,7 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
             dayNumber: d.dayNumber,
             name: d.title ?? `Día ${d.dayNumber}`,
             warmup: d.warmup ?? "",
-            exercises: (d.exercises ?? []).map((ex, eIdx) => mapApiExerciseToEntry(ex, eIdx)),
+            exercises: (d.exercises ?? []).map((ex, eIdx) => mapApiExerciseToEntry(ex, eIdx, exerciseList)),
           })),
         })),
       };
