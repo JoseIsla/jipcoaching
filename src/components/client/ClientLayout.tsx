@@ -66,7 +66,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   const markAllRead = useClientNotificationStore((s) => s.markAllRead);
   const unreadCount = useClientNotificationStore((s) => s.getUnreadCount());
 
-  // Fetch server-side notifications (checkin reminders, etc.) and merge into store
+  // Fetch server-side notifications (only unread) and merge into store
   useEffect(() => {
     const fetchServerNotifications = async () => {
       try {
@@ -79,7 +79,10 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
         const existing = useClientNotificationStore.getState().notifications;
         const existingIds = new Set(existing.map((n) => n.id));
 
-        for (const n of data) {
+        // Only process unread notifications from server
+        const unreadServerNotifs = data.filter((n) => !n.read);
+
+        for (const n of unreadServerNotifs) {
           if (existingIds.has(`server-${n.id}`)) continue;
 
           // Map backend notification type to client notification type
@@ -105,7 +108,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
             titleKey: n.title,
             descriptionKey: n.message,
             timestamp: new Date(n.createdAt),
-            read: n.read,
+            read: false,
             link: n.link || defaultLink,
           });
         }
