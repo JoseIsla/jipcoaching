@@ -16,7 +16,6 @@ import type { TrainingBlock } from "@/data/useTrainingPlanStore";
 import {
   useTrainingPlanStore,
   TRAINING_METHOD_LABELS,
-  exerciseLibrary,
   type TrainingPlanFull,
   type TrainingWeek,
   type TrainingDay,
@@ -24,6 +23,7 @@ import {
   type TrainingMethod,
   type IntensityMeasure,
 } from "@/data/useTrainingPlanStore";
+import { useExerciseLibraryStore } from "@/data/useExerciseLibraryStore";
 
 // ==================== EXERCISE FORM ====================
 
