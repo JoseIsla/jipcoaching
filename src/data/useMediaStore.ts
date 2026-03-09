@@ -271,6 +271,9 @@ export const useMediaStore = create<MediaState>((set, get) => ({
     }
   },
   removeComment: (commentId) => {
+    // Guard: only delete if comment still exists (prevents double-fire)
+    const exists = get().comments.some((c) => c.id === commentId);
+    if (!exists) return;
     set((s) => ({ comments: s.comments.filter((c) => c.id !== commentId) }));
     if (!DEV_MOCK) {
       api.delete(`/media/comments/${commentId}`).catch(() => {});

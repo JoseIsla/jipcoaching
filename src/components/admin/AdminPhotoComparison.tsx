@@ -21,10 +21,13 @@ const AdminPhotoComparison = ({ clientId }: Props) => {
   const getPhotoSessions = useMediaStore((s) => s.getPhotoSessions);
   const fetchPhotos = useMediaStore((s) => s.fetchPhotos);
   const fetchComments = useMediaStore((s) => s.fetchComments);
+  const loading = useMediaStore((s) => s.loading);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   useEffect(() => {
-    fetchPhotos(clientId);
-    fetchComments(clientId);
+    Promise.all([fetchPhotos(clientId), fetchComments(clientId)]).finally(() =>
+      setInitialLoad(false)
+    );
   }, [clientId]);
 
   const sessions = getPhotoSessions(clientId);
@@ -41,6 +44,15 @@ const AdminPhotoComparison = ({ clientId }: Props) => {
 
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" });
+
+  if (initialLoad || loading) {
+    return (
+      <div className="bg-card border border-border rounded-xl p-6 text-center">
+        <Loader2 className="h-6 w-6 text-primary mx-auto mb-2 animate-spin" />
+        <p className="text-sm text-muted-foreground">Cargando fotos de progreso…</p>
+      </div>
+    );
+  }
 
   if (sessions.length === 0) {
     return (
