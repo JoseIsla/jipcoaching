@@ -44,16 +44,19 @@ const AdminNutrition = () => {
     }
   };
 
-  const handleCreate = async (data: { planName: string; clientId: string; clientName: string; objective: string }) => {
+  const handleCreate = async (data: { planName: string; clientId: string; clientName: string; objective: string; duplicateFromPlanId?: string }) => {
     try {
-      const result = await api.post<any>("/nutrition/plans", {
+      const body: any = {
         clientId: data.clientId,
         title: data.planName,
         objective: data.objective,
-      });
+      };
+      if (data.duplicateFromPlanId && data.duplicateFromPlanId !== "none") {
+        body.duplicateFromPlanId = data.duplicateFromPlanId;
+      }
+      const result = await api.post<any>("/nutrition/plans", body);
 
       if (result?.id) {
-        // Refresh plans from API to get accurate state
         await useNutritionPlanStore.getState().fetchPlans();
         navigate(`/admin/nutrition/${result.id}/edit`);
       }
