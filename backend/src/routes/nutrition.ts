@@ -108,11 +108,26 @@ router.get("/me/active", async (req, res) => {
 // POST /api/nutrition/plans — Admin only
 router.post("/plans", requireRole("ADMIN"), async (req, res) => {
   try {
-    const { clientId, title, objective, recommendations, kcalMin, kcalMax, proteinG, carbsG, fatsG, meals, startDate, planSupplements } = req.body;
+    const { clientId, title, objective, recommendations, kcalMin, kcalMax, proteinG, carbsG, fatsG, meals, startDate, planSupplements, duplicateFromPlanId } = req.body;
 
     if (!clientId || !title) {
       res.status(400).json({ message: "clientId y title son obligatorios" });
       return;
+    }
+
+    // If duplicating, fetch source plan data
+    let sourcePlan: any = null;
+    if (duplicateFromPlanId) {
+      sourcePlan = await prisma.nutritionPlan.findUnique({
+        where: { id: duplicateFromPlanId },
+        include: {
+          meals: {
+            include: { options: { include: { rows: { orderBy: { order: "asc" } } }, orderBy: { order: "asc" } } },
+            orderBy: { order: "asc" },
+          },
+          planSupplements: { orderBy: { createdAt: "asc" } },
+        },
+      });
     }
 
     // Deactivate existing active plans
@@ -121,43 +136,58 @@ router.post("/plans", requireRole("ADMIN"), async (req, res) => {
       data: { isActive: false },
     });
 
+    // Determine data: use provided values, then source plan values, then defaults
+    const finalKcalMin = kcalMin ?? sourcePlan?.kcalMin ?? null;
+    const finalKcalMax = kcalMax ?? sourcePlan?.kcalMax ?? null;
+    const finalProteinG = proteinG ?? sourcePlan?.proteinG ?? null;
+    const finalCarbsG = carbsG ?? sourcePlan?.carbsG ?? null;
+    const finalFatsG = fatsG ?? sourcePlan?.fatsG ?? null;
+    const finalObjective = objective ?? sourcePlan?.objective ?? null;
+    const finalRecommendations = recommendations
+      ? (Array.isArray(recommendations) ? JSON.stringify(recommendations) : recommendations)
+      : sourcePlan?.recommendations ?? null;
+
+    // Build meals data: use provided meals, or clone from source
+    const mealsData = meals ?? (sourcePlan?.meals ?? []);
+    const suppsData = planSupplements ?? (sourcePlan?.planSupplements ?? []);
+
     const plan = await prisma.nutritionPlan.create({
       data: {
         clientId,
         title,
-        objective,
-        recommendations: Array.isArray(recommendations) ? JSON.stringify(recommendations) : recommendations,
-        kcalMin,
-        kcalMax,
-        proteinG,
-        carbsG,
-        fatsG,
+        objective: finalObjective,
+        recommendations: finalRecommendations,
+        kcalMin: finalKcalMin,
+        kcalMax: finalKcalMax,
+        proteinG: finalProteinG,
+        carbsG: finalCarbsG,
+        fatsG: finalFatsG,
         startDate: startDate ? new Date(startDate) : new Date(),
-        meals: meals ? {
-          create: meals.map((m: any, mi: number) => ({
+        meals: mealsData.length > 0 ? {
+          create: mealsData.map((m: any, mi: number) => ({
             name: m.name,
-            order: mi,
+            order: m.order ?? mi,
             description: m.description,
             notes: m.notes,
-            options: m.options ? {
+            options: (m.options?.length > 0) ? {
               create: m.options.map((o: any, oi: number) => ({
                 name: o.name,
                 notes: o.notes,
-                order: oi,
-                rows: o.rows ? {
+                order: o.order ?? oi,
+                rows: (o.rows?.length > 0) ? {
                   create: o.rows.map((r: any, ri: number) => ({
                     mainIngredient: r.mainIngredient,
-                    alternatives: JSON.stringify(r.alternatives || []),
+                    alternatives: typeof r.alternatives === "string" ? r.alternatives : JSON.stringify(r.alternatives || []),
                     macroCategory: r.macroCategory || "",
-                    order: ri,
+                    order: r.order ?? ri,
                   })),
                 } : undefined,
               })),
             } : undefined,
           })),
         } : undefined,
-        planSupplements: planSupplements?.length ? {
-          create: planSupplements.map((s: any) => ({
+        planSupplements: suppsData.length > 0 ? {
+          create: suppsData.map((s: any) => ({
             name: s.name,
             dose: s.dose || "",
             timing: s.timing || "",
