@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Library, Dumbbell, Target, Plus, Trash2, Search, Pencil, ChevronDown, Layers, Apple, Leaf } from "lucide-react";
+import { Library, Dumbbell, Target, Plus, Trash2, Search, Pencil, ChevronDown, Layers, Apple, Leaf, Pill } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useExerciseLibraryStore, type ExerciseLibraryItem } from "@/data/useExerciseLibraryStore";
+import { useNutritionPlanStore, type ApiSupplement } from "@/data/useNutritionPlanStore";
 
 const MUSCLE_GROUPS = [
   "Pierna", "Posterior", "Glúteo", "Pecho", "Hombro",
