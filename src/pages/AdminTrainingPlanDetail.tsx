@@ -484,7 +484,6 @@ const AdminTrainingPlanDetail = () => {
     try {
       const result = await api.post<any>(`/training/plans/${plan.id}/weeks`, { block });
       if (result) {
-        // Refetch the plan detail from API
         const updatedDetail = await useTrainingPlanStore.getState().fetchPlanDetail(plan.id);
         if (updatedDetail) {
           setPlan({ ...updatedDetail });
@@ -496,6 +495,64 @@ const AdminTrainingPlanDetail = () => {
       }
     } catch (err: any) {
       toast({ title: "Error", description: err?.message || "Error al crear semana", variant: "destructive" });
+    }
+  };
+
+  const handleDuplicateWeek = async (sourceWeekIdx: number, block: TrainingBlock) => {
+    try {
+      const sourceWeek = plan.weeks[sourceWeekIdx];
+      if (!sourceWeek) return;
+
+      // 1. Create the new empty week
+      const result = await api.post<any>(`/training/plans/${plan.id}/weeks`, { block });
+      if (!result) return;
+
+      // 2. Refetch to get the new week with its days
+      let updatedDetail = await useTrainingPlanStore.getState().fetchPlanDetail(plan.id);
+      if (!updatedDetail) return;
+
+      const newWeek = updatedDetail.weeks[updatedDetail.weeks.length - 1];
+
+      // 3. Copy exercises from source days to new days (matched by dayNumber)
+      for (const newDay of newWeek.days) {
+        const sourceDay = sourceWeek.days.find((d) => d.dayNumber === newDay.dayNumber);
+        if (!sourceDay || sourceDay.exercises.length === 0) continue;
+
+        const exercisesToCopy = sourceDay.exercises.filter((e) => e.exerciseName?.trim());
+        await api.put(`/training/days/${newDay.id}`, {
+          title: sourceDay.name,
+          warmup: sourceDay.warmup,
+          exercises: exercisesToCopy.map((e, i) => ({
+            name: e.exerciseName,
+            type: e.section === "basic" ? (e.exerciseType === "Variante" ? "VARIANT" : "BASIC") : "ACCESSORY",
+            method: e.method?.toUpperCase() || "STRAIGHT_SETS",
+            topSetReps: e.topSetReps,
+            topSetRpe: e.topSetRPE,
+            fatiguePct: e.fatiguePercent,
+            setsMin: e.sets ? parseInt(String(e.sets).split("-")[0]) : undefined,
+            setsMax: e.sets ? parseInt(String(e.sets).split("-").pop()!) : undefined,
+            rirMin: e.intensityValue,
+            notes: e.technicalNotes,
+            order: e.order ?? i,
+            backoffSets: e.backoffSets,
+            backoffPercent: e.backoffPercent,
+            technicalNotes: e.technicalNotes,
+          })),
+        });
+      }
+
+      // 4. Refetch again to get the populated week
+      updatedDetail = await useTrainingPlanStore.getState().fetchPlanDetail(plan.id);
+      if (updatedDetail) {
+        setPlan({ ...updatedDetail });
+        const newIdx = updatedDetail.weeks.length - 1;
+        setWeekIdx(newIdx);
+        setCurrentWeek(JSON.parse(JSON.stringify(updatedDetail.weeks[newIdx])));
+      }
+
+      toast({ title: "Semana duplicada", description: `Semana ${sourceWeek.weekNumber} duplicada como nueva semana (${block}).` });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Error al duplicar semana", variant: "destructive" });
     }
   };
 
