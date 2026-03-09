@@ -46,26 +46,13 @@ export interface NutritionPlanDetail {
   recommendations: string[];
 }
 
-// Global reference tables
-export const globalFruitTable: string[] = [
-  "Piña (210g)", "Higo (150g)", "Pitaya (300g)", "Ciruela pasa", "Ciruela (230g)",
-  "Albaricoque", "Caqui (85g)", "Níspero (210g)", "Cereza (205g)", "Plátano (110g)",
-  "Manzana (210g)", "Mango (180g)", "Melón (310g)", "Fresa (310g)", "Chirimoya (125g)",
-  "Melocotón", "Frambuesa", "Kiwi (170g)", "Naranja (220g)", "Guayaba (160g)",
-  "Granada (320g)", "Papaya (240g)", "Dátil (40g)", "Sandía (360g)", "Pera (170g)",
-  "Nectarina (240g)", "Uva (160g)", "Pasas (30g)", "Mora (240g)",
-  "Bowl de frutas mixtas (200g)", "Arándano (190g)", "Pomelo (250g)", "Zumo de naranja (240g)",
-  "Mandarina (240g)",
-];
+// Global reference tables are now fetched from the API via useExerciseLibraryStore
+// These legacy exports are kept for backwards compatibility but should not be used
+/** @deprecated Use useExerciseLibraryStore().fruits instead */
+export const globalFruitTable: string[] = [];
 
-export const globalVegetableTable: string[] = [
-  "Calabaza", "Berenjena", "Coliflor", "Pimiento", "Tomate",
-  "Calabacín", "Remolacha", "Hojas verdes", "Repollo", "Pepino",
-  "Espárrago", "Guisantes", "Acelga", "Brócoli", "Ajo",
-  "Cebolla", "Zanahoria", "Albahaca", "Rúcula", "Lechuga",
-  "Judías verdes", "Alcachofa", "Gazpacho", "Col de Bruselas", "Apio",
-  "Pepinillos", "Champiñones", "Rábano", "Puerro", "Tomate cherry",
-];
+/** @deprecated Use useExerciseLibraryStore().vegetables instead */
+export const globalVegetableTable: string[] = [];
 
 // Global supplements are now fetched from the API via useNutritionPlanStore
 // This legacy export is kept for backwards compatibility but should not be used

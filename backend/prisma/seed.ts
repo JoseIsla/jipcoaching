@@ -233,6 +233,44 @@ async function main() {
   console.log("✅ Supplements seeded:", supplements.length);
 
   // ════════════════════════════════════════════
+  // 3b. GLOBAL FOOD ITEMS (Fruits & Vegetables)
+  // ════════════════════════════════════════════
+  await prisma.globalFoodItem.deleteMany({});
+
+  const fruits = [
+    "Piña (210g)", "Higo (150g)", "Pitaya (300g)", "Ciruela pasa (45g)", "Ciruela (230g)",
+    "Albaricoque (220g)", "Caqui (85g)", "Níspero (210g)", "Cereza (205g)", "Plátano (110g)",
+    "Manzana (210g)", "Mango (180g)", "Melón (310g)", "Fresa (310g)", "Chirimoya (125g)",
+    "Melocotón (270g)", "Frambuesa (190g)", "Kiwi (170g)", "Naranja (220g)", "Guayaba (160g)",
+    "Granada (320g)", "Papaya (240g)", "Dátil (40g)", "Sandía (360g)", "Pera (170g)",
+    "Nectarina (240g)", "Mandarina (240g)", "Uva (160g)", "Pasas (30g)", "Mora (240g)",
+    "Bowl de frutas mixtas (200g)", "Arándano (190g)", "Pomelo (250g)", "Zumo de naranja (240g)",
+  ];
+
+  for (let i = 0; i < fruits.length; i++) {
+    await prisma.globalFoodItem.create({
+      data: { type: "FRUIT", name: fruits[i], order: i },
+    });
+  }
+  console.log("✅ Fruits seeded:", fruits.length);
+
+  const vegetables = [
+    "Calabaza", "Berenjena", "Coliflor", "Pimiento", "Tomate",
+    "Calabacín", "Remolacha", "Hojas verdes", "Repollo", "Pepino",
+    "Espárrago", "Guisantes", "Acelga", "Brócoli", "Ajo",
+    "Cebolla", "Zanahoria", "Albahaca", "Rúcula", "Lechuga",
+    "Judías verdes", "Alcachofa", "Gazpacho", "Col de Bruselas", "Apio",
+    "Pepinillos", "Champiñones", "Rábano", "Puerro", "Tomate cherry",
+  ];
+
+  for (let i = 0; i < vegetables.length; i++) {
+    await prisma.globalFoodItem.create({
+      data: { type: "VEGETABLE", name: vegetables[i], order: i },
+    });
+  }
+  console.log("✅ Vegetables seeded:", vegetables.length);
+
+  // ════════════════════════════════════════════
   // 4. NUTRITION PLAN — Carlos Martínez
   // ════════════════════════════════════════════
   const nutritionPlan = await prisma.nutritionPlan.create({
