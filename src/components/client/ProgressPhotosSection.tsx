@@ -249,8 +249,12 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
                 {new Date(session.date).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}
               </p>
               <div className="grid grid-cols-3 gap-1.5">
-                {session.photos.map((photo) => (
-                  <div key={photo.id} className="relative aspect-[3/4] rounded-lg overflow-hidden bg-muted/50">
+                {session.photos.map((photo, idx) => (
+                  <button
+                    key={photo.id}
+                    onClick={() => openLightbox(session.photos, idx, session.date)}
+                    className="relative aspect-[3/4] rounded-lg overflow-hidden bg-muted/50 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+                  >
                     <img
                       src={photo.url}
                       alt={`${photo.angle} - ${session.date}`}
@@ -258,9 +262,9 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
                       loading="lazy"
                     />
                     <span className="absolute bottom-1 left-1 text-[8px] bg-background/80 text-foreground px-1.5 py-0.5 rounded capitalize">
-                      {photo.angle === "front" ? "Frente" : photo.angle === "side" ? "Lateral" : "Espalda"}
+                      {angleLabels[photo.angle]}
                     </span>
-                  </div>
+                  </button>
                 ))}
               </div>
               <ClientMediaComments targetType="photo_session" targetId={session.date} />
