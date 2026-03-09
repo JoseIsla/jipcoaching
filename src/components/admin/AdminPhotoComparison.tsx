@@ -3,7 +3,7 @@
  * Shows chronological gallery with option to compare between two dates.
  */
 import { useState, useMemo, useEffect } from "react";
-import { Camera, ArrowLeftRight, Calendar, ImageIcon } from "lucide-react";
+import { Camera, ArrowLeftRight, Calendar, ImageIcon, Loader2 } from "lucide-react";
 import MediaCommentThread from "./MediaCommentThread";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
