@@ -2,7 +2,7 @@
  * Reusable comment thread for admin media review.
  * Allows adding/removing comments on photos or videos.
  */
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { MessageSquare, Send, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
