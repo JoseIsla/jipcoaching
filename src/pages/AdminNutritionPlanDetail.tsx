@@ -640,8 +640,8 @@ const AdminNutritionPlanDetail = () => {
 
         {/* Global reference tables */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ReferenceTable title="Tabla 01 — Frutas" icon={<Apple className="h-4 w-4 text-primary" />} items={globalFruitTable} />
-          <ReferenceTable title="Tabla 02 — Verduras" icon={<Salad className="h-4 w-4 text-primary" />} items={globalVegetableTable} />
+          <ReferenceTable title="Tabla 01 — Frutas" icon={<Apple className="h-4 w-4 text-primary" />} items={fruits} />
+          <ReferenceTable title="Tabla 02 — Verduras" icon={<Salad className="h-4 w-4 text-primary" />} items={vegetables} />
         </div>
       </div>
     </AdminLayout>
