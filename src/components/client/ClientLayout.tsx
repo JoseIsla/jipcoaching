@@ -293,9 +293,12 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
               <PopoverContent className="w-72 p-0 bg-card border-border" align="end" sideOffset={8}>
                 <div className="p-3 border-b border-border flex items-center justify-between">
                   <p className="text-sm font-semibold text-foreground">{t("clientNotifications.title")}</p>
-                  {unreadCount > 0 && (
+                  {notifications.length > 0 && (
                     <button
-                      onClick={() => { markAllRead(); api.patch("/notifications/read-all").catch(() => {}); }}
+                      onClick={() => {
+                        api.patch("/notifications/read-all").catch(() => {});
+                        useClientNotificationStore.getState().clear();
+                      }}
                       className="text-[10px] text-primary hover:underline"
                     >
                       {t("clientNotifications.markAll")}
@@ -313,9 +316,15 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
                       <button
                         key={notif.id}
                         onClick={() => {
-                          useClientNotificationStore.getState().markRead(notif.id);
                           const serverId = notif.id.startsWith("server-") ? notif.id.replace("server-", "") : null;
-                          if (serverId) api.patch(`/notifications/${serverId}/read`).catch(() => {});
+                          if (serverId) {
+                            api.patch(`/notifications/${serverId}/read`).catch(() => {});
+                            api.delete(`/notifications/${serverId}`).catch(() => {});
+                          }
+                          // Remove from local store immediately
+                          useClientNotificationStore.setState((s) => ({
+                            notifications: s.notifications.filter((n) => n.id !== notif.id),
+                          }));
                           navigate(notif.link);
                         }}
                         className={`w-full text-left p-3 border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors flex items-start gap-2.5 ${
