@@ -600,12 +600,14 @@ const AdminTrainingPlanDetail = () => {
 
 const BLOCKS: TrainingBlock[] = ["Hipertrofia", "Intensificación", "Peaking", "Tapering"];
 
-const AddWeekDialog = ({ onAdd }: { onAdd: (block: TrainingBlock) => void }) => {
+const AddWeekDialog = ({ onAdd, onDuplicate, weeks }: { onAdd: (block: TrainingBlock) => void; onDuplicate: (sourceWeekIdx: number, block: TrainingBlock) => void; weeks: TrainingWeek[] }) => {
   const [open, setOpen] = useState(false);
   const [block, setBlock] = useState<TrainingBlock>("Hipertrofia");
+  const [mode, setMode] = useState<"empty" | "duplicate">("empty");
+  const [sourceWeekIdx, setSourceWeekIdx] = useState(0);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v) { setMode("empty"); setSourceWeekIdx(0); } }}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="text-xs gap-1.5">
           <Plus className="h-3.5 w-3.5" /> Añadir semana
@@ -616,6 +618,16 @@ const AddWeekDialog = ({ onAdd }: { onAdd: (block: TrainingBlock) => void }) => 
           <DialogTitle>Nueva semana</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-2">
+          {/* Mode selection */}
+          <div className="flex gap-2">
+            <Button variant={mode === "empty" ? "default" : "outline"} size="sm" className="flex-1 text-xs" onClick={() => setMode("empty")}>
+              <Plus className="h-3 w-3 mr-1" /> Vacía
+            </Button>
+            <Button variant={mode === "duplicate" ? "default" : "outline"} size="sm" className="flex-1 text-xs" onClick={() => setMode("duplicate")}>
+              <Copy className="h-3 w-3 mr-1" /> Duplicar semana
+            </Button>
+          </div>
+
           <div className="space-y-2">
             <Label>Bloque de entrenamiento</Label>
             <Select value={block} onValueChange={(v) => setBlock(v as TrainingBlock)}>
@@ -628,13 +640,45 @@ const AddWeekDialog = ({ onAdd }: { onAdd: (block: TrainingBlock) => void }) => 
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">
-              La semana anterior se marcará como completada automáticamente.
-            </p>
           </div>
+
+          {mode === "duplicate" && weeks.length > 0 && (
+            <div className="space-y-2">
+              <Label>Copiar ejercicios de</Label>
+              <Select value={String(sourceWeekIdx)} onValueChange={(v) => setSourceWeekIdx(Number(v))}>
+                <SelectTrigger className="bg-background border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {weeks.map((w, i) => (
+                    <SelectItem key={w.id} value={String(i)}>
+                      Semana {w.weekNumber} — {w.block || "Sin bloque"} ({w.days.reduce((s, d) => s + d.exercises.length, 0)} ej.)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Se copiarán todos los días y ejercicios de la semana seleccionada.
+              </p>
+            </div>
+          )}
+
+          <p className="text-xs text-muted-foreground">
+            La semana anterior se marcará como completada automáticamente.
+          </p>
+
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={() => { onAdd(block); setOpen(false); }}>Crear semana</Button>
+            <Button onClick={() => {
+              if (mode === "duplicate") {
+                onDuplicate(sourceWeekIdx, block);
+              } else {
+                onAdd(block);
+              }
+              setOpen(false);
+            }}>
+              {mode === "duplicate" ? "Duplicar y crear" : "Crear semana"}
+            </Button>
           </div>
         </div>
       </DialogContent>
