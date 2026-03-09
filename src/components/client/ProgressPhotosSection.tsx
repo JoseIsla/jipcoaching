@@ -5,6 +5,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Camera, Upload, Clock, CheckCircle2, ImageIcon, Loader2, X } from "lucide-react";
 import ClientMediaComments from "./ClientMediaComments";
+import PhotoLightbox from "@/components/ui/photo-lightbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -49,7 +50,18 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
     back: null,
   });
   const [showUpload, setShowUpload] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxPhotos, setLightboxPhotos] = useState<{ url: string; label?: string }[]>([]);
 
+  const angleLabels: Record<PhotoAngle, string> = { front: "Frente", side: "Lateral", back: "Espalda" };
+
+  const openLightbox = (photos: ProgressPhoto[], startIndex: number, sessionDate: string) => {
+    const formattedDate = new Date(sessionDate).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
+    setLightboxPhotos(photos.map((p) => ({ url: p.url, label: `${angleLabels[p.angle]} — ${formattedDate}` })));
+    setLightboxIndex(startIndex);
+    setLightboxOpen(true);
+  };
   const fileRefs = {
     front: useRef<HTMLInputElement>(null),
     side: useRef<HTMLInputElement>(null),
@@ -237,8 +249,12 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
                 {new Date(session.date).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}
               </p>
               <div className="grid grid-cols-3 gap-1.5">
-                {session.photos.map((photo) => (
-                  <div key={photo.id} className="relative aspect-[3/4] rounded-lg overflow-hidden bg-muted/50">
+                {session.photos.map((photo, idx) => (
+                  <button
+                    key={photo.id}
+                    onClick={() => openLightbox(session.photos, idx, session.date)}
+                    className="relative aspect-[3/4] rounded-lg overflow-hidden bg-muted/50 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+                  >
                     <img
                       src={photo.url}
                       alt={`${photo.angle} - ${session.date}`}
@@ -246,9 +262,9 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
                       loading="lazy"
                     />
                     <span className="absolute bottom-1 left-1 text-[8px] bg-background/80 text-foreground px-1.5 py-0.5 rounded capitalize">
-                      {photo.angle === "front" ? "Frente" : photo.angle === "side" ? "Lateral" : "Espalda"}
+                      {angleLabels[photo.angle]}
                     </span>
-                  </div>
+                  </button>
                 ))}
               </div>
               <ClientMediaComments targetType="photo_session" targetId={session.date} />
@@ -261,6 +277,14 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
           <p className="text-sm text-muted-foreground">Aún no has subido fotos de progreso</p>
         </div>
       )}
+
+      {/* Lightbox */}
+      <PhotoLightbox
+        photos={lightboxPhotos}
+        initialIndex={lightboxIndex}
+        open={lightboxOpen}
+        onOpenChange={setLightboxOpen}
+      />
     </div>
   );
 };

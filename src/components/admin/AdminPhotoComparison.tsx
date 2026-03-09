@@ -5,11 +5,12 @@
 import { useState, useMemo, useEffect } from "react";
 import { Camera, ArrowLeftRight, Calendar, ImageIcon, Loader2 } from "lucide-react";
 import MediaCommentThread from "./MediaCommentThread";
+import PhotoLightbox from "@/components/ui/photo-lightbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMediaStore } from "@/data/useMediaStore";
-import type { PhotoAngle } from "@/types/media";
+import type { PhotoAngle, ProgressPhoto } from "@/types/media";
 
 interface Props {
   clientId: string;
@@ -35,7 +36,9 @@ const AdminPhotoComparison = ({ clientId }: Props) => {
   const [dateA, setDateA] = useState<string>("");
   const [dateB, setDateB] = useState<string>("");
   const [selectedAngle, setSelectedAngle] = useState<PhotoAngle>("front");
-
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxPhotos, setLightboxPhotos] = useState<{ url: string; label?: string }[]>([]);
   const sessionA = useMemo(() => sessions.find((s) => s.date === dateA), [sessions, dateA]);
   const sessionB = useMemo(() => sessions.find((s) => s.date === dateB), [sessions, dateB]);
 
@@ -44,6 +47,12 @@ const AdminPhotoComparison = ({ clientId }: Props) => {
 
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" });
+
+  const openLightbox = (photos: ProgressPhoto[], startIndex: number, sessionDate: string) => {
+    setLightboxPhotos(photos.map((p) => ({ url: p.url, label: `${angleLabels[p.angle]} — ${formatDate(sessionDate)}` })));
+    setLightboxIndex(startIndex);
+    setLightboxOpen(true);
+  };
 
   if (initialLoad || loading) {
     return (
@@ -183,8 +192,12 @@ const AdminPhotoComparison = ({ clientId }: Props) => {
                 {formatDate(session.date)}
               </p>
               <div className="grid grid-cols-3 gap-2">
-                {session.photos.map((photo) => (
-                  <div key={photo.id} className="relative aspect-[3/4] rounded-lg overflow-hidden bg-muted/50 group">
+                {session.photos.map((photo, idx) => (
+                  <button
+                    key={photo.id}
+                    onClick={() => openLightbox(session.photos, idx, session.date)}
+                    className="relative aspect-[3/4] rounded-lg overflow-hidden bg-muted/50 group cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+                  >
                     <img
                       src={photo.url}
                       alt={`${photo.angle} - ${session.date}`}
@@ -194,7 +207,7 @@ const AdminPhotoComparison = ({ clientId }: Props) => {
                     <span className="absolute bottom-1 left-1 text-[9px] bg-background/80 text-foreground px-1.5 py-0.5 rounded capitalize">
                       {angleLabels[photo.angle]}
                     </span>
-                  </div>
+                  </button>
                 ))}
               </div>
               {/* Session-level comment thread */}
@@ -208,6 +221,14 @@ const AdminPhotoComparison = ({ clientId }: Props) => {
           ))}
         </div>
       )}
+
+      {/* Lightbox */}
+      <PhotoLightbox
+        photos={lightboxPhotos}
+        initialIndex={lightboxIndex}
+        open={lightboxOpen}
+        onOpenChange={setLightboxOpen}
+      />
     </div>
   );
 };
