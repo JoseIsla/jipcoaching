@@ -287,23 +287,12 @@ const MealEditor = ({
   );
 };
 
-// ─── Supplement Editor ───
-const SupplementRow = ({
-  sup,
-  onUpdate,
-  onDelete,
-}: {
-  sup: ApiSupplement;
-  onUpdate: (s: ApiSupplement) => void;
-  onDelete: () => void;
-}) => (
-  <div className="flex items-center gap-2">
-    <Input value={sup.name} onChange={(e) => onUpdate({ ...sup, name: e.target.value })} placeholder="Nombre" className="bg-muted/20 border-border text-sm flex-1" />
-    <Input value={sup.dose} onChange={(e) => onUpdate({ ...sup, dose: e.target.value })} placeholder="Dosis" className="bg-muted/20 border-border text-sm w-32" />
-    <Input value={sup.timing} onChange={(e) => onUpdate({ ...sup, timing: e.target.value })} placeholder="Cuándo" className="bg-muted/20 border-border text-sm w-40" />
-    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive shrink-0" onClick={onDelete}>
-      <Trash2 className="h-3.5 w-3.5" />
-    </Button>
+// ─── Supplement Display (read-only — managed from Library) ───
+const SupplementReadOnly = ({ sup }: { sup: ApiSupplement }) => (
+  <div className="flex items-center gap-3 bg-muted/20 border border-border/50 rounded-lg px-3 py-2">
+    <span className="text-sm font-medium text-foreground flex-1">{sup.name}</span>
+    <span className="text-xs text-muted-foreground w-32">{sup.dose}</span>
+    <span className="text-xs text-muted-foreground w-40">{sup.timing}</span>
   </div>
 );
 
