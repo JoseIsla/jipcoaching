@@ -5,14 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, AlertTriangle } from "lucide-react";
+import { Plus, AlertTriangle, Copy } from "lucide-react";
 import { useClientStore } from "@/data/useClientStore";
 import { useClientDetailStore } from "@/data/useClientDetailStore";
 import { useNutritionPlanStore } from "@/data/useNutritionPlanStore";
 import { toast } from "sonner";
 
 interface Props {
-  onCreated: (plan: { planName: string; clientId: string; clientName: string; objective: string }) => void;
+  onCreated: (plan: { planName: string; clientId: string; clientName: string; objective: string; duplicateFromPlanId?: string }) => void;
 }
 
 const CreateNutritionPlanSheet = ({ onCreated }: Props) => {
@@ -21,9 +21,11 @@ const CreateNutritionPlanSheet = ({ onCreated }: Props) => {
   const [clientId, setClientId] = useState("");
   const [objective, setObjective] = useState("");
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  const [duplicateFromPlanId, setDuplicateFromPlanId] = useState<string>("");
 
   const allClients = useClientStore((s) => s.clients);
   const details = useClientDetailStore((s) => s.details);
+  const plans = useNutritionPlanStore((s) => s.plans);
   const getActivePlanForClient = useNutritionPlanStore((s) => s.getActivePlanForClient);
 
   const nutritionClients = allClients.filter((c) =>
@@ -31,6 +33,9 @@ const CreateNutritionPlanSheet = ({ onCreated }: Props) => {
   );
 
   const existingActivePlan = clientId ? getActivePlanForClient(clientId) : undefined;
+
+  // Get all previous plans for the selected client
+  const clientPlans = clientId ? plans.filter((p) => p.clientId === clientId) : [];
 
   const handleCreate = () => {
     if (!planName.trim() || !clientId || !objective.trim()) {
@@ -43,11 +48,18 @@ const CreateNutritionPlanSheet = ({ onCreated }: Props) => {
     const client = allClients.find((c) => c.id === clientId);
     if (!client) return;
 
-    onCreated({ planName: planName.trim(), clientId, clientName: client.name, objective: objective.trim() });
+    onCreated({
+      planName: planName.trim(),
+      clientId,
+      clientName: client.name,
+      objective: objective.trim(),
+      duplicateFromPlanId: duplicateFromPlanId || undefined,
+    });
     setPlanName("");
     setClientId("");
     setObjective("");
     setConfirmDeactivate(false);
+    setDuplicateFromPlanId("");
     setOpen(false);
     toast.success("Plan creado correctamente");
   };
@@ -55,10 +67,11 @@ const CreateNutritionPlanSheet = ({ onCreated }: Props) => {
   const handleClientChange = (id: string) => {
     setClientId(id);
     setConfirmDeactivate(false);
+    setDuplicateFromPlanId("");
   };
 
   return (
-    <Sheet open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setConfirmDeactivate(false); setClientId(""); setPlanName(""); setObjective(""); } }}>
+    <Sheet open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setConfirmDeactivate(false); setClientId(""); setPlanName(""); setObjective(""); setDuplicateFromPlanId(""); } }}>
       <SheetTrigger asChild>
         <Button className="glow-primary-sm gap-2">
           <Plus className="h-4 w-4" />
@@ -92,6 +105,33 @@ const CreateNutritionPlanSheet = ({ onCreated }: Props) => {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Duplicate from previous plan */}
+          {clientId && clientPlans.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-muted-foreground text-sm flex items-center gap-1.5">
+                <Copy className="h-3.5 w-3.5" /> Duplicar plan anterior (opcional)
+              </Label>
+              <Select value={duplicateFromPlanId} onValueChange={setDuplicateFromPlanId}>
+                <SelectTrigger className="bg-muted/30 border-border">
+                  <SelectValue placeholder="Crear desde cero" />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border">
+                  <SelectItem value="none">Crear desde cero</SelectItem>
+                  {clientPlans.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.planName} {p.active ? "● Activo" : ""} — {p.calories} kcal
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {duplicateFromPlanId && duplicateFromPlanId !== "none" && (
+                <p className="text-xs text-primary">
+                  ✓ Se copiarán comidas, macros, suplementos y recomendaciones del plan seleccionado.
+                </p>
+              )}
+            </div>
+          )}
 
           {existingActivePlan && !confirmDeactivate && (
             <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 space-y-2">
@@ -140,7 +180,7 @@ const CreateNutritionPlanSheet = ({ onCreated }: Props) => {
             onClick={handleCreate}
             disabled={!planName.trim() || !clientId || !objective.trim() || (!!existingActivePlan && !confirmDeactivate)}
           >
-            Crear plan
+            {duplicateFromPlanId && duplicateFromPlanId !== "none" ? "Duplicar y crear plan" : "Crear plan"}
           </Button>
         </div>
       </SheetContent>
