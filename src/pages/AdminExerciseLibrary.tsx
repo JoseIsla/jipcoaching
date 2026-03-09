@@ -583,10 +583,18 @@ const AdminExerciseLibrary = () => {
   const removeVegetable = useExerciseLibraryStore((s) => s.removeVegetable);
   const editVegetable = useExerciseLibraryStore((s) => s.editVegetable);
 
+  // Supplements
+  const supplements = useNutritionPlanStore((s) => s.supplements);
+  const fetchSupplements = useNutritionPlanStore((s) => s.fetchSupplements);
+  const createSupplement = useNutritionPlanStore((s) => s.createSupplement);
+  const updateSupplementApi = useNutritionPlanStore((s) => s.updateSupplementApi);
+  const deleteSupplementApi = useNutritionPlanStore((s) => s.deleteSupplementApi);
+
   useEffect(() => {
     fetchExercises();
     fetchFoods();
-  }, [fetchExercises, fetchFoods]);
+    fetchSupplements();
+  }, [fetchExercises, fetchFoods, fetchSupplements]);
 
   const handleRemove = async (id: string) => {
     const ex = exercises.find((e) => e.id === id);
