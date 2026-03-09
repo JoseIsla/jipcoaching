@@ -392,6 +392,14 @@ export interface ApiFoodItem {
   createdAt?: string;
 }
 
+export interface ApiPlanSupplement {
+  id: string;
+  planId: string;
+  name: string;
+  dose: string;
+  timing: string;
+}
+
 export interface ApiNutritionPlan {
   id: string;
   clientId: string;
@@ -409,6 +417,7 @@ export interface ApiNutritionPlan {
   meals: ApiNutritionMeal[];
   foodItems?: ApiFoodItem[];
   portions?: ApiFoodPortion[];
+  planSupplements?: ApiPlanSupplement[];
   createdAt?: string;
   updatedAt?: string;
 }
