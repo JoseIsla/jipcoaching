@@ -331,28 +331,33 @@ router.put("/days/:dayId", requireRole("ADMIN"), async (req, res) => {
     // If exercises provided, replace all
     if (exercises && Array.isArray(exercises)) {
       await prisma.exercisePrescription.deleteMany({ where: { dayId: day.id } });
-      await prisma.exercisePrescription.createMany({
-        data: exercises.map((e: any, i: number) => ({
-          dayId: day.id,
-          name: e.name || e.exerciseName,
-          type: e.type || "BASIC",
-          method: e.method || "STRAIGHT_SETS",
-          topSetReps: e.topSetReps,
-          topSetRpe: e.topSetRpe || e.topSetRPE,
-          fatiguePct: e.fatiguePct,
-          setsMin: e.setsMin,
-          setsMax: e.setsMax,
-          rirMin: e.rirMin,
-          rirMax: e.rirMax,
-          restSec: e.restSec,
-          notes: e.notes || e.technicalNotes,
-          videoRequired: e.videoRequired || false,
-          order: e.order ?? i,
-          backoffSets: e.backoffSets,
-          backoffPercent: e.backoffPercent,
-          technicalNotes: e.technicalNotes,
-        })),
-      });
+      const validExercises = exercises.filter((e: any) => (e.name || e.exerciseName)?.trim());
+      if (validExercises.length > 0) {
+        const validTypes = ["BASIC", "VARIANT", "ACCESSORY"];
+        const validMethods = ["STRAIGHT_SETS", "RIR_SETS", "LOAD_DROP", "REPEATS", "REPS_DROP", "LOAD_REPS_DROP", "TOP_SET_BACKOFFS"];
+        await prisma.exercisePrescription.createMany({
+          data: validExercises.map((e: any, i: number) => ({
+            dayId: day.id,
+            name: (e.name || e.exerciseName).trim(),
+            type: validTypes.includes(e.type) ? e.type : "BASIC",
+            method: validMethods.includes(e.method) ? e.method : "STRAIGHT_SETS",
+            topSetReps: e.topSetReps ? parseInt(e.topSetReps) : null,
+            topSetRpe: e.topSetRpe || e.topSetRPE ? parseFloat(e.topSetRpe || e.topSetRPE) : null,
+            fatiguePct: e.fatiguePct ? parseFloat(e.fatiguePct) : null,
+            setsMin: e.setsMin ? parseInt(e.setsMin) : null,
+            setsMax: e.setsMax ? parseInt(e.setsMax) : null,
+            rirMin: e.rirMin ? parseInt(e.rirMin) : null,
+            rirMax: e.rirMax ? parseInt(e.rirMax) : null,
+            restSec: e.restSec ? parseInt(e.restSec) : null,
+            notes: e.notes || e.technicalNotes || null,
+            videoRequired: e.videoRequired || false,
+            order: e.order ?? i,
+            backoffSets: e.backoffSets ? parseInt(e.backoffSets) : null,
+            backoffPercent: e.backoffPercent ? parseFloat(e.backoffPercent) : null,
+            technicalNotes: e.technicalNotes || null,
+          })),
+        });
+      }
     }
 
     const updated = await prisma.trainingDay.findUnique({
