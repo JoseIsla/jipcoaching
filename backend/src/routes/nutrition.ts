@@ -200,7 +200,7 @@ router.post("/plans", requireRole("ADMIN"), async (req, res) => {
 // PUT /api/nutrition/plans/:id — Admin only
 router.put("/plans/:id", requireRole("ADMIN"), async (req, res) => {
   try {
-    const { title, objective, recommendations, kcalMin, kcalMax, proteinG, carbsG, fatsG, isActive, meals } = req.body;
+    const { title, objective, recommendations, kcalMin, kcalMax, proteinG, carbsG, fatsG, isActive, meals, planSupplements } = req.body;
 
     const plan = await prisma.nutritionPlan.update({
       where: { id: req.params.id as string },
