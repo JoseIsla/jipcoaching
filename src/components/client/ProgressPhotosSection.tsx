@@ -5,6 +5,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Camera, Upload, Clock, CheckCircle2, ImageIcon, Loader2, X } from "lucide-react";
 import ClientMediaComments from "./ClientMediaComments";
+import PhotoLightbox from "@/components/ui/photo-lightbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
