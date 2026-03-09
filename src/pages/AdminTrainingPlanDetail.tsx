@@ -16,7 +16,6 @@ import type { TrainingBlock } from "@/data/useTrainingPlanStore";
 import {
   useTrainingPlanStore,
   TRAINING_METHOD_LABELS,
-  exerciseLibrary,
   type TrainingPlanFull,
   type TrainingWeek,
   type TrainingDay,
@@ -24,6 +23,7 @@ import {
   type TrainingMethod,
   type IntensityMeasure,
 } from "@/data/useTrainingPlanStore";
+import { useExerciseLibraryStore } from "@/data/useExerciseLibraryStore";
 
 // ==================== EXERCISE FORM ====================
 
@@ -38,7 +38,8 @@ const ExerciseForm = ({
   onRemove: () => void;
   section: "basic" | "accessory";
 }) => {
-  const libraryItems = exerciseLibrary
+  const allExercises = useExerciseLibraryStore((s) => s.exercises);
+  const libraryItems = allExercises
     .filter((e) =>
       section === "basic"
         ? e.category === "basico" || e.category === "variante"
@@ -58,7 +59,7 @@ const ExerciseForm = ({
           <Select
             value={exercise.exerciseId || ""}
             onValueChange={(v) => {
-              const item = exerciseLibrary.find((e) => e.id === v);
+              const item = allExercises.find((e) => e.id === v);
               update({
                 exerciseId: v,
                 exerciseName: item?.name || "",
@@ -411,8 +412,9 @@ const AdminTrainingPlanDetail = () => {
 
   useEffect(() => {
     if (!planId) return;
-    // Try to fetch from API first, fallback to local store
     const loadPlan = async () => {
+      // Ensure exercise library is loaded before mapping plan exercises
+      await useExerciseLibraryStore.getState().fetchExercises();
       const fetched = await useTrainingPlanStore.getState().fetchPlanDetail(planId);
       const detail = fetched || getDetail(planId);
       if (!detail) { navigate("/admin/training"); return; }
