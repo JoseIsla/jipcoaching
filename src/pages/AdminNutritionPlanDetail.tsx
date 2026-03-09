@@ -28,6 +28,7 @@ import {
   type Meal,
   type MealOption,
   type IngredientRow,
+  type PlanSupplement,
   type Supplement,
   type MacroCategory,
   type ApiSupplement,
