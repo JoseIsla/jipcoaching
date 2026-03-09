@@ -242,8 +242,8 @@ async function generateTrainingCheckins() {
 
       // Pre-populate training log
       for (const day of activeWeek.days) {
-        const basicExercises = day.exercises.filter((e) => e.type === "BASIC");
-        if (basicExercises.length === 0) continue;
+        const logExercises = day.exercises.filter((e) => e.type === "BASIC" || e.type === "VARIANT");
+        if (logExercises.length === 0) continue;
 
         const log = await prisma.checkinTrainingLog.create({
           data: {
@@ -254,18 +254,18 @@ async function generateTrainingCheckins() {
         });
 
         await prisma.checkinTrainingExercise.createMany({
-          data: basicExercises.map((ex) => ({
+          data: logExercises.map((ex) => ({
             logId: log.id,
             exerciseId: ex.id,
             exerciseName: ex.name,
-            section: "basic",
+            section: ex.type === "BASIC" ? "basic" : "variant",
             plannedSets: ex.method === "TOP_SET_BACKOFFS"
               ? `1+${ex.backoffSets ?? 3}`
               : ex.setsMin ? String(ex.setsMin) : "—",
             plannedReps: ex.method === "TOP_SET_BACKOFFS"
               ? String(ex.topSetReps ?? "—")
-              : ex.dropReps ? String(ex.dropReps) : "—",
-            plannedLoad: "—",
+              : (ex as any).reps || (ex.dropReps ? String(ex.dropReps) : "—"),
+            plannedLoad: (ex as any).plannedLoad || "Autoregulada",
             plannedRPE: ex.topSetRpe,
           })),
         });
