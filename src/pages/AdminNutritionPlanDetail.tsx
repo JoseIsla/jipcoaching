@@ -420,9 +420,7 @@ const AdminNutritionPlanDetail = () => {
 
   // Fetch supplements and foods from API on mount
   useEffect(() => {
-    fetchSupplements().then(() => {
-      setLocalSupplements([...useNutritionPlanStore.getState().supplements]);
-    });
+    fetchSupplements();
     fetchFoods();
   }, [fetchSupplements, fetchFoods]);
 
