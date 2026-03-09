@@ -94,6 +94,7 @@ router.get("/me/active", async (req, res) => {
         },
         sections: { orderBy: { order: "asc" } },
         foodItems: { include: { portions: true } },
+        planSupplements: { orderBy: { createdAt: "asc" } },
       },
     });
 
