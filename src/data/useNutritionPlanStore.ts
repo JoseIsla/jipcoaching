@@ -17,8 +17,6 @@ export type { NutritionPlanDetail, Meal, MealOption, IngredientRow, Supplement, 
 
 // Re-export constants and helpers that don't need to be in the store
 export {
-  globalFruitTable,
-  globalVegetableTable,
   macroCategoryLabels,
   macroCategoryOptions,
   createEmptyMeal,
