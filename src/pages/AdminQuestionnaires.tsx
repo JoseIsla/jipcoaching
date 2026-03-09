@@ -810,25 +810,92 @@ function TrainingTemplateEditor({
   const drag = useDragReorder(questions, onReorder);
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Los ejercicios del registro se generan automáticamente desde el plan de entrenamiento activo.
-      </p>
+    <div className="space-y-6">
       <div className="space-y-3">
-        {questions.map((q, idx) => (
-          <QuestionRow
-            key={q.id}
-            question={q}
-            index={idx}
-            onEdit={() => onEdit(q)}
-            onDelete={() => onDelete(q.id)}
-            dragHandlers={drag}
-          />
-        ))}
+        <div className="flex items-center gap-2">
+          <Dumbbell className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold text-foreground">Registro de Entrenamiento (Generado Automáticamente)</h3>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Esta sección se genera dinámicamente en cada check-in basándose en el plan de entrenamiento activo del cliente.
+        </p>
+        
+        {/* Mock table preview */}
+        <div className="rounded-lg border border-border overflow-hidden opacity-70 bg-muted/20 pointer-events-none select-none">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-muted/50 text-left">
+                <th className="px-3 py-2 text-xs font-medium text-muted-foreground">Ejercicio</th>
+                <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-center">Pautado</th>
+                <th className="px-3 py-2 text-xs font-medium text-primary text-center">Real</th>
+                <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-center">RPE</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-t border-border/50">
+                <td className="px-3 py-2">
+                  <p className="text-sm font-medium text-foreground">Sentadilla</p>
+                  <p className="text-[10px] text-muted-foreground">Básico</p>
+                </td>
+                <td className="px-3 py-2 text-center">
+                  <p className="text-xs text-muted-foreground">3×8</p>
+                  <p className="text-[10px] text-muted-foreground">100kg</p>
+                </td>
+                <td className="px-3 py-2 text-center">
+                  <p className="text-sm font-mono font-medium text-foreground">—</p>
+                  <p className="text-[10px] text-muted-foreground">—</p>
+                </td>
+                <td className="px-3 py-2 text-center flex flex-col items-center">
+                  <span className="text-xs text-muted-foreground">8</span>
+                  <span className="text-sm font-mono font-bold text-foreground">—</span>
+                </td>
+              </tr>
+              <tr className="border-t border-border/50">
+                <td className="px-3 py-2">
+                  <p className="text-sm font-medium text-foreground">Press Banca</p>
+                  <p className="text-[10px] text-muted-foreground">Básico</p>
+                </td>
+                <td className="px-3 py-2 text-center">
+                  <p className="text-xs text-muted-foreground">3×10</p>
+                  <p className="text-[10px] text-muted-foreground">80kg</p>
+                </td>
+                <td className="px-3 py-2 text-center">
+                  <p className="text-sm font-mono font-medium text-foreground">—</p>
+                  <p className="text-[10px] text-muted-foreground">—</p>
+                </td>
+                <td className="px-3 py-2 text-center flex flex-col items-center">
+                  <span className="text-xs text-muted-foreground">7</span>
+                  <span className="text-sm font-mono font-bold text-foreground">—</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      <Button variant="outline" size="sm" className="w-full border-dashed" onClick={onAdd}>
-        <Plus className="h-4 w-4 mr-1" /> {t("questionnaires.addQuestion")}
-      </Button>
+
+      <Separator className="bg-border" />
+
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-foreground">Preguntas Adicionales</h3>
+        <p className="text-sm text-muted-foreground">
+          Estas preguntas se mostrarán debajo del registro de entrenamiento.
+        </p>
+        <div className="space-y-3">
+          {questions.map((q, idx) => (
+            <QuestionRow
+              key={q.id}
+              question={q}
+              index={idx}
+              onEdit={() => onEdit(q)}
+              onDelete={() => onDelete(q.id)}
+              dragHandlers={drag}
+            />
+          ))}
+        </div>
+        <Button variant="outline" size="sm" className="w-full border-dashed" onClick={onAdd}>
+          <Plus className="h-4 w-4 mr-1" /> {t("questionnaires.addQuestion")}
+        </Button>
+      </div>
     </div>
   );
 }
