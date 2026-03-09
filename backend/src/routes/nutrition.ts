@@ -156,11 +156,19 @@ router.post("/plans", requireRole("ADMIN"), async (req, res) => {
             } : undefined,
           })),
         } : undefined,
+        planSupplements: planSupplements?.length ? {
+          create: planSupplements.map((s: any) => ({
+            name: s.name,
+            dose: s.dose || "",
+            timing: s.timing || "",
+          })),
+        } : undefined,
       },
       include: {
         meals: {
           include: { options: { include: { rows: true } } },
         },
+        planSupplements: { orderBy: { createdAt: "asc" } },
       },
     });
 
