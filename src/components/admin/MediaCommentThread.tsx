@@ -139,7 +139,7 @@ const MediaCommentThread = ({ targetType, targetId, clientId, exerciseName, comp
                     </div>
                     <button
                       onClick={() => removeComment(c.id)}
-                      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all p-0.5 shrink-0"
+                      className="text-muted-foreground hover:text-destructive transition-colors p-0.5 shrink-0"
                     >
                       <Trash2 className="h-3 w-3" />
                     </button>

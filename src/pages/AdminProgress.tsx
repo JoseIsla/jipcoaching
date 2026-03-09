@@ -255,6 +255,9 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
                 <p className="text-sm text-muted-foreground py-8 text-center">{t("progress.noWeightData")}</p>
               )}
             </div>
+
+            {/* Progress Photos Section */}
+            <AdminPhotoComparison clientId={client.id} />
           </TabsContent>
         )}
 
