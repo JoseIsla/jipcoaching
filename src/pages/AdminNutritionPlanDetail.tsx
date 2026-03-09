@@ -458,8 +458,6 @@ const AdminNutritionPlanDetail = () => {
       const savedPlan = { ...plan, meals: plan.meals.map(m => ({ ...m, options: m.options.map(o => ({ ...o, rows: [...o.rows] })) })) };
       updateDetail(savedPlan);
       syncPlanToList(savedPlan);
-      // Persist supplements via API
-      await saveSupplementsApi(supplements);
       toast.success("Plan guardado");
       navigate("/admin/nutrition");
     } catch (err: any) {
@@ -467,7 +465,7 @@ const AdminNutritionPlanDetail = () => {
     } finally {
       setSaving(false);
     }
-  }, [plan, planId, supplements, navigate, updateDetail, syncPlanToList, saveSupplementsApi]);
+  }, [plan, planId, navigate, updateDetail, syncPlanToList]);
 
   if (!plan) {
     return (
