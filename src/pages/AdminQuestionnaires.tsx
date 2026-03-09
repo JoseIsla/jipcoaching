@@ -500,7 +500,7 @@ const AdminQuestionnaires = () => {
                                 <th className="px-3 py-2 text-xs font-medium text-muted-foreground">{t("progress.exercise")}</th>
                                 <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-center">{t("questionnaires.planned")}</th>
                                 <th className="px-3 py-2 text-xs font-medium text-primary text-center">{t("questionnaires.actual")}</th>
-                                <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-center">{t("questionnaires.rpe")}</th>
+                                <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-center">RPE / RPE real</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -517,8 +517,8 @@ const AdminQuestionnaires = () => {
                                       <p className="text-[10px] text-muted-foreground">{ex.plannedLoad}</p>
                                     </td>
                                     <td className="px-3 py-2 text-center">
-                                      <p className="text-sm font-mono font-medium text-foreground">{ex.actualWeight ? `${ex.actualWeight}kg` : "—"}</p>
-                                      <p className="text-[10px] text-muted-foreground">{ex.actualSets ? `${ex.actualSets}×${ex.actualReps || "?"}` : "—"}</p>
+                                      <p className="text-xs text-foreground font-medium">{ex.actualSets ? `${ex.actualSets}×${ex.actualReps || "?"}` : "—"}</p>
+                                      <p className="text-[10px] font-mono font-bold text-foreground">{ex.actualWeight ? `${ex.actualWeight}kg` : "—"}</p>
                                     </td>
                                     <td className="px-3 py-2 text-center">
                                       <div className="flex flex-col items-center">
