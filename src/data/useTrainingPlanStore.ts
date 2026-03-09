@@ -97,26 +97,33 @@ interface TrainingPlanState {
 }
 
 /** Map an API exercise prescription to our frontend TrainingExerciseEntry */
-const mapApiExerciseToEntry = (ex: ApiExercisePrescription, idx: number) => ({
-  id: ex.id,
-  order: ex.order ?? idx + 1,
-  section: (ex.type === "BASIC" || ex.type === "VARIANT" ? "basic" : "accessory") as "basic" | "accessory",
-  exerciseName: ex.name,
-  exerciseType: ex.type,
-  method: ex.method?.toLowerCase() as any,
-  topSetReps: ex.topSetReps,
-  topSetRPE: ex.topSetRpe,
-  fatiguePercent: ex.fatiguePct,
-  // Map drop set fields from backend
-  backoffSets: (ex as any).backoffSets,
-  backoffPercent: (ex as any).backoffPercent ?? ex.dropLoadPct,
-  sets: ex.setsMin != null && ex.setsMax != null
-    ? (ex.setsMin === ex.setsMax ? `${ex.setsMin}` : `${ex.setsMin}-${ex.setsMax}`)
-    : undefined,
-  reps: ex.dropReps != null ? `${ex.dropReps}` : undefined,
-  intensityValue: ex.rirMin,
-  technicalNotes: ex.notes ?? (ex as any).technicalNotes,
-});
+const mapApiExerciseToEntry = (ex: ApiExercisePrescription, idx: number, exerciseList?: { id: string; name: string }[]) => {
+  // Try to resolve exerciseId by matching name against the exercise library
+  const matchedExercise = exerciseList?.find(
+    (lib) => lib.name.toLowerCase() === ex.name?.toLowerCase()
+  );
+
+  return {
+    id: ex.id,
+    order: ex.order ?? idx + 1,
+    section: (ex.type === "BASIC" || ex.type === "VARIANT" ? "basic" : "accessory") as "basic" | "accessory",
+    exerciseId: matchedExercise?.id,
+    exerciseName: ex.name,
+    exerciseType: ex.type,
+    method: ex.method?.toLowerCase() as any,
+    topSetReps: ex.topSetReps,
+    topSetRPE: ex.topSetRpe,
+    fatiguePercent: ex.fatiguePct,
+    backoffSets: (ex as any).backoffSets,
+    backoffPercent: (ex as any).backoffPercent ?? ex.dropLoadPct,
+    sets: ex.setsMin != null && ex.setsMax != null
+      ? (ex.setsMin === ex.setsMax ? `${ex.setsMin}` : `${ex.setsMin}-${ex.setsMax}`)
+      : undefined,
+    reps: ex.dropReps != null ? `${ex.dropReps}` : undefined,
+    intensityValue: ex.rirMin,
+    technicalNotes: ex.notes ?? (ex as any).technicalNotes,
+  };
+};
 
 /** Extract client name from nested API response */
 const getClientName = (p: any): string =>
