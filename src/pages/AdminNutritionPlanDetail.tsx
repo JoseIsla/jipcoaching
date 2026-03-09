@@ -395,7 +395,6 @@ const AdminNutritionPlanDetail = () => {
   const storeSupplements = useNutritionPlanStore((s) => s.supplements);
   const updateDetail = useNutritionPlanStore((s) => s.updateDetail);
   const syncPlanToList = useNutritionPlanStore((s) => s.syncPlanToList);
-  const saveSupplementsApi = useNutritionPlanStore((s) => s.saveSupplements);
   const fetchSupplements = useNutritionPlanStore((s) => s.fetchSupplements);
   const fruits = useExerciseLibraryStore((s) => s.fruits);
   const vegetables = useExerciseLibraryStore((s) => s.vegetables);
@@ -404,7 +403,6 @@ const AdminNutritionPlanDetail = () => {
   const stored = planId ? details[planId] : undefined;
 
   const [plan, setPlan] = useState<NutritionPlanDetail | null>(stored ? { ...stored, meals: stored.meals.map((m) => ({ ...m })) } : null);
-  const [supplements, setLocalSupplements] = useState<ApiSupplement[]>([...storeSupplements]);
   const [loadingPlan, setLoadingPlan] = useState(!stored);
 
   // If plan not in local store, fetch from API
