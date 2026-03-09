@@ -5,11 +5,12 @@
 import { useState, useMemo, useEffect } from "react";
 import { Camera, ArrowLeftRight, Calendar, ImageIcon, Loader2 } from "lucide-react";
 import MediaCommentThread from "./MediaCommentThread";
+import PhotoLightbox from "@/components/ui/photo-lightbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMediaStore } from "@/data/useMediaStore";
-import type { PhotoAngle } from "@/types/media";
+import type { PhotoAngle, ProgressPhoto } from "@/types/media";
 
 interface Props {
   clientId: string;
