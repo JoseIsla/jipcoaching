@@ -32,8 +32,11 @@ const AdminNutritionPlanView = () => {
   const fetchPlans = useNutritionPlanStore((s) => s.fetchPlans);
   const [loading, setLoading] = useState(false);
   const plan = planId ? details[planId] : undefined;
+  const fruits = useExerciseLibraryStore((s) => s.fruits);
+  const vegetables = useExerciseLibraryStore((s) => s.vegetables);
+  const fetchFoods = useExerciseLibraryStore((s) => s.fetchFoods);
 
-  useEffect(() => { fetchSupplements(); }, [fetchSupplements]);
+  useEffect(() => { fetchSupplements(); fetchFoods(); }, [fetchSupplements, fetchFoods]);
 
   // Fetch plan detail from API if not in store
   useEffect(() => {
