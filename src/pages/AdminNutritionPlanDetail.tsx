@@ -287,23 +287,12 @@ const MealEditor = ({
   );
 };
 
-// ─── Supplement Editor ───
-const SupplementRow = ({
-  sup,
-  onUpdate,
-  onDelete,
-}: {
-  sup: ApiSupplement;
-  onUpdate: (s: ApiSupplement) => void;
-  onDelete: () => void;
-}) => (
-  <div className="flex items-center gap-2">
-    <Input value={sup.name} onChange={(e) => onUpdate({ ...sup, name: e.target.value })} placeholder="Nombre" className="bg-muted/20 border-border text-sm flex-1" />
-    <Input value={sup.dose} onChange={(e) => onUpdate({ ...sup, dose: e.target.value })} placeholder="Dosis" className="bg-muted/20 border-border text-sm w-32" />
-    <Input value={sup.timing} onChange={(e) => onUpdate({ ...sup, timing: e.target.value })} placeholder="Cuándo" className="bg-muted/20 border-border text-sm w-40" />
-    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive shrink-0" onClick={onDelete}>
-      <Trash2 className="h-3.5 w-3.5" />
-    </Button>
+// ─── Supplement Display (read-only — managed from Library) ───
+const SupplementReadOnly = ({ sup }: { sup: ApiSupplement }) => (
+  <div className="flex items-center gap-3 bg-muted/20 border border-border/50 rounded-lg px-3 py-2">
+    <span className="text-sm font-medium text-foreground flex-1">{sup.name}</span>
+    <span className="text-xs text-muted-foreground w-32">{sup.dose}</span>
+    <span className="text-xs text-muted-foreground w-40">{sup.timing}</span>
   </div>
 );
 
@@ -406,7 +395,6 @@ const AdminNutritionPlanDetail = () => {
   const storeSupplements = useNutritionPlanStore((s) => s.supplements);
   const updateDetail = useNutritionPlanStore((s) => s.updateDetail);
   const syncPlanToList = useNutritionPlanStore((s) => s.syncPlanToList);
-  const saveSupplementsApi = useNutritionPlanStore((s) => s.saveSupplements);
   const fetchSupplements = useNutritionPlanStore((s) => s.fetchSupplements);
   const fruits = useExerciseLibraryStore((s) => s.fruits);
   const vegetables = useExerciseLibraryStore((s) => s.vegetables);
@@ -415,7 +403,6 @@ const AdminNutritionPlanDetail = () => {
   const stored = planId ? details[planId] : undefined;
 
   const [plan, setPlan] = useState<NutritionPlanDetail | null>(stored ? { ...stored, meals: stored.meals.map((m) => ({ ...m })) } : null);
-  const [supplements, setLocalSupplements] = useState<ApiSupplement[]>([...storeSupplements]);
   const [loadingPlan, setLoadingPlan] = useState(!stored);
 
   // If plan not in local store, fetch from API
@@ -433,9 +420,7 @@ const AdminNutritionPlanDetail = () => {
 
   // Fetch supplements and foods from API on mount
   useEffect(() => {
-    fetchSupplements().then(() => {
-      setLocalSupplements([...useNutritionPlanStore.getState().supplements]);
-    });
+    fetchSupplements();
     fetchFoods();
   }, [fetchSupplements, fetchFoods]);
 
@@ -473,8 +458,6 @@ const AdminNutritionPlanDetail = () => {
       const savedPlan = { ...plan, meals: plan.meals.map(m => ({ ...m, options: m.options.map(o => ({ ...o, rows: [...o.rows] })) })) };
       updateDetail(savedPlan);
       syncPlanToList(savedPlan);
-      // Persist supplements via API
-      await saveSupplementsApi(supplements);
       toast.success("Plan guardado");
       navigate("/admin/nutrition");
     } catch (err: any) {
@@ -482,7 +465,7 @@ const AdminNutritionPlanDetail = () => {
     } finally {
       setSaving(false);
     }
-  }, [plan, planId, supplements, navigate, updateDetail, syncPlanToList, saveSupplementsApi]);
+  }, [plan, planId, navigate, updateDetail, syncPlanToList]);
 
   if (!plan) {
     return (
@@ -509,19 +492,6 @@ const AdminNutritionPlanDetail = () => {
     setPlan({ ...plan, meals: [...plan.meals, createEmptyMeal(name)] });
   };
 
-  const updateSupplement = (idx: number, sup: ApiSupplement) => {
-    const updated = [...supplements];
-    updated[idx] = sup;
-    setLocalSupplements(updated);
-  };
-
-  const deleteSupplement = (idx: number) => {
-    setLocalSupplements(supplements.filter((_, i) => i !== idx));
-  };
-
-  const addSupplement = () => {
-    setLocalSupplements([...supplements, { id: "", name: "", dose: "", timing: "" } as ApiSupplement]);
-  };
 
   return (
     <AdminLayout>
@@ -612,14 +582,17 @@ const AdminNutritionPlanDetail = () => {
               <Pill className="h-4 w-4 text-primary" />
               Suplementación Recomendada
             </h2>
-            <Button variant="ghost" size="sm" className="text-primary text-xs" onClick={addSupplement}>
-              <Plus className="h-3 w-3 mr-1" />Añadir
-            </Button>
+            <Badge variant="outline" className="text-[10px] text-muted-foreground">
+              Gestionar en Biblioteca
+            </Badge>
           </div>
           <div className="space-y-2">
-            {supplements.map((sup, i) => (
-              <SupplementRow key={i} sup={sup} onUpdate={(s) => updateSupplement(i, s)} onDelete={() => deleteSupplement(i)} />
+            {storeSupplements.map((sup) => (
+              <SupplementReadOnly key={sup.id} sup={sup} />
             ))}
+            {storeSupplements.length === 0 && (
+              <p className="text-xs text-muted-foreground">No hay suplementos configurados. Añádelos desde la Biblioteca.</p>
+            )}
           </div>
         </div>
 
