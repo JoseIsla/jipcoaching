@@ -246,6 +246,11 @@ export interface ApiExercisePrescription {
   notes?: string;
   videoRequired: boolean;
   order: number;
+  backoffSets?: number;
+  backoffPercent?: number;
+  technicalNotes?: string;
+  reps?: string;
+  plannedLoad?: string;
   createdAt?: string;
   updatedAt?: string;
 }

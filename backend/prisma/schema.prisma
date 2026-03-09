@@ -377,6 +377,8 @@ model ExercisePrescription {
   backoffSets    Int?
   backoffPercent Float?
   technicalNotes String?       @db.Text
+  reps           String?       // e.g. "8-10", free-form reps text
+  plannedLoad    String?       // e.g. "Autoreg.", "80kg"
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
