@@ -120,7 +120,7 @@ const mapApiExerciseToEntry = (ex: ApiExercisePrescription, idx: number) => ({
 
 /** Extract client name from nested API response */
 const getClientName = (p: any): string =>
-  p?.client?.user?.name ?? p?.clientName ?? "";
+  p?.client?.name ?? p?.client?.user?.name ?? p?.clientName ?? "";
 
 /** Map API plan to our list entry format */
 const mapApiPlanToListEntry = (apiPlan: ApiTrainingPlan): TrainingPlanListEntry => ({

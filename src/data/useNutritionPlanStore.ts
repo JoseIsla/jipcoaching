@@ -79,7 +79,7 @@ interface NutritionPlanState {
 
 /** Map API nutrition plan to list entry + detail */
 const getClientName = (p: any): string =>
-  p?.client?.user?.name ?? p?.clientName ?? "";
+  p?.client?.name ?? p?.client?.user?.name ?? p?.clientName ?? "";
 
 const mapApiPlanToListEntry = (p: ApiNutritionPlan): NutritionPlanListEntry => ({
   id: p.id,
