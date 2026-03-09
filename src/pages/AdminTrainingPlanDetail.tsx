@@ -484,7 +484,6 @@ const AdminTrainingPlanDetail = () => {
     try {
       const result = await api.post<any>(`/training/plans/${plan.id}/weeks`, { block });
       if (result) {
-        // Refetch the plan detail from API
         const updatedDetail = await useTrainingPlanStore.getState().fetchPlanDetail(plan.id);
         if (updatedDetail) {
           setPlan({ ...updatedDetail });
@@ -496,6 +495,64 @@ const AdminTrainingPlanDetail = () => {
       }
     } catch (err: any) {
       toast({ title: "Error", description: err?.message || "Error al crear semana", variant: "destructive" });
+    }
+  };
+
+  const handleDuplicateWeek = async (sourceWeekIdx: number, block: TrainingBlock) => {
+    try {
+      const sourceWeek = plan.weeks[sourceWeekIdx];
+      if (!sourceWeek) return;
+
+      // 1. Create the new empty week
+      const result = await api.post<any>(`/training/plans/${plan.id}/weeks`, { block });
+      if (!result) return;
+
+      // 2. Refetch to get the new week with its days
+      let updatedDetail = await useTrainingPlanStore.getState().fetchPlanDetail(plan.id);
+      if (!updatedDetail) return;
+
+      const newWeek = updatedDetail.weeks[updatedDetail.weeks.length - 1];
+
+      // 3. Copy exercises from source days to new days (matched by dayNumber)
+      for (const newDay of newWeek.days) {
+        const sourceDay = sourceWeek.days.find((d) => d.dayNumber === newDay.dayNumber);
+        if (!sourceDay || sourceDay.exercises.length === 0) continue;
+
+        const exercisesToCopy = sourceDay.exercises.filter((e) => e.exerciseName?.trim());
+        await api.put(`/training/days/${newDay.id}`, {
+          title: sourceDay.name,
+          warmup: sourceDay.warmup,
+          exercises: exercisesToCopy.map((e, i) => ({
+            name: e.exerciseName,
+            type: e.section === "basic" ? (e.exerciseType === "Variante" ? "VARIANT" : "BASIC") : "ACCESSORY",
+            method: e.method?.toUpperCase() || "STRAIGHT_SETS",
+            topSetReps: e.topSetReps,
+            topSetRpe: e.topSetRPE,
+            fatiguePct: e.fatiguePercent,
+            setsMin: e.sets ? parseInt(String(e.sets).split("-")[0]) : undefined,
+            setsMax: e.sets ? parseInt(String(e.sets).split("-").pop()!) : undefined,
+            rirMin: e.intensityValue,
+            notes: e.technicalNotes,
+            order: e.order ?? i,
+            backoffSets: e.backoffSets,
+            backoffPercent: e.backoffPercent,
+            technicalNotes: e.technicalNotes,
+          })),
+        });
+      }
+
+      // 4. Refetch again to get the populated week
+      updatedDetail = await useTrainingPlanStore.getState().fetchPlanDetail(plan.id);
+      if (updatedDetail) {
+        setPlan({ ...updatedDetail });
+        const newIdx = updatedDetail.weeks.length - 1;
+        setWeekIdx(newIdx);
+        setCurrentWeek(JSON.parse(JSON.stringify(updatedDetail.weeks[newIdx])));
+      }
+
+      toast({ title: "Semana duplicada", description: `Semana ${sourceWeek.weekNumber} duplicada como nueva semana (${block}).` });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Error al duplicar semana", variant: "destructive" });
     }
   };
 
@@ -564,7 +621,7 @@ const AdminTrainingPlanDetail = () => {
           })()}
 
           {/* Add new week */}
-          <AddWeekDialog onAdd={handleAddWeek} />
+          <AddWeekDialog onAdd={handleAddWeek} onDuplicate={handleDuplicateWeek} weeks={plan.weeks} />
         </div>
 
         {/* Week notes */}
@@ -600,12 +657,14 @@ const AdminTrainingPlanDetail = () => {
 
 const BLOCKS: TrainingBlock[] = ["Hipertrofia", "Intensificación", "Peaking", "Tapering"];
 
-const AddWeekDialog = ({ onAdd }: { onAdd: (block: TrainingBlock) => void }) => {
+const AddWeekDialog = ({ onAdd, onDuplicate, weeks }: { onAdd: (block: TrainingBlock) => void; onDuplicate: (sourceWeekIdx: number, block: TrainingBlock) => void; weeks: TrainingWeek[] }) => {
   const [open, setOpen] = useState(false);
   const [block, setBlock] = useState<TrainingBlock>("Hipertrofia");
+  const [mode, setMode] = useState<"empty" | "duplicate">("empty");
+  const [sourceWeekIdx, setSourceWeekIdx] = useState(0);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v) { setMode("empty"); setSourceWeekIdx(0); } }}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="text-xs gap-1.5">
           <Plus className="h-3.5 w-3.5" /> Añadir semana
@@ -616,6 +675,16 @@ const AddWeekDialog = ({ onAdd }: { onAdd: (block: TrainingBlock) => void }) => 
           <DialogTitle>Nueva semana</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-2">
+          {/* Mode selection */}
+          <div className="flex gap-2">
+            <Button variant={mode === "empty" ? "default" : "outline"} size="sm" className="flex-1 text-xs" onClick={() => setMode("empty")}>
+              <Plus className="h-3 w-3 mr-1" /> Vacía
+            </Button>
+            <Button variant={mode === "duplicate" ? "default" : "outline"} size="sm" className="flex-1 text-xs" onClick={() => setMode("duplicate")}>
+              <Copy className="h-3 w-3 mr-1" /> Duplicar semana
+            </Button>
+          </div>
+
           <div className="space-y-2">
             <Label>Bloque de entrenamiento</Label>
             <Select value={block} onValueChange={(v) => setBlock(v as TrainingBlock)}>
@@ -628,13 +697,45 @@ const AddWeekDialog = ({ onAdd }: { onAdd: (block: TrainingBlock) => void }) => 
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">
-              La semana anterior se marcará como completada automáticamente.
-            </p>
           </div>
+
+          {mode === "duplicate" && weeks.length > 0 && (
+            <div className="space-y-2">
+              <Label>Copiar ejercicios de</Label>
+              <Select value={String(sourceWeekIdx)} onValueChange={(v) => setSourceWeekIdx(Number(v))}>
+                <SelectTrigger className="bg-background border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {weeks.map((w, i) => (
+                    <SelectItem key={w.id} value={String(i)}>
+                      Semana {w.weekNumber} — {w.block || "Sin bloque"} ({w.days.reduce((s, d) => s + d.exercises.length, 0)} ej.)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Se copiarán todos los días y ejercicios de la semana seleccionada.
+              </p>
+            </div>
+          )}
+
+          <p className="text-xs text-muted-foreground">
+            La semana anterior se marcará como completada automáticamente.
+          </p>
+
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={() => { onAdd(block); setOpen(false); }}>Crear semana</Button>
+            <Button onClick={() => {
+              if (mode === "duplicate") {
+                onDuplicate(sourceWeekIdx, block);
+              } else {
+                onAdd(block);
+              }
+              setOpen(false);
+            }}>
+              {mode === "duplicate" ? "Duplicar y crear" : "Crear semana"}
+            </Button>
           </div>
         </div>
       </DialogContent>
