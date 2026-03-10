@@ -138,6 +138,8 @@ export enum ApiTrainingMethod {
   LOAD_REPS_DROP = "LOAD_REPS_DROP",
   TOP_SET_BACKOFFS = "TOP_SET_BACKOFFS",
   CUSTOM = "CUSTOM",
+  RAMP = "RAMP",
+  WAVE = "WAVE",
 }
 
 export enum ExerciseType {
