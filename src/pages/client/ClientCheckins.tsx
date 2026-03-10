@@ -70,9 +70,51 @@ const useCountdown = (entry: QuestionnaireEntry, isActive: boolean): string => {
   return remaining;
 };
 
+const NumericInput = ({ value, onChange, label, required }: { value: string | number | boolean | undefined; onChange: (v: string | number | boolean) => void; label: string; required?: boolean }) => {
+  const [raw, setRaw] = React.useState(value != null && value !== "" ? String(value) : "");
+  // Sync from parent when value changes externally
+  React.useEffect(() => {
+    const parsed = parseDecimal(raw, -Infinity);
+    if (value != null && value !== "" && typeof value === "number" && parsed !== value) {
+      setRaw(String(value));
+    } else if ((value === undefined || value === "" || value === null) && raw !== "") {
+      setRaw("");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  return (
+    <div className="space-y-1">
+      <Label className="text-sm text-foreground">{label}{required && " *"}</Label>
+      <Input
+        type="text"
+        inputMode="decimal"
+        className="bg-background border-border h-10"
+        value={raw}
+        onChange={(e) => {
+          const v = e.target.value;
+          // Allow digits, one comma or period, and leading minus
+          if (v === "" || /^-?\d*[.,]?\d*$/.test(v)) {
+            setRaw(v);
+          }
+        }}
+        onBlur={() => {
+          if (raw === "" || raw === "-") {
+            onChange(0);
+            setRaw("");
+          } else {
+            const n = parseDecimal(raw, 0);
+            onChange(n);
+            setRaw(String(n));
+          }
+        }}
+      />
+    </div>
+  );
+};
+
 const QuestionField = ({ q, value, onChange }: { q: QuestionDefinition; value: string | number | boolean | undefined; onChange: (v: string | number | boolean) => void }) => {
   switch (q.type) {
-    case "number": return (<div className="space-y-1"><Label className="text-sm text-foreground">{q.label}{q.required && " *"}</Label><Input type="text" inputMode="decimal" className="bg-background border-border h-10" value={value as number ?? ""} onChange={(e) => onChange(parseDecimal(e.target.value))} /></div>);
+    case "number": return (<NumericInput value={value} onChange={onChange} label={q.label} required={q.required} />);
     case "scale": return (<div className="space-y-2"><Label className="text-sm text-foreground">{q.label}{q.required && " *"}</Label><div className="flex items-center gap-3"><Slider value={[typeof value === "number" ? value : 5]} onValueChange={([v]) => onChange(v)} min={1} max={10} step={1} className="flex-1" /><span className="text-sm font-bold text-primary w-6 text-right">{typeof value === "number" ? value : "—"}</span></div></div>);
     case "yesno": return (<div className="flex items-center justify-between"><Label className="text-sm text-foreground">{q.label}{q.required && " *"}</Label><Switch checked={value === true} onCheckedChange={(v) => onChange(v)} /></div>);
     case "select": return (<div className="space-y-1"><Label className="text-sm text-foreground">{q.label}{q.required && " *"}</Label><Select value={value as string || ""} onValueChange={onChange}><SelectTrigger className="bg-background border-border h-10"><SelectValue placeholder="..." /></SelectTrigger><SelectContent>{q.options?.map((opt) => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent></Select></div>);
