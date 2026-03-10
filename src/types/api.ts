@@ -251,6 +251,10 @@ export interface ApiExercisePrescription {
   technicalNotes?: string;
   reps?: string;
   plannedLoad?: string;
+  estimatedSeries?: string;
+  backoffRule?: string;
+  customMethodName?: string;
+  customMethodDescription?: string;
   createdAt?: string;
   updatedAt?: string;
 }

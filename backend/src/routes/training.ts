@@ -152,6 +152,10 @@ router.post("/plans", requireRole("ADMIN"), async (req, res) => {
                     technicalNotes: e.technicalNotes,
                     reps: e.reps || null,
                     plannedLoad: e.plannedLoad || null,
+                    estimatedSeries: e.estimatedSeries || null,
+                    backoffRule: e.backoffRule || null,
+                    customMethodName: e.customMethodName || null,
+                    customMethodDescription: e.customMethodDescription || null,
                   })),
                 } : undefined,
               })),
@@ -359,6 +363,10 @@ router.put("/days/:dayId", requireRole("ADMIN"), async (req, res) => {
             technicalNotes: e.technicalNotes || null,
             reps: e.reps || null,
             plannedLoad: e.plannedLoad || null,
+            estimatedSeries: e.estimatedSeries || null,
+            backoffRule: e.backoffRule || null,
+            customMethodName: e.customMethodName || null,
+            customMethodDescription: e.customMethodDescription || null,
           })),
         });
       }
