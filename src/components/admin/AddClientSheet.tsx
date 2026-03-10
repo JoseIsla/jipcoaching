@@ -295,7 +295,7 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">{t("addClient.mealsPerDay")}</Label>
-                  <Input type="text" inputMode="numeric" value={nutIntake.mealsPerDay ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, mealsPerDay: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="4" />
+                  <DecimalInput value={nutIntake.mealsPerDay} onChange={(v) => setNutIntake({ ...nutIntake, mealsPerDay: v })} className={inputCls} placeholder="4" inputMode="numeric" />
                 </div>
               </div>
 
