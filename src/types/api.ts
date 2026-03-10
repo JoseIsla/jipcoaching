@@ -572,6 +572,7 @@ export const trainingMethodLabels: Record<ApiTrainingMethod, string> = {
   [ApiTrainingMethod.REPS_DROP]: "Reps Drop",
   [ApiTrainingMethod.LOAD_REPS_DROP]: "Load + Reps Drop",
   [ApiTrainingMethod.TOP_SET_BACKOFFS]: "Top Set + Backoffs",
+  [ApiTrainingMethod.CUSTOM]: "Personalizado",
 };
 
 export const foodCategoryLabels: Record<FoodCategory, string> = {
