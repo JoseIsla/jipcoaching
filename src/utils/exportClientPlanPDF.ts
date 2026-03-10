@@ -323,18 +323,28 @@ export const exportTrainingWeekPDF = (
     // Basics table
     if (basics.length > 0) {
       const basicRows = basics.map((ex) => {
-        const method = ex.method || "";
+        const method = ex.method ? (TRAINING_METHOD_LABELS[ex.method] || ex.method) : "";
         const prescription: string[] = [];
         if (ex.topSetReps) prescription.push(`Top: ${ex.topSetReps} reps`);
-        if (ex.topSetRPE) prescription.push(`@${ex.topSetRPE}`);
+        if (ex.topSetRPE) prescription.push(`@RPE ${ex.topSetRPE}`);
+        if (ex.backoffSets) prescription.push(`Back-off: ${ex.backoffSets} sets`);
+        if (ex.backoffPercent) prescription.push(`@${ex.backoffPercent}%`);
+        if (ex.fatiguePercent) prescription.push(`Fatiga: ${ex.fatiguePercent}%`);
+        if (ex.estimatedSeries) prescription.push(`Series est.: ${ex.estimatedSeries}`);
         if (ex.sets) prescription.push(`${ex.sets} series`);
         if (ex.reps) prescription.push(`× ${ex.reps}`);
         if (ex.plannedLoad) prescription.push(`Carga: ${ex.plannedLoad}`);
+        if (ex.backoffRule) prescription.push(`Regla: ${ex.backoffRule}`);
+        const notes = [
+          ex.technicalNotes,
+          ex.customMethodName ? `Método: ${ex.customMethodName}` : null,
+          ex.customMethodDescription,
+        ].filter(Boolean).join(" | ");
         return [
           ex.exerciseName || "—",
           method,
           prescription.join("  ") || "—",
-          ex.technicalNotes || "",
+          notes || "",
         ];
       });
 
