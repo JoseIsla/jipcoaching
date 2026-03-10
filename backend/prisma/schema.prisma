@@ -80,6 +80,7 @@ enum CheckinCategory {
 enum CheckinStatus {
   PENDING
   RESPONDED
+  REVIEWED
   EXPIRED
 }
 
