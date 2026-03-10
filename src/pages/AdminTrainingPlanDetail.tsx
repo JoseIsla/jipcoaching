@@ -545,6 +545,10 @@ const AdminTrainingPlanDetail = () => {
             technicalNotes: e.technicalNotes,
             reps: e.reps || undefined,
             plannedLoad: e.plannedLoad || undefined,
+            estimatedSeries: e.estimatedSeries || undefined,
+            backoffRule: e.backoffRule || undefined,
+            customMethodName: e.customMethodName || undefined,
+            customMethodDescription: e.customMethodDescription || undefined,
           })),
         });
       }
