@@ -331,13 +331,13 @@ const AdminQuestionnaires = () => {
     const training = entries.filter((e) => e.category === "training");
     return {
       totalEntries: entries.length,
-      responded: entries.filter((e) => getEffectiveStatus(e) === "respondido").length,
+      responded: entries.filter((e) => ["respondido", "revisado"].includes(getEffectiveStatus(e))).length,
       pending: entries.filter((e) => getEffectiveStatus(e) === "pendiente").length,
       expired: entries.filter((e) => getEffectiveStatus(e) === "expirado").length,
       nutritionTotal: nutrition.length,
-      nutritionResponded: nutrition.filter((e) => getEffectiveStatus(e) === "respondido").length,
+      nutritionResponded: nutrition.filter((e) => ["respondido", "revisado"].includes(getEffectiveStatus(e))).length,
       trainingTotal: training.length,
-      trainingResponded: training.filter((e) => getEffectiveStatus(e) === "respondido").length,
+      trainingResponded: training.filter((e) => ["respondido", "revisado"].includes(getEffectiveStatus(e))).length,
     };
   }, [entries]);
 
