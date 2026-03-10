@@ -600,20 +600,46 @@ async function generateCheckinsForClient(clientId: string, packType: string): Pr
             });
 
             await prisma.checkinTrainingExercise.createMany({
-              data: logExercises.map((ex) => ({
-                logId: log.id,
-                exerciseId: ex.id,
-                exerciseName: ex.name,
-                section: ex.type === "BASIC" ? "basic" : "variant",
-                plannedSets: ex.method === "TOP_SET_BACKOFFS"
-                  ? `1+${ex.backoffSets ?? 3}`
-                  : ex.setsMin ? String(ex.setsMin) : "—",
-                plannedReps: ex.method === "TOP_SET_BACKOFFS"
-                  ? String(ex.topSetReps ?? "—")
-                  : (ex as any).reps || (ex.dropReps ? String(ex.dropReps) : "—"),
-                plannedLoad: (ex as any).plannedLoad || "Autoregulada",
-                plannedRPE: ex.topSetRpe,
-              })),
+              data: logExercises.map((ex) => {
+                // Compute plannedSets based on method
+                let plannedSets = "—";
+                if (ex.method === "TOP_SET_BACKOFFS") {
+                  plannedSets = `1+${ex.backoffSets ?? 3}`;
+                } else if (ex.method === "LOAD_DROP") {
+                  plannedSets = (ex as any).estimatedSeries || "—";
+                } else if (ex.setsMin) {
+                  plannedSets = ex.setsMin === ex.setsMax
+                    ? String(ex.setsMin)
+                    : `${ex.setsMin}${ex.setsMax ? `-${ex.setsMax}` : ""}`;
+                }
+
+                // Compute plannedReps
+                let plannedReps = "—";
+                if (ex.topSetReps) {
+                  plannedReps = String(ex.topSetReps);
+                } else if ((ex as any).reps) {
+                  plannedReps = (ex as any).reps;
+                } else if (ex.dropReps) {
+                  plannedReps = String(ex.dropReps);
+                }
+
+                // Build plannedLoad with backoff context
+                let plannedLoad = (ex as any).plannedLoad || "Autoregulada";
+                if ((ex as any).backoffRule) {
+                  plannedLoad += ` | Regla: ${(ex as any).backoffRule}`;
+                }
+
+                return {
+                  logId: log.id,
+                  exerciseId: ex.id,
+                  exerciseName: ex.name,
+                  section: ex.type === "BASIC" ? "basic" : "variant",
+                  plannedSets,
+                  plannedReps,
+                  plannedLoad,
+                  plannedRPE: ex.topSetRpe,
+                };
+              }),
             });
           }
 

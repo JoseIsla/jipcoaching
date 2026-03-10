@@ -43,6 +43,8 @@ enum TrainingMethod {
   LOAD_REPS_DROP
   TOP_SET_BACKOFFS
   CUSTOM
+  RAMP
+  WAVE
 }
 
 enum WeekStatus {

@@ -138,6 +138,8 @@ export enum ApiTrainingMethod {
   LOAD_REPS_DROP = "LOAD_REPS_DROP",
   TOP_SET_BACKOFFS = "TOP_SET_BACKOFFS",
   CUSTOM = "CUSTOM",
+  RAMP = "RAMP",
+  WAVE = "WAVE",
 }
 
 export enum ExerciseType {
@@ -573,6 +575,8 @@ export const trainingMethodLabels: Record<ApiTrainingMethod, string> = {
   [ApiTrainingMethod.LOAD_REPS_DROP]: "Load + Reps Drop",
   [ApiTrainingMethod.TOP_SET_BACKOFFS]: "Top Set + Backoffs",
   [ApiTrainingMethod.CUSTOM]: "Personalizado",
+  [ApiTrainingMethod.RAMP]: "Rampas / Pirámide",
+  [ApiTrainingMethod.WAVE]: "Oleadas",
 };
 
 export const foodCategoryLabels: Record<FoodCategory, string> = {

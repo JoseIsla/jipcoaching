@@ -340,7 +340,7 @@ router.put("/days/:dayId", requireRole("ADMIN"), async (req, res) => {
       const validExercises = exercises.filter((e: any) => (e.name || e.exerciseName)?.trim());
       if (validExercises.length > 0) {
         const validTypes = ["BASIC", "VARIANT", "ACCESSORY"];
-        const validMethods = ["STRAIGHT_SETS", "RIR_SETS", "LOAD_DROP", "REPEATS", "REPS_DROP", "LOAD_REPS_DROP", "TOP_SET_BACKOFFS", "CUSTOM"];
+        const validMethods = ["STRAIGHT_SETS", "RIR_SETS", "LOAD_DROP", "REPEATS", "REPS_DROP", "LOAD_REPS_DROP", "TOP_SET_BACKOFFS", "CUSTOM", "RAMP", "WAVE"];
         await prisma.exercisePrescription.createMany({
           data: validExercises.map((e: any, i: number) => ({
             dayId: day.id,
