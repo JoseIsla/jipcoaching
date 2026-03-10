@@ -43,7 +43,7 @@ export interface TrainingLogDay {
   exercises: TrainingLogExercise[];
 }
 
-export type QuestionnaireStatus = "pendiente" | "respondido" | "expirado" | "no_enviado";
+export type QuestionnaireStatus = "pendiente" | "respondido" | "revisado" | "expirado" | "no_enviado";
 
 export interface CheckinVideo {
   id: string;
@@ -127,6 +127,7 @@ interface QuestionnaireState {
   submitQuestionnaire: (sessionId: string, answers: Record<string, unknown>) => Promise<void>;
   generateMyCheckins: () => Promise<void>;
   generateWeeklyCheckins: () => Promise<number>;
+  markAsReviewed: (entryId: string) => Promise<void>;
 
   // Legacy local actions (kept for UI compat)
   submitEntry: (entryId: string, responses: Record<string, string | number | boolean>, trainingLog?: TrainingLogDay[]) => void;
@@ -260,6 +261,28 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
     } catch (err: any) {
       console.warn("Error generating weekly checkins:", err?.message);
       return 0;
+    }
+  },
+
+  markAsReviewed: async (entryId) => {
+    // Optimistically update local state
+    set((s) => ({
+      entries: s.entries.map((e) =>
+        e.id === entryId ? { ...e, status: "revisado" as const } : e
+      ),
+    }));
+    if (!DEV_MOCK) {
+      try {
+        await api.patch(`/checkins/${entryId}/review`, {});
+      } catch (err: any) {
+        console.error("Error marking check-in as reviewed:", err);
+        // Revert on error
+        set((s) => ({
+          entries: s.entries.map((e) =>
+            e.id === entryId ? { ...e, status: "respondido" as const } : e
+          ),
+        }));
+      }
     }
   },
 

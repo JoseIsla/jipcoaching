@@ -187,6 +187,14 @@ const AdminQuestionnaires = () => {
   const allEntries = useQuestionnaireStore((s) => s.entries);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
   const generateWeeklyCheckins = useQuestionnaireStore((s) => s.generateWeeklyCheckins);
+  const markAsReviewed = useQuestionnaireStore((s) => s.markAsReviewed);
+
+  const handleViewEntry = useCallback((entry: QuestionnaireEntry) => {
+    setSelectedEntry(entry);
+    if (entry.status === "respondido") {
+      markAsReviewed(entry.id);
+    }
+  }, [markAsReviewed]);
 
   // Fetch check-ins and templates from API on mount
   const fetchTemplates = useTemplateStore((s) => s.fetchTemplates);
@@ -249,6 +257,7 @@ const AdminQuestionnaires = () => {
 
   const statusConfig: Record<string, { label: string; icon: typeof CheckCircle2; className: string }> = {
     respondido: { label: t("questionnaires.statusResponded"), icon: CheckCircle2, className: "bg-primary/15 text-primary border-primary/30" },
+    revisado: { label: t("questionnaires.statusReviewed") || "Revisado", icon: CheckCircle2, className: "bg-muted text-muted-foreground border-border" },
     pendiente: { label: t("questionnaires.statusPending"), icon: Clock, className: "bg-accent/15 text-accent border-accent/30" },
     expirado: { label: t("questionnaires.statusExpired"), icon: AlertTriangle, className: "bg-destructive/15 text-destructive border-destructive/30" },
     no_enviado: { label: t("questionnaires.statusNotSent"), icon: XCircle, className: "bg-muted text-muted-foreground border-border" },
@@ -303,7 +312,7 @@ const AdminQuestionnaires = () => {
       map[e.clientId].entries.push(e);
       map[e.clientId].total++;
       const effectiveStatus = getEffectiveStatus(e);
-      if (effectiveStatus === "respondido") map[e.clientId].responded++;
+      if (effectiveStatus === "respondido" || effectiveStatus === "revisado") map[e.clientId].responded++;
       else if (effectiveStatus === "expirado") map[e.clientId].expired++;
       else map[e.clientId].pending++;
     });
@@ -322,13 +331,13 @@ const AdminQuestionnaires = () => {
     const training = entries.filter((e) => e.category === "training");
     return {
       totalEntries: entries.length,
-      responded: entries.filter((e) => getEffectiveStatus(e) === "respondido").length,
+      responded: entries.filter((e) => ["respondido", "revisado"].includes(getEffectiveStatus(e))).length,
       pending: entries.filter((e) => getEffectiveStatus(e) === "pendiente").length,
       expired: entries.filter((e) => getEffectiveStatus(e) === "expirado").length,
       nutritionTotal: nutrition.length,
-      nutritionResponded: nutrition.filter((e) => getEffectiveStatus(e) === "respondido").length,
+      nutritionResponded: nutrition.filter((e) => ["respondido", "revisado"].includes(getEffectiveStatus(e))).length,
       trainingTotal: training.length,
-      trainingResponded: training.filter((e) => getEffectiveStatus(e) === "respondido").length,
+      trainingResponded: training.filter((e) => ["respondido", "revisado"].includes(getEffectiveStatus(e))).length,
     };
   }, [entries]);
 
@@ -406,7 +415,7 @@ const AdminQuestionnaires = () => {
                     client={client}
                     filteredEntries={filteredEntries}
                     statusConfig={statusConfig}
-                    onViewEntry={setSelectedEntry}
+                    onViewEntry={handleViewEntry}
                     onNavigateToClient={() => navigate(`/admin/clients/${client.clientId}`)}
                   />
                 );
@@ -477,7 +486,7 @@ const AdminQuestionnaires = () => {
                 {selectedEntry?.clientName} — {selectedEntry?.templateName}
               </DialogTitle>
             </DialogHeader>
-            {selectedEntry?.status === "respondido" && selectedEntry.category === "training" && (
+            {(selectedEntry?.status === "respondido" || selectedEntry?.status === "revisado") && selectedEntry.category === "training" && (
               <div className="flex justify-end -mt-2">
                 <Button variant="outline" size="sm" onClick={() => selectedEntry && exportTrainingLogPDF(selectedEntry)} className="gap-1.5">
                   <Download className="h-4 w-4" />
@@ -485,7 +494,7 @@ const AdminQuestionnaires = () => {
                 </Button>
               </div>
             )}
-            {selectedEntry?.status === "respondido" ? (
+            {(selectedEntry?.status === "respondido" || selectedEntry?.status === "revisado") ? (
               <div className="space-y-4 mt-2">
                 {selectedEntry.trainingLog && selectedEntry.trainingLog.length > 0 && (
                   <div className="space-y-4">
@@ -937,7 +946,7 @@ function EntryRow({ entry, onView, statusConfig }: { entry: QuestionnaireEntry; 
   return (
     <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer" onClick={onView}>
       <div className="flex items-center gap-3 min-w-0">
-        <StatusIcon className={`h-4 w-4 shrink-0 ${entry.status === "respondido" ? "text-primary" : entry.status === "pendiente" ? "text-accent" : entry.status === "expirado" ? "text-destructive" : "text-muted-foreground"}`} />
+        <StatusIcon className={`h-4 w-4 shrink-0 ${entry.status === "respondido" ? "text-primary" : entry.status === "revisado" ? "text-muted-foreground" : entry.status === "pendiente" ? "text-accent" : entry.status === "expirado" ? "text-destructive" : "text-muted-foreground"}`} />
         <div className="min-w-0">
           <span className="text-sm font-medium text-foreground truncate block">{entry.templateName}</span>
           <p className="text-xs text-muted-foreground">{entry.dayLabel} · {entry.date}</p>

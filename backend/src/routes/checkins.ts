@@ -66,7 +66,7 @@ router.get("/", async (req, res) => {
       weekLabel: c.weekLabel,
       date: toLocalDateStr(c.date),
       dayLabel: c.dayLabel,
-      status: c.status === "PENDING" ? "pendiente" : c.status === "RESPONDED" ? "respondido" : c.status === "EXPIRED" ? "expirado" : "no_enviado",
+      status: c.status === "PENDING" ? "pendiente" : c.status === "RESPONDED" ? "respondido" : c.status === "REVIEWED" ? "revisado" : c.status === "EXPIRED" ? "expirado" : "no_enviado",
       responses: c.responses.reduce((acc: any, r) => {
         acc[r.questionId] = r.value;
         return acc;
@@ -300,6 +300,20 @@ router.post("/:id/submit", async (req, res) => {
   } catch (err: any) {
     console.error("POST /checkins/:id/submit error:", err);
     res.status(500).json({ message: "Error al enviar check-in" });
+  }
+});
+
+// PATCH /api/checkins/:id/review — Mark a check-in as reviewed by admin
+router.patch("/:id/review", requireRole("ADMIN"), async (req, res) => {
+  try {
+    await prisma.checkin.update({
+      where: { id: req.params.id },
+      data: { status: "REVIEWED", reviewedAt: new Date() },
+    });
+    res.json({ message: "Check-in marcado como revisado" });
+  } catch (err: any) {
+    console.error("PATCH /checkins/:id/review error:", err);
+    res.status(500).json({ message: "Error al marcar check-in como revisado" });
   }
 });
 
