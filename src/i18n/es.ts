@@ -435,6 +435,7 @@ const es = {
     responses: "Respuestas",
     weightRecord: "Registro de Pesos",
     statusResponded: "Respondido",
+    statusReviewed: "Revisado",
     statusPending: "Pendiente",
     statusExpired: "Fuera de plazo",
     statusNotSent: "No enviado",
