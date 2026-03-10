@@ -127,6 +127,7 @@ interface QuestionnaireState {
   submitQuestionnaire: (sessionId: string, answers: Record<string, unknown>) => Promise<void>;
   generateMyCheckins: () => Promise<void>;
   generateWeeklyCheckins: () => Promise<number>;
+  markAsReviewed: (entryId: string) => Promise<void>;
 
   // Legacy local actions (kept for UI compat)
   submitEntry: (entryId: string, responses: Record<string, string | number | boolean>, trainingLog?: TrainingLogDay[]) => void;
