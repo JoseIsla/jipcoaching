@@ -435,6 +435,7 @@ const en: Translations = {
     responses: "Responses",
     weightRecord: "Weight Records",
     statusResponded: "Responded",
+    statusReviewed: "Reviewed",
     statusPending: "Pending",
     statusExpired: "Expired",
     statusNotSent: "Not sent",
