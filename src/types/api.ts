@@ -137,6 +137,7 @@ export enum ApiTrainingMethod {
   REPS_DROP = "REPS_DROP",
   LOAD_REPS_DROP = "LOAD_REPS_DROP",
   TOP_SET_BACKOFFS = "TOP_SET_BACKOFFS",
+  CUSTOM = "CUSTOM",
 }
 
 export enum ExerciseType {
@@ -571,6 +572,7 @@ export const trainingMethodLabels: Record<ApiTrainingMethod, string> = {
   [ApiTrainingMethod.REPS_DROP]: "Reps Drop",
   [ApiTrainingMethod.LOAD_REPS_DROP]: "Load + Reps Drop",
   [ApiTrainingMethod.TOP_SET_BACKOFFS]: "Top Set + Backoffs",
+  [ApiTrainingMethod.CUSTOM]: "Personalizado",
 };
 
 export const foodCategoryLabels: Record<FoodCategory, string> = {

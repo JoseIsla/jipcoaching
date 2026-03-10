@@ -42,6 +42,7 @@ enum TrainingMethod {
   REPS_DROP
   LOAD_REPS_DROP
   TOP_SET_BACKOFFS
+  CUSTOM
 }
 
 enum WeekStatus {
