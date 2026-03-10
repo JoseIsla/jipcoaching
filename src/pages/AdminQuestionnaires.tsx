@@ -257,6 +257,7 @@ const AdminQuestionnaires = () => {
 
   const statusConfig: Record<string, { label: string; icon: typeof CheckCircle2; className: string }> = {
     respondido: { label: t("questionnaires.statusResponded"), icon: CheckCircle2, className: "bg-primary/15 text-primary border-primary/30" },
+    revisado: { label: t("questionnaires.statusReviewed") || "Revisado", icon: CheckCircle2, className: "bg-muted text-muted-foreground border-border" },
     pendiente: { label: t("questionnaires.statusPending"), icon: Clock, className: "bg-accent/15 text-accent border-accent/30" },
     expirado: { label: t("questionnaires.statusExpired"), icon: AlertTriangle, className: "bg-destructive/15 text-destructive border-destructive/30" },
     no_enviado: { label: t("questionnaires.statusNotSent"), icon: XCircle, className: "bg-muted text-muted-foreground border-border" },
