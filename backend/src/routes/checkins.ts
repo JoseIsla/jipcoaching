@@ -303,6 +303,20 @@ router.post("/:id/submit", async (req, res) => {
   }
 });
 
+// PATCH /api/checkins/:id/review — Mark a check-in as reviewed by admin
+router.patch("/:id/review", requireRole("ADMIN"), async (req, res) => {
+  try {
+    await prisma.checkin.update({
+      where: { id: req.params.id },
+      data: { status: "REVIEWED", reviewedAt: new Date() },
+    });
+    res.json({ message: "Check-in marcado como revisado" });
+  } catch (err: any) {
+    console.error("PATCH /checkins/:id/review error:", err);
+    res.status(500).json({ message: "Error al marcar check-in como revisado" });
+  }
+});
+
 // GET /api/checkins/weight/:clientId
 router.get("/weight/:clientId", async (req, res) => {
   try {
