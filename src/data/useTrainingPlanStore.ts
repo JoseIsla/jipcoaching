@@ -123,20 +123,20 @@ const mapApiExerciseToEntry = (ex: ApiExercisePrescription, idx: number, exercis
     topSetReps: ex.topSetReps,
     topSetRPE: ex.topSetRpe,
     fatiguePercent: ex.fatiguePct,
-    backoffSets: (ex as any).backoffSets,
-    backoffPercent: (ex as any).backoffPercent ?? ex.dropLoadPct,
-    estimatedSeries: (ex as any).estimatedSeries,
+    backoffSets: ex.backoffSets,
+    backoffPercent: ex.backoffPercent ?? ex.dropLoadPct,
+    estimatedSeries: ex.estimatedSeries,
     sets: ex.setsMin != null && ex.setsMax != null
       ? (ex.setsMin === ex.setsMax ? `${ex.setsMin}` : `${ex.setsMin}-${ex.setsMax}`)
       : undefined,
-    reps: (ex as any).reps ?? (ex.dropReps != null ? `${ex.dropReps}` : undefined),
+    reps: ex.reps ?? (ex.dropReps != null ? `${ex.dropReps}` : undefined),
     intensityType,
     intensityValue: ex.rirMin,
-    technicalNotes: ex.notes ?? (ex as any).technicalNotes,
-    plannedLoad: (ex as any).plannedLoad,
-    backoffRule: (ex as any).backoffRule,
-    customMethodName: (ex as any).customMethodName,
-    customMethodDescription: (ex as any).customMethodDescription,
+    technicalNotes: ex.notes ?? ex.technicalNotes,
+    plannedLoad: ex.plannedLoad,
+    backoffRule: ex.backoffRule,
+    customMethodName: ex.customMethodName,
+    customMethodDescription: ex.customMethodDescription,
   };
 };
 
