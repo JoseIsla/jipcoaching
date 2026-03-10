@@ -12,7 +12,8 @@ import { useClientStore } from "@/data/useClientStore";
 import { useClientDetailStore } from "@/data/useClientDetailStore";
 import { PackType, ClientStatus, packTypeLabels, getServicesFromPack, type CreateClientDto, type NutritionIntakeDto, type TrainingIntakeDto } from "@/types/api";
 import { useTranslation } from "@/i18n/useTranslation";
-import { parseDecimal, parseOptionalDecimal } from "@/utils/parseDecimal";
+import { parseDecimal } from "@/utils/parseDecimal";
+import { DecimalInput } from "@/components/ui/decimal-input";
 
 export interface NewClientData {
   name: string;
@@ -258,22 +259,22 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">{t("addClient.targetWeight")}</Label>
-                  <Input type="text" inputMode="decimal" value={nutIntake.targetWeight ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, targetWeight: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="kg" />
+                  <DecimalInput value={nutIntake.targetWeight} onChange={(v) => setNutIntake({ ...nutIntake, targetWeight: v })} className={inputCls} placeholder="kg" />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <Label className="text-foreground text-xs">Altura</Label>
-                  <Input type="text" inputMode="decimal" value={nutIntake.height ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, height: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="cm" />
+                  <DecimalInput value={nutIntake.height} onChange={(v) => setNutIntake({ ...nutIntake, height: v })} className={inputCls} placeholder="cm" />
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">Peso actual</Label>
-                  <Input type="text" inputMode="decimal" value={nutIntake.currentWeight ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, currentWeight: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="kg" />
+                  <DecimalInput value={nutIntake.currentWeight} onChange={(v) => setNutIntake({ ...nutIntake, currentWeight: v })} className={inputCls} placeholder="kg" />
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">Edad</Label>
-                  <Input type="text" inputMode="numeric" value={nutIntake.age ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, age: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="años" />
+                  <DecimalInput value={nutIntake.age} onChange={(v) => setNutIntake({ ...nutIntake, age: v })} className={inputCls} placeholder="años" inputMode="numeric" />
                 </div>
               </div>
 
@@ -294,14 +295,14 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">{t("addClient.mealsPerDay")}</Label>
-                  <Input type="text" inputMode="numeric" value={nutIntake.mealsPerDay ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, mealsPerDay: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="4" />
+                  <DecimalInput value={nutIntake.mealsPerDay} onChange={(v) => setNutIntake({ ...nutIntake, mealsPerDay: v })} className={inputCls} placeholder="4" inputMode="numeric" />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-foreground text-xs">{t("addClient.sleepHours")}</Label>
-                  <Input type="text" inputMode="decimal" value={nutIntake.sleepHours ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, sleepHours: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="7" />
+                  <DecimalInput value={nutIntake.sleepHours} onChange={(v) => setNutIntake({ ...nutIntake, sleepHours: v })} className={inputCls} placeholder="7" />
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">{t("addClient.stressLevel")}</Label>
