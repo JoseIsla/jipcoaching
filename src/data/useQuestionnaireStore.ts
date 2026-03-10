@@ -133,6 +133,7 @@ interface QuestionnaireState {
   addVideoToEntry: (entryId: string, video: CheckinVideo) => void;
   removeVideoFromEntry: (entryId: string, videoId: string) => void;
   getPendingCount: (clientId?: string) => number;
+  getSubmittedCount: () => number;
   getEntriesForClient: (clientId: string) => QuestionnaireEntry[];
   getOrCreateTrainingEntry: (clientId: string, clientName: string) => QuestionnaireEntry | null;
 
