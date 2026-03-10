@@ -29,6 +29,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   useEffect(() => {
     fetchNotifications();
     fetchLeads();
+    generateWeeklyCheckins().then(() => fetchEntries());
 
     const interval = setInterval(() => {
       fetchNotifications();
@@ -36,7 +37,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     }, 60_000);
 
     return () => clearInterval(interval);
-  }, [fetchNotifications, fetchLeads]);
+  }, [fetchNotifications, fetchLeads, fetchEntries, generateWeeklyCheckins]);
 
   return (
     <div className="flex min-h-screen bg-background">
