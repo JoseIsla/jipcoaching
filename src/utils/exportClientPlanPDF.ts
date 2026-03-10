@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { NutritionPlanDetail, Meal, Supplement } from "@/data/nutritionPlanStore";
 import type { TrainingPlanFull, TrainingWeek } from "@/data/trainingPlanStore";
+import { TRAINING_METHOD_LABELS } from "@/data/trainingPlanStore";
 
 const MARGIN = 15;
 
