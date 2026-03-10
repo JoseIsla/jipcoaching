@@ -163,7 +163,7 @@ const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
             {canFill ? (
               <>{questions.map((q) => <QuestionField key={q.id} q={q} value={responses[q.id]} onChange={(v) => setResponses({ ...responses, [q.id]: v })} />)}<Button onClick={handleSubmit} className="w-full glow-primary-sm">{t("clientCheckins.submitCheckin")}</Button></>
             ) : submitted ? (
-              <div className="space-y-2">{questions.map((q) => <div key={q.id} className="flex justify-between items-start py-1 border-b border-border/30 last:border-0"><span className="text-xs text-muted-foreground">{q.label}</span><span className="text-xs font-medium text-foreground ml-3">{responses[q.id] !== undefined ? typeof responses[q.id] === "boolean" ? responses[q.id] ? "Sí" : "No" : String(responses[q.id]) : "—"}</span></div>)}</div>
+              <div className="space-y-2">{questions.map((q) => <div key={q.id} className="flex justify-between items-start py-1 border-b border-border/30 last:border-0"><span className="text-xs text-muted-foreground">{q.label}</span><span className="text-xs font-medium text-foreground ml-3">{responses[q.id] !== undefined ? (responses[q.id] === true || responses[q.id] === "true") ? "Sí" : (responses[q.id] === false || responses[q.id] === "false") ? "No" : String(responses[q.id]) : "—"}</span></div>)}</div>
             ) : windowStatus === "future" ? (
               <p className="text-sm text-muted-foreground text-center py-4" dangerouslySetInnerHTML={{ __html: t("clientCheckins.availableOn", { day: entry.dayLabel }) }} />
             ) : (
