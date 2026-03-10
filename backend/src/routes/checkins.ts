@@ -307,7 +307,7 @@ router.post("/:id/submit", async (req, res) => {
 router.patch("/:id/review", requireRole("ADMIN"), async (req, res) => {
   try {
     await prisma.checkin.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: { status: "REVIEWED", reviewedAt: new Date() },
     });
     res.json({ message: "Check-in marcado como revisado" });
