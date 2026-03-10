@@ -8,6 +8,7 @@ import { useLanguageStore } from "@/i18n/store";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotificationStore } from "@/data/notificationStore";
 import { useContactLeadsStore } from "@/data/useContactLeadsStore";
+import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 
 interface AdminLayoutProps {
   children: ReactNode;
