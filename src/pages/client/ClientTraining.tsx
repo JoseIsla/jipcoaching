@@ -42,7 +42,16 @@ const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<strin
                 {basics.map((ex) => (
                   <div key={ex.id} className="bg-background/50 border border-border/40 rounded-lg p-3 space-y-1">
                     <p className="text-sm font-medium text-foreground">{ex.exerciseName || "—"}</p>
-                    {ex.method && <Badge variant="outline" className="text-[10px]">{TRAINING_METHOD_LABELS[ex.method] || ex.method}</Badge>}
+                    {ex.method && (
+                      <Badge variant="outline" className="text-[10px]">
+                        {ex.method === "custom" && ex.customMethodName
+                          ? ex.customMethodName
+                          : TRAINING_METHOD_LABELS[ex.method] || ex.method}
+                      </Badge>
+                    )}
+                    {ex.method === "custom" && ex.customMethodDescription && (
+                      <p className="text-[11px] text-muted-foreground italic">📋 {ex.customMethodDescription}</p>
+                    )}
                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                       {ex.topSetReps && <span><span className="font-medium text-foreground">Top Set:</span> {ex.topSetReps} reps{ex.topSetRPE ? ` @RPE ${ex.topSetRPE}` : ""}</span>}
                       {ex.backoffSets && <span><span className="font-medium text-foreground">Back-off:</span> {ex.backoffSets} sets{ex.fatiguePercent ? ` @${ex.fatiguePercent}%` : ""}{ex.backoffPercent ? ` @${ex.backoffPercent}%` : ""}</span>}
