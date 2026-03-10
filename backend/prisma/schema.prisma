@@ -585,6 +585,7 @@ model Checkin {
   status      CheckinStatus  @default(PENDING)
   planId      String?        // for training check-ins
   weekNumber  Int?
+  reviewedAt  DateTime?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
