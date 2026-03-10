@@ -20,6 +20,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
   const fetchNotifications = useNotificationStore((s) => s.fetchNotifications);
   const fetchLeads = useContactLeadsStore((s) => s.fetchLeads);
+  const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
+  const generateWeeklyCheckins = useQuestionnaireStore((s) => s.generateWeeklyCheckins);
 
   useEffect(() => { if (userId) setCurrentUser(userId); }, [setCurrentUser, userId]);
 
