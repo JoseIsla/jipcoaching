@@ -312,7 +312,7 @@ const AdminQuestionnaires = () => {
       map[e.clientId].entries.push(e);
       map[e.clientId].total++;
       const effectiveStatus = getEffectiveStatus(e);
-      if (effectiveStatus === "respondido") map[e.clientId].responded++;
+      if (effectiveStatus === "respondido" || effectiveStatus === "revisado") map[e.clientId].responded++;
       else if (effectiveStatus === "expirado") map[e.clientId].expired++;
       else map[e.clientId].pending++;
     });
