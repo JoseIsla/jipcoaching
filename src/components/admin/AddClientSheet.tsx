@@ -266,7 +266,7 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <Label className="text-foreground text-xs">Altura</Label>
-                  <Input type="text" inputMode="decimal" value={nutIntake.height ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, height: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="cm" />
+                  <DecimalInput value={nutIntake.height} onChange={(v) => setNutIntake({ ...nutIntake, height: v })} className={inputCls} placeholder="cm" />
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">Peso actual</Label>
