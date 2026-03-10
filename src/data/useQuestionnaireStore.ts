@@ -358,6 +358,10 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
     return entries.filter((e) => e.status === "pendiente").length;
   },
 
+  getSubmittedCount: () => {
+    return get().entries.filter((e) => e.status === "respondido").length;
+  },
+
   getEntriesForClient: (clientId) =>
     get().entries.filter((e) => e.clientId === clientId),
 
