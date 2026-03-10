@@ -946,7 +946,7 @@ function EntryRow({ entry, onView, statusConfig }: { entry: QuestionnaireEntry; 
   return (
     <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer" onClick={onView}>
       <div className="flex items-center gap-3 min-w-0">
-        <StatusIcon className={`h-4 w-4 shrink-0 ${entry.status === "respondido" ? "text-primary" : entry.status === "pendiente" ? "text-accent" : entry.status === "expirado" ? "text-destructive" : "text-muted-foreground"}`} />
+        <StatusIcon className={`h-4 w-4 shrink-0 ${entry.status === "respondido" ? "text-primary" : entry.status === "revisado" ? "text-muted-foreground" : entry.status === "pendiente" ? "text-accent" : entry.status === "expirado" ? "text-destructive" : "text-muted-foreground"}`} />
         <div className="min-w-0">
           <span className="text-sm font-medium text-foreground truncate block">{entry.templateName}</span>
           <p className="text-xs text-muted-foreground">{entry.dayLabel} · {entry.date}</p>
