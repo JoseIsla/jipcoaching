@@ -44,11 +44,15 @@ const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<strin
                     <p className="text-sm font-medium text-foreground">{ex.exerciseName || "—"}</p>
                     {ex.method && <Badge variant="outline" className="text-[10px]">{TRAINING_METHOD_LABELS[ex.method] || ex.method}</Badge>}
                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      {ex.topSetReps && <span><span className="font-medium text-foreground">Top Set:</span> {ex.topSetReps} reps{ex.topSetRPE ? ` @${ex.topSetRPE}` : ""}</span>}
-                      {ex.backoffSets && <span><span className="font-medium text-foreground">Back-off:</span> {ex.backoffSets} sets{ex.fatiguePercent ? ` @${ex.fatiguePercent}%` : ""}</span>}
+                      {ex.topSetReps && <span><span className="font-medium text-foreground">Top Set:</span> {ex.topSetReps} reps{ex.topSetRPE ? ` @RPE ${ex.topSetRPE}` : ""}</span>}
+                      {ex.backoffSets && <span><span className="font-medium text-foreground">Back-off:</span> {ex.backoffSets} sets{ex.fatiguePercent ? ` @${ex.fatiguePercent}%` : ""}{ex.backoffPercent ? ` @${ex.backoffPercent}%` : ""}</span>}
+                      {ex.estimatedSeries && <span><span className="font-medium text-foreground">Series est.:</span> {ex.estimatedSeries}</span>}
                       {ex.sets && <span>{ex.sets} {t("clientTraining.series")}</span>}
                       {ex.reps && <span>× {ex.reps}</span>}
+                      {/* RPE for straight_sets/ramp/wave where topSetReps is not used */}
+                      {!ex.topSetReps && ex.topSetRPE != null && <span><span className="font-medium text-foreground">RPE:</span> {ex.topSetRPE}</span>}
                       {ex.plannedLoad && <span><span className="font-medium text-foreground">Carga:</span> {ex.plannedLoad}</span>}
+                      {ex.backoffRule && <span><span className="font-medium text-foreground">Regla:</span> {ex.backoffRule}</span>}
                     </div>
                     {ex.technicalNotes && <p className="text-[11px] text-muted-foreground italic mt-1">💡 {ex.technicalNotes}</p>}
                   </div>
@@ -64,7 +68,8 @@ const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<strin
                     <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                       {ex.sets && <span>{ex.sets} {t("clientTraining.series")}</span>}
                       {ex.reps && <span>× {ex.reps}</span>}
-                      {ex.intensityType && ex.intensityValue != null && <span>{ex.intensityType} {ex.intensityValue}</span>}
+                      {ex.intensityType && ex.intensityValue != null && <span><span className="font-medium text-foreground">{ex.intensityType}:</span> {ex.intensityValue}</span>}
+                      {ex.plannedLoad && <span><span className="font-medium text-foreground">Carga:</span> {ex.plannedLoad}</span>}
                     </div>
                     {ex.technicalNotes && <p className="text-[11px] text-muted-foreground italic">💡 {ex.technicalNotes}</p>}
                   </div>

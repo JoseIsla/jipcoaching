@@ -104,6 +104,14 @@ const mapApiExerciseToEntry = (ex: ApiExercisePrescription, idx: number, exercis
     (lib) => lib.name.toLowerCase() === ex.name?.toLowerCase()
   );
 
+  const isAccessory = ex.type === "ACCESSORY";
+  const methodLower = ex.method?.toLowerCase() as any;
+
+  // Determine intensityType: accessories default to RIR; basics with straight_sets/ramp/wave use RPE via topSetRpe
+  const intensityType = isAccessory
+    ? ((ex.rirMin != null || ex.rirMax != null) ? "RIR" : "RPE") as "RIR" | "RPE"
+    : undefined;
+
   return {
     id: ex.id,
     order: ex.order ?? idx + 1,
@@ -111,19 +119,24 @@ const mapApiExerciseToEntry = (ex: ApiExercisePrescription, idx: number, exercis
     exerciseId: matchedExercise?.id,
     exerciseName: ex.name,
     exerciseType: ex.type,
-    method: ex.method?.toLowerCase() as any,
+    method: methodLower,
     topSetReps: ex.topSetReps,
     topSetRPE: ex.topSetRpe,
     fatiguePercent: ex.fatiguePct,
     backoffSets: (ex as any).backoffSets,
     backoffPercent: (ex as any).backoffPercent ?? ex.dropLoadPct,
+    estimatedSeries: (ex as any).estimatedSeries,
     sets: ex.setsMin != null && ex.setsMax != null
       ? (ex.setsMin === ex.setsMax ? `${ex.setsMin}` : `${ex.setsMin}-${ex.setsMax}`)
       : undefined,
     reps: (ex as any).reps ?? (ex.dropReps != null ? `${ex.dropReps}` : undefined),
+    intensityType,
     intensityValue: ex.rirMin,
     technicalNotes: ex.notes ?? (ex as any).technicalNotes,
     plannedLoad: (ex as any).plannedLoad,
+    backoffRule: (ex as any).backoffRule,
+    customMethodName: (ex as any).customMethodName,
+    customMethodDescription: (ex as any).customMethodDescription,
   };
 };
 
