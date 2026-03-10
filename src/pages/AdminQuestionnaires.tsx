@@ -572,16 +572,33 @@ const AdminQuestionnaires = () => {
                 {selectedEntry.responses && (
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("questionnaires.responses")}</p>
-                    {Object.entries(selectedEntry.responses).map(([key, val]) => {
-                      const template = selectedEntry.category === "nutrition" ? nutritionTemplates.find((tp) => tp.id === selectedEntry.templateId) : null;
-                      const questionDef = template ? template.questions.find((q) => q.id === key) : trainingTemplate.questions.find((q) => q.id === key);
-                      return (
-                        <div key={key} className="flex justify-between items-start gap-4 py-2 border-b border-border/50">
-                          <span className="text-sm text-muted-foreground">{questionDef?.label || key}</span>
-                          <span className="text-sm font-medium text-foreground text-right">{typeof val === "boolean" ? (val ? "Sí" : "No") : String(val)}</span>
-                        </div>
-                      );
-                    })}
+                    {(() => {
+                      // Build ordered question list: prefer templateQuestions (already ordered by DB), fallback to store templates
+                      const orderedQuestions: { id: string; label: string }[] =
+                        selectedEntry.templateQuestions && selectedEntry.templateQuestions.length > 0
+                          ? selectedEntry.templateQuestions
+                          : selectedEntry.category === "nutrition"
+                            ? (nutritionTemplates.find((tp) => tp.id === selectedEntry.templateId)?.questions || [])
+                            : (trainingTemplate.questions || []);
+
+                      // Show responses in question order; append any orphan keys at the end
+                      const orderedKeys = orderedQuestions.map((q) => q.id);
+                      const orphanKeys = Object.keys(selectedEntry.responses!).filter((k) => !orderedKeys.includes(k));
+                      const allKeys = [...orderedKeys, ...orphanKeys];
+
+                      return allKeys
+                        .filter((key) => selectedEntry.responses![key] !== undefined)
+                        .map((key) => {
+                          const val = selectedEntry.responses![key];
+                          const qDef = orderedQuestions.find((q) => q.id === key);
+                          return (
+                            <div key={key} className="flex justify-between items-start gap-4 py-2 border-b border-border/50">
+                              <span className="text-sm text-muted-foreground">{qDef?.label || key}</span>
+                              <span className="text-sm font-medium text-foreground text-right">{typeof val === "boolean" ? (val ? "Sí" : "No") : String(val)}</span>
+                            </div>
+                          );
+                        });
+                    })()}
                   </div>
                 )}
                 {/* Technique Videos */}
