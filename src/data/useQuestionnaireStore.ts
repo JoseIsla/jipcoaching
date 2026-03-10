@@ -264,6 +264,28 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
     }
   },
 
+  markAsReviewed: async (entryId) => {
+    // Optimistically update local state
+    set((s) => ({
+      entries: s.entries.map((e) =>
+        e.id === entryId ? { ...e, status: "revisado" as const } : e
+      ),
+    }));
+    if (!DEV_MOCK) {
+      try {
+        await api.patch(`/checkins/${entryId}/review`, {});
+      } catch (err: any) {
+        console.error("Error marking check-in as reviewed:", err);
+        // Revert on error
+        set((s) => ({
+          entries: s.entries.map((e) =>
+            e.id === entryId ? { ...e, status: "respondido" as const } : e
+          ),
+        }));
+      }
+    }
+  },
+
   // ── Legacy local actions ──
 
   submitEntry: (entryId, responses, trainingLog) => {
