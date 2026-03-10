@@ -68,7 +68,8 @@ const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<strin
                     <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                       {ex.sets && <span>{ex.sets} {t("clientTraining.series")}</span>}
                       {ex.reps && <span>× {ex.reps}</span>}
-                      {ex.intensityType && ex.intensityValue != null && <span>{ex.intensityType} {ex.intensityValue}</span>}
+                      {ex.intensityType && ex.intensityValue != null && <span><span className="font-medium text-foreground">{ex.intensityType}:</span> {ex.intensityValue}</span>}
+                      {ex.plannedLoad && <span><span className="font-medium text-foreground">Carga:</span> {ex.plannedLoad}</span>}
                     </div>
                     {ex.technicalNotes && <p className="text-[11px] text-muted-foreground italic">💡 {ex.technicalNotes}</p>}
                   </div>
