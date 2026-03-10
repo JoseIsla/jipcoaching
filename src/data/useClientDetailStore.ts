@@ -85,10 +85,7 @@ export const useClientDetailStore = create<ClientDetailState>((set, get) => ({
     // If DEV_MOCK, just return from mock store
     if (DEV_MOCK) return get().details[clientId];
 
-    // If already fetched, return cached
-    const cached = get().details[clientId];
-    if (cached) return cached;
-
+    // Always refetch from server to get latest data (e.g. updated weight)
     set({ loading: true });
     try {
       const data = await api.get(`/clients/${clientId}`);
