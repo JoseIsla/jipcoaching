@@ -594,7 +594,7 @@ const AdminQuestionnaires = () => {
                           return (
                             <div key={key} className="flex justify-between items-start gap-4 py-2 border-b border-border/50">
                               <span className="text-sm text-muted-foreground">{qDef?.label || key}</span>
-                              <span className="text-sm font-medium text-foreground text-right">{typeof val === "boolean" ? (val ? "Sí" : "No") : String(val)}</span>
+                              <span className="text-sm font-medium text-foreground text-right">{val === true || val === "true" ? "Sí" : val === false || val === "false" ? "No" : String(val)}</span>
                             </div>
                           );
                         });
