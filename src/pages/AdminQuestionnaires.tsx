@@ -486,7 +486,7 @@ const AdminQuestionnaires = () => {
                 {selectedEntry?.clientName} — {selectedEntry?.templateName}
               </DialogTitle>
             </DialogHeader>
-            {selectedEntry?.status === "respondido" && selectedEntry.category === "training" && (
+            {(selectedEntry?.status === "respondido" || selectedEntry?.status === "revisado") && selectedEntry.category === "training" && (
               <div className="flex justify-end -mt-2">
                 <Button variant="outline" size="sm" onClick={() => selectedEntry && exportTrainingLogPDF(selectedEntry)} className="gap-1.5">
                   <Download className="h-4 w-4" />
@@ -494,7 +494,7 @@ const AdminQuestionnaires = () => {
                 </Button>
               </div>
             )}
-            {selectedEntry?.status === "respondido" ? (
+            {(selectedEntry?.status === "respondido" || selectedEntry?.status === "revisado") ? (
               <div className="space-y-4 mt-2">
                 {selectedEntry.trainingLog && selectedEntry.trainingLog.length > 0 && (
                   <div className="space-y-4">
