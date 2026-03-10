@@ -19,8 +19,8 @@ const QuickActions = () => {
   const activeClients = getActiveClients();
   const retention = getRetentionRate();
 
-  const getPendingCount = useQuestionnaireStore((s) => s.getPendingCount);
-  const pendingCheckins = getPendingCount();
+  const getSubmittedCount = useQuestionnaireStore((s) => s.getSubmittedCount);
+  const pendingCheckins = getSubmittedCount();
 
   const quickActions = [
     { icon: UserPlus, label: t("dashboard.addClient"), path: "/admin/clients" },

@@ -133,6 +133,7 @@ interface QuestionnaireState {
   addVideoToEntry: (entryId: string, video: CheckinVideo) => void;
   removeVideoFromEntry: (entryId: string, videoId: string) => void;
   getPendingCount: (clientId?: string) => number;
+  getSubmittedCount: () => number;
   getEntriesForClient: (clientId: string) => QuestionnaireEntry[];
   getOrCreateTrainingEntry: (clientId: string, clientName: string) => QuestionnaireEntry | null;
 
@@ -355,6 +356,10 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
       return entries.filter((e) => e.clientId === clientId && e.status === "pendiente").length;
     }
     return entries.filter((e) => e.status === "pendiente").length;
+  },
+
+  getSubmittedCount: () => {
+    return get().entries.filter((e) => e.status === "respondido").length;
   },
 
   getEntriesForClient: (clientId) =>
