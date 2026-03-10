@@ -259,7 +259,7 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                 </div>
                 <div>
                   <Label className="text-foreground text-xs">{t("addClient.targetWeight")}</Label>
-                  <Input type="text" inputMode="decimal" value={nutIntake.targetWeight ?? ""} onChange={(e) => setNutIntake({ ...nutIntake, targetWeight: parseOptionalDecimal(e.target.value) })} className={inputCls} placeholder="kg" />
+                  <DecimalInput value={nutIntake.targetWeight} onChange={(v) => setNutIntake({ ...nutIntake, targetWeight: v })} className={inputCls} placeholder="kg" />
                 </div>
               </div>
 
