@@ -168,6 +168,18 @@ const ExerciseForm = ({
                 <Label className="text-xs text-muted-foreground">Descripción / instrucciones</Label>
                 <Textarea className="text-xs bg-background border-border min-h-[50px]" value={exercise.customMethodDescription ?? ""} onChange={(e) => update({ customMethodDescription: e.target.value })} />
               </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Series</Label>
+                <Input className="h-8 text-xs bg-background border-border" placeholder="4" value={exercise.sets ?? ""} onChange={(e) => update({ sets: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Reps</Label>
+                <Input className="h-8 text-xs bg-background border-border" placeholder="8-10" value={exercise.reps ?? ""} onChange={(e) => update({ reps: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">RPE</Label>
+                <Input type="number" step={0.5} className="h-8 text-xs bg-background border-border" value={exercise.topSetRPE ?? ""} onChange={(e) => update({ topSetRPE: Number(e.target.value) || undefined })} />
+              </div>
             </>
           )}
         </div>
