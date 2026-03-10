@@ -187,6 +187,14 @@ const AdminQuestionnaires = () => {
   const allEntries = useQuestionnaireStore((s) => s.entries);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
   const generateWeeklyCheckins = useQuestionnaireStore((s) => s.generateWeeklyCheckins);
+  const markAsReviewed = useQuestionnaireStore((s) => s.markAsReviewed);
+
+  const handleViewEntry = useCallback((entry: QuestionnaireEntry) => {
+    setSelectedEntry(entry);
+    if (entry.status === "respondido") {
+      markAsReviewed(entry.id);
+    }
+  }, [markAsReviewed]);
 
   // Fetch check-ins and templates from API on mount
   const fetchTemplates = useTemplateStore((s) => s.fetchTemplates);
