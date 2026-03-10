@@ -414,7 +414,7 @@ const AdminQuestionnaires = () => {
                     client={client}
                     filteredEntries={filteredEntries}
                     statusConfig={statusConfig}
-                    onViewEntry={setSelectedEntry}
+                    onViewEntry={handleViewEntry}
                     onNavigateToClient={() => navigate(`/admin/clients/${client.clientId}`)}
                   />
                 );
