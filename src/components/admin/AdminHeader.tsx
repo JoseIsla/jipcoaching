@@ -136,7 +136,7 @@ const AdminHeader = () => {
               ) : (
                 <AnimatePresence initial={false}>
                   {notifications.map((notif) => {
-                    const Icon = typeIcon[notif.type];
+                    const Icon = typeIcon[notif.type] || Bell;
                     return (
                       <motion.div
                         key={notif.id}
