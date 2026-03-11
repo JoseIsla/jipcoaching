@@ -202,7 +202,7 @@ const ExerciseForm = ({
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Medición</Label>
-            <Select value={exercise.intensityType || "RIR"} onValueChange={(v) => update({ intensityType: v as IntensityMeasure })}>
+            <Select value={exercise.intensityType ?? "RIR"} onValueChange={(v) => update({ intensityType: v as IntensityMeasure })}>
               <SelectTrigger className="bg-background border-border text-xs h-8"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="RIR">RIR</SelectItem>
@@ -211,7 +211,7 @@ const ExerciseForm = ({
             </Select>
           </div>
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">{exercise.intensityType || "RIR"}</Label>
+            <Label className="text-xs text-muted-foreground">{exercise.intensityType ?? "RIR"}</Label>
             <Input type="number" step={0.5} className="h-8 text-xs bg-background border-border" value={exercise.intensityValue ?? ""} onChange={(e) => update({ intensityValue: Number(e.target.value) || undefined })} />
           </div>
         </div>
