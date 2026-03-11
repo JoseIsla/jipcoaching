@@ -639,6 +639,12 @@ async function generateCheckinsForClient(clientId: string, packType: string): Pr
 
                 // Build plannedLoad with backoff context
                 let plannedLoad = (ex as any).plannedLoad || "Autoregulada";
+                if (ex.method === "TOP_SET_BACKOFFS" && (ex as any).backoffReps) {
+                  plannedLoad += ` | Back-off: ${(ex as any).backoffReps} reps`;
+                }
+                if (ex.backoffPercent) {
+                  plannedLoad += ` @RPE ${ex.backoffPercent}`;
+                }
                 if ((ex as any).backoffRule) {
                   plannedLoad += ` | Regla: ${(ex as any).backoffRule}`;
                 }
