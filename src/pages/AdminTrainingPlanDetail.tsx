@@ -475,6 +475,7 @@ const AdminTrainingPlanDetail = () => {
             order: e.order ?? i,
             backoffSets: e.backoffSets,
             backoffPercent: e.backoffPercent,
+            backoffReps: e.backoffReps || undefined,
             technicalNotes: e.technicalNotes,
             reps: e.reps || undefined,
             plannedLoad: e.plannedLoad || undefined,
