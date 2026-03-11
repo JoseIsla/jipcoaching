@@ -125,6 +125,7 @@ const mapApiExerciseToEntry = (ex: ApiExercisePrescription, idx: number, exercis
     fatiguePercent: ex.fatiguePct,
     backoffSets: ex.backoffSets,
     backoffPercent: ex.backoffPercent ?? ex.dropLoadPct,
+    backoffReps: ex.backoffReps != null ? String(ex.backoffReps) : undefined,
     estimatedSeries: ex.estimatedSeries,
     sets: ex.setsMin != null && ex.setsMax != null
       ? (ex.setsMin === ex.setsMax ? `${ex.setsMin}` : `${ex.setsMin}-${ex.setsMax}`)
