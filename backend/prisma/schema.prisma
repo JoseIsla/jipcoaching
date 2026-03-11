@@ -388,6 +388,7 @@ model ExercisePrescription {
   customMethodName   String?       @db.VarChar(100)
   customMethodDescription String?  @db.Text
   plannedLoad    String?       // e.g. "Autoreg.", "80kg"
+  intensityType  String?       @db.VarChar(10) // "RPE" or "RIR"
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 

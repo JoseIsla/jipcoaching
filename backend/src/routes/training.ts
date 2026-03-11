@@ -371,6 +371,7 @@ router.put("/days/:dayId", requireRole("ADMIN"), async (req, res) => {
             backoffRule: e.backoffRule || null,
             customMethodName: e.customMethodName || null,
             customMethodDescription: e.customMethodDescription || null,
+            intensityType: e.intensityType || null,
           })),
         });
       }
