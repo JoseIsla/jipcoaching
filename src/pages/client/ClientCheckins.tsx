@@ -29,6 +29,28 @@ import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 import { mediaApi } from "@/services/mediaApi";
 import { parseDecimal } from "@/utils/parseDecimal";
 
+/** Build default responses for all questions so untouched fields are still submitted. */
+const buildDefaultResponses = (
+  questions: QuestionDefinition[],
+  existing: Record<string, string | number | boolean> = {}
+): Record<string, string | number | boolean> => {
+  const defaults: Record<string, string | number | boolean> = {};
+  for (const q of questions) {
+    if (existing[q.id] !== undefined) {
+      defaults[q.id] = existing[q.id];
+    } else {
+      switch (q.type) {
+        case "scale": defaults[q.id] = 5; break;
+        case "number": defaults[q.id] = 0; break;
+        case "yesno": defaults[q.id] = false; break;
+        case "select": defaults[q.id] = q.options?.[0] ?? ""; break;
+        default: defaults[q.id] = ""; break;
+      }
+    }
+  }
+  return defaults;
+};
+
 /** Returns the deadline Date for an entry's fill window. */
 const getEntryDeadline = (entry: QuestionnaireEntry): Date => {
   if (entry.category === "nutrition") {
