@@ -158,7 +158,6 @@ router.post("/plans", requireRole("ADMIN"), async (req, res) => {
                     customMethodName: e.customMethodName || null,
                     customMethodDescription: e.customMethodDescription || null,
                     intensityType: e.intensityType || null,
-                    customMethodDescription: e.customMethodDescription || null,
                   })),
                 } : undefined,
               })),
