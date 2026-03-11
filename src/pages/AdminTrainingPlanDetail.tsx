@@ -483,6 +483,7 @@ const AdminTrainingPlanDetail = () => {
             backoffRule: e.backoffRule || undefined,
             customMethodName: e.customMethodName || undefined,
             customMethodDescription: e.customMethodDescription || undefined,
+            intensityType: e.intensityType || undefined,
           })),
         });
       }
