@@ -75,7 +75,7 @@ const App = () => (
               <Suspense fallback={<LoadingScreen />}>
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
-                  <Route path="/home" element={<LandingPage />} />
+                  <Route path="/home" element={<Navigate to="/" replace />} />
                   <Route path="/legal/aviso-legal" element={<AvisoLegal />} />
                   <Route path="/legal/privacidad" element={<PoliticaPrivacidad />} />
                   <Route path="/legal/cookies" element={<PoliticaCookies />} />
