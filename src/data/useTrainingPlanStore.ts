@@ -107,9 +107,9 @@ const mapApiExerciseToEntry = (ex: ApiExercisePrescription, idx: number, exercis
   const isAccessory = ex.type === "ACCESSORY";
   const methodLower = ex.method?.toLowerCase() as any;
 
-  // Determine intensityType: accessories default to RIR; basics with straight_sets/ramp/wave use RPE via topSetRpe
+  // Determine intensityType from DB field, fallback to RIR for accessories
   const intensityType = isAccessory
-    ? ((ex.rirMin != null || ex.rirMax != null) ? "RIR" : "RPE") as "RIR" | "RPE"
+    ? (ex.intensityType as "RIR" | "RPE" || "RIR")
     : undefined;
 
   return {
