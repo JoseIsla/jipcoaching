@@ -189,6 +189,21 @@ router.post("/:id/submit", async (req, res) => {
 
     // Save training log
     if (trainingLog && Array.isArray(trainingLog)) {
+      // Delete pre-populated training logs (created during generation) to avoid duplicates
+      const existingLogs = await prisma.checkinTrainingLog.findMany({
+        where: { checkinId },
+        select: { id: true },
+      });
+      if (existingLogs.length > 0) {
+        const logIds = existingLogs.map((l) => l.id);
+        await prisma.checkinTrainingExercise.deleteMany({
+          where: { logId: { in: logIds } },
+        });
+        await prisma.checkinTrainingLog.deleteMany({
+          where: { checkinId },
+        });
+      }
+
       for (const day of trainingLog) {
         const log = await prisma.checkinTrainingLog.create({
           data: {
