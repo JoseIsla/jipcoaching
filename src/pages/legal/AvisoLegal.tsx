@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import LegalBreadcrumbJsonLd from "@/components/legal/LegalBreadcrumbJsonLd";
 
 const AvisoLegal = () => (
   <div className="min-h-screen bg-background text-foreground">
+    <LegalBreadcrumbJsonLd pageName="Aviso Legal" pageUrl="/legal/aviso-legal" />
     <div className="max-w-3xl mx-auto px-4 py-16">
-      <Link to="/home" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
+      <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
         <ArrowLeft className="h-4 w-4" /> Volver al inicio
       </Link>
       <h1 className="text-3xl font-bold mb-8">Aviso Legal</h1>
