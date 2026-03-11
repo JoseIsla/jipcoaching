@@ -147,11 +147,19 @@ const QuestionField = ({ q, value, onChange }: { q: QuestionDefinition; value: s
 const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [responses, setResponses] = useState<Record<string, string | number | boolean>>(entry.responses || {});
   const [submitted, setSubmitted] = useState(entry.status === "respondido");
   const { toast } = useToast();
   const submitEntry = useQuestionnaireStore((s) => s.submitEntry);
   const windowStatus = getEntryWindowStatus(entry);
+  const storeTemplates = useTemplateStore((s) => s.nutritionTemplates);
+  const template = storeTemplates.find((tp) => tp.id === entry.templateId)
+    || localNutritionTemplates.find((tp) => tp.id === entry.templateId);
+  const questions: QuestionDefinition[] = template?.questions
+    || (entry.templateQuestions || []).map((q) => ({ id: q.id, label: q.label, type: q.type as any, required: q.required, options: q.options }))
+    || [];
+  const [responses, setResponses] = useState<Record<string, string | number | boolean>>(() =>
+    buildDefaultResponses(questions, entry.responses || {})
+  );
   const canFill = !submitted && windowStatus === "within";
   const countdown = useCountdown(entry, canFill);
   const storeTemplates = useTemplateStore((s) => s.nutritionTemplates);
