@@ -149,6 +149,7 @@ router.post("/plans", requireRole("ADMIN"), async (req, res) => {
                     order: e.order || ei,
                     backoffSets: e.backoffSets,
                     backoffPercent: e.backoffPercent,
+                    backoffReps: e.backoffReps || null,
                     technicalNotes: e.technicalNotes,
                     reps: e.reps || null,
                     plannedLoad: e.plannedLoad || null,
