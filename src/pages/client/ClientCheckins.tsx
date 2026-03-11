@@ -205,15 +205,17 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const { client } = useClient();
   const [open, setOpen] = useState(false);
   const [trainingLog, setTrainingLog] = useState<TrainingLogDay[]>(entry.trainingLog || []);
-  const [responses, setResponses] = useState<Record<string, string | number | boolean>>(entry.responses || {});
+  const storeTrainingTemplate = useTemplateStore((s) => s.trainingTemplate);
+  const questions = storeTrainingTemplate?.questions?.length > 0 ? storeTrainingTemplate.questions : localTrainingTemplate.questions;
+  const [responses, setResponses] = useState<Record<string, string | number | boolean>>(() =>
+    buildDefaultResponses(questions, entry.responses || {})
+  );
   const [submitted, setSubmitted] = useState(entry.status === "respondido");
   const [activeDay, setActiveDay] = useState(0);
   const { toast } = useToast();
   const submitEntry = useQuestionnaireStore((s) => s.submitEntry);
   const addVideoToEntry = useQuestionnaireStore((s) => s.addVideoToEntry);
   const removeVideoFromEntry = useQuestionnaireStore((s) => s.removeVideoFromEntry);
-  const storeTrainingTemplate = useTemplateStore((s) => s.trainingTemplate);
-  const questions = storeTrainingTemplate?.questions?.length > 0 ? storeTrainingTemplate.questions : localTrainingTemplate.questions;
 
   // Video upload state
   const [showVideoUpload, setShowVideoUpload] = useState(false);
