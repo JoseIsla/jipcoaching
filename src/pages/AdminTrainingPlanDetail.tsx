@@ -135,8 +135,12 @@ const ExerciseForm = ({
                 <Input type="number" className="h-8 text-xs bg-background border-border" value={exercise.backoffSets ?? ""} onChange={(e) => update({ backoffSets: Number(e.target.value) || undefined })} />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">% Back-off</Label>
+                <Label className="text-xs text-muted-foreground">RPE Back-off</Label>
                 <Input type="number" step={0.5} className="h-8 text-xs bg-background border-border" value={exercise.backoffPercent ?? ""} onChange={(e) => update({ backoffPercent: Number(e.target.value) || undefined })} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Reps Back-off</Label>
+                <Input className="h-8 text-xs bg-background border-border" placeholder="Ej: 2, 3-5" value={exercise.backoffReps ?? ""} onChange={(e) => update({ backoffReps: e.target.value })} />
               </div>
             </>
           )}

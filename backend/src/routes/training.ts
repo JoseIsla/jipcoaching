@@ -361,6 +361,7 @@ router.put("/days/:dayId", requireRole("ADMIN"), async (req, res) => {
             order: e.order ?? i,
             backoffSets: e.backoffSets ? parseInt(e.backoffSets) : null,
             backoffPercent: e.backoffPercent ? parseFloat(e.backoffPercent) : null,
+            backoffReps: e.backoffReps || null,
             technicalNotes: e.technicalNotes || null,
             reps: e.reps || null,
             plannedLoad: e.plannedLoad || null,

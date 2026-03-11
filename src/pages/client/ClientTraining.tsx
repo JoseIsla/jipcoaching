@@ -54,7 +54,7 @@ const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<strin
                     )}
                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                       {ex.topSetReps && <span><span className="font-medium text-foreground">Top Set:</span> {ex.topSetReps} reps{ex.topSetRPE ? ` @RPE ${ex.topSetRPE}` : ""}</span>}
-                      {ex.backoffSets && <span><span className="font-medium text-foreground">Back-off:</span> {ex.backoffSets} sets{ex.fatiguePercent ? ` @${ex.fatiguePercent}%` : ""}{ex.backoffPercent ? ` @${ex.backoffPercent}%` : ""}</span>}
+                      {ex.backoffSets && <span><span className="font-medium text-foreground">Back-off:</span> {ex.backoffSets} sets{ex.backoffPercent ? ` @RPE ${ex.backoffPercent}` : ""}{ex.backoffReps ? ` × ${ex.backoffReps} reps` : ""}</span>}
                       {ex.estimatedSeries && <span><span className="font-medium text-foreground">Series est.:</span> {ex.estimatedSeries}</span>}
                       {ex.sets && <span>{ex.sets} {t("clientTraining.series")}</span>}
                       {ex.reps && <span>× {ex.reps}</span>}

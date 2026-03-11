@@ -380,6 +380,7 @@ model ExercisePrescription {
   // Additional fields from frontend
   backoffSets    Int?
   backoffPercent Float?
+  backoffReps    String?       @db.VarChar(20)
   technicalNotes String?       @db.Text
   reps           String?       // e.g. "8-10", free-form reps text
   estimatedSeries    String?       @db.VarChar(50)
