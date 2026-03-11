@@ -48,6 +48,7 @@ export interface TrainingExerciseEntry {
   estimatedSeries?: string;
   backoffSets?: number;
   backoffPercent?: number;
+  backoffReps?: string;
   // For straight sets / accessories / general
   sets?: string;
   reps?: string;
