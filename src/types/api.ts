@@ -258,6 +258,7 @@ export interface ApiExercisePrescription {
   backoffRule?: string;
   customMethodName?: string;
   customMethodDescription?: string;
+  intensityType?: string;
   createdAt?: string;
   updatedAt?: string;
 }
