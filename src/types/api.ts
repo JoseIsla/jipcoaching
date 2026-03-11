@@ -251,6 +251,7 @@ export interface ApiExercisePrescription {
   order: number;
   backoffSets?: number;
   backoffPercent?: number;
+  backoffReps?: string;
   technicalNotes?: string;
   reps?: string;
   plannedLoad?: string;
