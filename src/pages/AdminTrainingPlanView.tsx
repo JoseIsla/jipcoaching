@@ -25,7 +25,7 @@ const ExerciseRow = ({ ex, section }: { ex: TrainingExerciseEntry; section: "bas
       {ex.topSetReps != null && <span><strong>Top Set:</strong> {ex.topSetReps} reps{ex.topSetRPE != null ? ` @RPE ${ex.topSetRPE}` : ""}</span>}
       {ex.fatiguePercent != null && <span><strong>% Fatiga:</strong> {ex.fatiguePercent}%</span>}
       {ex.estimatedSeries && <span><strong>Series est.:</strong> {ex.estimatedSeries}</span>}
-      {ex.backoffSets != null && <span><strong>Back-off:</strong> {ex.backoffSets} sets{ex.backoffPercent != null ? ` @RPE ${ex.backoffPercent}` : ""}{ex.backoffReps ? ` × ${ex.backoffReps} reps` : ""}</span>}
+      {ex.backoffSets != null && <span><strong>Back-off:</strong> {ex.backoffSets} sets{ex.backoffReps ? ` × ${ex.backoffReps} reps` : ""}{ex.backoffPercent != null ? ` @RPE ${ex.backoffPercent}` : ""}</span>}
       {ex.sets && <span><strong>Series:</strong> {ex.sets}</span>}
       {ex.reps && <span><strong>Reps:</strong> {ex.reps}</span>}
       {/* RPE for methods without topSetReps (straight_sets, ramp, wave, custom) */}
