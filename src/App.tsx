@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AdminProfileProvider } from "@/contexts/AdminProfileContext";
 import { ClientProvider } from "@/contexts/ClientContext";
 import { ClientProfileProvider } from "@/contexts/ClientProfileContext";
@@ -75,7 +75,7 @@ const App = () => (
               <Suspense fallback={<LoadingScreen />}>
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
-                  <Route path="/home" element={<LandingPage />} />
+                  <Route path="/home" element={<Navigate to="/" replace />} />
                   <Route path="/legal/aviso-legal" element={<AvisoLegal />} />
                   <Route path="/legal/privacidad" element={<PoliticaPrivacidad />} />
                   <Route path="/legal/cookies" element={<PoliticaCookies />} />
