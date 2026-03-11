@@ -329,7 +329,8 @@ export const exportTrainingWeekPDF = (
         if (ex.topSetReps) prescription.push(`Top: ${ex.topSetReps} reps`);
         if (ex.topSetRPE) prescription.push(`@RPE ${ex.topSetRPE}`);
         if (ex.backoffSets) prescription.push(`Back-off: ${ex.backoffSets} sets`);
-        if (ex.backoffPercent) prescription.push(`@${ex.backoffPercent}%`);
+        if (ex.backoffReps) prescription.push(`× ${ex.backoffReps} reps`);
+        if (ex.backoffPercent) prescription.push(`@RPE ${ex.backoffPercent}`);
         if (ex.fatiguePercent) prescription.push(`Fatiga: ${ex.fatiguePercent}%`);
         if (ex.estimatedSeries) prescription.push(`Series est.: ${ex.estimatedSeries}`);
         if (ex.sets) prescription.push(`${ex.sets} series`);
