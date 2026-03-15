@@ -175,12 +175,20 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
     try {
       const query = clientId ? `?clientId=${clientId}` : "";
       const data = await api.get<QuestionnaireEntry[]>(`/checkins${query}`);
+      // Resolve video URLs
+      const resolved = (data ?? []).map((e) => ({
+        ...e,
+        techniqueVideos: e.techniqueVideos?.map((v) => ({
+          ...v,
+          url: resolveUrl(v.url) || v.url,
+        })),
+      }));
       set((s) => {
         // Merge API entries with any locally-generated auto-entries (training)
         const autoEntries = s.entries.filter((e) => e.id.startsWith("qe-t-auto-"));
-        const apiIds = new Set((data ?? []).map((e) => e.id));
+        const apiIds = new Set(resolved.map((e) => e.id));
         const nonDuplicateAuto = autoEntries.filter((e) => !apiIds.has(e.id));
-        return { entries: [...(data ?? []), ...nonDuplicateAuto], loading: false };
+        return { entries: [...resolved, ...nonDuplicateAuto], loading: false };
       });
     } catch (err: any) {
       set({ error: err?.message ?? "Error al cargar check-ins", loading: false });
