@@ -96,14 +96,18 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   notifications: DEV_MOCK ? initialNotifications : [],
   unreadCount: DEV_MOCK ? initialNotifications.filter((n) => !n.read).length : 0,
   loading: false,
+  _dismissedIds: new Set<string>(),
 
   fetchNotifications: async () => {
-    if (DEV_MOCK) return; // Use initial mock data
+    if (DEV_MOCK) return;
 
     set({ loading: true });
     try {
       const data = await api.get<any[]>("/notifications");
-      const notifications = (data ?? []).map(mapApiNotification);
+      const dismissed = get()._dismissedIds;
+      const notifications = (data ?? [])
+        .map(mapApiNotification)
+        .filter((n) => !dismissed.has(n.id));
       set({
         notifications,
         unreadCount: notifications.filter((n) => !n.read).length,
@@ -141,12 +145,31 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
   removeNotification: (id) => {
     set((state) => {
+      const dismissed = new Set(state._dismissedIds);
+      dismissed.add(id);
       const updated = state.notifications.filter((n) => n.id !== id);
-      return { notifications: updated, unreadCount: updated.filter((n) => !n.read).length };
+      return {
+        notifications: updated,
+        unreadCount: updated.filter((n) => !n.read).length,
+        _dismissedIds: dismissed,
+      };
     });
 
     if (!DEV_MOCK) {
       api.delete(`/notifications/${id}`).catch(() => {});
+    }
+  },
+
+  clearAll: () => {
+    const ids = get().notifications.map((n) => n.id);
+    set((state) => {
+      const dismissed = new Set(state._dismissedIds);
+      ids.forEach((id) => dismissed.add(id));
+      return { notifications: [], unreadCount: 0, _dismissedIds: dismissed };
+    });
+
+    if (!DEV_MOCK) {
+      ids.forEach((id) => api.delete(`/notifications/${id}`).catch(() => {}));
     }
   },
 
