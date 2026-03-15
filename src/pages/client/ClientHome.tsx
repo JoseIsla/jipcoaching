@@ -11,6 +11,7 @@ import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
 import { useQuestionnaireStore, isActionablePending } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
 import ClientTestimonialCard from "@/components/client/ClientTestimonialCard";
+import PullToRefresh from "@/components/client/PullToRefresh";
 
 const ClientHome = () => {
   const { t } = useTranslation();
