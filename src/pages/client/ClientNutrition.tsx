@@ -84,8 +84,13 @@ const ClientNutrition = () => {
   const fruits = useExerciseLibraryStore((s) => s.fruits);
   const vegetables = useExerciseLibraryStore((s) => s.vegetables);
 
-  // Fetch plans, supplements, and foods from API on mount
-  useEffect(() => { fetchPlans(client.id); fetchSupplements(); fetchFoods(); }, [client.id]);
+  const refreshData = useCallback(async () => {
+    await fetchPlans(client.id);
+    await fetchSupplements();
+    await fetchFoods();
+  }, [client.id, fetchPlans, fetchSupplements, fetchFoods]);
+
+  useEffect(() => { refreshData(); }, [client.id]);
 
   const activePlanSummary = plans.find((p) => p.clientId === client.id && p.active);
   const planDetail = activePlanSummary ? details[activePlanSummary.id] : null;
