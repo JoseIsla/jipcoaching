@@ -461,7 +461,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                         <span className="block text-center text-[9px] text-primary/70 leading-none mb-0.5">Real</span>
                                         <DecimalInput
                                           value={ex.actualRPE ?? undefined}
-                                          onChange={(v) => updateExercise(dayIdx, exIdx, "actualRPE", v ?? 0)}
+                                          onChange={(v) => updateExercise(dayIdx, exIdx, "actualRPE", v as any)}
                                           placeholder="—"
                                           className="h-7 text-[11px] text-center bg-background border-border px-1"
                                         />
