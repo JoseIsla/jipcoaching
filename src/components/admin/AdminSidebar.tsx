@@ -31,6 +31,40 @@ type NavEntry = NavItem | NavGroup;
 
 const isGroup = (entry: NavEntry): entry is NavGroup => "children" in entry;
 
+/** Animated badge that bounces when count changes */
+const AnimatedBadge = ({ count, size = "md" }: { count: number; size?: "sm" | "md" }) => {
+  const prevCount = useRef(count);
+  const [key, setKey] = useState(0);
+
+  useEffect(() => {
+    if (count !== prevCount.current) {
+      setKey((k) => k + 1);
+      prevCount.current = count;
+    }
+  }, [count]);
+
+  const sizeClasses = size === "sm"
+    ? "h-4 min-w-4 px-0.5 text-[10px] -top-1.5 -right-1.5"
+    : "h-5 min-w-5 px-1 text-[10px]";
+
+  return (
+    <AnimatePresence mode="wait">
+      {count > 0 && (
+        <motion.span
+          key={key}
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.5, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 500, damping: 20 }}
+          className={`${sizeClasses} flex items-center justify-center rounded-full bg-primary text-primary-foreground font-bold`}
+        >
+          {count}
+        </motion.span>
+      )}
+    </AnimatePresence>
+  );
+};
+
 const navEntries: NavEntry[] = [
   { key: "sidebar.dashboard", icon: LayoutDashboard, path: "/admin" },
   { key: "sidebar.clients", icon: Users, path: "/admin/clients" },
