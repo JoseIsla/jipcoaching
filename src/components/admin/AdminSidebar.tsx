@@ -159,11 +159,9 @@ const AdminSidebar = () => {
         {showLabel && (
           <span className="flex-1 flex items-center justify-between">
             {t(item.key)}
-            {badgeCount > 0 && (
-              <span className="ml-auto h-5 min-w-5 px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
-                {badgeCount}
-              </span>
-            )}
+            <span className="ml-auto">
+              <AnimatedBadge count={badgeCount} />
+            </span>
           </span>
         )}
       </NavLink>
