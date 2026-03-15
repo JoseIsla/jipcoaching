@@ -148,7 +148,7 @@ const QuestionField = ({ q, value, onChange }: { q: QuestionDefinition; value: s
 const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [submitted, setSubmitted] = useState(entry.status === "respondido");
+  const [submitted, setSubmitted] = useState(entry.status === "respondido" || entry.status === "revisado");
   const { toast } = useToast();
   const submitEntry = useQuestionnaireStore((s) => s.submitEntry);
   const windowStatus = getEntryWindowStatus(entry);
