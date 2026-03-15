@@ -213,7 +213,7 @@ const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
         <AnimatedCollapsibleContent open={open}>
           <div className="p-4 pt-0 space-y-4">
             {canFill ? (
-              <>{questions.map((q) => <QuestionField key={q.id} q={q} value={responses[q.id]} onChange={(v) => setResponses({ ...responses, [q.id]: v })} />)}<Button onClick={handleSubmit} className="w-full glow-primary-sm">{t("clientCheckins.submitCheckin")}</Button></>
+              <>{questions.map((q) => <QuestionField key={q.id} q={q} value={responses[q.id]} error={errors[q.id]} onChange={(v) => { setResponses({ ...responses, [q.id]: v }); if (errors[q.id]) setErrors((prev) => { const next = { ...prev }; delete next[q.id]; return next; }); }} />)}<Button onClick={handleSubmit} className="w-full glow-primary-sm">{t("clientCheckins.submitCheckin")}</Button></>
             ) : submitted ? (
               <div className="space-y-2">{questions.map((q) => <div key={q.id} className="flex justify-between items-start py-1 border-b border-border/30 last:border-0"><span className="text-xs text-muted-foreground">{q.label}</span><span className="text-xs font-medium text-foreground ml-3">{responses[q.id] !== undefined ? (responses[q.id] === true || responses[q.id] === "true") ? "Sí" : (responses[q.id] === false || responses[q.id] === "false") ? "No" : String(responses[q.id]) : "—"}</span></div>)}</div>
             ) : windowStatus === "future" ? (
