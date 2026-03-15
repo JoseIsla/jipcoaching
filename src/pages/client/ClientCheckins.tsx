@@ -385,66 +385,80 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                       ))}
                     </TabsList>
                     {trainingLog.map((day, dayIdx) => (
-                      <TabsContent key={dayIdx} value={String(dayIdx)} className="mt-3 space-y-3">
-                        {day.exercises.map((ex, exIdx) => (
-                          <div key={exIdx} className="rounded-lg border border-border p-3 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <p className="text-sm font-medium text-foreground">{ex.exerciseName}</p>
-                              <Badge variant="outline" className="text-[10px] border-border text-muted-foreground">
-                                {ex.section === "basic" ? "🏋️" : "🎯"} {ex.plannedSets}×{ex.plannedReps}
-                              </Badge>
-                            </div>
-                            {/* Planned info */}
-                            <div className="flex gap-2 text-[10px] text-muted-foreground bg-muted/50 rounded p-1.5">
-                              <span>{t("clientCheckins.planned")}: {ex.plannedSets}×{ex.plannedReps}</span>
-                              {ex.plannedLoad !== "—" && <span>· {ex.plannedLoad}</span>}
-                              {ex.plannedRPE && <span>· RPE {ex.plannedRPE}</span>}
-                            </div>
-                            {/* Actual inputs */}
-                            <div className="grid grid-cols-2 gap-2">
-                              <div className="space-y-1">
-                                <Label className="text-[10px] text-muted-foreground">{t("clientCheckins.actualWeight")}</Label>
-                                <Input
-                                  type="text"
-                                  inputMode="decimal"
-                                  className="h-8 text-xs bg-background border-border"
-                                  value={ex.actualWeight ?? ""}
-                                  onChange={(e) => updateExercise(dayIdx, exIdx, "actualWeight", parseDecimal(e.target.value))}
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-[10px] text-muted-foreground">{t("clientCheckins.actualRPE")}</Label>
-                                <Input
-                                  type="text"
-                                  inputMode="decimal"
-                                  className="h-8 text-xs bg-background border-border"
-                                  value={ex.actualRPE ?? ""}
-                                  onChange={(e) => updateExercise(dayIdx, exIdx, "actualRPE", parseDecimal(e.target.value))}
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-[10px] text-muted-foreground">{t("clientCheckins.actualSets")}</Label>
-                                <Input
-                                  type="text"
-                                  className="h-8 text-xs bg-background border-border"
-                                  placeholder={ex.plannedSets}
-                                  value={ex.actualSets ?? ""}
-                                  onChange={(e) => updateExercise(dayIdx, exIdx, "actualSets", e.target.value)}
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-[10px] text-muted-foreground">{t("clientCheckins.actualReps")}</Label>
-                                <Input
-                                  type="text"
-                                  className="h-8 text-xs bg-background border-border"
-                                  placeholder={ex.plannedReps}
-                                  value={ex.actualReps ?? ""}
-                                  onChange={(e) => updateExercise(dayIdx, exIdx, "actualReps", e.target.value)}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                      <TabsContent key={dayIdx} value={String(dayIdx)} className="mt-3">
+                        <div className="rounded-lg border border-border overflow-hidden">
+                          <table className="w-full text-[10px]">
+                            <thead>
+                              <tr className="bg-muted/50">
+                                <th className="px-2 py-1.5 text-left text-muted-foreground font-medium">Ejercicio</th>
+                                <th className="px-2 py-1.5 text-center text-muted-foreground font-medium">{t("clientCheckins.planned")}</th>
+                                <th className="px-2 py-1.5 text-center text-primary font-medium">{t("clientCheckins.actual")}</th>
+                                <th className="px-2 py-1.5 text-center text-muted-foreground font-medium">RPE</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {day.exercises.map((ex, exIdx) => (
+                                <tr key={exIdx} className="border-t border-border/50 align-top">
+                                  <td className="px-2 py-2 font-medium text-foreground max-w-[90px]">
+                                    <span className="block leading-tight">{ex.exerciseName}</span>
+                                  </td>
+                                  <td className="px-2 py-2 text-center text-muted-foreground">
+                                    <span className="block">{ex.plannedSets}×{ex.plannedReps}</span>
+                                    {ex.plannedLoad && ex.plannedLoad !== "—" && (
+                                      <span className="block text-[9px] text-muted-foreground/70 mt-0.5">{ex.plannedLoad}</span>
+                                    )}
+                                  </td>
+                                  <td className="px-1.5 py-1.5">
+                                    <div className="flex flex-col gap-1">
+                                      <DecimalInput
+                                        value={ex.actualWeight ?? undefined}
+                                        onChange={(v) => updateExercise(dayIdx, exIdx, "actualWeight", v ?? 0)}
+                                        placeholder="kg"
+                                        className="h-7 text-[11px] text-center bg-background border-border px-1"
+                                      />
+                                      <div className="flex gap-0.5">
+                                        <Input
+                                          type="text"
+                                          className="h-6 text-[10px] text-center bg-background border-border px-1"
+                                          placeholder={ex.plannedSets}
+                                          value={ex.actualSets ?? ""}
+                                          onChange={(e) => updateExercise(dayIdx, exIdx, "actualSets", e.target.value)}
+                                        />
+                                        <span className="text-muted-foreground self-center text-[9px]">×</span>
+                                        <Input
+                                          type="text"
+                                          className="h-6 text-[10px] text-center bg-background border-border px-1"
+                                          placeholder={ex.plannedReps}
+                                          value={ex.actualReps ?? ""}
+                                          onChange={(e) => updateExercise(dayIdx, exIdx, "actualReps", e.target.value)}
+                                        />
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-1.5 py-1.5">
+                                    <div className="flex flex-col items-center gap-1">
+                                      {ex.plannedRPE && (
+                                        <span className="text-[9px] text-muted-foreground leading-none">
+                                          <span className="block text-center opacity-60">Pautado</span>
+                                          <span className="block text-center font-medium">{ex.plannedRPE}</span>
+                                        </span>
+                                      )}
+                                      <div className="w-full">
+                                        <span className="block text-center text-[9px] text-primary/70 leading-none mb-0.5">Real</span>
+                                        <DecimalInput
+                                          value={ex.actualRPE ?? undefined}
+                                          onChange={(v) => updateExercise(dayIdx, exIdx, "actualRPE", v ?? 0)}
+                                          placeholder="—"
+                                          className="h-7 text-[11px] text-center bg-background border-border px-1"
+                                        />
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                         {day.exercises.length === 0 && (
                           <p className="text-sm text-muted-foreground text-center py-4">{t("clientTraining.noExercises")}</p>
                         )}
