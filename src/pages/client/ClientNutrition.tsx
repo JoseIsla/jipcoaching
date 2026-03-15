@@ -178,6 +178,7 @@ const ClientNutrition = () => {
           </ControlledCollapsible>
         </motion.div>
       </motion.div>
+      </PullToRefresh>
     </ClientLayout>
   );
 };
