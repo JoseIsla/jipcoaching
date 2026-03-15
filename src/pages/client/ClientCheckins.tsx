@@ -659,8 +659,8 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                         </Button>
                       </div>
                     </div>
-                  )}
-
+        )}
+                  
                   {/* Attached videos list */}
                   {videos.length > 0 && (
                     <div className="space-y-2">
@@ -886,20 +886,27 @@ const ClientCheckins = () => {
 
   // Ensure we don't create the local auto check-in before the API has had a chance to return.
   const [hasFetched, setHasFetched] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(true);
+  const [syncError, setSyncError] = useState(false);
+
+  const loadCheckins = React.useCallback(async () => {
+    setIsSyncing(true);
+    setSyncError(false);
+    try {
+      await generateMyCheckins();
+      await fetchEntries(client.id);
+      setHasFetched(true);
+    } catch {
+      setSyncError(true);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [client.id, fetchEntries, generateMyCheckins]);
 
   // Generate + fetch check-ins from API on mount
   useEffect(() => {
-    let cancelled = false;
-    setHasFetched(false);
-    generateMyCheckins()
-      .then(() => fetchEntries(client.id))
-      .finally(() => {
-        if (!cancelled) setHasFetched(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [client.id, fetchEntries, generateMyCheckins]);
+    loadCheckins();
+  }, [loadCheckins]);
 
   const myEntries = allEntries.filter((e) => e.clientId === client.id);
 
@@ -939,6 +946,23 @@ const ClientCheckins = () => {
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2"><ClipboardList className="h-5 w-5 text-yellow-500" />{t("clientCheckins.title")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{t("clientCheckins.subtitle")}</p>
         </motion.div>
+        {isSyncing && (
+          <motion.div variants={fadeUp} className="flex items-center gap-2 bg-muted/50 border border-border rounded-lg px-3 py-2">
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            <span className="text-xs text-muted-foreground">Sincronizando check-ins…</span>
+          </motion.div>
+        )}
+        {syncError && !isSyncing && (
+          <motion.div variants={fadeUp} className="flex items-center justify-between bg-destructive/10 border border-destructive/30 rounded-lg px-3 py-2">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-destructive" />
+              <span className="text-xs text-destructive">Error al cargar los check-ins</span>
+            </div>
+            <Button variant="outline" size="sm" onClick={loadCheckins} className="h-7 text-xs">
+              Reintentar
+            </Button>
+          </motion.div>
+        )}
         <motion.div variants={fadeUp}>
           <Tabs defaultValue={defaultTab} className="space-y-4">
             <TabsList className="bg-card border border-border w-full">
