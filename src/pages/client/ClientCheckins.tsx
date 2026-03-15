@@ -208,6 +208,16 @@ const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   );
 };
 
+interface VideoQueueItem {
+  id: string;
+  file: File;
+  exerciseName: string;
+  notes: string;
+  status: "queued" | "compressing" | "uploading" | "done" | "error";
+  progress: string;
+  error?: string;
+}
+
 const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const { t } = useTranslation();
   const { client } = useClient();
@@ -236,16 +246,6 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   // Video upload state — batch support
   const [showVideoUpload, setShowVideoUpload] = useState(false);
   const videoFileRef = useRef<HTMLInputElement>(null);
-
-  interface VideoQueueItem {
-    id: string;
-    file: File;
-    exerciseName: string;
-    notes: string;
-    status: "queued" | "compressing" | "uploading" | "done" | "error";
-    progress: string;
-    error?: string;
-  }
   const [videoQueue, setVideoQueue] = useState<VideoQueueItem[]>([]);
 
   const updateQueueItem = (id: string, patch: Partial<VideoQueueItem>) => {
