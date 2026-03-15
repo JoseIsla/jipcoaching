@@ -161,6 +161,10 @@ const AdminCheckins = () => {
             <p className="text-muted-foreground text-sm mt-1">Revisión de check-ins de nutrición y entrenamiento</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleResetTrainingWeek} disabled={resetting} className="text-destructive border-destructive/30 hover:bg-destructive/10">
+              <RotateCcw className={`h-4 w-4 mr-1.5 ${resetting ? "animate-spin" : ""}`} />
+              {resetting ? "Reseteando…" : "Reset training"}
+            </Button>
             <Button variant="outline" size="icon" onClick={() => setWeekOffset((w) => w - 1)}><ChevronLeft className="h-4 w-4" /></Button>
             <span className="text-sm font-medium text-foreground min-w-[120px] text-center">{weekLabel}</span>
             <Button variant="outline" size="icon" onClick={() => setWeekOffset((w) => Math.min(w + 1, 0))}><ChevronRight className="h-4 w-4" /></Button>
