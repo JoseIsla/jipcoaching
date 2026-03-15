@@ -45,7 +45,7 @@ const PoliticaCookies = () => (
 
         <section>
           <h2 className="text-lg font-semibold text-foreground">5. Actualización</h2>
-          <p>Esta política de cookies puede actualizarse en función de cambios normativos o en los servicios ofrecidos. Te recomendamos revisarla periódicamente.</p>
+          <p>Esta política de cookies puede actualizarse en función de cambios normativos o en los servicios ofrecidos. Te recomendamos revisarla periódicamente. Para cualquier consulta, puedes contactar en <a href="mailto:info@jipcoaching.com" className="text-primary hover:underline">info@jipcoaching.com</a>.</p>
         </section>
       </div>
     </div>
