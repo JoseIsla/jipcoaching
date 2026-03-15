@@ -443,7 +443,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                       </div>
                                       <DecimalInput
                                         value={ex.actualWeight ?? undefined}
-                                        onChange={(v) => updateExercise(dayIdx, exIdx, "actualWeight", v ?? 0)}
+                                        onChange={(v) => updateExercise(dayIdx, exIdx, "actualWeight", v as any)}
                                         placeholder="kg"
                                         className="h-7 text-[11px] text-center bg-background border-border px-1"
                                       />
