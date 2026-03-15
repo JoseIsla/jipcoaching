@@ -118,6 +118,11 @@ const NumericInput = ({ value, onChange, label, required }: { value: string | nu
           // Allow digits, one comma or period, and leading minus
           if (v === "" || /^-?\d*[.,]?\d*$/.test(v)) {
             setRaw(v);
+            // Propagate complete numbers immediately (avoids missed blur on mobile submit)
+            if (v !== "" && v !== "-" && !v.endsWith(",") && !v.endsWith(".")) {
+              const n = parseDecimal(v, undefined as any);
+              if (!isNaN(n)) onChange(n);
+            }
           }
         }}
         onBlur={() => {

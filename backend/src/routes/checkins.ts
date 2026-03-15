@@ -294,7 +294,9 @@ router.post("/:id/submit", async (req, res) => {
       const weightValue = responses[weightQuestionId];
 
       if (weightValue) {
-        const weight = parseFloat(String(weightValue));
+        // Handle both comma and period as decimal separators (EU/ES locales)
+        const weightStr = String(weightValue).trim().replace(",", ".");
+        const weight = parseFloat(weightStr);
         if (!isNaN(weight) && weight > 0) {
           const today = new Date(new Date().toISOString().split("T")[0]);
           await prisma.weightEntry.upsert({

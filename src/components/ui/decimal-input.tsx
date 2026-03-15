@@ -42,6 +42,11 @@ const DecimalInput = ({ value, onChange, optional = true, className, placeholder
         const v = e.target.value;
         if (v === "" || /^-?\d*[.,]?\d*$/.test(v)) {
           setRaw(v);
+          // Propagate complete numbers immediately (avoids missed blur on mobile submit)
+          if (v !== "" && v !== "-" && !v.endsWith(",") && !v.endsWith(".")) {
+            const parsed = parseDecimal(v, undefined as any);
+            if (!isNaN(parsed)) onChange(optional && v === "" ? undefined : parsed);
+          }
         }
       }}
       onBlur={() => {
