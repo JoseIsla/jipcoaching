@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
@@ -13,6 +13,7 @@ import { useExerciseLibraryStore } from "@/data/useExerciseLibraryStore";
 import { exportNutritionPlanPDF } from "@/utils/exportClientPlanPDF";
 import { type ReactNode } from "react";
 import { useTranslation } from "@/i18n/useTranslation";
+import PullToRefresh from "@/components/client/PullToRefresh";
 
 const ControlledCollapsible = ({ trigger, children }: { trigger: ReactNode; children: ReactNode }) => {
   const [open, setOpen] = useState(false);
@@ -83,8 +84,13 @@ const ClientNutrition = () => {
   const fruits = useExerciseLibraryStore((s) => s.fruits);
   const vegetables = useExerciseLibraryStore((s) => s.vegetables);
 
-  // Fetch plans, supplements, and foods from API on mount
-  useEffect(() => { fetchPlans(client.id); fetchSupplements(); fetchFoods(); }, [client.id]);
+  const refreshData = useCallback(async () => {
+    await fetchPlans(client.id);
+    await fetchSupplements();
+    await fetchFoods();
+  }, [client.id, fetchPlans, fetchSupplements, fetchFoods]);
+
+  useEffect(() => { refreshData(); }, [client.id]);
 
   const activePlanSummary = plans.find((p) => p.clientId === client.id && p.active);
   const planDetail = activePlanSummary ? details[activePlanSummary.id] : null;
@@ -109,6 +115,7 @@ const ClientNutrition = () => {
 
   return (
     <ClientLayout>
+      <PullToRefresh onRefresh={refreshData}>
       <motion.div className="space-y-6 max-w-lg mx-auto" variants={stagger} initial="initial" animate="animate">
         <motion.div variants={fadeUp} className="flex items-start justify-between">
           <div>
@@ -171,6 +178,7 @@ const ClientNutrition = () => {
           </ControlledCollapsible>
         </motion.div>
       </motion.div>
+      </PullToRefresh>
     </ClientLayout>
   );
 };

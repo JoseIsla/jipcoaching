@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
 import { useQuestionnaireStore, isActionablePending } from "@/data/useQuestionnaireStore";
 import { useTranslation } from "@/i18n/useTranslation";
 import ClientTestimonialCard from "@/components/client/ClientTestimonialCard";
+import PullToRefresh from "@/components/client/PullToRefresh";
 
 const ClientHome = () => {
   const { t } = useTranslation();
@@ -28,12 +29,14 @@ const ClientHome = () => {
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
   const generateMyCheckins = useQuestionnaireStore((s) => s.generateMyCheckins);
 
-  // Generate checkins + fetch data from API on mount
-  useEffect(() => {
-    generateMyCheckins().then(() => fetchEntries(client.id));
-    if (hasNutrition) fetchWeightHistory(client.id);
-    if (hasTraining) fetchRMRecords(client.id);
-  }, [client.id]);
+  const refreshData = useCallback(async () => {
+    await generateMyCheckins();
+    await fetchEntries(client.id);
+    if (hasNutrition) await fetchWeightHistory(client.id);
+    if (hasTraining) await fetchRMRecords(client.id);
+  }, [client.id, hasNutrition, hasTraining, generateMyCheckins, fetchEntries, fetchWeightHistory, fetchRMRecords]);
+
+  useEffect(() => { refreshData(); }, [client.id]);
   const activePlan = hasNutrition ? nutritionPlans.find((p) => p.clientId === client.id && p.active) : null;
   const activeTraining = hasTraining ? trainingPlans.find((p) => p.clientId === client.id && p.active) : null;
   const pendingCheckins = entries.filter((e) => e.clientId === client.id && isActionablePending(e)).length;
@@ -51,6 +54,7 @@ const ClientHome = () => {
 
   return (
     <ClientLayout>
+      <PullToRefresh onRefresh={refreshData}>
       <div className="space-y-5 max-w-lg mx-auto">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: "easeOut" }}>
           <h1 className="text-2xl font-bold text-foreground">{t("clientHome.greeting", { name: client.name.split(" ")[0] })}</h1>
@@ -139,6 +143,7 @@ const ClientHome = () => {
         {/* Testimonial */}
         <ClientTestimonialCard />
       </div>
+      </PullToRefresh>
     </ClientLayout>
   );
 };

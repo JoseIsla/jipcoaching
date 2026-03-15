@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +9,7 @@ import AdherenceCard from "@/components/client/progress/AdherenceCard";
 import NutritionProgressTab from "@/components/client/progress/NutritionProgressTab";
 import TrainingProgressTab from "@/components/client/progress/TrainingProgressTab";
 import { motion } from "framer-motion";
+import PullToRefresh from "@/components/client/PullToRefresh";
 
 const stagger = { animate: { transition: { staggerChildren: 0.08 } } };
 const fadeUp = {
@@ -28,12 +29,13 @@ const ClientProgress = () => {
   const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
 
-  // Fetch data from API on mount
-  useEffect(() => {
-    fetchEntries(client.id);
-    if (hasNutrition) fetchWeightHistory(client.id);
-    if (hasTraining) fetchRMRecords(client.id);
-  }, [client.id]);
+  const refreshData = useCallback(async () => {
+    await fetchEntries(client.id);
+    if (hasNutrition) await fetchWeightHistory(client.id);
+    if (hasTraining) await fetchRMRecords(client.id);
+  }, [client.id, hasNutrition, hasTraining, fetchEntries, fetchWeightHistory, fetchRMRecords]);
+
+  useEffect(() => { refreshData(); }, [client.id]);
 
   const weightData = getWeightHistory(client.id);
   const bestRMs = getBestRMs(client.id);
@@ -42,6 +44,7 @@ const ClientProgress = () => {
 
   return (
     <ClientLayout>
+      <PullToRefresh onRefresh={refreshData}>
       <motion.div
         className="space-y-5 max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto"
         variants={stagger}
@@ -81,6 +84,7 @@ const ClientProgress = () => {
           </Tabs>
         </motion.div>
       </motion.div>
+      </PullToRefresh>
     </ClientLayout>
   );
 };

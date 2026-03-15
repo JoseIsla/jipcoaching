@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
@@ -11,6 +11,7 @@ import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-con
 import { useTrainingPlanStore, TRAINING_METHOD_LABELS, type TrainingPlanFull, type TrainingWeek, type TrainingDay } from "@/data/useTrainingPlanStore";
 import { exportTrainingWeekPDF } from "@/utils/exportClientPlanPDF";
 import { useTranslation } from "@/i18n/useTranslation";
+import PullToRefresh from "@/components/client/PullToRefresh";
 
 const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<string, string | number>) => string }) => {
   const [open, setOpen] = useState(false);
@@ -103,8 +104,11 @@ const ClientTraining = () => {
   const fetchPlanDetail = useTrainingPlanStore((s) => s.fetchPlanDetail);
   const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
 
-  // Fetch plans from API on mount
-  useEffect(() => { fetchPlans(client.id); }, [client.id]);
+  const refreshData = useCallback(async () => {
+    await fetchPlans(client.id);
+  }, [client.id, fetchPlans]);
+
+  useEffect(() => { refreshData(); }, [client.id]);
 
   const activePlan = plans.find((p) => p.clientId === client.id && p.active);
 
@@ -148,6 +152,7 @@ const ClientTraining = () => {
 
   return (
     <ClientLayout>
+      <PullToRefresh onRefresh={refreshData}>
       <motion.div className="space-y-5 max-w-lg mx-auto" variants={stagger} initial="initial" animate="animate">
         <motion.div variants={fadeUp} className="flex items-start justify-between">
           <div>
@@ -197,6 +202,7 @@ const ClientTraining = () => {
           </motion.div>
         )}
       </motion.div>
+      </PullToRefresh>
     </ClientLayout>
   );
 };
