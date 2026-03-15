@@ -94,9 +94,8 @@ const useCountdown = (entry: QuestionnaireEntry, isActive: boolean): string => {
   return remaining;
 };
 
-const NumericInput = ({ value, onChange, label, required }: { value: string | number | boolean | undefined; onChange: (v: string | number | boolean) => void; label: string; required?: boolean }) => {
+const NumericInput = ({ value, onChange, label, required, error }: { value: string | number | boolean | undefined; onChange: (v: string | number | boolean) => void; label: string; required?: boolean; error?: string }) => {
   const [raw, setRaw] = React.useState(value != null && value !== "" ? String(value) : "");
-  // Sync from parent when value changes externally
   React.useEffect(() => {
     const parsed = parseDecimal(raw, -Infinity);
     if (value != null && value !== "" && typeof value === "number" && parsed !== value) {
@@ -112,14 +111,12 @@ const NumericInput = ({ value, onChange, label, required }: { value: string | nu
       <Input
         type="text"
         inputMode="decimal"
-        className="bg-background border-border h-10"
+        className={`bg-background h-10 ${error ? "border-destructive focus-visible:ring-destructive" : "border-border"}`}
         value={raw}
         onChange={(e) => {
           const v = e.target.value;
-          // Allow digits, one comma or period, and leading minus
           if (v === "" || /^-?\d*[.,]?\d*$/.test(v)) {
             setRaw(v);
-            // Propagate complete numbers immediately (avoids missed blur on mobile submit)
             if (v !== "" && v !== "-" && !v.endsWith(",") && !v.endsWith(".")) {
               const n = parseDecimal(v, undefined as any);
               if (!isNaN(n)) onChange(n);
@@ -137,13 +134,14 @@ const NumericInput = ({ value, onChange, label, required }: { value: string | nu
           }
         }}
       />
+      {error && <p className="text-[11px] text-destructive">{error}</p>}
     </div>
   );
 };
 
-const QuestionField = ({ q, value, onChange }: { q: QuestionDefinition; value: string | number | boolean | undefined; onChange: (v: string | number | boolean) => void }) => {
+const QuestionField = ({ q, value, onChange, error }: { q: QuestionDefinition; value: string | number | boolean | undefined; onChange: (v: string | number | boolean) => void; error?: string }) => {
   switch (q.type) {
-    case "number": return (<NumericInput value={value} onChange={onChange} label={q.label} required={q.required} />);
+    case "number": return (<NumericInput value={value} onChange={onChange} label={q.label} required={q.required} error={error} />);
     case "scale": return (<div className="space-y-2"><Label className="text-sm text-foreground">{q.label}{q.required && " *"}</Label><div className="flex items-center gap-3"><Slider value={[typeof value === "number" ? value : 5]} onValueChange={([v]) => onChange(v)} min={1} max={10} step={1} className="flex-1" /><span className="text-sm font-bold text-primary w-6 text-right">{typeof value === "number" ? value : "—"}</span></div></div>);
     case "yesno": return (<div className="flex items-center justify-between"><Label className="text-sm text-foreground">{q.label}{q.required && " *"}</Label><Switch checked={value === true} onCheckedChange={(v) => onChange(v)} /></div>);
     case "select": return (<div className="space-y-1"><Label className="text-sm text-foreground">{q.label}{q.required && " *"}</Label><Select value={value as string || ""} onValueChange={onChange}><SelectTrigger className="bg-background border-border h-10"><SelectValue placeholder="..." /></SelectTrigger><SelectContent>{q.options?.map((opt) => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent></Select></div>);
@@ -167,10 +165,31 @@ const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const [responses, setResponses] = useState<Record<string, string | number | boolean>>(() =>
     buildDefaultResponses(questions, entry.responses || {})
   );
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const canFill = !submitted && windowStatus === "within";
   const countdown = useCountdown(entry, canFill);
 
+  /** Identify weight questions (number type with "peso"/"weight" in label) */
+  const isWeightQuestion = (q: QuestionDefinition) =>
+    q.type === "number" && (q.label.toLowerCase().includes("peso") || q.label.toLowerCase().includes("weight"));
+
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    for (const q of questions) {
+      if (isWeightQuestion(q)) {
+        const val = responses[q.id];
+        const num = typeof val === "number" ? val : parseDecimal(val as any, 0);
+        if (num <= 0) {
+          newErrors[q.id] = "El peso debe ser mayor que 0";
+        }
+      }
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async () => {
+    if (!validate()) return;
     const success = await submitEntry(entry.id, responses);
     if (success) {
       setSubmitted(true);
@@ -194,7 +213,7 @@ const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
         <AnimatedCollapsibleContent open={open}>
           <div className="p-4 pt-0 space-y-4">
             {canFill ? (
-              <>{questions.map((q) => <QuestionField key={q.id} q={q} value={responses[q.id]} onChange={(v) => setResponses({ ...responses, [q.id]: v })} />)}<Button onClick={handleSubmit} className="w-full glow-primary-sm">{t("clientCheckins.submitCheckin")}</Button></>
+              <>{questions.map((q) => <QuestionField key={q.id} q={q} value={responses[q.id]} error={errors[q.id]} onChange={(v) => { setResponses({ ...responses, [q.id]: v }); if (errors[q.id]) setErrors((prev) => { const next = { ...prev }; delete next[q.id]; return next; }); }} />)}<Button onClick={handleSubmit} className="w-full glow-primary-sm">{t("clientCheckins.submitCheckin")}</Button></>
             ) : submitted ? (
               <div className="space-y-2">{questions.map((q) => <div key={q.id} className="flex justify-between items-start py-1 border-b border-border/30 last:border-0"><span className="text-xs text-muted-foreground">{q.label}</span><span className="text-xs font-medium text-foreground ml-3">{responses[q.id] !== undefined ? (responses[q.id] === true || responses[q.id] === "true") ? "Sí" : (responses[q.id] === false || responses[q.id] === "false") ? "No" : String(responses[q.id]) : "—"}</span></div>)}</div>
             ) : windowStatus === "future" ? (
