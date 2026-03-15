@@ -380,7 +380,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
     set((state) => ({
       entries: state.entries.map((e) =>
         e.id === entryId
-          ? { ...e, techniqueVideos: [...(e.techniqueVideos || []), video] }
+          ? { ...e, techniqueVideos: [...(e.techniqueVideos || []), { ...video, url: resolveUrl(video.url) || video.url }] }
           : e
       ),
     })),
