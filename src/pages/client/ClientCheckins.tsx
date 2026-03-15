@@ -332,6 +332,10 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   };
 
   const handleSubmit = () => {
+    if (entry.id.startsWith("qe-t-auto-")) {
+      toast({ title: "Error de sincronización", description: "El check-in no se ha sincronizado con el servidor. Cierra y vuelve a abrir la app.", variant: "destructive" });
+      return;
+    }
     submitEntry(entry.id, responses, trainingLog);
     setSubmitted(true);
     toast({ title: t("clientCheckins.checkinSent"), description: t("clientCheckins.checkinSentDesc") });
