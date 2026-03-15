@@ -115,6 +115,7 @@ const ClientNutrition = () => {
 
   return (
     <ClientLayout>
+      <PullToRefresh onRefresh={refreshData}>
       <motion.div className="space-y-6 max-w-lg mx-auto" variants={stagger} initial="initial" animate="animate">
         <motion.div variants={fadeUp} className="flex items-start justify-between">
           <div>
