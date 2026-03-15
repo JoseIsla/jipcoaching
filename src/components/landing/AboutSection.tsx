@@ -33,7 +33,7 @@ const AboutSection = () => {
     { icon: Users, value: 50, suffix: "+", label: t("landing.about.stat1") },
     { icon: Calendar, value: 5, suffix: "+", label: t("landing.about.stat2") },
     { icon: Award, value: 100, suffix: "%", label: t("landing.about.stat3") },
-    { icon: GraduationCap, label: t("landing.about.stat4") },
+    { icon: GraduationCap, title: t("landing.about.stat4Title"), label: t("landing.about.stat4") },
   ];
 
   return (
@@ -80,7 +80,7 @@ const AboutSection = () => {
             </motion.div>
 
             <div className="grid grid-cols-2 gap-3">
-              {stats.map(({ icon: Icon, value, suffix, label }, i) => (
+              {stats.map(({ icon: Icon, value, suffix, title, label }, i) => (
                 <motion.div
                   key={label}
                   initial={{ opacity: 0, y: 15 }}
@@ -92,7 +92,7 @@ const AboutSection = () => {
                 >
                   <Icon className="h-5 w-5 text-primary mx-auto mb-2" />
                   <p className="text-xl font-black text-foreground">
-                    {value !== undefined ? <AnimatedNumber value={value} suffix={suffix} /> : null}
+                    {value !== undefined ? <AnimatedNumber value={value} suffix={suffix} /> : title}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
                 </motion.div>
