@@ -736,7 +736,13 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                   )}
                 </div>
 
-                <Button onClick={handleSubmit} className="w-full glow-primary-sm">{t("clientCheckins.submitCheckin")}</Button>
+                <Button onClick={handleSubmit} disabled={videosStillProcessing} className="w-full glow-primary-sm">
+                  {videosStillProcessing ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Esperando videos…</>
+                  ) : (
+                    t("clientCheckins.submitCheckin")
+                  )}
+                </Button>
               </>
             ) : (
               /* Submitted view */
