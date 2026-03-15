@@ -355,6 +355,26 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
     }
   };
 
+  const videos = entry.techniqueVideos || [];
+
+  // Unseen comments logic
+  const getComments = useMediaStore((s) => s.getComments);
+  const seenCommentIds = useClientPreferencesStore((s) => s.seenCommentIds);
+  const markCommentsSeen = useClientPreferencesStore((s) => s.markCommentsSeen);
+
+  const videoComments = videos.flatMap((v) => getComments("video", v.id));
+  const unseenCount = videoComments.filter((c) => !seenCommentIds.includes(c.id)).length;
+
+  // Mark comments as seen when expanded
+  useEffect(() => {
+    if (open && videoComments.length > 0) {
+      const unseenIds = videoComments.filter((c) => !seenCommentIds.includes(c.id)).map((c) => c.id);
+      if (unseenIds.length > 0) {
+        markCommentsSeen(unseenIds);
+      }
+    }
+  }, [open]);
+
   const updateExercise = (dayIdx: number, exIdx: number, field: string, value: string | number | undefined) => {
     const updated = trainingLog.map((day, di) =>
       di === dayIdx
