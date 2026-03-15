@@ -65,7 +65,7 @@ const AdminCheckins = () => {
       setResetting(false);
     }
   };
-
+  const handleViewEntry = useCallback((entry: QuestionnaireEntry) => {
     setSelectedEntry(entry);
     if (entry.status === "respondido") {
       markAsReviewed(entry.id);
