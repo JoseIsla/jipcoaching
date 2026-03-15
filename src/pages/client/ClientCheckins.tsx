@@ -659,8 +659,8 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                         </Button>
                       </div>
                     </div>
-                  )}
-
+        )}
+        <motion.div variants={fadeUp}>
                   {/* Attached videos list */}
                   {videos.length > 0 && (
                     <div className="space-y-2">
