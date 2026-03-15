@@ -38,7 +38,7 @@ router.get("/", async (req, res) => {
         },
         responses: { include: { question: true } },
         trainingLogs: {
-          include: { exercises: true },
+          include: { exercises: { orderBy: { createdAt: "asc" } } },
           orderBy: { dayNumber: "asc" },
         },
         videos: true,
@@ -647,7 +647,7 @@ async function generateCheckinsForClient(clientId: string, packType: string, for
             where: { status: "ACTIVE" },
             include: {
               days: {
-                include: { exercises: true },
+                include: { exercises: { orderBy: { order: "asc" } } },
                 orderBy: { dayNumber: "asc" },
               },
             },
