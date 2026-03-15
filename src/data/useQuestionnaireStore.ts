@@ -355,7 +355,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
         const rawWeight = responses[weightKey];
 
         if (rawWeight != null) {
-          const weight = Number(rawWeight);
+          const weight = parseDecimal(rawWeight as any, 0);
           if (!isNaN(weight) && weight > 0) {
             const clientHistory = [...(updatedWeightHistory[entry.clientId] || [])];
             const today = new Date().toISOString().slice(0, 10);
