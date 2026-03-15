@@ -104,8 +104,11 @@ const ClientTraining = () => {
   const fetchPlanDetail = useTrainingPlanStore((s) => s.fetchPlanDetail);
   const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
 
-  // Fetch plans from API on mount
-  useEffect(() => { fetchPlans(client.id); }, [client.id]);
+  const refreshData = useCallback(async () => {
+    await fetchPlans(client.id);
+  }, [client.id, fetchPlans]);
+
+  useEffect(() => { refreshData(); }, [client.id]);
 
   const activePlan = plans.find((p) => p.clientId === client.id && p.active);
 
