@@ -164,10 +164,12 @@ const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const canFill = !submitted && windowStatus === "within";
   const countdown = useCountdown(entry, canFill);
 
-  const handleSubmit = () => {
-    submitEntry(entry.id, responses);
-    setSubmitted(true);
-    toast({ title: t("clientCheckins.checkinSent"), description: t("clientCheckins.checkinSentDesc") });
+  const handleSubmit = async () => {
+    const success = await submitEntry(entry.id, responses);
+    if (success) {
+      setSubmitted(true);
+      toast({ title: t("clientCheckins.checkinSent"), description: t("clientCheckins.checkinSentDesc") });
+    }
   };
 
   const statusIcon = submitted ? <Check className="h-3.5 w-3.5 text-green-500" /> : windowStatus === "within" ? <Clock className="h-3.5 w-3.5 text-yellow-500" /> : windowStatus === "future" ? <Clock className="h-3.5 w-3.5 text-blue-400" /> : <AlertCircle className="h-3.5 w-3.5 text-muted-foreground" />;
