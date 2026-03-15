@@ -94,9 +94,8 @@ const useCountdown = (entry: QuestionnaireEntry, isActive: boolean): string => {
   return remaining;
 };
 
-const NumericInput = ({ value, onChange, label, required }: { value: string | number | boolean | undefined; onChange: (v: string | number | boolean) => void; label: string; required?: boolean }) => {
+const NumericInput = ({ value, onChange, label, required, error }: { value: string | number | boolean | undefined; onChange: (v: string | number | boolean) => void; label: string; required?: boolean; error?: string }) => {
   const [raw, setRaw] = React.useState(value != null && value !== "" ? String(value) : "");
-  // Sync from parent when value changes externally
   React.useEffect(() => {
     const parsed = parseDecimal(raw, -Infinity);
     if (value != null && value !== "" && typeof value === "number" && parsed !== value) {
@@ -112,14 +111,12 @@ const NumericInput = ({ value, onChange, label, required }: { value: string | nu
       <Input
         type="text"
         inputMode="decimal"
-        className="bg-background border-border h-10"
+        className={`bg-background h-10 ${error ? "border-destructive focus-visible:ring-destructive" : "border-border"}`}
         value={raw}
         onChange={(e) => {
           const v = e.target.value;
-          // Allow digits, one comma or period, and leading minus
           if (v === "" || /^-?\d*[.,]?\d*$/.test(v)) {
             setRaw(v);
-            // Propagate complete numbers immediately (avoids missed blur on mobile submit)
             if (v !== "" && v !== "-" && !v.endsWith(",") && !v.endsWith(".")) {
               const n = parseDecimal(v, undefined as any);
               if (!isNaN(n)) onChange(n);
@@ -137,6 +134,7 @@ const NumericInput = ({ value, onChange, label, required }: { value: string | nu
           }
         }}
       />
+      {error && <p className="text-[11px] text-destructive">{error}</p>}
     </div>
   );
 };
