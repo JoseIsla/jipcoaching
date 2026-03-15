@@ -15,6 +15,7 @@ import {
   Inbox,
   Mail,
   TrendingUp,
+  FileCheck,
 } from "lucide-react";
 import logoJip from "@/assets/logo-jip.png";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -25,6 +26,7 @@ const navKeys = [
   { key: "sidebar.clients", icon: Users, path: "/admin/clients" },
   { key: "sidebar.nutrition", icon: Utensils, path: "/admin/nutrition" },
   { key: "sidebar.training", icon: Dumbbell, path: "/admin/training" },
+  { key: "sidebar.checkins", icon: FileCheck, path: "/admin/checkins" },
   { key: "sidebar.progress", icon: TrendingUp, path: "/admin/progress" },
   { key: "sidebar.library", icon: Library, path: "/admin/exercises" },
   { key: "sidebar.leads", icon: Inbox, path: "/admin/leads" },

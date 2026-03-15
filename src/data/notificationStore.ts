@@ -47,7 +47,7 @@ const initialNotifications: Notification[] = [
     descriptionVars: { name: "Carlos Martínez" },
     timestamp: new Date(Date.now() - 1000 * 60 * 12),
     read: false,
-    link: "/admin/questionnaires",
+    link: "/admin/checkins",
   },
   {
     id: "n2",
@@ -67,7 +67,7 @@ const initialNotifications: Notification[] = [
     descriptionVars: { name: "Ana López" },
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5),
     read: false,
-    link: "/admin/questionnaires",
+    link: "/admin/checkins",
   },
   {
     id: "n4",
