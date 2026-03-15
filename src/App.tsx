@@ -34,6 +34,7 @@ const AdminTrainingPlanView = lazy(() => import("./pages/AdminTrainingPlanView")
 const AdminTrainingPlanDetail = lazy(() => import("./pages/AdminTrainingPlanDetail"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const AdminQuestionnaires = lazy(() => import("./pages/AdminQuestionnaires"));
+const AdminCheckins = lazy(() => import("./pages/AdminCheckins"));
 const AdminProgress = lazy(() => import("./pages/AdminProgress"));
 const AdminNutritionPlanDetail = lazy(() => import("./pages/AdminNutritionPlanDetail"));
 const AdminNutritionPlanView = lazy(() => import("./pages/AdminNutritionPlanView"));
