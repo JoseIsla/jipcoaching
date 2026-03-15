@@ -420,12 +420,6 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                   </td>
                                   <td className="px-1.5 py-1.5">
                                     <div className="flex flex-col gap-1">
-                                      <DecimalInput
-                                        value={ex.actualWeight ?? undefined}
-                                        onChange={(v) => updateExercise(dayIdx, exIdx, "actualWeight", v ?? 0)}
-                                        placeholder="kg"
-                                        className="h-7 text-[11px] text-center bg-background border-border px-1"
-                                      />
                                       <div className="flex gap-0.5">
                                         <Input
                                           type="text"
@@ -443,6 +437,12 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                           onChange={(e) => updateExercise(dayIdx, exIdx, "actualReps", e.target.value)}
                                         />
                                       </div>
+                                      <DecimalInput
+                                        value={ex.actualWeight ?? undefined}
+                                        onChange={(v) => updateExercise(dayIdx, exIdx, "actualWeight", v ?? 0)}
+                                        placeholder="kg"
+                                        className="h-7 text-[11px] text-center bg-background border-border px-1"
+                                      />
                                     </div>
                                   </td>
                                   <td className="px-1.5 py-1.5">
