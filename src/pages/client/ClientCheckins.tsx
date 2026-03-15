@@ -1007,6 +1007,7 @@ const ClientCheckins = () => {
           </Tabs>
         </motion.div>
       </motion.div>
+      </PullToRefresh>
     </ClientLayout>
   );
 };
