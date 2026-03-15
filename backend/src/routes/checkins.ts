@@ -238,6 +238,7 @@ router.post("/:id/submit", async (req, res) => {
               actualRPE: e.actualRPE,
               actualSets: e.actualSets,
               actualReps: e.actualReps,
+              comment: e.comment || null,
             })),
           });
         }
