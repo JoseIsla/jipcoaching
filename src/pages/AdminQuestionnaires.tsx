@@ -372,52 +372,69 @@ function TrainingTemplateEditor({
           Esta sección se genera dinámicamente en cada check-in basándose en el plan de entrenamiento activo del cliente.
         </p>
         
-        {/* Mock table preview */}
+        {/* Mock table preview — matches current client check-in UI */}
         <div className="rounded-lg border border-border overflow-hidden opacity-70 bg-muted/20 pointer-events-none select-none">
-          <table className="w-full">
+          <table className="w-full text-[10px]">
             <thead>
-              <tr className="bg-muted/50 text-left">
-                <th className="px-3 py-2 text-xs font-medium text-muted-foreground">Ejercicio</th>
-                <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-center">Pautado</th>
-                <th className="px-3 py-2 text-xs font-medium text-primary text-center">Real</th>
-                <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-center">RPE / RPE real</th>
+              <tr className="bg-muted/50">
+                <th className="px-2 py-1.5 text-left text-muted-foreground font-medium">Ejercicio</th>
+                <th className="px-2 py-1.5 text-center text-muted-foreground font-medium">Pautado</th>
+                <th className="px-2 py-1.5 text-center text-primary font-medium">Real</th>
+                <th className="px-2 py-1.5 text-center text-muted-foreground font-medium">RPE</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="border-t border-border/50">
-                <td className="px-3 py-2">
-                  <p className="text-sm font-medium text-foreground">Sentadilla</p>
-                  <p className="text-[10px] text-muted-foreground">Básico</p>
+              {/* Exercise 1 */}
+              <tr className="border-t border-border/50 align-top">
+                <td className="px-2 py-2 font-medium text-foreground">Sentadilla</td>
+                <td className="px-2 py-2 text-center text-muted-foreground">
+                  <span className="block">4×4</span>
+                  <span className="block text-[9px] text-muted-foreground/70 mt-0.5">Autoregulada</span>
                 </td>
-                <td className="px-3 py-2 text-center">
-                  <p className="text-xs text-muted-foreground">3×8</p>
-                  <p className="text-[10px] text-muted-foreground">100kg</p>
+                <td className="px-2 py-2 text-center text-foreground font-mono">
+                  <span className="block">4×4</span>
+                  <span className="block text-[9px] mt-0.5">115kg</span>
                 </td>
-                <td className="px-3 py-2 text-center">
-                  <p className="text-xs text-foreground font-medium">—</p>
-                  <p className="text-[10px] font-mono font-bold text-foreground">—</p>
-                </td>
-                <td className="px-3 py-2 text-center flex flex-col items-center">
-                  <span className="text-xs text-muted-foreground">8</span>
-                  <span className="text-sm font-mono font-bold text-foreground">—</span>
+                <td className="px-2 py-2 text-center">
+                  <div className="flex flex-col items-center leading-tight">
+                    <span className="text-muted-foreground">
+                      <span className="block text-[8px] opacity-60">Pautado</span>
+                      7
+                    </span>
+                    <span className="font-bold text-foreground">
+                      <span className="block text-[8px] opacity-60 font-normal">Real</span>
+                      7
+                    </span>
+                  </div>
                 </td>
               </tr>
-              <tr className="border-t border-border/50">
-                <td className="px-3 py-2">
-                  <p className="text-sm font-medium text-foreground">Press Banca</p>
-                  <p className="text-[10px] text-muted-foreground">Básico</p>
+              <tr className="border-t border-border/20">
+                <td colSpan={4} className="px-2 py-1">
+                  <span className="text-[9px] text-muted-foreground italic">"Buenas sensaciones hoy"</span>
                 </td>
-                <td className="px-3 py-2 text-center">
-                  <p className="text-xs text-muted-foreground">3×10</p>
-                  <p className="text-[10px] text-muted-foreground">80kg</p>
+              </tr>
+              {/* Exercise 2 */}
+              <tr className="border-t border-border/50 align-top">
+                <td className="px-2 py-2 font-medium text-foreground">Sentadilla Pausa</td>
+                <td className="px-2 py-2 text-center text-muted-foreground">
+                  <span className="block">3×3</span>
+                  <span className="block text-[9px] text-muted-foreground/70 mt-0.5">Autoregulada</span>
                 </td>
-                <td className="px-3 py-2 text-center">
-                  <p className="text-xs text-foreground font-medium">—</p>
-                  <p className="text-[10px] font-mono font-bold text-foreground">—</p>
+                <td className="px-2 py-2 text-center text-foreground font-mono">
+                  <span className="block">3×3</span>
+                  <span className="block text-[9px] mt-0.5">95kg</span>
                 </td>
-                <td className="px-3 py-2 text-center flex flex-col items-center">
-                  <span className="text-xs text-muted-foreground">7</span>
-                  <span className="text-sm font-mono font-bold text-foreground">—</span>
+                <td className="px-2 py-2 text-center">
+                  <div className="flex flex-col items-center leading-tight">
+                    <span className="text-muted-foreground">
+                      <span className="block text-[8px] opacity-60">Pautado</span>
+                      7
+                    </span>
+                    <span className="font-bold text-foreground">
+                      <span className="block text-[8px] opacity-60 font-normal">Real</span>
+                      7
+                    </span>
+                  </div>
                 </td>
               </tr>
             </tbody>
