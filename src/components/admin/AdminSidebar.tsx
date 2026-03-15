@@ -150,9 +150,9 @@ const AdminSidebar = () => {
       >
         <div className="relative shrink-0">
           <item.icon className={`h-5 w-5 ${isActive ? "text-primary" : ""}`} />
-          {badgeCount > 0 && !showLabel && (
-            <span className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-0.5 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
-              {badgeCount}
+          {!showLabel && (
+            <span className="absolute -top-1.5 -right-1.5">
+              <AnimatedBadge count={badgeCount} size="sm" />
             </span>
           )}
         </div>
