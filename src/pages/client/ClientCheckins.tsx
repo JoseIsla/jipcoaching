@@ -548,10 +548,13 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                       </div>
                                       <DecimalInput
                                         value={ex.actualWeight ?? undefined}
-                                        onChange={(v) => updateExercise(dayIdx, exIdx, "actualWeight", v as any)}
+                                        onChange={(v) => { updateExercise(dayIdx, exIdx, "actualWeight", v as any); if (weightErrors[`${dayIdx}-${exIdx}`]) setWeightErrors((prev) => { const next = { ...prev }; delete next[`${dayIdx}-${exIdx}`]; return next; }); }}
                                         placeholder="kg"
-                                        className="h-7 text-[11px] text-center bg-background border-border px-1"
+                                        className={`h-7 text-[11px] text-center bg-background border-border px-1 ${weightErrors[`${dayIdx}-${exIdx}`] ? "border-destructive" : ""}`}
                                       />
+                                      {weightErrors[`${dayIdx}-${exIdx}`] && (
+                                        <p className="text-[9px] text-destructive mt-0.5">{weightErrors[`${dayIdx}-${exIdx}`]}</p>
+                                      )}
                                     </div>
                                   </td>
                                   <td className="px-1.5 py-1.5">
