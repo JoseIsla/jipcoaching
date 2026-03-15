@@ -628,8 +628,8 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                   )}
                                 </td>
                                 <td className="px-2 py-1.5 text-center text-foreground font-mono">
-                                  {ex.actualWeight ? `${ex.actualWeight}kg` : "—"}
-                                  {ex.actualSets ? ` (${ex.actualSets}×${ex.actualReps || "?"})` : ""}
+                                  <span className="block">{ex.actualSets || ex.plannedSets}×{ex.actualReps || ex.plannedReps}</span>
+                                  <span className="block text-[9px] mt-0.5">{ex.actualWeight ? `${ex.actualWeight}kg` : "—"}</span>
                                 </td>
                                 <td className="px-2 py-1.5 text-center">
                                   <div className="flex flex-col items-center leading-tight">
