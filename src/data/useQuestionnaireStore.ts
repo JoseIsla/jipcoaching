@@ -1,10 +1,18 @@
 import { create } from "zustand";
-import { api } from "@/services/api";
+import { api, API_BASE_URL } from "@/services/api";
 import type { ApiQuestionnaire, ApiSession } from "@/types/api";
 import { DEV_MOCK } from "@/config/devMode";
 import { mockQuestionnaireEntries, mockWeightHistory, mockRMRecords } from "@/data/mockCheckins";
 import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
 import { useClientDetailStore } from "@/data/useClientDetailStore";
+import { toast } from "@/hooks/use-toast";
+
+/** Resolve relative upload URLs to full server URLs */
+const resolveUrl = (url: string | null | undefined): string | undefined => {
+  if (!url || url.startsWith("http") || url.startsWith("blob:")) return url || undefined;
+  const serverRoot = API_BASE_URL.replace(/\/api\/?$/, "");
+  return `${serverRoot}${url}`;
+};
 
 // ── Types (previously from mockData, now standalone) ──
 
