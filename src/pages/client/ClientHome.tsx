@@ -29,12 +29,14 @@ const ClientHome = () => {
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
   const generateMyCheckins = useQuestionnaireStore((s) => s.generateMyCheckins);
 
-  // Generate checkins + fetch data from API on mount
-  useEffect(() => {
-    generateMyCheckins().then(() => fetchEntries(client.id));
-    if (hasNutrition) fetchWeightHistory(client.id);
-    if (hasTraining) fetchRMRecords(client.id);
-  }, [client.id]);
+  const refreshData = useCallback(async () => {
+    await generateMyCheckins();
+    await fetchEntries(client.id);
+    if (hasNutrition) await fetchWeightHistory(client.id);
+    if (hasTraining) await fetchRMRecords(client.id);
+  }, [client.id, hasNutrition, hasTraining, generateMyCheckins, fetchEntries, fetchWeightHistory, fetchRMRecords]);
+
+  useEffect(() => { refreshData(); }, [client.id]);
   const activePlan = hasNutrition ? nutritionPlans.find((p) => p.clientId === client.id && p.active) : null;
   const activeTraining = hasTraining ? trainingPlans.find((p) => p.clientId === client.id && p.active) : null;
   const pendingCheckins = entries.filter((e) => e.clientId === client.id && isActionablePending(e)).length;
