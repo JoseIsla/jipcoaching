@@ -105,6 +105,7 @@ const App = () => (
                   <Route path="/admin/leads" element={<RoleRoute allowedRole="admin"><AdminLeads /></RoleRoute>} />
                   <Route path="/admin/emails" element={<RoleRoute allowedRole="admin"><AdminEmailTemplates /></RoleRoute>} />
                   <Route path="/admin/settings" element={<RoleRoute allowedRole="admin"><AdminSettings /></RoleRoute>} />
+                  <Route path="/admin/checkins" element={<RoleRoute allowedRole="admin"><AdminCheckins /></RoleRoute>} />
                   <Route path="/admin/questionnaires" element={<RoleRoute allowedRole="admin"><AdminQuestionnaires /></RoleRoute>} />
                   <Route path="/admin/progress" element={<RoleRoute allowedRole="admin"><AdminProgress /></RoleRoute>} />
                   <Route path="/client" element={<RoleRoute allowedRole="client"><ClientHome /></RoleRoute>} />
