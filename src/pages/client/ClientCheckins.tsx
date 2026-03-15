@@ -546,6 +546,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                     />
                                   </td>
                                 </tr>
+                              ))}
                             </tbody>
                           </table>
                         </div>
