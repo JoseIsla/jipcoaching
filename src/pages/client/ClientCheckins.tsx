@@ -25,6 +25,7 @@ import { useTranslation } from "@/i18n/useTranslation";
 import { MAX_VIDEO_SIZE_MB } from "@/types/media";
 import { compressVideo } from "@/utils/compressMedia";
 import ClientMediaComments from "@/components/client/ClientMediaComments";
+import PullToRefresh from "@/components/client/PullToRefresh";
 import { useMediaStore } from "@/data/useMediaStore";
 import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 import { mediaApi } from "@/services/mediaApi";
