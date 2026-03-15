@@ -534,7 +534,18 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                     </div>
                                   </td>
                                 </tr>
-                              ))}
+                                {/* Comment row */}
+                                <tr className="border-t border-border/20">
+                                  <td colSpan={4} className="px-2 py-1">
+                                    <Input
+                                      type="text"
+                                      className="h-6 text-[10px] bg-background border-border px-1.5 w-full"
+                                      placeholder="Comentario (opcional)"
+                                      value={ex.comment ?? ""}
+                                      onChange={(e) => updateExercise(dayIdx, exIdx, "comment", e.target.value || undefined)}
+                                    />
+                                  </td>
+                                </tr>
                             </tbody>
                           </table>
                         </div>
