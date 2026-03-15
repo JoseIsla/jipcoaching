@@ -108,23 +108,41 @@ const CreateNutritionPlanSheet = ({ onCreated }: Props) => {
             </Select>
           </div>
 
-          {/* Duplicate from previous plan */}
-          {clientId && clientPlans.length > 0 && (
+          {/* Duplicate from any plan */}
+          {clientId && allPlansForDuplication.length > 0 && (
             <div className="space-y-2">
               <Label className="text-muted-foreground text-sm flex items-center gap-1.5">
-                <Copy className="h-3.5 w-3.5" /> Duplicar plan anterior (opcional)
+                <Copy className="h-3.5 w-3.5" /> Duplicar plan existente (opcional)
               </Label>
               <Select value={duplicateFromPlanId} onValueChange={setDuplicateFromPlanId}>
                 <SelectTrigger className="bg-muted/30 border-border">
                   <SelectValue placeholder="Crear desde cero" />
                 </SelectTrigger>
-                <SelectContent className="bg-card border-border">
+                <SelectContent className="bg-card border-border max-h-[300px]">
                   <SelectItem value="none">Crear desde cero</SelectItem>
-                  {clientPlans.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.planName} {p.active ? "● Activo" : ""} — {p.calories} kcal
-                    </SelectItem>
-                  ))}
+                  {sameClientPlans.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Planes del mismo cliente</div>
+                      {sameClientPlans.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.planName} {p.active ? "● Activo" : ""} — {p.calories} kcal
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                  {otherClientPlans.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Planes de otros clientes</div>
+                      {otherClientPlans.map((p) => {
+                        const ownerName = allClients.find((c) => c.id === p.clientId)?.name ?? "Cliente";
+                        return (
+                          <SelectItem key={p.id} value={p.id}>
+                            [{ownerName}] {p.planName} {p.active ? "● Activo" : ""} — {p.calories} kcal
+                          </SelectItem>
+                        );
+                      })}
+                    </>
+                  )}
                 </SelectContent>
               </Select>
               {duplicateFromPlanId && duplicateFromPlanId !== "none" && (
