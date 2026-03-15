@@ -319,7 +319,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
     }
   };
 
-  const updateExercise = (dayIdx: number, exIdx: number, field: string, value: string | number) => {
+  const updateExercise = (dayIdx: number, exIdx: number, field: string, value: string | number | undefined) => {
     const updated = trainingLog.map((day, di) =>
       di === dayIdx
         ? {
