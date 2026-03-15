@@ -732,7 +732,7 @@ const es = {
       stat1: "Clientes activos",
       stat2: "Años de experiencia",
       stat3: "Planes a medida",
-      stat4: "Formación especializada",
+      stat4: "Entrenador certificado · Nutrición deportiva y entrenamiento de fuerza",
     },
     plans: {
       label: "Servicios",
