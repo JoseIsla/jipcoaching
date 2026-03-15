@@ -33,7 +33,7 @@ const AboutSection = () => {
     { icon: Users, value: 50, suffix: "+", label: t("landing.about.stat1") },
     { icon: Calendar, value: 5, suffix: "+", label: t("landing.about.stat2") },
     { icon: Award, value: 100, suffix: "%", label: t("landing.about.stat3") },
-    { icon: GraduationCap, value: 2, suffix: "x", label: t("landing.about.stat4") },
+    { icon: GraduationCap, label: t("landing.about.stat4") },
   ];
 
   return (
@@ -92,7 +92,7 @@ const AboutSection = () => {
                 >
                   <Icon className="h-5 w-5 text-primary mx-auto mb-2" />
                   <p className="text-xl font-black text-foreground">
-                    <AnimatedNumber value={value} suffix={suffix} />
+                    {value !== undefined ? <AnimatedNumber value={value} suffix={suffix} /> : null}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
                 </motion.div>
