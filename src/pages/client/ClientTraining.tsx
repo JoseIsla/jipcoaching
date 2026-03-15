@@ -11,6 +11,7 @@ import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-con
 import { useTrainingPlanStore, TRAINING_METHOD_LABELS, type TrainingPlanFull, type TrainingWeek, type TrainingDay } from "@/data/useTrainingPlanStore";
 import { exportTrainingWeekPDF } from "@/utils/exportClientPlanPDF";
 import { useTranslation } from "@/i18n/useTranslation";
+import PullToRefresh from "@/components/client/PullToRefresh";
 
 const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<string, string | number>) => string }) => {
   const [open, setOpen] = useState(false);
