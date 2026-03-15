@@ -208,6 +208,16 @@ const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   );
 };
 
+interface VideoQueueItem {
+  id: string;
+  file: File;
+  exerciseName: string;
+  notes: string;
+  status: "queued" | "compressing" | "uploading" | "done" | "error";
+  progress: string;
+  error?: string;
+}
+
 const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const { t } = useTranslation();
   const { client } = useClient();
@@ -233,14 +243,117 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const addVideoToEntry = useQuestionnaireStore((s) => s.addVideoToEntry);
   const removeVideoFromEntry = useQuestionnaireStore((s) => s.removeVideoFromEntry);
 
-  // Video upload state
+  // Video upload state — batch support
   const [showVideoUpload, setShowVideoUpload] = useState(false);
-  const [videoExerciseName, setVideoExerciseName] = useState("");
-  const [videoNotes, setVideoNotes] = useState("");
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [compressingVideo, setCompressingVideo] = useState(false);
-  const [uploadingVideo, setUploadingVideo] = useState(false);
   const videoFileRef = useRef<HTMLInputElement>(null);
+  const [videoQueue, setVideoQueue] = useState<VideoQueueItem[]>([]);
+
+  const updateQueueItem = (id: string, patch: Partial<VideoQueueItem>) => {
+    setVideoQueue((q) => q.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+  };
+
+  /** Derive exercise name from filename: "Sentadilla 2a serie.mp4" → "Sentadilla 2a serie" */
+  const nameFromFile = (f: File) => f.name.replace(/\.[^.]+$/, "").replace(/[_-]/g, " ").trim() || "Video";
+
+  /** Handle selecting multiple files at once */
+  const handleVideoFilesSelect = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const newItems: VideoQueueItem[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      if (!f.type.startsWith("video/")) continue;
+      newItems.push({
+        id: `vq-${Date.now()}-${i}`,
+        file: f,
+        exerciseName: nameFromFile(f),
+        notes: "",
+        status: "queued",
+        progress: `${(f.size / (1024 * 1024)).toFixed(1)}MB`,
+      });
+    }
+    if (newItems.length === 0) {
+      toast({ title: "Formato no válido", description: "Solo se permiten videos", variant: "destructive" });
+      return;
+    }
+    setVideoQueue((prev) => [...prev, ...newItems]);
+    setShowVideoUpload(true);
+  };
+
+  const removeFromQueue = (id: string) => {
+    setVideoQueue((q) => q.filter((item) => item.id !== id));
+  };
+
+  /** Process a single video: compress → upload */
+  const processVideoItem = async (item: VideoQueueItem) => {
+    if (entry.id.startsWith("qe-t-auto-")) {
+      updateQueueItem(item.id, { status: "error", error: "Check-in no sincronizado" });
+      return;
+    }
+
+    let processedFile = item.file;
+
+    // Compress if needed
+    if (item.file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
+      updateQueueItem(item.id, { status: "compressing", progress: "Comprimiendo…" });
+      try {
+        processedFile = await compressVideo(item.file, { maxSizeMB: MAX_VIDEO_SIZE_MB });
+        const savedMB = ((item.file.size - processedFile.size) / (1024 * 1024)).toFixed(1);
+        updateQueueItem(item.id, { progress: `Comprimido (-${savedMB}MB)` });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : `Excede ${MAX_VIDEO_SIZE_MB}MB`;
+        updateQueueItem(item.id, { status: "error", error: msg });
+        return;
+      }
+    }
+
+    // Upload
+    updateQueueItem(item.id, { status: "uploading", progress: "Subiendo…" });
+    try {
+      const uploaded = await mediaApi.uploadCheckinVideo(
+        entry.id,
+        processedFile,
+        item.exerciseName.trim() || nameFromFile(item.file),
+        item.notes.trim() || undefined,
+      );
+      const newVideo: CheckinVideo = {
+        id: uploaded.id,
+        exerciseName: uploaded.exerciseName,
+        url: uploaded.url,
+        notes: uploaded.notes,
+        uploadedAt: uploaded.uploadedAt,
+      };
+      addVideoToEntry(entry.id, newVideo);
+      updateQueueItem(item.id, { status: "done", progress: "✅" });
+    } catch (err: any) {
+      updateQueueItem(item.id, { status: "error", error: err?.message || "Error al subir" });
+    }
+  };
+
+  /** Upload all queued videos in parallel (max 2 concurrent to avoid overload) */
+  const handleUploadAll = async () => {
+    const pending = videoQueue.filter((v) => v.status === "queued");
+    if (pending.length === 0) return;
+
+    // Process 2 at a time for speed without overwhelming the server
+    const concurrency = 2;
+    const chunks: VideoQueueItem[][] = [];
+    for (let i = 0; i < pending.length; i += concurrency) {
+      chunks.push(pending.slice(i, i + concurrency));
+    }
+    for (const chunk of chunks) {
+      await Promise.all(chunk.map(processVideoItem));
+    }
+
+    // Clean up completed items after a brief delay
+    setTimeout(() => {
+      setVideoQueue((q) => q.filter((v) => v.status !== "done"));
+    }, 1500);
+
+    const errors = videoQueue.filter((v) => v.status === "error").length;
+    if (errors === 0) {
+      toast({ title: `${pending.length} video${pending.length > 1 ? "s" : ""} subido${pending.length > 1 ? "s" : ""} ✅` });
+    }
+  };
 
   const videos = entry.techniqueVideos || [];
 
@@ -261,68 +374,6 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
       }
     }
   }, [open]);
-
-  const handleVideoFileSelect = async (file: File | null) => {
-    if (!file) return;
-    if (!file.type.startsWith("video/")) {
-      toast({ title: "Formato no válido", description: "Solo se permiten videos", variant: "destructive" });
-      return;
-    }
-    let processedFile = file;
-    if (file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
-      setCompressingVideo(true);
-      try {
-        processedFile = await compressVideo(file, { maxSizeMB: MAX_VIDEO_SIZE_MB });
-        const savedMB = ((file.size - processedFile.size) / (1024 * 1024)).toFixed(1);
-        toast({ title: "Video comprimido ✅", description: `Se redujo ${savedMB}MB automáticamente` });
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : `El video excede ${MAX_VIDEO_SIZE_MB}MB`;
-        toast({ title: "No se pudo comprimir", description: msg, variant: "destructive" });
-        setCompressingVideo(false);
-        return;
-      }
-      setCompressingVideo(false);
-    }
-    setVideoFile(processedFile);
-  };
-
-  const handleAddVideo = async () => {
-    if (!videoFile || !videoExerciseName.trim()) {
-      toast({ title: "Campos requeridos", description: "Indica el ejercicio y selecciona un video", variant: "destructive" });
-      return;
-    }
-    // Prevent upload attempts with local-only IDs that don't exist in the DB
-    if (entry.id.startsWith("qe-t-auto-")) {
-      toast({ title: "No se puede subir", description: "El check-in aún no está sincronizado con el servidor. Cierra y vuelve a abrir la app.", variant: "destructive" });
-      return;
-    }
-    setUploadingVideo(true);
-    try {
-      const uploaded = await mediaApi.uploadCheckinVideo(
-        entry.id,
-        videoFile,
-        videoExerciseName.trim(),
-        videoNotes.trim() || undefined,
-      );
-      const newVideo: CheckinVideo = {
-        id: uploaded.id,
-        exerciseName: uploaded.exerciseName,
-        url: uploaded.url,
-        notes: uploaded.notes,
-        uploadedAt: uploaded.uploadedAt,
-      };
-      addVideoToEntry(entry.id, newVideo);
-      toast({ title: "Video subido ✅" });
-      setVideoFile(null);
-      setVideoExerciseName("");
-      setVideoNotes("");
-      setShowVideoUpload(false);
-    } catch (err: any) {
-      toast({ title: "Error al subir video", description: err?.message || "Inténtalo de nuevo", variant: "destructive" });
-    } finally {
-      setUploadingVideo(false);
-    }
-  };
 
   const updateExercise = (dayIdx: number, exIdx: number, field: string, value: string | number | undefined) => {
     const updated = trainingLog.map((day, di) =>
@@ -519,67 +570,81 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                       size="sm"
                       variant="outline"
                       className="text-[10px] gap-1 h-7 border-primary/30 text-primary hover:bg-primary/10"
-                      onClick={() => setShowVideoUpload(!showVideoUpload)}
+                      onClick={() => { setShowVideoUpload(true); videoFileRef.current?.click(); }}
                     >
                       <Upload className="h-3 w-3" />
-                      Añadir video
+                      Añadir videos
                     </Button>
                   </div>
 
-                  {showVideoUpload && (
+                  <input
+                    ref={videoFileRef}
+                    type="file"
+                    accept="video/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => { handleVideoFilesSelect(e.target.files); e.target.value = ""; }}
+                  />
+
+                  {/* Video queue */}
+                  {showVideoUpload && videoQueue.length > 0 && (
                     <div className="space-y-2 bg-muted/30 rounded-lg p-3">
-                      <Input
-                        value={videoExerciseName}
-                        onChange={(e) => setVideoExerciseName(e.target.value)}
-                        placeholder="Nombre del ejercicio (ej: Sentadilla)"
-                        className="bg-background border-border text-sm h-8"
-                      />
-                      <Input
-                        value={videoNotes}
-                        onChange={(e) => setVideoNotes(e.target.value)}
-                        placeholder="Notas (opcional)"
-                        className="bg-background border-border text-sm h-8"
-                      />
-                      <input
-                        ref={videoFileRef}
-                        type="file"
-                        accept="video/*"
-                        className="hidden"
-                        onChange={(e) => handleVideoFileSelect(e.target.files?.[0] ?? null)}
-                      />
-                      <button
-                        onClick={() => videoFileRef.current?.click()}
-                        disabled={compressingVideo}
-                        className={`w-full py-4 rounded-lg border-2 border-dashed flex flex-col items-center gap-1.5 transition-colors ${
-                          compressingVideo
-                            ? "border-primary/50 bg-primary/5 animate-pulse"
-                            : videoFile
-                            ? "border-primary/50 bg-primary/5"
-                            : "border-border hover:border-primary/30 hover:bg-muted/50"
-                        }`}
-                      >
-                        {compressingVideo ? (
-                          <>
-                            <Loader2 className="h-5 w-5 text-primary animate-spin" />
-                            <span className="text-[10px] text-primary font-medium">Comprimiendo…</span>
-                          </>
-                        ) : (
-                          <>
-                            <Film className="h-5 w-5 text-muted-foreground" />
-                            <span className="text-[10px] text-muted-foreground">
-                              {videoFile ? videoFile.name : "Seleccionar video (se comprime automáticamente)"}
-                            </span>
-                          </>
-                        )}
-                      </button>
-                      <Button
-                        size="sm"
-                        className="w-full h-8 text-xs"
-                        onClick={handleAddVideo}
-                        disabled={compressingVideo || uploadingVideo || !videoFile || !videoExerciseName.trim()}
-                      >
-                        {uploadingVideo ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" />Subiendo...</> : "Añadir video"}
-                      </Button>
+                      {videoQueue.map((item) => (
+                        <div key={item.id} className="flex items-center gap-2 bg-background rounded-lg p-2 border border-border">
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <Input
+                              value={item.exerciseName}
+                              onChange={(e) => updateQueueItem(item.id, { exerciseName: e.target.value })}
+                              placeholder="Nombre del ejercicio"
+                              className="h-7 text-xs bg-transparent border-border"
+                              disabled={item.status !== "queued"}
+                            />
+                            <div className="flex items-center gap-1.5">
+                              {item.status === "compressing" && <Loader2 className="h-3 w-3 text-primary animate-spin shrink-0" />}
+                              {item.status === "uploading" && <Loader2 className="h-3 w-3 text-primary animate-spin shrink-0" />}
+                              {item.status === "done" && <Check className="h-3 w-3 text-primary shrink-0" />}
+                              {item.status === "error" && <AlertCircle className="h-3 w-3 text-destructive shrink-0" />}
+                              <span className={`text-[10px] truncate ${
+                                item.status === "error" ? "text-destructive" :
+                                item.status === "done" ? "text-primary" :
+                                "text-muted-foreground"
+                              }`}>
+                                {item.status === "error" ? item.error : item.progress}
+                              </span>
+                            </div>
+                          </div>
+                          {item.status === "queued" && (
+                            <button
+                              onClick={() => removeFromQueue(item.id)}
+                              className="text-muted-foreground hover:text-destructive transition-colors p-1 shrink-0"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 h-8 text-xs gap-1"
+                          onClick={() => videoFileRef.current?.click()}
+                        >
+                          <Upload className="h-3 w-3" />
+                          Más videos
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="flex-1 h-8 text-xs"
+                          onClick={handleUploadAll}
+                          disabled={videoQueue.every((v) => v.status !== "queued")}
+                        >
+                          {videoQueue.some((v) => v.status === "compressing" || v.status === "uploading")
+                            ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" />Procesando…</>
+                            : `Subir ${videoQueue.filter((v) => v.status === "queued").length} video${videoQueue.filter((v) => v.status === "queued").length !== 1 ? "s" : ""}`
+                          }
+                        </Button>
+                      </div>
                     </div>
                   )}
 
