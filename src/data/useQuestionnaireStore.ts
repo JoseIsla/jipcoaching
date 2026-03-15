@@ -49,6 +49,7 @@ export interface TrainingLogExercise {
   actualRPE?: number;
   actualSets?: string;
   actualReps?: string;
+  comment?: string;
 }
 
 export interface TrainingLogDay {

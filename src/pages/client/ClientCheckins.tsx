@@ -714,7 +714,10 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                               : "";
                             return (
                               <tr key={i} className="border-t border-border/50 align-top">
-                                <td className="px-2 py-1.5 font-medium text-foreground">{ex.exerciseName}</td>
+                                <td className="px-2 py-1.5 font-medium text-foreground">
+                                  {ex.exerciseName}
+                                  {ex.comment && <p className="text-[9px] text-muted-foreground font-normal mt-0.5 italic">"{ex.comment}"</p>}
+                                </td>
                                 <td className="px-2 py-1.5 text-center text-muted-foreground">
                                   <span className="block">{ex.plannedSets}×{ex.plannedReps}</span>
                                   {ex.plannedLoad && ex.plannedLoad !== "—" && (
