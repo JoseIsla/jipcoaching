@@ -31,10 +31,13 @@ interface NotificationStore {
   notifications: Notification[];
   unreadCount: number;
   loading: boolean;
+  /** IDs dismissed locally — survives until page reload so polling doesn't resurrect them */
+  _dismissedIds: Set<string>;
   fetchNotifications: () => Promise<void>;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   removeNotification: (id: string) => void;
+  clearAll: () => void;
   addNotification: (notification: Omit<Notification, "id" | "timestamp" | "read">) => void;
 }
 
