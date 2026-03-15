@@ -201,6 +201,7 @@ const ClientTraining = () => {
           </motion.div>
         )}
       </motion.div>
+      </PullToRefresh>
     </ClientLayout>
   );
 };
