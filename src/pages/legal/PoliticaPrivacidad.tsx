@@ -45,7 +45,7 @@ const PoliticaPrivacidad = () => (
 
         <section>
           <h2 className="text-lg font-semibold text-foreground">5. Derechos del interesado</h2>
-          <p>Puedes ejercer tus derechos de acceso, rectificación, supresión, limitación del tratamiento, portabilidad y oposición contactando a través del formulario de contacto de la web o por correo electrónico.</p>
+          <p>Puedes ejercer tus derechos de acceso, rectificación, supresión, limitación del tratamiento, portabilidad y oposición contactando a través de <a href="mailto:info@jipcoaching.com" className="text-primary hover:underline">info@jipcoaching.com</a>.</p>
         </section>
 
         <section>

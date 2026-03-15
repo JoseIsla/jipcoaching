@@ -18,7 +18,7 @@ const AvisoLegal = () => (
           <ul className="list-disc pl-5 space-y-1">
             <li><strong>Titular:</strong> José Isla Pérez</li>
             <li><strong>Actividad:</strong> Servicios de coaching nutricional y entrenamiento personal</li>
-            <li><strong>Contacto:</strong> A través del formulario disponible en la web</li>
+            <li><strong>Contacto:</strong> <a href="mailto:info@jipcoaching.com" className="text-primary hover:underline">info@jipcoaching.com</a></li>
           </ul>
         </section>
 
