@@ -884,24 +884,38 @@ const ClientCheckins = () => {
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
   const generateMyCheckins = useQuestionnaireStore((s) => s.generateMyCheckins);
 
+  // Ensure we don't create the local auto check-in before the API has had a chance to return.
+  const [hasFetched, setHasFetched] = useState(false);
+
   // Generate + fetch check-ins from API on mount
   useEffect(() => {
-    generateMyCheckins().then(() => fetchEntries(client.id));
-  }, [client.id]);
+    let cancelled = false;
+    setHasFetched(false);
+    generateMyCheckins()
+      .then(() => fetchEntries(client.id))
+      .finally(() => {
+        if (!cancelled) setHasFetched(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [client.id, fetchEntries, generateMyCheckins]);
 
   const myEntries = allEntries.filter((e) => e.clientId === client.id);
 
   // Only auto-generate training entry locally if no API-generated one exists for this week
   useEffect(() => {
-    if (hasTraining) {
-      const hasApiTrainingEntry = myEntries.some(
-        (e) => e.category === "training" && isInCurrentWeek(e.date) && !e.id.startsWith("qe-t-auto-")
-      );
-      if (!hasApiTrainingEntry) {
-        getOrCreateTrainingEntry(client.id, client.name);
-      }
+    if (!hasTraining) return;
+    if (!hasFetched) return;
+
+    const hasApiTrainingEntry = myEntries.some(
+      (e) => e.category === "training" && isInCurrentWeek(e.date) && !e.id.startsWith("qe-t-auto-")
+    );
+
+    if (!hasApiTrainingEntry) {
+      getOrCreateTrainingEntry(client.id, client.name);
     }
-  }, [client.id, hasTraining, allEntries.length]);
+  }, [client.id, client.name, getOrCreateTrainingEntry, hasFetched, hasTraining, myEntries]);
 
   // Only show current week entries — hide older ones entirely
   const nutritionEntries = myEntries.filter((e) => e.category === "nutrition" && isInCurrentWeek(e.date)).sort((a, b) => a.date.localeCompare(b.date));

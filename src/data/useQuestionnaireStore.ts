@@ -191,10 +191,14 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
         })),
       }));
       set((s) => {
-        // Merge API entries with any locally-generated auto-entries (training)
+        // Merge API entries with any locally-generated auto-entries (training).
+        // If the API already returned a real entry for the same client+date+category,
+        // drop the local auto one to avoid showing inconsistent templates/questions.
         const autoEntries = s.entries.filter((e) => e.id.startsWith("qe-t-auto-"));
-        const apiIds = new Set(resolved.map((e) => e.id));
-        const nonDuplicateAuto = autoEntries.filter((e) => !apiIds.has(e.id));
+        const apiKeys = new Set(resolved.map((e) => `${e.clientId}|${e.date}|${e.category}`));
+        const nonDuplicateAuto = autoEntries.filter(
+          (e) => !apiKeys.has(`${e.clientId}|${e.date}|${e.category}`)
+        );
         return { entries: [...resolved, ...nonDuplicateAuto], loading: false };
       });
     } catch (err: any) {
