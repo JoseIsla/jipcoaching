@@ -9,6 +9,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Library,
   Menu,
   X,
@@ -16,19 +17,32 @@ import {
   Mail,
   TrendingUp,
   FileCheck,
+  Activity,
 } from "lucide-react";
 import logoJip from "@/assets/logo-jip.png";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 
-const navKeys = [
+type NavItem = { key: string; icon: typeof LayoutDashboard; path: string; badge?: boolean };
+type NavGroup = { groupKey: string; icon: typeof Activity; children: NavItem[] };
+type NavEntry = NavItem | NavGroup;
+
+const isGroup = (entry: NavEntry): entry is NavGroup => "children" in entry;
+
+const navEntries: NavEntry[] = [
   { key: "sidebar.dashboard", icon: LayoutDashboard, path: "/admin" },
   { key: "sidebar.clients", icon: Users, path: "/admin/clients" },
   { key: "sidebar.nutrition", icon: Utensils, path: "/admin/nutrition" },
   { key: "sidebar.training", icon: Dumbbell, path: "/admin/training" },
-  { key: "sidebar.checkins", icon: FileCheck, path: "/admin/checkins", badge: true },
-  { key: "sidebar.progress", icon: TrendingUp, path: "/admin/progress" },
+  {
+    groupKey: "sidebar.tracking",
+    icon: Activity,
+    children: [
+      { key: "sidebar.checkins", icon: FileCheck, path: "/admin/checkins", badge: true },
+      { key: "sidebar.progress", icon: TrendingUp, path: "/admin/progress" },
+    ],
+  },
   { key: "sidebar.library", icon: Library, path: "/admin/exercises" },
   { key: "sidebar.leads", icon: Inbox, path: "/admin/leads" },
   { key: "sidebar.questionnaires", icon: ClipboardList, path: "/admin/questionnaires" },
@@ -57,10 +71,24 @@ const AdminSidebar = () => {
   const isMobile = useIsMobile();
   const { t } = useTranslation();
 
-  // Count of check-ins pending review (status "respondido")
   const pendingReviewCount = useQuestionnaireStore((s) =>
     s.entries.filter((e) => e.status === "respondido").length
   );
+
+  // Auto-open tracking group if a child is active
+  const isChildActive = (group: NavGroup) =>
+    group.children.some((c) => location.pathname === c.path);
+
+  const [trackingOpen, setTrackingOpen] = useState(() =>
+    navEntries.some((e) => isGroup(e) && isChildActive(e))
+  );
+
+  // Keep group open when navigating to a child
+  useEffect(() => {
+    navEntries.forEach((e) => {
+      if (isGroup(e) && isChildActive(e)) setTrackingOpen(true);
+    });
+  }, [location.pathname]);
 
   useEffect(() => {
     const handler = () => setMobileOpen((v) => !v);
@@ -72,41 +100,92 @@ const AdminSidebar = () => {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  const renderNavItems = (showLabel: boolean) =>
-    navKeys.map((item) => {
-      const isActive = location.pathname === item.path;
-      const badgeCount = (item as any).badge ? pendingReviewCount : 0;
+  const renderNavLink = (item: NavItem, showLabel: boolean) => {
+    const isActive = location.pathname === item.path;
+    const badgeCount = item.badge ? pendingReviewCount : 0;
+    return (
+      <NavLink
+        key={item.path}
+        to={item.path}
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+          isActive
+            ? "bg-sidebar-accent text-primary"
+            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        }`}
+      >
+        <div className="relative shrink-0">
+          <item.icon className={`h-5 w-5 ${isActive ? "text-primary" : ""}`} />
+          {badgeCount > 0 && !showLabel && (
+            <span className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-0.5 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+              {badgeCount}
+            </span>
+          )}
+        </div>
+        {showLabel && (
+          <span className="flex-1 flex items-center justify-between">
+            {t(item.key)}
+            {badgeCount > 0 && (
+              <span className="ml-auto h-5 min-w-5 px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+                {badgeCount}
+              </span>
+            )}
+          </span>
+        )}
+      </NavLink>
+    );
+  };
+
+  const renderGroup = (group: NavGroup, showLabel: boolean) => {
+    const groupActive = isChildActive(group);
+    const totalBadge = group.children.reduce((sum, c) => sum + (c.badge ? pendingReviewCount : 0), 0);
+
+    // Collapsed mode: show children directly as icon-only links
+    if (!showLabel) {
       return (
-        <NavLink
-          key={item.path}
-          to={item.path}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-            isActive
+        <div key={group.groupKey} className="space-y-1">
+          {group.children.map((child) => renderNavLink(child, false))}
+        </div>
+      );
+    }
+
+    return (
+      <div key={group.groupKey} className="space-y-0.5">
+        <button
+          onClick={() => setTrackingOpen((v) => !v)}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all w-full ${
+            groupActive && !trackingOpen
               ? "bg-sidebar-accent text-primary"
               : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           }`}
         >
-          <div className="relative shrink-0">
-            <item.icon className={`h-5 w-5 ${isActive ? "text-primary" : ""}`} />
-            {badgeCount > 0 && !showLabel && (
-              <span className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-0.5 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
-                {badgeCount}
-              </span>
-            )}
-          </div>
-          {showLabel && (
-            <span className="flex-1 flex items-center justify-between">
-              {t(item.key)}
-              {badgeCount > 0 && (
-                <span className="ml-auto h-5 min-w-5 px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
-                  {badgeCount}
+          <group.icon className={`h-5 w-5 shrink-0 ${groupActive ? "text-primary" : ""}`} />
+          <span className="flex-1 flex items-center justify-between">
+            {t(group.groupKey)}
+            <span className="flex items-center gap-1">
+              {totalBadge > 0 && !trackingOpen && (
+                <span className="h-5 min-w-5 px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+                  {totalBadge}
                 </span>
               )}
+              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${trackingOpen ? "rotate-180" : ""}`} />
             </span>
-          )}
-        </NavLink>
-      );
-    });
+          </span>
+        </button>
+        <div
+          className={`overflow-hidden transition-all duration-200 ${trackingOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}
+        >
+          <div className="pl-4 space-y-0.5 pt-0.5">
+            {group.children.map((child) => renderNavLink(child, true))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderNavItems = (showLabel: boolean) =>
+    navEntries.map((entry) =>
+      isGroup(entry) ? renderGroup(entry, showLabel) : renderNavLink(entry, showLabel)
+    );
 
   if (!isMobile) {
     return (

@@ -110,6 +110,7 @@ const es = {
     nutrition: "Nutrición",
     training: "Entrenamiento",
     progress: "Progreso",
+    tracking: "Seguimiento",
     library: "Biblioteca",
     leads: "Leads",
     checkins: "Check-ins",
