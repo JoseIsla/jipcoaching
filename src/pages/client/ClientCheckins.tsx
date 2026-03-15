@@ -570,67 +570,81 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                       size="sm"
                       variant="outline"
                       className="text-[10px] gap-1 h-7 border-primary/30 text-primary hover:bg-primary/10"
-                      onClick={() => setShowVideoUpload(!showVideoUpload)}
+                      onClick={() => { setShowVideoUpload(true); videoFileRef.current?.click(); }}
                     >
                       <Upload className="h-3 w-3" />
-                      Añadir video
+                      Añadir videos
                     </Button>
                   </div>
 
-                  {showVideoUpload && (
+                  <input
+                    ref={videoFileRef}
+                    type="file"
+                    accept="video/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => { handleVideoFilesSelect(e.target.files); e.target.value = ""; }}
+                  />
+
+                  {/* Video queue */}
+                  {showVideoUpload && videoQueue.length > 0 && (
                     <div className="space-y-2 bg-muted/30 rounded-lg p-3">
-                      <Input
-                        value={videoExerciseName}
-                        onChange={(e) => setVideoExerciseName(e.target.value)}
-                        placeholder="Nombre del ejercicio (ej: Sentadilla)"
-                        className="bg-background border-border text-sm h-8"
-                      />
-                      <Input
-                        value={videoNotes}
-                        onChange={(e) => setVideoNotes(e.target.value)}
-                        placeholder="Notas (opcional)"
-                        className="bg-background border-border text-sm h-8"
-                      />
-                      <input
-                        ref={videoFileRef}
-                        type="file"
-                        accept="video/*"
-                        className="hidden"
-                        onChange={(e) => handleVideoFileSelect(e.target.files?.[0] ?? null)}
-                      />
-                      <button
-                        onClick={() => videoFileRef.current?.click()}
-                        disabled={compressingVideo}
-                        className={`w-full py-4 rounded-lg border-2 border-dashed flex flex-col items-center gap-1.5 transition-colors ${
-                          compressingVideo
-                            ? "border-primary/50 bg-primary/5 animate-pulse"
-                            : videoFile
-                            ? "border-primary/50 bg-primary/5"
-                            : "border-border hover:border-primary/30 hover:bg-muted/50"
-                        }`}
-                      >
-                        {compressingVideo ? (
-                          <>
-                            <Loader2 className="h-5 w-5 text-primary animate-spin" />
-                            <span className="text-[10px] text-primary font-medium">Comprimiendo…</span>
-                          </>
-                        ) : (
-                          <>
-                            <Film className="h-5 w-5 text-muted-foreground" />
-                            <span className="text-[10px] text-muted-foreground">
-                              {videoFile ? videoFile.name : "Seleccionar video (se comprime automáticamente)"}
-                            </span>
-                          </>
-                        )}
-                      </button>
-                      <Button
-                        size="sm"
-                        className="w-full h-8 text-xs"
-                        onClick={handleAddVideo}
-                        disabled={compressingVideo || uploadingVideo || !videoFile || !videoExerciseName.trim()}
-                      >
-                        {uploadingVideo ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" />Subiendo...</> : "Añadir video"}
-                      </Button>
+                      {videoQueue.map((item) => (
+                        <div key={item.id} className="flex items-center gap-2 bg-background rounded-lg p-2 border border-border">
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <Input
+                              value={item.exerciseName}
+                              onChange={(e) => updateQueueItem(item.id, { exerciseName: e.target.value })}
+                              placeholder="Nombre del ejercicio"
+                              className="h-7 text-xs bg-transparent border-border"
+                              disabled={item.status !== "queued"}
+                            />
+                            <div className="flex items-center gap-1.5">
+                              {item.status === "compressing" && <Loader2 className="h-3 w-3 text-primary animate-spin shrink-0" />}
+                              {item.status === "uploading" && <Loader2 className="h-3 w-3 text-primary animate-spin shrink-0" />}
+                              {item.status === "done" && <Check className="h-3 w-3 text-primary shrink-0" />}
+                              {item.status === "error" && <AlertCircle className="h-3 w-3 text-destructive shrink-0" />}
+                              <span className={`text-[10px] truncate ${
+                                item.status === "error" ? "text-destructive" :
+                                item.status === "done" ? "text-primary" :
+                                "text-muted-foreground"
+                              }`}>
+                                {item.status === "error" ? item.error : item.progress}
+                              </span>
+                            </div>
+                          </div>
+                          {item.status === "queued" && (
+                            <button
+                              onClick={() => removeFromQueue(item.id)}
+                              className="text-muted-foreground hover:text-destructive transition-colors p-1 shrink-0"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 h-8 text-xs gap-1"
+                          onClick={() => videoFileRef.current?.click()}
+                        >
+                          <Upload className="h-3 w-3" />
+                          Más videos
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="flex-1 h-8 text-xs"
+                          onClick={handleUploadAll}
+                          disabled={videoQueue.every((v) => v.status !== "queued")}
+                        >
+                          {videoQueue.some((v) => v.status === "compressing" || v.status === "uploading")
+                            ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" />Procesando…</>
+                            : `Subir ${videoQueue.filter((v) => v.status === "queued").length} video${videoQueue.filter((v) => v.status === "queued").length !== 1 ? "s" : ""}`
+                          }
+                        </Button>
+                      </div>
                     </div>
                   )}
 
