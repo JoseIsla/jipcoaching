@@ -1,10 +1,40 @@
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { UserPlus, Utensils, Dumbbell, Activity, ClipboardList, BarChart3 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 import { useClientStore } from "@/data/useClientStore";
 import { useTranslation } from "@/i18n/useTranslation";
+
+const AnimatedBadge = ({ count }: { count: number }) => {
+  const prevCount = useRef(count);
+  const [key, setKey] = useState(0);
+
+  useEffect(() => {
+    if (count !== prevCount.current) {
+      setKey((k) => k + 1);
+      prevCount.current = count;
+    }
+  }, [count]);
+
+  return (
+    <AnimatePresence mode="wait">
+      {count > 0 && (
+        <motion.span
+          key={key}
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.5, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 500, damping: 20 }}
+          className="h-5 min-w-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center"
+        >
+          {count}
+        </motion.span>
+      )}
+    </AnimatePresence>
+  );
+};
 
 const item = (delay: number) => ({
   initial: { opacity: 0, y: 16 },
@@ -70,11 +100,7 @@ const QuickActions = () => {
             <div className="h-9 w-9 rounded-lg bg-secondary flex items-center justify-center">
               <ClipboardList className="h-4 w-4 text-foreground" />
             </div>
-            {pendingCheckins > 0 && (
-              <span className="h-5 min-w-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
-                {pendingCheckins}
-              </span>
-            )}
+            <AnimatedBadge count={pendingCheckins} />
           </div>
           <p className="text-sm font-semibold text-foreground">
             {t("dashboard.pendingCheckins")}
