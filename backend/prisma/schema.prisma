@@ -640,6 +640,7 @@ model CheckinTrainingExercise {
   actualRPE    Float?
   actualSets   String?
   actualReps   String?
+  comment      String?  @db.Text
   createdAt    DateTime @default(now())
 
   log CheckinTrainingLog @relation(fields: [logId], references: [id], onDelete: Cascade)
