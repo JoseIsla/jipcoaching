@@ -647,7 +647,7 @@ async function generateCheckinsForClient(clientId: string, packType: string, for
             where: { status: "ACTIVE" },
             include: {
               days: {
-                include: { exercises: true },
+                include: { exercises: { orderBy: { order: "asc" } } },
                 orderBy: { dayNumber: "asc" },
               },
             },
