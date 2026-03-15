@@ -284,6 +284,11 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
       toast({ title: "Campos requeridos", description: "Indica el ejercicio y selecciona un video", variant: "destructive" });
       return;
     }
+    // Prevent upload attempts with local-only IDs that don't exist in the DB
+    if (entry.id.startsWith("qe-t-auto-")) {
+      toast({ title: "No se puede subir", description: "El check-in aún no está sincronizado con el servidor. Cierra y vuelve a abrir la app.", variant: "destructive" });
+      return;
+    }
     setUploadingVideo(true);
     try {
       const uploaded = await mediaApi.uploadCheckinVideo(
@@ -327,6 +332,10 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   };
 
   const handleSubmit = () => {
+    if (entry.id.startsWith("qe-t-auto-")) {
+      toast({ title: "Error de sincronización", description: "El check-in no se ha sincronizado con el servidor. Cierra y vuelve a abrir la app.", variant: "destructive" });
+      return;
+    }
     submitEntry(entry.id, responses, trainingLog);
     setSubmitted(true);
     toast({ title: t("clientCheckins.checkinSent"), description: t("clientCheckins.checkinSentDesc") });
