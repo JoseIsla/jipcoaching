@@ -221,7 +221,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const [responses, setResponses] = useState<Record<string, string | number | boolean>>(() =>
     buildDefaultResponses(questions, entry.responses || {})
   );
-  const [submitted, setSubmitted] = useState(entry.status === "respondido");
+  const [submitted, setSubmitted] = useState(entry.status === "respondido" || entry.status === "revisado");
   const [activeDay, setActiveDay] = useState(0);
   const { toast } = useToast();
   const submitEntry = useQuestionnaireStore((s) => s.submitEntry);
