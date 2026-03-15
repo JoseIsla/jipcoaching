@@ -258,6 +258,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   );
   const [submitted, setSubmitted] = useState(entry.status === "respondido" || entry.status === "revisado");
   const [activeDay, setActiveDay] = useState(0);
+  const [weightErrors, setWeightErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
   const submitEntry = useQuestionnaireStore((s) => s.submitEntry);
   const addVideoToEntry = useQuestionnaireStore((s) => s.addVideoToEntry);
