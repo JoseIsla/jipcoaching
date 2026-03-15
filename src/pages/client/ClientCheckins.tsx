@@ -165,10 +165,31 @@ const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const [responses, setResponses] = useState<Record<string, string | number | boolean>>(() =>
     buildDefaultResponses(questions, entry.responses || {})
   );
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const canFill = !submitted && windowStatus === "within";
   const countdown = useCountdown(entry, canFill);
 
+  /** Identify weight questions (number type with "peso"/"weight" in label) */
+  const isWeightQuestion = (q: QuestionDefinition) =>
+    q.type === "number" && (q.label.toLowerCase().includes("peso") || q.label.toLowerCase().includes("weight"));
+
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    for (const q of questions) {
+      if (isWeightQuestion(q)) {
+        const val = responses[q.id];
+        const num = typeof val === "number" ? val : parseDecimal(val as any, 0);
+        if (num <= 0) {
+          newErrors[q.id] = "El peso debe ser mayor que 0";
+        }
+      }
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async () => {
+    if (!validate()) return;
     const success = await submitEntry(entry.id, responses);
     if (success) {
       setSubmitted(true);
