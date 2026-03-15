@@ -44,6 +44,7 @@ const ClientProgress = () => {
 
   return (
     <ClientLayout>
+      <PullToRefresh onRefresh={refreshData}>
       <motion.div
         className="space-y-5 max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto"
         variants={stagger}
