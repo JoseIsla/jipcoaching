@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -29,6 +30,40 @@ type NavGroup = { groupKey: string; icon: typeof Activity; children: NavItem[] }
 type NavEntry = NavItem | NavGroup;
 
 const isGroup = (entry: NavEntry): entry is NavGroup => "children" in entry;
+
+/** Animated badge that bounces when count changes */
+const AnimatedBadge = ({ count, size = "md" }: { count: number; size?: "sm" | "md" }) => {
+  const prevCount = useRef(count);
+  const [key, setKey] = useState(0);
+
+  useEffect(() => {
+    if (count !== prevCount.current) {
+      setKey((k) => k + 1);
+      prevCount.current = count;
+    }
+  }, [count]);
+
+  const sizeClasses = size === "sm"
+    ? "h-4 min-w-4 px-0.5 text-[10px] -top-1.5 -right-1.5"
+    : "h-5 min-w-5 px-1 text-[10px]";
+
+  return (
+    <AnimatePresence mode="wait">
+      {count > 0 && (
+        <motion.span
+          key={key}
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.5, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 500, damping: 20 }}
+          className={`${sizeClasses} flex items-center justify-center rounded-full bg-primary text-primary-foreground font-bold`}
+        >
+          {count}
+        </motion.span>
+      )}
+    </AnimatePresence>
+  );
+};
 
 const navEntries: NavEntry[] = [
   { key: "sidebar.dashboard", icon: LayoutDashboard, path: "/admin" },
@@ -115,20 +150,18 @@ const AdminSidebar = () => {
       >
         <div className="relative shrink-0">
           <item.icon className={`h-5 w-5 ${isActive ? "text-primary" : ""}`} />
-          {badgeCount > 0 && !showLabel && (
-            <span className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-0.5 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
-              {badgeCount}
+          {!showLabel && (
+            <span className="absolute -top-1.5 -right-1.5">
+              <AnimatedBadge count={badgeCount} size="sm" />
             </span>
           )}
         </div>
         {showLabel && (
           <span className="flex-1 flex items-center justify-between">
             {t(item.key)}
-            {badgeCount > 0 && (
-              <span className="ml-auto h-5 min-w-5 px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
-                {badgeCount}
-              </span>
-            )}
+            <span className="ml-auto">
+              <AnimatedBadge count={badgeCount} />
+            </span>
           </span>
         )}
       </NavLink>
@@ -162,10 +195,8 @@ const AdminSidebar = () => {
           <span className="flex-1 flex items-center justify-between">
             {t(group.groupKey)}
             <span className="flex items-center gap-1">
-              {totalBadge > 0 && !trackingOpen && (
-                <span className="h-5 min-w-5 px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
-                  {totalBadge}
-                </span>
+              {!trackingOpen && (
+                <AnimatedBadge count={totalBadge} />
               )}
               <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${trackingOpen ? "rotate-180" : ""}`} />
             </span>
