@@ -373,6 +373,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
 
       return { entries: updatedEntries, weightHistory: updatedWeightHistory };
     });
+    return true;
   },
 
   addVideoToEntry: (entryId, video) =>
