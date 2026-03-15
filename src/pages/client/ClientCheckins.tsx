@@ -343,7 +343,16 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
       toast({ title: "Error de sincronización", description: "El check-in no se ha sincronizado con el servidor. Cierra y vuelve a abrir la app.", variant: "destructive" });
       return;
     }
-    const success = await submitEntry(entry.id, responses, trainingLog);
+    // Fill empty actuals with planned values so admin always sees data
+    const finalLog = trainingLog.map((day) => ({
+      ...day,
+      exercises: day.exercises.map((ex) => ({
+        ...ex,
+        actualSets: ex.actualSets || ex.plannedSets,
+        actualReps: ex.actualReps || ex.plannedReps,
+      })),
+    }));
+    const success = await submitEntry(entry.id, responses, finalLog);
     if (success) {
       setSubmitted(true);
       toast({ title: t("clientCheckins.checkinSent"), description: t("clientCheckins.checkinSentDesc") });
