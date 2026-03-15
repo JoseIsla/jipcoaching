@@ -304,15 +304,20 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
 
   // ── Legacy local actions ──
 
-  submitEntry: (entryId, responses, trainingLog) => {
+  submitEntry: async (entryId, responses, trainingLog) => {
     const state = get();
     const entry = state.entries.find((e) => e.id === entryId);
 
-    // If not DEV_MOCK, also submit to API
+    // Submit to API and confirm before updating local state
     if (!DEV_MOCK && entry) {
-      api.post(`/checkins/${entryId}/submit`, { responses, trainingLog }).catch((err) =>
-        console.error("Error submitting check-in to API:", err)
-      );
+      try {
+        await api.post(`/checkins/${entryId}/submit`, { responses, trainingLog });
+      } catch (err: any) {
+        console.error("Error submitting check-in to API:", err);
+        toast({ title: "Error al enviar", description: err?.message || "No se pudo enviar el check-in. Inténtalo de nuevo.", variant: "destructive" });
+        return false;
+      }
+    }
     }
 
     set((s) => {
