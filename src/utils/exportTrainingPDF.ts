@@ -99,7 +99,7 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry) => {
           : "";
 
         return [
-          ex.exerciseName,
+          ex.exerciseName + (ex.comment ? `\n💬 ${ex.comment}` : ""),
           `${ex.plannedSets} × ${ex.plannedReps}`,
           ex.plannedLoad || "—",
           ex.plannedRPE != null ? String(ex.plannedRPE) : "—",
