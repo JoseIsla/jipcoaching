@@ -13,6 +13,7 @@ import { useExerciseLibraryStore } from "@/data/useExerciseLibraryStore";
 import { exportNutritionPlanPDF } from "@/utils/exportClientPlanPDF";
 import { type ReactNode } from "react";
 import { useTranslation } from "@/i18n/useTranslation";
+import PullToRefresh from "@/components/client/PullToRefresh";
 
 const ControlledCollapsible = ({ trigger, children }: { trigger: ReactNode; children: ReactNode }) => {
   const [open, setOpen] = useState(false);
