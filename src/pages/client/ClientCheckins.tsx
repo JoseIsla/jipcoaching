@@ -164,10 +164,12 @@ const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const canFill = !submitted && windowStatus === "within";
   const countdown = useCountdown(entry, canFill);
 
-  const handleSubmit = () => {
-    submitEntry(entry.id, responses);
-    setSubmitted(true);
-    toast({ title: t("clientCheckins.checkinSent"), description: t("clientCheckins.checkinSentDesc") });
+  const handleSubmit = async () => {
+    const success = await submitEntry(entry.id, responses);
+    if (success) {
+      setSubmitted(true);
+      toast({ title: t("clientCheckins.checkinSent"), description: t("clientCheckins.checkinSentDesc") });
+    }
   };
 
   const statusIcon = submitted ? <Check className="h-3.5 w-3.5 text-green-500" /> : windowStatus === "within" ? <Clock className="h-3.5 w-3.5 text-yellow-500" /> : windowStatus === "future" ? <Clock className="h-3.5 w-3.5 text-blue-400" /> : <AlertCircle className="h-3.5 w-3.5 text-muted-foreground" />;
@@ -317,7 +319,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
     }
   };
 
-  const updateExercise = (dayIdx: number, exIdx: number, field: string, value: string | number) => {
+  const updateExercise = (dayIdx: number, exIdx: number, field: string, value: string | number | undefined) => {
     const updated = trainingLog.map((day, di) =>
       di === dayIdx
         ? {
@@ -331,14 +333,16 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
     setTrainingLog(updated);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (entry.id.startsWith("qe-t-auto-")) {
       toast({ title: "Error de sincronización", description: "El check-in no se ha sincronizado con el servidor. Cierra y vuelve a abrir la app.", variant: "destructive" });
       return;
     }
-    submitEntry(entry.id, responses, trainingLog);
-    setSubmitted(true);
-    toast({ title: t("clientCheckins.checkinSent"), description: t("clientCheckins.checkinSentDesc") });
+    const success = await submitEntry(entry.id, responses, trainingLog);
+    if (success) {
+      setSubmitted(true);
+      toast({ title: t("clientCheckins.checkinSent"), description: t("clientCheckins.checkinSentDesc") });
+    }
   };
 
   const isPending = !submitted;
@@ -439,7 +443,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                       </div>
                                       <DecimalInput
                                         value={ex.actualWeight ?? undefined}
-                                        onChange={(v) => updateExercise(dayIdx, exIdx, "actualWeight", v ?? 0)}
+                                        onChange={(v) => updateExercise(dayIdx, exIdx, "actualWeight", v as any)}
                                         placeholder="kg"
                                         className="h-7 text-[11px] text-center bg-background border-border px-1"
                                       />
@@ -457,7 +461,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                         <span className="block text-center text-[9px] text-primary/70 leading-none mb-0.5">Real</span>
                                         <DecimalInput
                                           value={ex.actualRPE ?? undefined}
-                                          onChange={(v) => updateExercise(dayIdx, exIdx, "actualRPE", v ?? 0)}
+                                          onChange={(v) => updateExercise(dayIdx, exIdx, "actualRPE", v as any)}
                                           placeholder="—"
                                           className="h-7 text-[11px] text-center bg-background border-border px-1"
                                         />

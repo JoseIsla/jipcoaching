@@ -1,10 +1,24 @@
 import { create } from "zustand";
-import { api } from "@/services/api";
+import { api, API_BASE_URL, AUTH_TOKEN_KEY } from "@/services/api";
 import type { ApiQuestionnaire, ApiSession } from "@/types/api";
 import { DEV_MOCK } from "@/config/devMode";
 import { mockQuestionnaireEntries, mockWeightHistory, mockRMRecords } from "@/data/mockCheckins";
 import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
 import { useClientDetailStore } from "@/data/useClientDetailStore";
+import { toast } from "@/hooks/use-toast";
+
+/** Resolve relative upload URLs to full server URLs with auth token for protected files */
+const resolveUrl = (url: string | null | undefined): string | undefined => {
+  if (!url || url.startsWith("http") || url.startsWith("blob:")) return url || undefined;
+  const serverRoot = API_BASE_URL.replace(/\/api\/?$/, "");
+  const fullUrl = `${serverRoot}${url}`;
+  // Protected paths need auth token as query param for <video>/<img> tags
+  if (url.startsWith("/uploads/videos") || url.startsWith("/uploads/progress")) {
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (token) return `${fullUrl}?token=${token}`;
+  }
+  return fullUrl;
+};
 
 // ── Types (previously from mockData, now standalone) ──
 
@@ -130,7 +144,7 @@ interface QuestionnaireState {
   markAsReviewed: (entryId: string) => Promise<void>;
 
   // Legacy local actions (kept for UI compat)
-  submitEntry: (entryId: string, responses: Record<string, string | number | boolean>, trainingLog?: TrainingLogDay[]) => void;
+  submitEntry: (entryId: string, responses: Record<string, string | number | boolean>, trainingLog?: TrainingLogDay[]) => Promise<boolean>;
   addVideoToEntry: (entryId: string, video: CheckinVideo) => void;
   removeVideoFromEntry: (entryId: string, videoId: string) => void;
   getPendingCount: (clientId?: string) => number;
@@ -167,12 +181,20 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
     try {
       const query = clientId ? `?clientId=${clientId}` : "";
       const data = await api.get<QuestionnaireEntry[]>(`/checkins${query}`);
+      // Resolve video URLs
+      const resolved = (data ?? []).map((e) => ({
+        ...e,
+        techniqueVideos: e.techniqueVideos?.map((v) => ({
+          ...v,
+          url: resolveUrl(v.url) || v.url,
+        })),
+      }));
       set((s) => {
         // Merge API entries with any locally-generated auto-entries (training)
         const autoEntries = s.entries.filter((e) => e.id.startsWith("qe-t-auto-"));
-        const apiIds = new Set((data ?? []).map((e) => e.id));
+        const apiIds = new Set(resolved.map((e) => e.id));
         const nonDuplicateAuto = autoEntries.filter((e) => !apiIds.has(e.id));
-        return { entries: [...(data ?? []), ...nonDuplicateAuto], loading: false };
+        return { entries: [...resolved, ...nonDuplicateAuto], loading: false };
       });
     } catch (err: any) {
       set({ error: err?.message ?? "Error al cargar check-ins", loading: false });
@@ -288,15 +310,19 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
 
   // ── Legacy local actions ──
 
-  submitEntry: (entryId, responses, trainingLog) => {
+  submitEntry: async (entryId, responses, trainingLog) => {
     const state = get();
     const entry = state.entries.find((e) => e.id === entryId);
 
-    // If not DEV_MOCK, also submit to API
+    // Submit to API and confirm before updating local state
     if (!DEV_MOCK && entry) {
-      api.post(`/checkins/${entryId}/submit`, { responses, trainingLog }).catch((err) =>
-        console.error("Error submitting check-in to API:", err)
-      );
+      try {
+        await api.post(`/checkins/${entryId}/submit`, { responses, trainingLog });
+      } catch (err: any) {
+        console.error("Error submitting check-in to API:", err);
+        toast({ title: "Error al enviar", description: err?.message || "No se pudo enviar el check-in. Inténtalo de nuevo.", variant: "destructive" });
+        return false;
+      }
     }
 
     set((s) => {
@@ -353,13 +379,14 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
 
       return { entries: updatedEntries, weightHistory: updatedWeightHistory };
     });
+    return true;
   },
 
   addVideoToEntry: (entryId, video) =>
     set((state) => ({
       entries: state.entries.map((e) =>
         e.id === entryId
-          ? { ...e, techniqueVideos: [...(e.techniqueVideos || []), video] }
+          ? { ...e, techniqueVideos: [...(e.techniqueVideos || []), { ...video, url: resolveUrl(video.url) || video.url }] }
           : e
       ),
     })),

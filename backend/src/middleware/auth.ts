@@ -21,13 +21,22 @@ if (!JWT_SECRET) {
 }
 
 export const authenticate = (req: Request, res: Response, next: NextFunction): void => {
+  // Support token from Authorization header or query param (for <video>/<img> tags)
   const header = req.headers.authorization;
-  if (!header?.startsWith("Bearer ")) {
+  const queryToken = req.query.token as string | undefined;
+  let token: string | undefined;
+
+  if (header?.startsWith("Bearer ")) {
+    token = header.slice(7);
+  } else if (queryToken) {
+    token = queryToken;
+  }
+
+  if (!token) {
     res.status(401).json({ message: "Token no proporcionado" });
     return;
   }
 
-  const token = header.slice(7);
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
     req.user = decoded;
