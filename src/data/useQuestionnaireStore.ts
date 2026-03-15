@@ -6,6 +6,7 @@ import { mockQuestionnaireEntries, mockWeightHistory, mockRMRecords } from "@/da
 import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
 import { useClientDetailStore } from "@/data/useClientDetailStore";
 import { toast } from "@/hooks/use-toast";
+import { parseDecimal } from "@/utils/parseDecimal";
 
 /** Resolve relative upload URLs to full server URLs with auth token for protected files */
 const resolveUrl = (url: string | null | undefined): string | undefined => {
