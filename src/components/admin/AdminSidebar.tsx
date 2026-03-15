@@ -20,13 +20,14 @@ import {
 import logoJip from "@/assets/logo-jip.png";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "@/i18n/useTranslation";
+import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
 
 const navKeys = [
   { key: "sidebar.dashboard", icon: LayoutDashboard, path: "/admin" },
   { key: "sidebar.clients", icon: Users, path: "/admin/clients" },
   { key: "sidebar.nutrition", icon: Utensils, path: "/admin/nutrition" },
   { key: "sidebar.training", icon: Dumbbell, path: "/admin/training" },
-  { key: "sidebar.checkins", icon: FileCheck, path: "/admin/checkins" },
+  { key: "sidebar.checkins", icon: FileCheck, path: "/admin/checkins", badge: true },
   { key: "sidebar.progress", icon: TrendingUp, path: "/admin/progress" },
   { key: "sidebar.library", icon: Library, path: "/admin/exercises" },
   { key: "sidebar.leads", icon: Inbox, path: "/admin/leads" },
@@ -56,6 +57,11 @@ const AdminSidebar = () => {
   const isMobile = useIsMobile();
   const { t } = useTranslation();
 
+  // Count of check-ins pending review (status "respondido")
+  const pendingReviewCount = useQuestionnaireStore((s) =>
+    s.entries.filter((e) => e.status === "respondido").length
+  );
+
   useEffect(() => {
     const handler = () => setMobileOpen((v) => !v);
     window.addEventListener("toggle-admin-sidebar", handler);
@@ -69,6 +75,7 @@ const AdminSidebar = () => {
   const renderNavItems = (showLabel: boolean) =>
     navKeys.map((item) => {
       const isActive = location.pathname === item.path;
+      const badgeCount = (item as any).badge ? pendingReviewCount : 0;
       return (
         <NavLink
           key={item.path}
@@ -79,8 +86,24 @@ const AdminSidebar = () => {
               : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           }`}
         >
-          <item.icon className={`h-5 w-5 shrink-0 ${isActive ? "text-primary" : ""}`} />
-          {showLabel && <span>{t(item.key)}</span>}
+          <div className="relative shrink-0">
+            <item.icon className={`h-5 w-5 ${isActive ? "text-primary" : ""}`} />
+            {badgeCount > 0 && !showLabel && (
+              <span className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-0.5 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+                {badgeCount}
+              </span>
+            )}
+          </div>
+          {showLabel && (
+            <span className="flex-1 flex items-center justify-between">
+              {t(item.key)}
+              {badgeCount > 0 && (
+                <span className="ml-auto h-5 min-w-5 px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+                  {badgeCount}
+                </span>
+              )}
+            </span>
+          )}
         </NavLink>
       );
     });
