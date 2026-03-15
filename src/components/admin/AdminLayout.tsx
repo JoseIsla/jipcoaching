@@ -25,6 +25,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const fetchLeads = useContactLeadsStore((s) => s.fetchLeads);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
   const generateWeeklyCheckins = useQuestionnaireStore((s) => s.generateWeeklyCheckins);
+  const fetchClients = useClientStore((s) => s.fetchClients);
+  const fetchNutritionPlans = useNutritionPlanStore((s) => s.fetchPlans);
+  const fetchTrainingPlans = useTrainingPlanStore((s) => s.fetchPlans);
 
   useEffect(() => { if (userId) setCurrentUser(userId); }, [setCurrentUser, userId]);
 
