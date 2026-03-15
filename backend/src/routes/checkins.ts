@@ -86,6 +86,7 @@ router.get("/", async (req, res) => {
           actualRPE: e.actualRPE,
           actualSets: e.actualSets,
           actualReps: e.actualReps,
+          comment: e.comment || undefined,
         })),
       })),
       techniqueVideos: c.videos.map((v) => ({
