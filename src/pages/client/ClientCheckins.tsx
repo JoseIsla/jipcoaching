@@ -963,6 +963,7 @@ const ClientCheckins = () => {
             </Button>
           </motion.div>
         )}
+        <motion.div variants={fadeUp}>
           <Tabs defaultValue={defaultTab} className="space-y-4">
             <TabsList className="bg-card border border-border w-full">
               {hasNutrition && <TabsTrigger value="nutrition" className="flex-1 text-xs">🍎 {t("common.nutrition")}</TabsTrigger>}
