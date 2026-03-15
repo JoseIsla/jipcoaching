@@ -946,7 +946,23 @@ const ClientCheckins = () => {
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2"><ClipboardList className="h-5 w-5 text-yellow-500" />{t("clientCheckins.title")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{t("clientCheckins.subtitle")}</p>
         </motion.div>
-        <motion.div variants={fadeUp}>
+        {isSyncing && (
+          <motion.div variants={fadeUp} className="flex items-center gap-2 bg-muted/50 border border-border rounded-lg px-3 py-2">
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            <span className="text-xs text-muted-foreground">Sincronizando check-ins…</span>
+          </motion.div>
+        )}
+        {syncError && !isSyncing && (
+          <motion.div variants={fadeUp} className="flex items-center justify-between bg-destructive/10 border border-destructive/30 rounded-lg px-3 py-2">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-destructive" />
+              <span className="text-xs text-destructive">Error al cargar los check-ins</span>
+            </div>
+            <Button variant="outline" size="sm" onClick={loadCheckins} className="h-7 text-xs">
+              Reintentar
+            </Button>
+          </motion.div>
+        )}
           <Tabs defaultValue={defaultTab} className="space-y-4">
             <TabsList className="bg-card border border-border w-full">
               {hasNutrition && <TabsTrigger value="nutrition" className="flex-1 text-xs">🍎 {t("common.nutrition")}</TabsTrigger>}
