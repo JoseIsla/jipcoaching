@@ -477,7 +477,8 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                             </thead>
                             <tbody>
                               {day.exercises.map((ex, exIdx) => (
-                                <tr key={exIdx} className="border-t border-border/50 align-top">
+                                <React.Fragment key={exIdx}>
+                                <tr className="border-t border-border/50 align-top">
                                   <td className="px-2 py-2 font-medium text-foreground max-w-[90px]">
                                     <span className="block leading-tight">{ex.exerciseName}</span>
                                   </td>
@@ -534,7 +535,6 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                     </div>
                                   </td>
                                 </tr>
-                                {/* Comment row */}
                                 <tr className="border-t border-border/20">
                                   <td colSpan={4} className="px-2 py-1">
                                     <Input
@@ -546,6 +546,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                     />
                                   </td>
                                 </tr>
+                                </React.Fragment>
                               ))}
                             </tbody>
                           </table>
