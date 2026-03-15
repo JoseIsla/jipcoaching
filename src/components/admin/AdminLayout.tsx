@@ -9,6 +9,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNotificationStore } from "@/data/notificationStore";
 import { useContactLeadsStore } from "@/data/useContactLeadsStore";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
+import { useNutritionPlanStore } from "@/data/useNutritionPlanStore";
+import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
+import { useClientStore } from "@/data/useClientStore";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -22,6 +25,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const fetchLeads = useContactLeadsStore((s) => s.fetchLeads);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
   const generateWeeklyCheckins = useQuestionnaireStore((s) => s.generateWeeklyCheckins);
+  const fetchClients = useClientStore((s) => s.fetchClients);
+  const fetchNutritionPlans = useNutritionPlanStore((s) => s.fetchPlans);
+  const fetchTrainingPlans = useTrainingPlanStore((s) => s.fetchPlans);
 
   useEffect(() => { if (userId) setCurrentUser(userId); }, [setCurrentUser, userId]);
 
@@ -29,6 +35,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   useEffect(() => {
     fetchNotifications();
     fetchLeads();
+    fetchClients();
+    fetchNutritionPlans();
+    fetchTrainingPlans();
     generateWeeklyCheckins().then(() => fetchEntries());
 
     const interval = setInterval(() => {
@@ -37,7 +46,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     }, 60_000);
 
     return () => clearInterval(interval);
-  }, [fetchNotifications, fetchLeads, fetchEntries, generateWeeklyCheckins]);
+  }, [fetchNotifications, fetchLeads, fetchEntries, generateWeeklyCheckins, fetchClients, fetchNutritionPlans, fetchTrainingPlans]);
 
   return (
     <div className="flex min-h-screen bg-background">
