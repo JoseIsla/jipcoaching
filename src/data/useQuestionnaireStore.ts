@@ -138,7 +138,7 @@ interface QuestionnaireState {
   markAsReviewed: (entryId: string) => Promise<void>;
 
   // Legacy local actions (kept for UI compat)
-  submitEntry: (entryId: string, responses: Record<string, string | number | boolean>, trainingLog?: TrainingLogDay[]) => void;
+  submitEntry: (entryId: string, responses: Record<string, string | number | boolean>, trainingLog?: TrainingLogDay[]) => Promise<boolean>;
   addVideoToEntry: (entryId: string, video: CheckinVideo) => void;
   removeVideoFromEntry: (entryId: string, videoId: string) => void;
   getPendingCount: (clientId?: string) => number;
