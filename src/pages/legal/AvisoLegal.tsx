@@ -16,7 +16,7 @@ const AvisoLegal = () => (
           <h2 className="text-lg font-semibold text-foreground">1. Datos identificativos</h2>
           <p>En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y Comercio Electrónico (LSSICE), se informa al usuario de los datos del titular de este sitio web:</p>
           <ul className="list-disc pl-5 space-y-1">
-            <li><strong>Titular:</strong> JIP Performance Nutrition</li>
+            <li><strong>Titular:</strong> José Isla Pérez</li>
             <li><strong>Actividad:</strong> Servicios de coaching nutricional y entrenamiento personal</li>
             <li><strong>Contacto:</strong> A través del formulario disponible en la web</li>
           </ul>

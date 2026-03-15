@@ -14,7 +14,7 @@ const PoliticaPrivacidad = () => (
       <div className="prose prose-sm dark:prose-invert max-w-none space-y-6 text-muted-foreground">
         <section>
           <h2 className="text-lg font-semibold text-foreground">1. Responsable del tratamiento</h2>
-          <p>El responsable del tratamiento de los datos personales recogidos a través de este sitio web es JIP Performance Nutrition.</p>
+          <p>El responsable del tratamiento de los datos personales recogidos a través de este sitio web es José Isla Pérez (JIP Performance Nutrition).</p>
         </section>
 
         <section>
