@@ -92,7 +92,7 @@ const AboutSection = () => {
                 >
                   <Icon className="h-5 w-5 text-primary mx-auto mb-2" />
                   <p className="text-xl font-black text-foreground">
-                    {displayText ? displayText : <AnimatedNumber value={value} suffix={suffix} />}
+                    <AnimatedNumber value={value} suffix={suffix} />
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
                 </motion.div>
