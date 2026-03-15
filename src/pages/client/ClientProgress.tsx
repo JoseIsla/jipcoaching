@@ -9,6 +9,7 @@ import AdherenceCard from "@/components/client/progress/AdherenceCard";
 import NutritionProgressTab from "@/components/client/progress/NutritionProgressTab";
 import TrainingProgressTab from "@/components/client/progress/TrainingProgressTab";
 import { motion } from "framer-motion";
+import PullToRefresh from "@/components/client/PullToRefresh";
 
 const stagger = { animate: { transition: { staggerChildren: 0.08 } } };
 const fadeUp = {
