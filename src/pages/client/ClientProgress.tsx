@@ -29,12 +29,13 @@ const ClientProgress = () => {
   const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
 
-  // Fetch data from API on mount
-  useEffect(() => {
-    fetchEntries(client.id);
-    if (hasNutrition) fetchWeightHistory(client.id);
-    if (hasTraining) fetchRMRecords(client.id);
-  }, [client.id]);
+  const refreshData = useCallback(async () => {
+    await fetchEntries(client.id);
+    if (hasNutrition) await fetchWeightHistory(client.id);
+    if (hasTraining) await fetchRMRecords(client.id);
+  }, [client.id, hasNutrition, hasTraining, fetchEntries, fetchWeightHistory, fetchRMRecords]);
+
+  useEffect(() => { refreshData(); }, [client.id]);
 
   const weightData = getWeightHistory(client.id);
   const bestRMs = getBestRMs(client.id);
