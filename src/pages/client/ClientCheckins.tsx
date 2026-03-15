@@ -886,20 +886,27 @@ const ClientCheckins = () => {
 
   // Ensure we don't create the local auto check-in before the API has had a chance to return.
   const [hasFetched, setHasFetched] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(true);
+  const [syncError, setSyncError] = useState(false);
+
+  const loadCheckins = React.useCallback(async () => {
+    setIsSyncing(true);
+    setSyncError(false);
+    try {
+      await generateMyCheckins();
+      await fetchEntries(client.id);
+      setHasFetched(true);
+    } catch {
+      setSyncError(true);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [client.id, fetchEntries, generateMyCheckins]);
 
   // Generate + fetch check-ins from API on mount
   useEffect(() => {
-    let cancelled = false;
-    setHasFetched(false);
-    generateMyCheckins()
-      .then(() => fetchEntries(client.id))
-      .finally(() => {
-        if (!cancelled) setHasFetched(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [client.id, fetchEntries, generateMyCheckins]);
+    loadCheckins();
+  }, [loadCheckins]);
 
   const myEntries = allEntries.filter((e) => e.clientId === client.id);
 
