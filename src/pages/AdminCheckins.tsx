@@ -50,7 +50,22 @@ const AdminCheckins = () => {
   const trainingTemplate = useTemplateStore((s) => s.trainingTemplate);
   const fetchTemplates = useTemplateStore((s) => s.fetchTemplates);
 
-  const handleViewEntry = useCallback((entry: QuestionnaireEntry) => {
+  const [resetting, setResetting] = useState(false);
+
+  const handleResetTrainingWeek = async () => {
+    if (!confirm("¿Seguro que quieres resetear los check-ins de entrenamiento de esta semana? Se eliminarán y regenerarán.")) return;
+    setResetting(true);
+    try {
+      const res = await api.post("/checkins/reset-training-week");
+      toast({ title: "Check-ins reseteados", description: `${res.deleted ?? 0} eliminados, ${res.created ?? 0} regenerados` });
+      await fetchEntries();
+    } catch {
+      // api.ts already shows error toast
+    } finally {
+      setResetting(false);
+    }
+  };
+
     setSelectedEntry(entry);
     if (entry.status === "respondido") {
       markAsReviewed(entry.id);
