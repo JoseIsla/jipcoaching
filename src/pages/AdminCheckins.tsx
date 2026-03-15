@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { Video } from "lucide-react";
+import { Video, RotateCcw } from "lucide-react";
+import { api } from "@/services/api";
+import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,6 +50,21 @@ const AdminCheckins = () => {
   const trainingTemplate = useTemplateStore((s) => s.trainingTemplate);
   const fetchTemplates = useTemplateStore((s) => s.fetchTemplates);
 
+  const [resetting, setResetting] = useState(false);
+
+  const handleResetTrainingWeek = async () => {
+    if (!confirm("¿Seguro que quieres resetear los check-ins de entrenamiento de esta semana? Se eliminarán y regenerarán.")) return;
+    setResetting(true);
+    try {
+      const res = await api.post("/checkins/reset-training-week");
+      toast({ title: "Check-ins reseteados", description: `${res.deleted ?? 0} eliminados, ${res.created ?? 0} regenerados` });
+      await fetchEntries();
+    } catch {
+      // api.ts already shows error toast
+    } finally {
+      setResetting(false);
+    }
+  };
   const handleViewEntry = useCallback((entry: QuestionnaireEntry) => {
     setSelectedEntry(entry);
     if (entry.status === "respondido") {
@@ -144,6 +161,10 @@ const AdminCheckins = () => {
             <p className="text-muted-foreground text-sm mt-1">Revisión de check-ins de nutrición y entrenamiento</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleResetTrainingWeek} disabled={resetting} className="text-destructive border-destructive/30 hover:bg-destructive/10">
+              <RotateCcw className={`h-4 w-4 mr-1.5 ${resetting ? "animate-spin" : ""}`} />
+              {resetting ? "Reseteando…" : "Reset training"}
+            </Button>
             <Button variant="outline" size="icon" onClick={() => setWeekOffset((w) => w - 1)}><ChevronLeft className="h-4 w-4" /></Button>
             <span className="text-sm font-medium text-foreground min-w-[120px] text-center">{weekLabel}</span>
             <Button variant="outline" size="icon" onClick={() => setWeekOffset((w) => Math.min(w + 1, 0))}><ChevronRight className="h-4 w-4" /></Button>
