@@ -732,7 +732,7 @@ const es = {
       stat1: "Clientes activos",
       stat2: "Años de experiencia",
       stat3: "Planes a medida",
-      stat4: "Certificación",
+      stat4: "Formación especializada",
     },
     plans: {
       label: "Servicios",
