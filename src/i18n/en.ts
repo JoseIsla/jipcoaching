@@ -112,6 +112,7 @@ const en: Translations = {
     nutrition: "Nutrition",
     training: "Training",
     progress: "Progress",
+    tracking: "Tracking",
     library: "Library",
     leads: "Leads",
     checkins: "Check-ins",
