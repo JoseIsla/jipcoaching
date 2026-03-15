@@ -624,7 +624,7 @@ async function generateCheckinsForClient(clientId: string, packType: string, for
   // Training check-ins should ONLY be created on Saturday or Sunday (the fill window).
   // Before Saturday they don't exist yet (the cron generates them Saturday 7:00 AM).
   const todayDay = now.getDay(); // 0=Sun, 6=Sat
-  const isSaturdayOrSunday = todayDay === 6 || todayDay === 0;
+  const isSaturdayOrSunday = todayDay === 6 || todayDay === 0 || forceTraining;
 
   const hasTraining = packType === "TRAINING" || packType === "FULL";
   if (hasTraining && isSaturdayOrSunday) {
