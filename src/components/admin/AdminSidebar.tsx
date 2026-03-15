@@ -195,10 +195,8 @@ const AdminSidebar = () => {
           <span className="flex-1 flex items-center justify-between">
             {t(group.groupKey)}
             <span className="flex items-center gap-1">
-              {totalBadge > 0 && !trackingOpen && (
-                <span className="h-5 min-w-5 px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
-                  {totalBadge}
-                </span>
+              {!trackingOpen && (
+                <AnimatedBadge count={totalBadge} />
               )}
               <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${trackingOpen ? "rotate-180" : ""}`} />
             </span>
