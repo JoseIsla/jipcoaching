@@ -34,8 +34,10 @@ const CreateNutritionPlanSheet = ({ onCreated }: Props) => {
 
   const existingActivePlan = clientId ? getActivePlanForClient(clientId) : undefined;
 
-  // Get all previous plans for the selected client
-  const clientPlans = clientId ? plans.filter((p) => p.clientId === clientId) : [];
+  // All plans available for duplication, grouped by client
+  const allPlansForDuplication = plans.filter((p) => p.id); // all plans
+  const sameClientPlans = clientId ? allPlansForDuplication.filter((p) => p.clientId === clientId) : [];
+  const otherClientPlans = clientId ? allPlansForDuplication.filter((p) => p.clientId !== clientId) : [];
 
   const handleCreate = () => {
     if (!planName.trim() || !clientId || !objective.trim()) {
