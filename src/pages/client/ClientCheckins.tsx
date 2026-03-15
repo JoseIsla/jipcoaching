@@ -477,7 +477,8 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                             </thead>
                             <tbody>
                               {day.exercises.map((ex, exIdx) => (
-                                <tr key={exIdx} className="border-t border-border/50 align-top">
+                                <React.Fragment key={exIdx}>
+                                <tr className="border-t border-border/50 align-top">
                                   <td className="px-2 py-2 font-medium text-foreground max-w-[90px]">
                                     <span className="block leading-tight">{ex.exerciseName}</span>
                                   </td>
@@ -534,6 +535,18 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                     </div>
                                   </td>
                                 </tr>
+                                <tr className="border-t border-border/20">
+                                  <td colSpan={4} className="px-2 py-1">
+                                    <Input
+                                      type="text"
+                                      className="h-6 text-[10px] bg-background border-border px-1.5 w-full"
+                                      placeholder="Comentario (opcional)"
+                                      value={ex.comment ?? ""}
+                                      onChange={(e) => updateExercise(dayIdx, exIdx, "comment", e.target.value || undefined)}
+                                    />
+                                  </td>
+                                </tr>
+                                </React.Fragment>
                               ))}
                             </tbody>
                           </table>
@@ -703,7 +716,10 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                               : "";
                             return (
                               <tr key={i} className="border-t border-border/50 align-top">
-                                <td className="px-2 py-1.5 font-medium text-foreground">{ex.exerciseName}</td>
+                                <td className="px-2 py-1.5 font-medium text-foreground">
+                                  {ex.exerciseName}
+                                  {ex.comment && <p className="text-[9px] text-muted-foreground font-normal mt-0.5 italic">"{ex.comment}"</p>}
+                                </td>
                                 <td className="px-2 py-1.5 text-center text-muted-foreground">
                                   <span className="block">{ex.plannedSets}×{ex.plannedReps}</span>
                                   {ex.plannedLoad && ex.plannedLoad !== "—" && (

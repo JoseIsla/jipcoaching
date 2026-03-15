@@ -285,6 +285,7 @@ const AdminCheckins = () => {
                                     <td className="px-3 py-2">
                                       <p className="text-sm font-medium text-foreground">{ex.exerciseName}</p>
                                       <p className="text-[10px] text-muted-foreground">{ex.section === "basic" ? "Básico" : "Variante"}</p>
+                                      {ex.comment && <p className="text-[10px] text-primary/80 italic mt-0.5">"{ex.comment}"</p>}
                                     </td>
                                     <td className="px-3 py-2 text-center">
                                       <p className="text-xs text-muted-foreground">{ex.plannedSets}×{ex.plannedReps}</p>
