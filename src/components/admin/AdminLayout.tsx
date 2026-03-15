@@ -9,6 +9,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNotificationStore } from "@/data/notificationStore";
 import { useContactLeadsStore } from "@/data/useContactLeadsStore";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
+import { useNutritionPlanStore } from "@/data/useNutritionPlanStore";
+import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
+import { useClientStore } from "@/data/useClientStore";
 
 interface AdminLayoutProps {
   children: ReactNode;
