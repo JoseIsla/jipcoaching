@@ -143,6 +143,7 @@ const ClientHome = () => {
         {/* Testimonial */}
         <ClientTestimonialCard />
       </div>
+      </PullToRefresh>
     </ClientLayout>
   );
 };
