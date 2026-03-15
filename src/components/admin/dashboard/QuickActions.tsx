@@ -100,11 +100,7 @@ const QuickActions = () => {
             <div className="h-9 w-9 rounded-lg bg-secondary flex items-center justify-center">
               <ClipboardList className="h-4 w-4 text-foreground" />
             </div>
-            {pendingCheckins > 0 && (
-              <span className="h-5 min-w-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
-                {pendingCheckins}
-              </span>
-            )}
+            <AnimatedBadge count={pendingCheckins} />
           </div>
           <p className="text-sm font-semibold text-foreground">
             {t("dashboard.pendingCheckins")}
