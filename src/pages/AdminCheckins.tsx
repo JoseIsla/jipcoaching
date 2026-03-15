@@ -222,7 +222,9 @@ const AdminCheckins = () => {
                 clientSummaries.map((client) => {
                   const filteredEntries = filterStatus === "all"
                     ? client.entries
-                    : client.entries.filter((e) => getEffectiveStatus(e) === filterStatus);
+                    : filterStatus === "respondido"
+                      ? client.entries.filter((e) => ["respondido", "revisado"].includes(getEffectiveStatus(e)))
+                      : client.entries.filter((e) => getEffectiveStatus(e) === filterStatus);
 
                   if (filteredEntries.length === 0) return null;
 
