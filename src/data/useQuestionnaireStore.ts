@@ -318,7 +318,6 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
         return false;
       }
     }
-    }
 
     set((s) => {
       const updatedEntries = s.entries.map((e) =>
