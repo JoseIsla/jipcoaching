@@ -233,76 +233,87 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const addVideoToEntry = useQuestionnaireStore((s) => s.addVideoToEntry);
   const removeVideoFromEntry = useQuestionnaireStore((s) => s.removeVideoFromEntry);
 
-  // Video upload state
+  // Video upload state — batch support
   const [showVideoUpload, setShowVideoUpload] = useState(false);
-  const [videoExerciseName, setVideoExerciseName] = useState("");
-  const [videoNotes, setVideoNotes] = useState("");
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [compressingVideo, setCompressingVideo] = useState(false);
-  const [uploadingVideo, setUploadingVideo] = useState(false);
   const videoFileRef = useRef<HTMLInputElement>(null);
 
-  const videos = entry.techniqueVideos || [];
+  interface VideoQueueItem {
+    id: string;
+    file: File;
+    exerciseName: string;
+    notes: string;
+    status: "queued" | "compressing" | "uploading" | "done" | "error";
+    progress: string;
+    error?: string;
+  }
+  const [videoQueue, setVideoQueue] = useState<VideoQueueItem[]>([]);
 
-  // Unseen comments logic
-  const getComments = useMediaStore((s) => s.getComments);
-  const seenCommentIds = useClientPreferencesStore((s) => s.seenCommentIds);
-  const markCommentsSeen = useClientPreferencesStore((s) => s.markCommentsSeen);
+  const updateQueueItem = (id: string, patch: Partial<VideoQueueItem>) => {
+    setVideoQueue((q) => q.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+  };
 
-  const videoComments = videos.flatMap((v) => getComments("video", v.id));
-  const unseenCount = videoComments.filter((c) => !seenCommentIds.includes(c.id)).length;
+  /** Derive exercise name from filename: "Sentadilla 2a serie.mp4" → "Sentadilla 2a serie" */
+  const nameFromFile = (f: File) => f.name.replace(/\.[^.]+$/, "").replace(/[_-]/g, " ").trim() || "Video";
 
-  // Mark comments as seen when expanded
-  useEffect(() => {
-    if (open && videoComments.length > 0) {
-      const unseenIds = videoComments.filter((c) => !seenCommentIds.includes(c.id)).map((c) => c.id);
-      if (unseenIds.length > 0) {
-        markCommentsSeen(unseenIds);
-      }
+  /** Handle selecting multiple files at once */
+  const handleVideoFilesSelect = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const newItems: VideoQueueItem[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      if (!f.type.startsWith("video/")) continue;
+      newItems.push({
+        id: `vq-${Date.now()}-${i}`,
+        file: f,
+        exerciseName: nameFromFile(f),
+        notes: "",
+        status: "queued",
+        progress: `${(f.size / (1024 * 1024)).toFixed(1)}MB`,
+      });
     }
-  }, [open]);
-
-  const handleVideoFileSelect = async (file: File | null) => {
-    if (!file) return;
-    if (!file.type.startsWith("video/")) {
+    if (newItems.length === 0) {
       toast({ title: "Formato no válido", description: "Solo se permiten videos", variant: "destructive" });
       return;
     }
-    let processedFile = file;
-    if (file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
-      setCompressingVideo(true);
-      try {
-        processedFile = await compressVideo(file, { maxSizeMB: MAX_VIDEO_SIZE_MB });
-        const savedMB = ((file.size - processedFile.size) / (1024 * 1024)).toFixed(1);
-        toast({ title: "Video comprimido ✅", description: `Se redujo ${savedMB}MB automáticamente` });
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : `El video excede ${MAX_VIDEO_SIZE_MB}MB`;
-        toast({ title: "No se pudo comprimir", description: msg, variant: "destructive" });
-        setCompressingVideo(false);
-        return;
-      }
-      setCompressingVideo(false);
-    }
-    setVideoFile(processedFile);
+    setVideoQueue((prev) => [...prev, ...newItems]);
+    setShowVideoUpload(true);
   };
 
-  const handleAddVideo = async () => {
-    if (!videoFile || !videoExerciseName.trim()) {
-      toast({ title: "Campos requeridos", description: "Indica el ejercicio y selecciona un video", variant: "destructive" });
-      return;
-    }
-    // Prevent upload attempts with local-only IDs that don't exist in the DB
+  const removeFromQueue = (id: string) => {
+    setVideoQueue((q) => q.filter((item) => item.id !== id));
+  };
+
+  /** Process a single video: compress → upload */
+  const processVideoItem = async (item: VideoQueueItem) => {
     if (entry.id.startsWith("qe-t-auto-")) {
-      toast({ title: "No se puede subir", description: "El check-in aún no está sincronizado con el servidor. Cierra y vuelve a abrir la app.", variant: "destructive" });
+      updateQueueItem(item.id, { status: "error", error: "Check-in no sincronizado" });
       return;
     }
-    setUploadingVideo(true);
+
+    let processedFile = item.file;
+
+    // Compress if needed
+    if (item.file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
+      updateQueueItem(item.id, { status: "compressing", progress: "Comprimiendo…" });
+      try {
+        processedFile = await compressVideo(item.file, { maxSizeMB: MAX_VIDEO_SIZE_MB });
+        const savedMB = ((item.file.size - processedFile.size) / (1024 * 1024)).toFixed(1);
+        updateQueueItem(item.id, { progress: `Comprimido (-${savedMB}MB)` });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : `Excede ${MAX_VIDEO_SIZE_MB}MB`;
+        updateQueueItem(item.id, { status: "error", error: msg });
+        return;
+      }
+    }
+
+    // Upload
+    updateQueueItem(item.id, { status: "uploading", progress: "Subiendo…" });
     try {
       const uploaded = await mediaApi.uploadCheckinVideo(
         entry.id,
-        videoFile,
-        videoExerciseName.trim(),
-        videoNotes.trim() || undefined,
+        processedFile,
+        item.exerciseName.trim() || nameFromFile(item.file),
+        item.notes.trim() || undefined,
       );
       const newVideo: CheckinVideo = {
         id: uploaded.id,
@@ -312,15 +323,35 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
         uploadedAt: uploaded.uploadedAt,
       };
       addVideoToEntry(entry.id, newVideo);
-      toast({ title: "Video subido ✅" });
-      setVideoFile(null);
-      setVideoExerciseName("");
-      setVideoNotes("");
-      setShowVideoUpload(false);
+      updateQueueItem(item.id, { status: "done", progress: "✅" });
     } catch (err: any) {
-      toast({ title: "Error al subir video", description: err?.message || "Inténtalo de nuevo", variant: "destructive" });
-    } finally {
-      setUploadingVideo(false);
+      updateQueueItem(item.id, { status: "error", error: err?.message || "Error al subir" });
+    }
+  };
+
+  /** Upload all queued videos in parallel (max 2 concurrent to avoid overload) */
+  const handleUploadAll = async () => {
+    const pending = videoQueue.filter((v) => v.status === "queued");
+    if (pending.length === 0) return;
+
+    // Process 2 at a time for speed without overwhelming the server
+    const concurrency = 2;
+    const chunks: VideoQueueItem[][] = [];
+    for (let i = 0; i < pending.length; i += concurrency) {
+      chunks.push(pending.slice(i, i + concurrency));
+    }
+    for (const chunk of chunks) {
+      await Promise.all(chunk.map(processVideoItem));
+    }
+
+    // Clean up completed items after a brief delay
+    setTimeout(() => {
+      setVideoQueue((q) => q.filter((v) => v.status !== "done"));
+    }, 1500);
+
+    const errors = videoQueue.filter((v) => v.status === "error").length;
+    if (errors === 0) {
+      toast({ title: `${pending.length} video${pending.length > 1 ? "s" : ""} subido${pending.length > 1 ? "s" : ""} ✅` });
     }
   };
 
