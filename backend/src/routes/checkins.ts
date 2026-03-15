@@ -263,7 +263,7 @@ router.post("/:id/submit", async (req, res) => {
             type: "checkin",
             title: "Nuevo check-in recibido",
             message: `${clientName} ha enviado su check-in de ${category}`,
-            link: "/admin/questionnaires",
+            link: "/admin/checkins",
           },
         });
       }

@@ -63,7 +63,7 @@ const QuickActions = () => {
       >
         <motion.button
           whileTap={{ scale: 0.98 }}
-          onClick={() => navigate("/admin/questionnaires")}
+          onClick={() => navigate("/admin/checkins")}
           className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-colors group"
         >
           <div className="flex items-center justify-between mb-2">
