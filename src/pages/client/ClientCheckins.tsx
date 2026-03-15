@@ -942,6 +942,7 @@ const ClientCheckins = () => {
 
   return (
     <ClientLayout>
+      <PullToRefresh onRefresh={loadCheckins}>
       <motion.div className="space-y-5 max-w-lg mx-auto" variants={stagger} initial="initial" animate="animate">
         <motion.div variants={fadeUp}>
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2"><ClipboardList className="h-5 w-5 text-yellow-500" />{t("clientCheckins.title")}</h1>
