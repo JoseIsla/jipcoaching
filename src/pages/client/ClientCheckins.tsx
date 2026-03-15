@@ -25,6 +25,7 @@ import { useTranslation } from "@/i18n/useTranslation";
 import { MAX_VIDEO_SIZE_MB } from "@/types/media";
 import { compressVideo } from "@/utils/compressMedia";
 import ClientMediaComments from "@/components/client/ClientMediaComments";
+import PullToRefresh from "@/components/client/PullToRefresh";
 import { useMediaStore } from "@/data/useMediaStore";
 import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 import { mediaApi } from "@/services/mediaApi";
@@ -941,6 +942,7 @@ const ClientCheckins = () => {
 
   return (
     <ClientLayout>
+      <PullToRefresh onRefresh={loadCheckins}>
       <motion.div className="space-y-5 max-w-lg mx-auto" variants={stagger} initial="initial" animate="animate">
         <motion.div variants={fadeUp}>
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2"><ClipboardList className="h-5 w-5 text-yellow-500" />{t("clientCheckins.title")}</h1>
@@ -1005,6 +1007,7 @@ const ClientCheckins = () => {
           </Tabs>
         </motion.div>
       </motion.div>
+      </PullToRefresh>
     </ClientLayout>
   );
 };
