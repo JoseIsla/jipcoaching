@@ -176,7 +176,7 @@ router.post("/:id/submit", async (req, res) => {
     const { responses, trainingLog } = req.body;
     const checkinId = req.params.id as string;
 
-    // Save responses
+    // Save responses — validate question IDs exist before inserting to avoid FK errors
     if (responses && typeof responses === "object") {
       const responseEntries = Object.entries(responses).map(([questionId, value]) => ({
         checkinId,
@@ -184,7 +184,17 @@ router.post("/:id/submit", async (req, res) => {
         value: String(value),
       }));
 
-      await prisma.checkinResponse.createMany({ data: responseEntries });
+      // Filter out entries with non-existent question IDs (e.g. local mock IDs like tq1)
+      const validQuestionIds = await prisma.questionnaireQuestion.findMany({
+        where: { id: { in: responseEntries.map((r) => r.questionId) } },
+        select: { id: true },
+      });
+      const validIds = new Set(validQuestionIds.map((q) => q.id));
+      const validEntries = responseEntries.filter((r) => validIds.has(r.questionId));
+
+      if (validEntries.length > 0) {
+        await prisma.checkinResponse.createMany({ data: validEntries });
+      }
     }
 
     // Save training log

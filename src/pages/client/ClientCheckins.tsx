@@ -209,10 +209,11 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const apiQuestions: QuestionDefinition[] = (entry.templateQuestions || []).map((q) => ({
     id: q.id, label: q.label, type: q.type as any, required: q.required, options: q.options,
   }));
-  const questions = storeTrainingTemplate?.questions?.length > 0
-    ? storeTrainingTemplate.questions
-    : apiQuestions.length > 0
+  // Prefer API questions from the entry (real DB IDs) over store/local mock IDs
+  const questions = apiQuestions.length > 0
     ? apiQuestions
+    : storeTrainingTemplate?.questions?.length > 0
+    ? storeTrainingTemplate.questions
     : localTrainingTemplate.questions;
   const [responses, setResponses] = useState<Record<string, string | number | boolean>>(() =>
     buildDefaultResponses(questions, entry.responses || {})
