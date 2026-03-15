@@ -80,7 +80,7 @@ const AboutSection = () => {
             </motion.div>
 
             <div className="grid grid-cols-2 gap-3">
-              {stats.map(({ icon: Icon, value, suffix, displayText, label }, i) => (
+              {stats.map(({ icon: Icon, value, suffix, label }, i) => (
                 <motion.div
                   key={label}
                   initial={{ opacity: 0, y: 15 }}
