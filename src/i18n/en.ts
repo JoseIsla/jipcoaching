@@ -728,7 +728,7 @@ const en: Translations = {
       stat1: "Active clients",
       stat2: "Years of experience",
       stat3: "Custom plans",
-      stat4: "Certification",
+      stat4: "Specialized training",
     },
     plans: {
       label: "Services",
