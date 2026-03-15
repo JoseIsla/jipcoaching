@@ -553,7 +553,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                         className={`h-7 text-[11px] text-center bg-background border-border px-1 ${weightErrors[`${dayIdx}-${exIdx}`] ? "border-destructive" : ""}`}
                                       />
                                       {weightErrors[`${dayIdx}-${exIdx}`] && (
-                                        <p className="text-[9px] text-destructive mt-0.5">{weightErrors[`${dayIdx}-${exIdx}`]}</p>
+                                        <p className="text-[11px] text-destructive mt-0.5">{weightErrors[`${dayIdx}-${exIdx}`]}</p>
                                       )}
                                     </div>
                                   </td>
