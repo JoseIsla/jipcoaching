@@ -548,7 +548,7 @@ router.post("/reset-training-week", requireRole("ADMIN"), async (req, res) => {
 });
 
 // ── Helper: generate checkins for a single client ──
-async function generateCheckinsForClient(clientId: string, packType: string): Promise<number> {
+async function generateCheckinsForClient(clientId: string, packType: string, forceTraining = false): Promise<number> {
   const dayLabels: Record<number, string> = {
     0: "Domingo", 1: "Lunes", 2: "Martes", 3: "Miércoles",
     4: "Jueves", 5: "Viernes", 6: "Sábado",
