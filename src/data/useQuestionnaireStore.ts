@@ -442,7 +442,8 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
       .map((day) => ({
         dayNumber: day.dayNumber,
         dayName: day.name,
-        exercises: day.exercises
+        exercises: [...day.exercises]
+          .sort((a, b) => a.order - b.order)
           .filter((ex) => ex.section === "basic")
           .map((ex) => ({
             exerciseId: ex.exerciseId ?? ex.id,
