@@ -610,10 +610,13 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                               ? rpeDiff > 0 ? "text-destructive" : rpeDiff < 0 ? "text-primary" : "text-foreground"
                               : "";
                             return (
-                              <tr key={i} className="border-t border-border/50">
+                              <tr key={i} className="border-t border-border/50 align-top">
                                 <td className="px-2 py-1.5 font-medium text-foreground">{ex.exerciseName}</td>
                                 <td className="px-2 py-1.5 text-center text-muted-foreground">
-                                  {ex.plannedSets}×{ex.plannedReps}
+                                  <span className="block">{ex.plannedSets}×{ex.plannedReps}</span>
+                                  {ex.plannedLoad && ex.plannedLoad !== "—" && (
+                                    <span className="block text-[9px] text-muted-foreground/70 mt-0.5">{ex.plannedLoad}</span>
+                                  )}
                                 </td>
                                 <td className="px-2 py-1.5 text-center text-foreground font-mono">
                                   {ex.actualWeight ? `${ex.actualWeight}kg` : "—"}
@@ -621,8 +624,18 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                 </td>
                                 <td className="px-2 py-1.5 text-center">
                                   <div className="flex flex-col items-center leading-tight">
-                                    {ex.plannedRPE && <span className="text-muted-foreground">{ex.plannedRPE}</span>}
-                                    {ex.actualRPE && <span className={`font-bold ${rpeDiffColor}`}>{ex.actualRPE}</span>}
+                                    {ex.plannedRPE && (
+                                      <span className="text-muted-foreground">
+                                        <span className="block text-[8px] opacity-60">Pautado</span>
+                                        {ex.plannedRPE}
+                                      </span>
+                                    )}
+                                    {ex.actualRPE && (
+                                      <span className={`font-bold ${rpeDiffColor}`}>
+                                        <span className="block text-[8px] opacity-60 font-normal">Real</span>
+                                        {ex.actualRPE}
+                                      </span>
+                                    )}
                                     {rpeDiff != null && rpeDiff !== 0 && (
                                       <span className={`text-[8px] font-semibold ${rpeDiffColor}`}>
                                         {rpeDiff > 0 ? "+" : ""}{rpeDiff}
