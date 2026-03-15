@@ -806,12 +806,11 @@ const AdminClientDetail = () => {
           </div>
         )}
 
-        {/* ── Media Section ── */}
-        {(hasNutrition || hasTraining) && (
+        {/* ── Media Section (solo fotos de progreso para nutrición) ── */}
+        {hasNutrition && (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-foreground">Media del Cliente</h2>
-            {hasNutrition && <AdminPhotoComparison clientId={client.id} />}
-            {hasTraining && <AdminVideoReview clientId={client.id} />}
+            <AdminPhotoComparison clientId={client.id} />
           </div>
         )}
       </div>
