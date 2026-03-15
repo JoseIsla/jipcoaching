@@ -486,6 +486,67 @@ router.post("/generate-weekly", requireRole("ADMIN"), async (req, res) => {
   }
 });
 
+// ── POST /api/checkins/reset-training-week — Delete & regenerate training checkins for current week
+router.post("/reset-training-week", requireRole("ADMIN"), async (req, res) => {
+  try {
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    monday.setHours(0, 0, 0, 0);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+
+    // Find all TRAINING checkins for this week
+    const trainingCheckins = await prisma.checkin.findMany({
+      where: {
+        category: "TRAINING",
+        date: { gte: monday, lte: sunday },
+      },
+      select: { id: true },
+    });
+
+    const checkinIds = trainingCheckins.map((c) => c.id);
+
+    if (checkinIds.length > 0) {
+      // Delete related data in correct order (FK constraints)
+      // 1. Training exercises (child of training logs)
+      const logIds = (
+        await prisma.checkinTrainingLog.findMany({
+          where: { checkinId: { in: checkinIds } },
+          select: { id: true },
+        })
+      ).map((l) => l.id);
+
+      if (logIds.length > 0) {
+        await prisma.checkinTrainingExercise.deleteMany({ where: { logId: { in: logIds } } });
+      }
+      // 2. Training logs
+      await prisma.checkinTrainingLog.deleteMany({ where: { checkinId: { in: checkinIds } } });
+      // 3. Videos
+      await prisma.checkinVideo.deleteMany({ where: { checkinId: { in: checkinIds } } });
+      // 4. Responses
+      await prisma.checkinResponse.deleteMany({ where: { checkinId: { in: checkinIds } } });
+      // 5. Checkins themselves
+      await prisma.checkin.deleteMany({ where: { id: { in: checkinIds } } });
+    }
+
+    // Regenerate for all active clients
+    const clients = await prisma.client.findMany({ where: { status: "ACTIVE" } });
+    let totalCreated = 0;
+    for (const client of clients) {
+      // Temporarily patch: call generation with isSaturdayOrSunday override
+      totalCreated += await generateCheckinsForClient(client.id, client.packType, true);
+    }
+
+    res.json({ deleted: checkinIds.length, created: totalCreated, clients: clients.length });
+  } catch (err: any) {
+    console.error("POST /checkins/reset-training-week error:", err);
+    res.status(500).json({ message: "Error al resetear check-ins de entrenamiento" });
+  }
+});
+
 // ── Helper: generate checkins for a single client ──
 async function generateCheckinsForClient(clientId: string, packType: string): Promise<number> {
   const dayLabels: Record<number, string> = {
