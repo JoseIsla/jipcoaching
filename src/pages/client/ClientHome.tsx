@@ -54,6 +54,7 @@ const ClientHome = () => {
 
   return (
     <ClientLayout>
+      <PullToRefresh onRefresh={refreshData}>
       <div className="space-y-5 max-w-lg mx-auto">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: "easeOut" }}>
           <h1 className="text-2xl font-bold text-foreground">{t("clientHome.greeting", { name: client.name.split(" ")[0] })}</h1>
