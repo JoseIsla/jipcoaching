@@ -415,7 +415,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
     trainingLog.forEach((day, dayIdx) => {
       day.exercises.forEach((ex, exIdx) => {
         const w = ex.actualWeight;
-        if (w != null && w !== "" && w !== undefined) {
+        if (w != null && w !== undefined) {
           const num = typeof w === "number" ? w : parseDecimal(String(w), 0);
           if (num <= 0) {
             newErrors[`${dayIdx}-${exIdx}`] = "El peso debe ser mayor que 0";
