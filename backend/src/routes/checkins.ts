@@ -38,7 +38,7 @@ router.get("/", async (req, res) => {
         },
         responses: { include: { question: true } },
         trainingLogs: {
-          include: { exercises: true },
+          include: { exercises: { orderBy: { createdAt: "asc" } } },
           orderBy: { dayNumber: "asc" },
         },
         videos: true,
