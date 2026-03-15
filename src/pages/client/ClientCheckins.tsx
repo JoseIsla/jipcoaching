@@ -410,11 +410,29 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
     setTrainingLog(updated);
   };
 
+  const validateTrainingWeights = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    trainingLog.forEach((day, dayIdx) => {
+      day.exercises.forEach((ex, exIdx) => {
+        const w = ex.actualWeight;
+        if (w != null && w !== "" && w !== undefined) {
+          const num = typeof w === "number" ? w : parseDecimal(String(w), 0);
+          if (num <= 0) {
+            newErrors[`${dayIdx}-${exIdx}`] = "El peso debe ser mayor que 0";
+          }
+        }
+      });
+    });
+    setWeightErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async () => {
     if (entry.id.startsWith("qe-t-auto-")) {
       toast({ title: "Error de sincronización", description: "El check-in no se ha sincronizado con el servidor. Cierra y vuelve a abrir la app.", variant: "destructive" });
       return;
     }
+    if (!validateTrainingWeights()) return;
     // Fill empty actuals with planned values so admin always sees data
     const finalLog = trainingLog.map((day) => ({
       ...day,
