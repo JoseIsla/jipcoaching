@@ -427,9 +427,15 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const videosStillProcessing = videoQueue.some((v) => v.status === "queued" || v.status === "compressing" || v.status === "uploading");
+
   const handleSubmit = async () => {
     if (entry.id.startsWith("qe-t-auto-")) {
       toast({ title: "Error de sincronización", description: "El check-in no se ha sincronizado con el servidor. Cierra y vuelve a abrir la app.", variant: "destructive" });
+      return;
+    }
+    if (videosStillProcessing) {
+      toast({ title: "Videos en proceso", description: "Espera a que todos los videos terminen de subirse antes de enviar el check-in.", variant: "destructive" });
       return;
     }
     if (!validateTrainingWeights()) return;
@@ -730,7 +736,13 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                   )}
                 </div>
 
-                <Button onClick={handleSubmit} className="w-full glow-primary-sm">{t("clientCheckins.submitCheckin")}</Button>
+                <Button onClick={handleSubmit} disabled={videosStillProcessing} className="w-full glow-primary-sm">
+                  {videosStillProcessing ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Esperando videos…</>
+                  ) : (
+                    t("clientCheckins.submitCheckin")
+                  )}
+                </Button>
               </>
             ) : (
               /* Submitted view */
