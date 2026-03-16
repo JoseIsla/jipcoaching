@@ -3,7 +3,7 @@ import autoTable from "jspdf-autotable";
 import type { QuestionnaireEntry } from "@/data/useQuestionnaireStore";
 import type { QuestionDefinition } from "@/data/questionnaireDefs";
 import { nutritionTemplates } from "@/data/questionnaireDefs";
-import { loadLogoBase64 } from "@/utils/pdfLogo";
+import { loadLogoBase64, addLogoToDoc } from "@/utils/pdfLogo";
 
 // Brand palette — dark premium + neon green
 const BG_BLACK: [number, number, number] = [0, 0, 0];
