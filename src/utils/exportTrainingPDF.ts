@@ -188,6 +188,7 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry, trainingQuestion
         2: { halign: "right", fontStyle: "bold", textColor: [...WHITE] },
         3: { halign: "right" },
       },
+      didDrawPage: () => fillBackground(doc),
     });
 
     y = (doc as any).lastAutoTable.finalY + 8;
