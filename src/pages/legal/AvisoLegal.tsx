@@ -1,8 +1,18 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import LegalBreadcrumbJsonLd from "@/components/legal/LegalBreadcrumbJsonLd";
 
-const AvisoLegal = () => (
+const AvisoLegal = () => {
+  useEffect(() => {
+    document.title = "Aviso Legal — JIP Performance Nutrition";
+    const meta = document.querySelector('meta[name="description"]');
+    const original = meta?.getAttribute("content") || "";
+    meta?.setAttribute("content", "Aviso legal de JIP Performance Nutrition: datos identificativos, condiciones de uso, propiedad intelectual y legislación aplicable.");
+    return () => { meta?.setAttribute("content", original); };
+  }, []);
+
+  return (
   <div className="min-h-screen bg-background text-foreground">
     <LegalBreadcrumbJsonLd pageName="Aviso Legal" pageUrl="/legal/aviso-legal" />
     <div className="max-w-3xl mx-auto px-4 py-16">
@@ -54,6 +64,7 @@ const AvisoLegal = () => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default AvisoLegal;
