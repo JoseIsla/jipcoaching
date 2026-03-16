@@ -255,11 +255,13 @@ async function generateTrainingCheckins() {
 
         await prisma.checkinTrainingExercise.createMany({
           data: logExercises.map((ex) => {
+            const method = ex.method || "STRAIGHT_SETS";
+
             // Compute plannedSets based on method
             let plannedSets = "—";
-            if (ex.method === "TOP_SET_BACKOFFS") {
+            if (method === "TOP_SET_BACKOFFS") {
               plannedSets = `1+${ex.backoffSets ?? 3}`;
-            } else if (ex.method === "LOAD_DROP") {
+            } else if (method === "LOAD_DROP") {
               plannedSets = (ex as any).estimatedSeries || "—";
             } else if (ex.setsMin) {
               plannedSets = ex.setsMin === ex.setsMax
@@ -279,11 +281,13 @@ async function generateTrainingCheckins() {
 
             // Build plannedLoad with backoff context
             let plannedLoad = (ex as any).plannedLoad || "Autoregulada";
-            if (ex.method === "TOP_SET_BACKOFFS" && (ex as any).backoffReps) {
-              plannedLoad += ` | Back-off: ${(ex as any).backoffReps} reps`;
-            }
-            if (ex.backoffPercent) {
-              plannedLoad += ` @RPE ${ex.backoffPercent}`;
+            if (method === "TOP_SET_BACKOFFS") {
+              if ((ex as any).backoffReps) {
+                plannedLoad += ` | Back-off: ${(ex as any).backoffReps} reps`;
+              }
+              if (ex.backoffPercent) {
+                plannedLoad += ` @RPE ${ex.backoffPercent}`;
+              }
             }
             if ((ex as any).backoffRule) {
               plannedLoad += ` | Regla: ${(ex as any).backoffRule}`;
@@ -294,6 +298,7 @@ async function generateTrainingCheckins() {
               exerciseId: ex.id,
               exerciseName: ex.name,
               section: ex.type === "BASIC" ? "basic" : "variant",
+              method,
               plannedSets,
               plannedReps,
               plannedLoad,
