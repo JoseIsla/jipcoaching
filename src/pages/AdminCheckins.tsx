@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { Video, RotateCcw } from "lucide-react";
+import { Video, RotateCcw, ChevronDown } from "lucide-react";
 import { api } from "@/services/api";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
