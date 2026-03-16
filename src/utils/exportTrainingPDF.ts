@@ -3,7 +3,7 @@ import autoTable from "jspdf-autotable";
 import type { QuestionnaireEntry } from "@/data/useQuestionnaireStore";
 import type { QuestionDefinition } from "@/data/questionnaireDefs";
 import { nutritionTemplates } from "@/data/questionnaireDefs";
-import { loadLogoBase64 } from "@/utils/pdfLogo";
+import { loadLogoBase64, addLogoToDoc } from "@/utils/pdfLogo";
 
 // Brand palette — dark premium + neon green
 const BG_BLACK: [number, number, number] = [0, 0, 0];
@@ -37,14 +37,7 @@ export const exportTrainingLogPDF = async (entry: QuestionnaireEntry, trainingQu
   let y = 20;
 
   // ── Header with logo ──
-  const logoSize = 14;
-  let textX = margin;
-  if (logoBase64) {
-    try {
-      doc.addImage(logoBase64, "PNG", margin, y - logoSize + 3, logoSize, logoSize);
-      textX = margin + logoSize + 3;
-    } catch { /* skip logo on error */ }
-  }
+  const textX = addLogoToDoc(doc, logoBase64, margin, y);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...NEON_GREEN);
