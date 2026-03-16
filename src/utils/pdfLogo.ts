@@ -3,11 +3,15 @@
  * Caches the result so it's only fetched once.
  */
 let cachedLogo: string | null = null;
+let logoAttempted = false;
 
 export const loadLogoBase64 = async (): Promise<string | null> => {
   if (cachedLogo) return cachedLogo;
+  if (logoAttempted) return null; // don't retry on failure
+  logoAttempted = true;
   try {
     const response = await fetch("/assets/logo-jip.png");
+    if (!response.ok) return null;
     const blob = await response.blob();
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -20,5 +24,22 @@ export const loadLogoBase64 = async (): Promise<string | null> => {
     });
   } catch {
     return null;
+  }
+};
+
+/** Safely add the logo to a jsPDF document. Returns the x offset for text after the logo. */
+export const addLogoToDoc = (
+  doc: any,
+  logoBase64: string | null,
+  x: number,
+  y: number,
+  size = 14,
+): number => {
+  if (!logoBase64) return x;
+  try {
+    doc.addImage(logoBase64, "PNG", x, y - size + 3, size, size);
+    return x + size + 3;
+  } catch {
+    return x;
   }
 };
