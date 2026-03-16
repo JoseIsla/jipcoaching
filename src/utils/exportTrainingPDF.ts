@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 import type { QuestionnaireEntry } from "@/data/useQuestionnaireStore";
 import type { QuestionDefinition } from "@/data/questionnaireDefs";
 import { nutritionTemplates } from "@/data/questionnaireDefs";
+import { loadLogoBase64 } from "@/utils/pdfLogo";
 
 // Brand palette — dark premium + neon green
 const BG_BLACK: [number, number, number] = [0, 0, 0];
@@ -24,7 +25,8 @@ const fillBackground = (doc: jsPDF) => {
   doc.rect(0, 0, pw, ph, "F");
 };
 
-export const exportTrainingLogPDF = (entry: QuestionnaireEntry, trainingQuestions?: QuestionDefinition[]) => {
+export const exportTrainingLogPDF = async (entry: QuestionnaireEntry, trainingQuestions?: QuestionDefinition[]) => {
+  const logoBase64 = await loadLogoBase64();
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 15;
@@ -34,11 +36,19 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry, trainingQuestion
 
   let y = 20;
 
-  // ── Header ──
+  // ── Header with logo ──
+  const logoSize = 14;
+  let textX = margin;
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, "PNG", margin, y - logoSize + 3, logoSize, logoSize);
+      textX = margin + logoSize + 3;
+    } catch { /* skip logo on error */ }
+  }
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...NEON_GREEN);
-  doc.text("JIP Coaching", margin, y);
+  doc.text("JIP Coaching", textX, y);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...TEXT_MUTED);

@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 import type { NutritionPlanDetail, Meal, Supplement } from "@/data/nutritionPlanStore";
 import type { TrainingPlanFull, TrainingWeek } from "@/data/trainingPlanStore";
 import { TRAINING_METHOD_LABELS } from "@/data/trainingPlanStore";
+import { loadLogoBase64 } from "@/utils/pdfLogo";
 
 const MARGIN = 15;
 
@@ -23,16 +24,24 @@ const fillBackground = (doc: jsPDF) => {
   doc.rect(0, 0, pw, ph, "F");
 };
 
-const addHeader = (doc: jsPDF, title: string, subtitle: string) => {
+const addHeader = (doc: jsPDF, title: string, subtitle: string, logoBase64?: string | null) => {
   fillBackground(doc);
   const pw = doc.internal.pageSize.getWidth();
   let y = 20;
 
-  // Brand name in neon green
+  // Logo + Brand name in neon green
+  const logoSize = 14;
+  let textX = MARGIN;
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, "PNG", MARGIN, y - logoSize + 3, logoSize, logoSize);
+      textX = MARGIN + logoSize + 3;
+    } catch { /* skip logo on error */ }
+  }
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...NEON_GREEN);
-  doc.text("JIP Coaching", MARGIN, y);
+  doc.text("JIP Coaching", textX, y);
 
   // Section title
   doc.setFontSize(9);
@@ -124,15 +133,16 @@ const altRowColor: [number, number, number] = [22, 22, 22];
 
 // ─── NUTRITION PLAN PDF ───
 
-export const exportNutritionPlanPDF = (
+export const exportNutritionPlanPDF = async (
   plan: NutritionPlanDetail,
   planName: string,
   clientName: string,
   supplements: Supplement[] = [],
 ) => {
+  const logoBase64 = await loadLogoBase64();
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   patchAddPage(doc);
-  let y = addHeader(doc, "Plan Nutricional", planName);
+  let y = addHeader(doc, "Plan Nutricional", planName, logoBase64);
 
   // Client
   doc.setFontSize(9);
@@ -273,14 +283,15 @@ export const exportNutritionPlanPDF = (
 
 // ─── TRAINING WEEK PDF ───
 
-export const exportTrainingWeekPDF = (
+export const exportTrainingWeekPDF = async (
   plan: TrainingPlanFull,
   week: TrainingWeek,
   clientName: string,
 ) => {
+  const logoBase64 = await loadLogoBase64();
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   patchAddPage(doc);
-  let y = addHeader(doc, "Plan de Entrenamiento", plan.planName);
+  let y = addHeader(doc, "Plan de Entrenamiento", plan.planName, logoBase64);
 
   // Subtitle
   doc.setFontSize(9);
