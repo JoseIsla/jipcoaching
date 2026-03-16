@@ -141,7 +141,9 @@ export const exportTrainingLogPDF = async (entry: QuestionnaireEntry, trainingQu
           6: { halign: "center", fontStyle: "bold" },
           7: { halign: "left", cellWidth: 30, fontSize: 6.5, textColor: [...TEXT_MUTED] },
         },
-        didDrawPage: () => fillBackground(doc),
+        willDrawPage: (data) => {
+          if (data.pageNumber > 1) fillBackground(doc);
+        },
         didParseCell: (data) => {
           if (data.section === "body" && data.column.index === 6) {
             const text = String(data.cell.raw || "");
