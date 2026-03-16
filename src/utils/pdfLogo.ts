@@ -27,18 +27,20 @@ export const loadLogoBase64 = async (): Promise<string | null> => {
   }
 };
 
-/** Safely add the logo to a jsPDF document. Returns the x offset for text after the logo. */
+/** Safely add the logo to a jsPDF document. Returns the x position after the logo for alignment. */
 export const addLogoToDoc = (
   doc: any,
   logoBase64: string | null,
   x: number,
   y: number,
-  size = 14,
+  height = 10,
 ): number => {
   if (!logoBase64) return x;
   try {
-    doc.addImage(logoBase64, "PNG", x, y - size + 3, size, size);
-    return x + size + 3;
+    // Use a wider aspect ratio (logo is roughly 3:1 width:height)
+    const width = height * 3;
+    doc.addImage(logoBase64, "PNG", x, y - height + 2, width, height);
+    return x + width + 4;
   } catch {
     return x;
   }
