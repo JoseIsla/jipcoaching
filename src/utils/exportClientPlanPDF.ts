@@ -3,7 +3,7 @@ import autoTable from "jspdf-autotable";
 import type { NutritionPlanDetail, Meal, Supplement } from "@/data/nutritionPlanStore";
 import type { TrainingPlanFull, TrainingWeek } from "@/data/trainingPlanStore";
 import { TRAINING_METHOD_LABELS } from "@/data/trainingPlanStore";
-import { loadLogoBase64 } from "@/utils/pdfLogo";
+import { loadLogoBase64, addLogoToDoc } from "@/utils/pdfLogo";
 
 const MARGIN = 15;
 
