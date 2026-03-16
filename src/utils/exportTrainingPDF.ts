@@ -98,13 +98,17 @@ export const exportTrainingLogPDF = async (entry: QuestionnaireEntry, trainingQu
           ? rpeDiff > 0 ? `(+${rpeDiff})` : rpeDiff < 0 ? `(${rpeDiff})` : "(=)"
           : "";
 
+        const weightDisplay = ex.actualWeight != null
+          ? `${ex.actualWeight} kg${ex.backoffWeights ? `\nBack-offs: ${ex.backoffWeights}` : ""}`
+          : "—";
+
         return [
           ex.exerciseName,
           `${ex.plannedSets} × ${ex.plannedReps}`,
           ex.plannedLoad || "—",
           ex.plannedRPE != null ? String(ex.plannedRPE) : "—",
           ex.actualSets ? `${ex.actualSets} × ${ex.actualReps || "?"}` : "—",
-          ex.actualWeight != null ? `${ex.actualWeight} kg` : "—",
+          weightDisplay,
           ex.actualRPE != null ? `${ex.actualRPE} ${rpeDiffStr}` : "—",
           ex.comment || "",
         ];
