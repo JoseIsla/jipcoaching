@@ -456,10 +456,13 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
             exerciseId: ex.exerciseId ?? ex.id,
             exerciseName: ex.exerciseName,
             section: "basic" as const,
+            method: ex.method,
             plannedSets: ex.method === "top_set_backoffs"
               ? `1+${ex.backoffSets ?? 3}`
+              : ex.method === "load_drop"
+              ? (ex as any).estimatedSeries ?? "—"
               : ex.sets ?? "—",
-            plannedReps: ex.method === "top_set_backoffs"
+            plannedReps: (ex.method === "top_set_backoffs" || ex.method === "load_drop")
               ? String(ex.topSetReps ?? "—")
               : ex.reps ?? "—",
             plannedLoad: ex.plannedLoad ?? "—",
