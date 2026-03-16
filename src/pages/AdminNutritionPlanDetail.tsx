@@ -530,28 +530,28 @@ const AdminNutritionPlanDetail = () => {
     setPlan({ ...plan, meals: plan.meals.filter((_, i) => i !== idx) });
   };
 
-  const duplicateMeal = (idx: number) => {
-    const source = plan.meals[idx];
-    const cloneMeal: Meal = {
-      ...createEmptyMeal(`${source.name} (copia)`),
-      description: source.description,
-      options: source.options.map((opt) => ({
-        ...createEmptyOption(opt.name),
-        notes: opt.notes,
-        rows: opt.rows.map((row) => ({
-          ...createEmptyRow(row.macroCategory),
-          mainIngredient: row.mainIngredient,
-          alternatives: [...row.alternatives],
-        })),
-      })),
-    };
-    const meals = [...plan.meals];
-    meals.splice(idx + 1, 0, cloneMeal);
-    setPlan({ ...plan, meals });
-    toast.success(`Comida "${source.name}" duplicada`);
-  };
-
-  const addMeal = (name: string) => {
+  const addMeal = (name: string, copyFromMealId?: string) => {
+    if (copyFromMealId) {
+      const source = plan.meals.find((m) => m.id === copyFromMealId);
+      if (source) {
+        const cloneMeal: Meal = {
+          ...createEmptyMeal(name),
+          description: source.description,
+          options: source.options.map((opt) => ({
+            ...createEmptyOption(opt.name),
+            notes: opt.notes,
+            rows: opt.rows.map((row) => ({
+              ...createEmptyRow(row.macroCategory),
+              mainIngredient: row.mainIngredient,
+              alternatives: [...row.alternatives],
+            })),
+          })),
+        };
+        setPlan({ ...plan, meals: [...plan.meals, cloneMeal] });
+        toast.success(`Comida "${name}" creada con contenido de "${source.name}"`);
+        return;
+      }
+    }
     setPlan({ ...plan, meals: [...plan.meals, createEmptyMeal(name)] });
   };
 
