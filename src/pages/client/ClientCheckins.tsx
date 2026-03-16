@@ -552,14 +552,31 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                           onChange={(e) => updateExercise(dayIdx, exIdx, "actualReps", e.target.value)}
                                         />
                                       </div>
+                                      {/* Top set weight */}
+                                      {(ex.method === "TOP_SET_BACKOFFS" || ex.method === "LOAD_DROP") && (
+                                        <span className="text-[8px] text-primary/70 text-center leading-none">Top Set (kg)</span>
+                                      )}
                                       <DecimalInput
                                         value={ex.actualWeight ?? undefined}
                                         onChange={(v) => { updateExercise(dayIdx, exIdx, "actualWeight", v as any); if (weightErrors[`${dayIdx}-${exIdx}`]) setWeightErrors((prev) => { const next = { ...prev }; delete next[`${dayIdx}-${exIdx}`]; return next; }); }}
-                                        placeholder="kg"
+                                        placeholder={ex.method === "TOP_SET_BACKOFFS" || ex.method === "LOAD_DROP" ? "Top Set kg" : "kg"}
                                         className={`h-7 text-[11px] text-center bg-background border-border px-1 ${weightErrors[`${dayIdx}-${exIdx}`] ? "border-destructive" : ""}`}
                                       />
                                       {weightErrors[`${dayIdx}-${exIdx}`] && (
                                         <p className="text-[11px] text-destructive mt-0.5">{weightErrors[`${dayIdx}-${exIdx}`]}</p>
+                                      )}
+                                      {/* Back-off weights for top_set/load_drop */}
+                                      {(ex.method === "TOP_SET_BACKOFFS" || ex.method === "LOAD_DROP") && (
+                                        <>
+                                          <span className="text-[8px] text-muted-foreground/70 text-center leading-none mt-0.5">Back-offs (kg)</span>
+                                          <Input
+                                            type="text"
+                                            className="h-6 text-[10px] text-center bg-background border-border px-1"
+                                            placeholder="ej: 100, 95, 90"
+                                            value={ex.backoffWeights ?? ""}
+                                            onChange={(e) => updateExercise(dayIdx, exIdx, "backoffWeights", e.target.value || undefined)}
+                                          />
+                                        </>
                                       )}
                                     </div>
                                   </td>
