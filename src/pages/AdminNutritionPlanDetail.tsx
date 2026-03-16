@@ -595,7 +595,7 @@ const AdminNutritionPlanDetail = () => {
             Comidas
           </h2>
           {plan.meals.map((meal, i) => (
-            <MealEditor key={meal.id} meal={meal} onUpdate={(m) => updateMeal(i, m)} onDelete={() => deleteMeal(i)} />
+            <MealEditor key={meal.id} meal={meal} onUpdate={(m) => updateMeal(i, m)} onDelete={() => deleteMeal(i)} onDuplicate={() => duplicateMeal(i)} />
           ))}
           {plan.meals.length === 0 && (
             <div className="border border-dashed border-border rounded-xl p-8 text-center text-muted-foreground text-sm">
