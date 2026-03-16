@@ -30,14 +30,7 @@ const addHeader = (doc: jsPDF, title: string, subtitle: string, logoBase64?: str
   let y = 20;
 
   // Logo + Brand name in neon green
-  const logoSize = 14;
-  let textX = MARGIN;
-  if (logoBase64) {
-    try {
-      doc.addImage(logoBase64, "PNG", MARGIN, y - logoSize + 3, logoSize, logoSize);
-      textX = MARGIN + logoSize + 3;
-    } catch { /* skip logo on error */ }
-  }
+  const textX = addLogoToDoc(doc, logoBase64 ?? null, MARGIN, y);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...NEON_GREEN);

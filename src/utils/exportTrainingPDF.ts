@@ -37,14 +37,7 @@ export const exportTrainingLogPDF = async (entry: QuestionnaireEntry, trainingQu
   let y = 20;
 
   // ── Header with logo ──
-  const logoSize = 14;
-  let textX = margin;
-  if (logoBase64) {
-    try {
-      doc.addImage(logoBase64, "PNG", margin, y - logoSize + 3, logoSize, logoSize);
-      textX = margin + logoSize + 3;
-    } catch { /* skip logo on error */ }
-  }
+  const textX = addLogoToDoc(doc, logoBase64, margin, y);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...NEON_GREEN);
