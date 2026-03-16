@@ -627,21 +627,23 @@ model CheckinTrainingLog {
 }
 
 model CheckinTrainingExercise {
-  id           String  @id @default(uuid())
-  logId        String
-  exerciseId   String?
-  exerciseName String
-  section      String  @db.VarChar(20)
-  plannedSets  String?
-  plannedReps  String?
-  plannedLoad  String?
-  plannedRPE   Float?
-  actualWeight Float?
-  actualRPE    Float?
-  actualSets   String?
-  actualReps   String?
-  comment      String?  @db.Text
-  createdAt    DateTime @default(now())
+  id             String  @id @default(uuid())
+  logId          String
+  exerciseId     String?
+  exerciseName   String
+  section        String  @db.VarChar(20)
+  method         String? @db.VarChar(30)
+  plannedSets    String?
+  plannedReps    String?
+  plannedLoad    String?
+  plannedRPE     Float?
+  actualWeight   Float?
+  actualRPE      Float?
+  actualSets     String?
+  actualReps     String?
+  backoffWeights String? @db.VarChar(200)
+  comment        String? @db.Text
+  createdAt      DateTime @default(now())
 
   log CheckinTrainingLog @relation(fields: [logId], references: [id], onDelete: Cascade)
 

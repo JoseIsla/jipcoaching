@@ -296,6 +296,9 @@ const AdminCheckins = () => {
                                     <td className="px-3 py-2 text-center">
                                       <p className="text-xs text-foreground font-medium">{ex.actualSets ? `${ex.actualSets}×${ex.actualReps || "?"}` : "—"}</p>
                                       <p className="text-[10px] font-mono font-bold text-foreground">{ex.actualWeight ? `${ex.actualWeight}kg` : "—"}</p>
+                                      {ex.backoffWeights && (
+                                        <p className="text-[9px] text-muted-foreground mt-0.5">Back-offs: {ex.backoffWeights}</p>
+                                      )}
                                     </td>
                                     <td className="px-3 py-2 text-center">
                                       <div className="flex flex-col items-center">

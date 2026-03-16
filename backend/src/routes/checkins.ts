@@ -78,6 +78,7 @@ router.get("/", async (req, res) => {
           exerciseId: e.exerciseId,
           exerciseName: e.exerciseName,
           section: e.section,
+          method: e.method || undefined,
           plannedSets: e.plannedSets,
           plannedReps: e.plannedReps,
           plannedLoad: e.plannedLoad,
@@ -86,6 +87,7 @@ router.get("/", async (req, res) => {
           actualRPE: e.actualRPE,
           actualSets: e.actualSets,
           actualReps: e.actualReps,
+          backoffWeights: e.backoffWeights || undefined,
           comment: e.comment || undefined,
         })),
       })),
@@ -231,6 +233,7 @@ router.post("/:id/submit", async (req, res) => {
               exerciseId: e.exerciseId,
               exerciseName: e.exerciseName,
               section: e.section || "basic",
+              method: e.method || null,
               plannedSets: e.plannedSets,
               plannedReps: e.plannedReps,
               plannedLoad: e.plannedLoad,
@@ -239,6 +242,7 @@ router.post("/:id/submit", async (req, res) => {
               actualRPE: e.actualRPE,
               actualSets: e.actualSets,
               actualReps: e.actualReps,
+              backoffWeights: e.backoffWeights || null,
               comment: e.comment || null,
             })),
           });
@@ -705,11 +709,13 @@ async function generateCheckinsForClient(clientId: string, packType: string, for
 
             await prisma.checkinTrainingExercise.createMany({
               data: logExercises.map((ex) => {
+                const method = ex.method || "STRAIGHT_SETS";
+
                 // Compute plannedSets based on method
                 let plannedSets = "—";
-                if (ex.method === "TOP_SET_BACKOFFS") {
+                if (method === "TOP_SET_BACKOFFS") {
                   plannedSets = `1+${ex.backoffSets ?? 3}`;
-                } else if (ex.method === "LOAD_DROP") {
+                } else if (method === "LOAD_DROP") {
                   plannedSets = (ex as any).estimatedSeries || "—";
                 } else if (ex.setsMin) {
                   plannedSets = ex.setsMin === ex.setsMax
@@ -729,11 +735,13 @@ async function generateCheckinsForClient(clientId: string, packType: string, for
 
                 // Build plannedLoad with backoff context
                 let plannedLoad = (ex as any).plannedLoad || "Autoregulada";
-                if (ex.method === "TOP_SET_BACKOFFS" && (ex as any).backoffReps) {
-                  plannedLoad += ` | Back-off: ${(ex as any).backoffReps} reps`;
-                }
-                if (ex.backoffPercent) {
-                  plannedLoad += ` @RPE ${ex.backoffPercent}`;
+                if (method === "TOP_SET_BACKOFFS") {
+                  if ((ex as any).backoffReps) {
+                    plannedLoad += ` | Back-off: ${(ex as any).backoffReps} reps`;
+                  }
+                  if (ex.backoffPercent) {
+                    plannedLoad += ` @RPE ${ex.backoffPercent}`;
+                  }
                 }
                 if ((ex as any).backoffRule) {
                   plannedLoad += ` | Regla: ${(ex as any).backoffRule}`;
@@ -744,6 +752,7 @@ async function generateCheckinsForClient(clientId: string, packType: string, for
                   exerciseId: ex.id,
                   exerciseName: ex.name,
                   section: ex.type === "BASIC" ? "basic" : "variant",
+                  method,
                   plannedSets,
                   plannedReps,
                   plannedLoad,
