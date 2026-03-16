@@ -9,7 +9,13 @@ const AvisoLegal = () => {
     const meta = document.querySelector('meta[name="description"]');
     const original = meta?.getAttribute("content") || "";
     meta?.setAttribute("content", "Aviso legal de JIP Performance Nutrition: datos identificativos, condiciones de uso, propiedad intelectual y legislación aplicable.");
-    return () => { meta?.setAttribute("content", original); };
+    const link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    const origCanonical = link?.getAttribute("href") || "";
+    link?.setAttribute("href", "https://jipcoaching.com/legal/aviso-legal");
+    return () => {
+      meta?.setAttribute("content", original);
+      link?.setAttribute("href", origCanonical);
+    };
   }, []);
 
   return (
