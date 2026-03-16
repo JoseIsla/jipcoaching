@@ -193,7 +193,9 @@ export const exportTrainingLogPDF = async (entry: QuestionnaireEntry, trainingQu
         2: { halign: "right", fontStyle: "bold", textColor: [...WHITE] },
         3: { halign: "right" },
       },
-      didDrawPage: () => fillBackground(doc),
+      willDrawPage: (data) => {
+        if (data.pageNumber > 1) fillBackground(doc);
+      },
     });
 
     y = (doc as any).lastAutoTable.finalY + 8;
