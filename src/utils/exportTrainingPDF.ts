@@ -210,7 +210,7 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry, trainingQuestion
     const responseRows = Object.entries(entry.responses).map(([key, val]) => {
       const questionDef = template
         ? template.questions.find((q) => q.id === key)
-        : trainingTemplate.questions.find((q) => q.id === key);
+        : trainingQuestions?.find((q) => q.id === key);
       const label = questionDef?.label || key;
       const display = typeof val === "boolean" ? (val ? "Sí" : "No") : String(val);
       return [label, display];
