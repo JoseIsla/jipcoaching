@@ -435,20 +435,24 @@ function ClientCheckinCard({
   onViewEntry: (e: QuestionnaireEntry) => void;
   onNavigateToClient: () => void;
 }) {
+  const [open, setOpen] = useState(false);
   const nutritionEntries = filteredEntries.filter((e) => e.category === "nutrition");
   const trainingEntries = filteredEntries.filter((e) => e.category === "training");
   const completionPct = client.total > 0 ? Math.round((client.responded / client.total) * 100) : 0;
 
   return (
     <Card className="bg-card border-border overflow-hidden">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 cursor-pointer select-none" onClick={() => setOpen((o) => !o)}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center">
               <User className="h-4 w-4 text-muted-foreground" />
             </div>
             <div>
-              <button onClick={onNavigateToClient} className="text-sm font-semibold text-foreground hover:text-primary transition-colors">
+              <button
+                onClick={(e) => { e.stopPropagation(); onNavigateToClient(); }}
+                className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
+              >
                 {client.clientName}
               </button>
               <div className="flex items-center gap-2 mt-0.5">
@@ -476,34 +480,37 @@ function ClientCheckinCard({
                 <AlertTriangle className="h-3 w-3 mr-1" />{client.expired}
               </Badge>
             )}
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ml-1 ${open ? "rotate-180" : ""}`} />
           </div>
         </div>
         <div className="mt-3 h-1.5 w-full bg-muted rounded-full overflow-hidden">
           <div className={`h-full rounded-full transition-all ${completionPct === 100 ? "bg-primary" : "bg-primary/60"}`} style={{ width: `${completionPct}%` }} />
         </div>
       </CardHeader>
-      <CardContent className="pt-0 space-y-2">
-        {nutritionEntries.length > 0 && (
-          <div className="space-y-1.5">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-              <Utensils className="h-3 w-3" /> Nutrición
-            </p>
-            {nutritionEntries.map((entry) => (
-              <EntryRow key={entry.id} entry={entry} onView={() => onViewEntry(entry)} statusConfig={statusConfig} />
-            ))}
-          </div>
-        )}
-        {trainingEntries.length > 0 && (
-          <div className="space-y-1.5">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-              <Dumbbell className="h-3 w-3" /> Entrenamiento
-            </p>
-            {trainingEntries.map((entry) => (
-              <EntryRow key={entry.id} entry={entry} onView={() => onViewEntry(entry)} statusConfig={statusConfig} />
-            ))}
-          </div>
-        )}
-      </CardContent>
+      <AnimatedCollapsibleContent open={open}>
+        <CardContent className="pt-0 space-y-2">
+          {nutritionEntries.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <Utensils className="h-3 w-3" /> Nutrición
+              </p>
+              {nutritionEntries.map((entry) => (
+                <EntryRow key={entry.id} entry={entry} onView={() => onViewEntry(entry)} statusConfig={statusConfig} />
+              ))}
+            </div>
+          )}
+          {trainingEntries.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <Dumbbell className="h-3 w-3" /> Entrenamiento
+              </p>
+              {trainingEntries.map((entry) => (
+                <EntryRow key={entry.id} entry={entry} onView={() => onViewEntry(entry)} statusConfig={statusConfig} />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </AnimatedCollapsibleContent>
     </Card>
   );
 }
