@@ -19,6 +19,20 @@ const InstallPage = () => {
   const [activeTab, setActiveTab] = useState<Platform>("ios");
 
   useEffect(() => {
+    document.title = "Instalar App — JIP Performance Nutrition";
+    const meta = document.querySelector('meta[name="description"]');
+    const original = meta?.getAttribute("content") || "";
+    meta?.setAttribute("content", "Instala la app de JIP Performance Nutrition en tu móvil. Instrucciones paso a paso para iPhone y Android, sin App Store ni Play Store.");
+    const link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    const origCanonical = link?.getAttribute("href") || "";
+    link?.setAttribute("href", "https://jipcoaching.com/install");
+    return () => {
+      meta?.setAttribute("content", original);
+      link?.setAttribute("href", origCanonical);
+    };
+  }, []);
+
+  useEffect(() => {
     const detected = detectPlatform();
     setPlatform(detected);
     setActiveTab(detected === "other" ? "ios" : detected);

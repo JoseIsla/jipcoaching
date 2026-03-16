@@ -9,7 +9,13 @@ const PoliticaPrivacidad = () => {
     const meta = document.querySelector('meta[name="description"]');
     const original = meta?.getAttribute("content") || "";
     meta?.setAttribute("content", "Política de privacidad de JIP Performance Nutrition: responsable del tratamiento, finalidad, legitimación, conservación de datos y derechos del interesado.");
-    return () => { meta?.setAttribute("content", original); };
+    const link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    const origCanonical = link?.getAttribute("href") || "";
+    link?.setAttribute("href", "https://jipcoaching.com/legal/privacidad");
+    return () => {
+      meta?.setAttribute("content", original);
+      link?.setAttribute("href", origCanonical);
+    };
   }, []);
 
   return (

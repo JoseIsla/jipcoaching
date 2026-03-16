@@ -15,5 +15,8 @@ Allow: /
 Disallow: /admin/
 Disallow: /client/
 Disallow: /login
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
 
 Sitemap: https://jipcoaching.com/sitemap.xml
