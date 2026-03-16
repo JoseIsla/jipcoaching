@@ -138,6 +138,7 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry, trainingQuestion
           6: { halign: "center", fontStyle: "bold" },
           7: { halign: "left", cellWidth: 30, fontSize: 6.5, textColor: [...TEXT_MUTED] },
         },
+        didDrawPage: () => fillBackground(doc),
         didParseCell: (data) => {
           if (data.section === "body" && data.column.index === 6) {
             const text = String(data.cell.raw || "");
@@ -187,6 +188,7 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry, trainingQuestion
         2: { halign: "right", fontStyle: "bold", textColor: [...WHITE] },
         3: { halign: "right" },
       },
+      didDrawPage: () => fillBackground(doc),
     });
 
     y = (doc as any).lastAutoTable.finalY + 8;
@@ -232,6 +234,7 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry, trainingQuestion
         0: { cellWidth: 100 },
         1: { fontStyle: "bold", halign: "right", textColor: [...WHITE] },
       },
+      didDrawPage: () => fillBackground(doc),
     });
   }
 
