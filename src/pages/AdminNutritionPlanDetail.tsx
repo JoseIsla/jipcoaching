@@ -215,10 +215,12 @@ const MealEditor = ({
   meal,
   onUpdate,
   onDelete,
+  onDuplicate,
 }: {
   meal: Meal;
   onUpdate: (m: Meal) => void;
   onDelete: () => void;
+  onDuplicate: () => void;
 }) => {
   const [collapsed, setCollapsed] = useState(false);
 
