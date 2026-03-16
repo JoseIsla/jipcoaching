@@ -3,7 +3,7 @@ import { api } from "@/services/api";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Plus, Trash2, GripVertical, Utensils, Save, Apple, Salad,
-  Pill, Target, ChevronDown, ChevronUp, X,
+  Pill, Target, ChevronDown, ChevronUp, X, Copy,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -215,10 +215,12 @@ const MealEditor = ({
   meal,
   onUpdate,
   onDelete,
+  onDuplicate,
 }: {
   meal: Meal;
   onUpdate: (m: Meal) => void;
   onDelete: () => void;
+  onDuplicate: () => void;
 }) => {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -257,6 +259,9 @@ const MealEditor = ({
           </div>
         </div>
         <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" title="Duplicar comida" onClick={(e) => { e.stopPropagation(); onDuplicate(); }}>
+            <Copy className="h-4 w-4" />
+          </Button>
           <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(); }}>
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -494,6 +499,27 @@ const AdminNutritionPlanDetail = () => {
     setPlan({ ...plan, meals: plan.meals.filter((_, i) => i !== idx) });
   };
 
+  const duplicateMeal = (idx: number) => {
+    const source = plan.meals[idx];
+    const cloneMeal: Meal = {
+      ...createEmptyMeal(`${source.name} (copia)`),
+      description: source.description,
+      options: source.options.map((opt) => ({
+        ...createEmptyOption(opt.name),
+        notes: opt.notes,
+        rows: opt.rows.map((row) => ({
+          ...createEmptyRow(row.macroCategory),
+          mainIngredient: row.mainIngredient,
+          alternatives: [...row.alternatives],
+        })),
+      })),
+    };
+    const meals = [...plan.meals];
+    meals.splice(idx + 1, 0, cloneMeal);
+    setPlan({ ...plan, meals });
+    toast.success(`Comida "${source.name}" duplicada`);
+  };
+
   const addMeal = (name: string) => {
     setPlan({ ...plan, meals: [...plan.meals, createEmptyMeal(name)] });
   };
@@ -569,7 +595,7 @@ const AdminNutritionPlanDetail = () => {
             Comidas
           </h2>
           {plan.meals.map((meal, i) => (
-            <MealEditor key={meal.id} meal={meal} onUpdate={(m) => updateMeal(i, m)} onDelete={() => deleteMeal(i)} />
+            <MealEditor key={meal.id} meal={meal} onUpdate={(m) => updateMeal(i, m)} onDelete={() => deleteMeal(i)} onDuplicate={() => duplicateMeal(i)} />
           ))}
           {plan.meals.length === 0 && (
             <div className="border border-dashed border-border rounded-xl p-8 text-center text-muted-foreground text-sm">
