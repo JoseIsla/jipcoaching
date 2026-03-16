@@ -283,14 +283,15 @@ export const exportNutritionPlanPDF = async (
 
 // ─── TRAINING WEEK PDF ───
 
-export const exportTrainingWeekPDF = (
+export const exportTrainingWeekPDF = async (
   plan: TrainingPlanFull,
   week: TrainingWeek,
   clientName: string,
 ) => {
+  const logoBase64 = await loadLogoBase64();
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   patchAddPage(doc);
-  let y = addHeader(doc, "Plan de Entrenamiento", plan.planName);
+  let y = addHeader(doc, "Plan de Entrenamiento", plan.planName, logoBase64);
 
   // Subtitle
   doc.setFontSize(9);
