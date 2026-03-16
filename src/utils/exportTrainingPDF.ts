@@ -24,7 +24,7 @@ const fillBackground = (doc: jsPDF) => {
   doc.rect(0, 0, pw, ph, "F");
 };
 
-export const exportTrainingLogPDF = (entry: QuestionnaireEntry) => {
+export const exportTrainingLogPDF = (entry: QuestionnaireEntry, trainingQuestions?: QuestionDefinition[]) => {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 15;
