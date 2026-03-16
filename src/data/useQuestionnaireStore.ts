@@ -42,6 +42,7 @@ export interface TrainingLogExercise {
   exerciseId: string;
   exerciseName: string;
   section: "basic" | "variant" | "accessory";
+  method?: string;
   plannedSets: string;
   plannedReps: string;
   plannedLoad: string;
@@ -50,6 +51,7 @@ export interface TrainingLogExercise {
   actualRPE?: number;
   actualSets?: string;
   actualReps?: string;
+  backoffWeights?: string;
   comment?: string;
 }
 
