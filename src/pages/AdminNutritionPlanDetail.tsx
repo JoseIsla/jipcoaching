@@ -325,9 +325,21 @@ const mealPresets = [
   "Post-entreno",
 ];
 
-const AddMealSection = ({ onAdd }: { onAdd: (name: string) => void }) => {
+const AddMealSection = ({ onAdd, existingMeals }: { onAdd: (name: string, copyFromMealId?: string) => void; existingMeals: Meal[] }) => {
   const [showPresets, setShowPresets] = useState(false);
   const [customName, setCustomName] = useState("");
+  const [copyFromId, setCopyFromId] = useState<string>("");
+
+  const resetAndClose = () => {
+    setShowPresets(false);
+    setCustomName("");
+    setCopyFromId("");
+  };
+
+  const handleAdd = (name: string) => {
+    onAdd(name, copyFromId || undefined);
+    resetAndClose();
+  };
 
   if (!showPresets) {
     return (
@@ -352,12 +364,38 @@ const AddMealSection = ({ onAdd }: { onAdd: (name: string) => void }) => {
             variant="outline"
             size="sm"
             className="text-xs border-primary/30 text-primary hover:bg-primary/10"
-            onClick={() => { onAdd(preset); setShowPresets(false); }}
+            onClick={() => handleAdd(preset)}
           >
             {preset}
           </Button>
         ))}
       </div>
+
+      {/* Copy content from existing meal */}
+      {existingMeals.length > 0 && (
+        <div className="space-y-1.5">
+          <Label className="text-muted-foreground text-xs flex items-center gap-1.5">
+            <Copy className="h-3.5 w-3.5" /> Copiar contenido de otra comida (opcional)
+          </Label>
+          <Select value={copyFromId} onValueChange={setCopyFromId}>
+            <SelectTrigger className="bg-muted/20 border-border text-sm h-9">
+              <SelectValue placeholder="Crear vacía" />
+            </SelectTrigger>
+            <SelectContent className="bg-card border-border">
+              <SelectItem value="none">Crear vacía</SelectItem>
+              {existingMeals.map((m) => (
+                <SelectItem key={m.id} value={m.id}>
+                  {m.name} — {m.options.length} opciones
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {copyFromId && copyFromId !== "none" && (
+            <p className="text-xs text-primary">✓ Se copiarán las opciones e ingredientes de "{existingMeals.find((m) => m.id === copyFromId)?.name}"</p>
+          )}
+        </div>
+      )}
+
       <div className="flex items-center gap-2">
         <Input
           value={customName}
@@ -366,20 +404,18 @@ const AddMealSection = ({ onAdd }: { onAdd: (name: string) => void }) => {
           className="bg-muted/20 border-border text-sm flex-1"
           onKeyDown={(e) => {
             if (e.key === "Enter" && customName.trim()) {
-              onAdd(customName.trim());
-              setCustomName("");
-              setShowPresets(false);
+              handleAdd(customName.trim());
             }
           }}
         />
         <Button
           size="sm"
           disabled={!customName.trim()}
-          onClick={() => { onAdd(customName.trim()); setCustomName(""); setShowPresets(false); }}
+          onClick={() => handleAdd(customName.trim())}
         >
           Añadir
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => setShowPresets(false)}>
+        <Button variant="ghost" size="sm" onClick={resetAndClose}>
           Cancelar
         </Button>
       </div>
