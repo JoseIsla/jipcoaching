@@ -100,13 +100,14 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry, trainingQuestion
           : "";
 
         return [
-          ex.exerciseName + (ex.comment ? `\n💬 ${ex.comment}` : ""),
+          ex.exerciseName,
           `${ex.plannedSets} × ${ex.plannedReps}`,
           ex.plannedLoad || "—",
           ex.plannedRPE != null ? String(ex.plannedRPE) : "—",
           ex.actualSets ? `${ex.actualSets} × ${ex.actualReps || "?"}` : "—",
           ex.actualWeight != null ? `${ex.actualWeight} kg` : "—",
           ex.actualRPE != null ? `${ex.actualRPE} ${rpeDiffStr}` : "—",
+          ex.comment || "",
         ];
       });
 
