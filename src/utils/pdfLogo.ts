@@ -33,12 +33,12 @@ export const addLogoToDoc = (
   logoBase64: string | null,
   x: number,
   y: number,
-  height = 14,
+  height = 10,
 ): number => {
   if (!logoBase64) return x;
   try {
-    // Logo is ~500x380 → aspect ratio ≈ 1.32:1
-    const width = height * 1.32;
+    // Use a wider aspect ratio (logo is roughly 3:1 width:height)
+    const width = height * 3;
     doc.addImage(logoBase64, "PNG", x, y - height + 2, width, height);
     return x + width + 4;
   } catch {
