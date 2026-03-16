@@ -133,15 +133,16 @@ const altRowColor: [number, number, number] = [22, 22, 22];
 
 // ─── NUTRITION PLAN PDF ───
 
-export const exportNutritionPlanPDF = (
+export const exportNutritionPlanPDF = async (
   plan: NutritionPlanDetail,
   planName: string,
   clientName: string,
   supplements: Supplement[] = [],
 ) => {
+  const logoBase64 = await loadLogoBase64();
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   patchAddPage(doc);
-  let y = addHeader(doc, "Plan Nutricional", planName);
+  let y = addHeader(doc, "Plan Nutricional", planName, logoBase64);
 
   // Client
   doc.setFontSize(9);
