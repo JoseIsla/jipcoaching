@@ -17,6 +17,7 @@ import { useTemplateStore } from "@/data/useTemplateStore";
 import { useTranslation } from "@/i18n/useTranslation";
 import { exportTrainingLogPDF } from "@/utils/exportTrainingPDF";
 import MediaCommentThread from "@/components/admin/MediaCommentThread";
+import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-content";
 
 /** Compute the effective display status */
 const getEffectiveStatus = (e: QuestionnaireEntry): QuestionnaireEntry["status"] => {
