@@ -131,7 +131,7 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry, trainingQuestion
         columnStyles: {
           0: { fontStyle: "bold", halign: "left", cellWidth: 30, textColor: [...WHITE] },
           1: { halign: "center" },
-          2: { halign: "center" },
+          2: { halign: "center", fontSize: 6, cellWidth: 32 },
           3: { halign: "center" },
           4: { halign: "center" },
           5: { halign: "center", fontStyle: "bold", textColor: [...WHITE] },
