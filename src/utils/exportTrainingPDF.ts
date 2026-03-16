@@ -234,6 +234,7 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry, trainingQuestion
         0: { cellWidth: 100 },
         1: { fontStyle: "bold", halign: "right", textColor: [...WHITE] },
       },
+      didDrawPage: () => fillBackground(doc),
     });
   }
 
