@@ -141,7 +141,9 @@ export const exportTrainingLogPDF = async (entry: QuestionnaireEntry, trainingQu
           6: { halign: "center", fontStyle: "bold" },
           7: { halign: "left", cellWidth: 30, fontSize: 6.5, textColor: [...TEXT_MUTED] },
         },
-        didDrawPage: () => fillBackground(doc),
+        willDrawPage: (data) => {
+          if (data.pageNumber > 1) fillBackground(doc);
+        },
         didParseCell: (data) => {
           if (data.section === "body" && data.column.index === 6) {
             const text = String(data.cell.raw || "");
@@ -191,7 +193,9 @@ export const exportTrainingLogPDF = async (entry: QuestionnaireEntry, trainingQu
         2: { halign: "right", fontStyle: "bold", textColor: [...WHITE] },
         3: { halign: "right" },
       },
-      didDrawPage: () => fillBackground(doc),
+      willDrawPage: (data) => {
+        if (data.pageNumber > 1) fillBackground(doc);
+      },
     });
 
     y = (doc as any).lastAutoTable.finalY + 8;
@@ -237,7 +241,9 @@ export const exportTrainingLogPDF = async (entry: QuestionnaireEntry, trainingQu
         0: { cellWidth: 100 },
         1: { fontStyle: "bold", halign: "right", textColor: [...WHITE] },
       },
-      didDrawPage: () => fillBackground(doc),
+      willDrawPage: (data) => {
+        if (data.pageNumber > 1) fillBackground(doc);
+      },
     });
   }
 
