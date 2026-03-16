@@ -1,7 +1,8 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { QuestionnaireEntry } from "@/data/useQuestionnaireStore";
-import { trainingTemplate, nutritionTemplates } from "@/data/questionnaireDefs";
+import type { QuestionDefinition } from "@/data/questionnaireDefs";
+import { nutritionTemplates } from "@/data/questionnaireDefs";
 
 // Brand palette — dark premium + neon green
 const BG_BLACK: [number, number, number] = [0, 0, 0];
@@ -23,7 +24,7 @@ const fillBackground = (doc: jsPDF) => {
   doc.rect(0, 0, pw, ph, "F");
 };
 
-export const exportTrainingLogPDF = (entry: QuestionnaireEntry) => {
+export const exportTrainingLogPDF = (entry: QuestionnaireEntry, trainingQuestions?: QuestionDefinition[]) => {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 15;
@@ -209,7 +210,7 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry) => {
     const responseRows = Object.entries(entry.responses).map(([key, val]) => {
       const questionDef = template
         ? template.questions.find((q) => q.id === key)
-        : trainingTemplate.questions.find((q) => q.id === key);
+        : trainingQuestions?.find((q) => q.id === key);
       const label = questionDef?.label || key;
       const display = typeof val === "boolean" ? (val ? "Sí" : "No") : String(val);
       return [label, display];

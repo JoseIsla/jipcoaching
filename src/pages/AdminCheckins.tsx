@@ -255,7 +255,7 @@ const AdminCheckins = () => {
             </DialogHeader>
             {(selectedEntry?.status === "respondido" || selectedEntry?.status === "revisado") && selectedEntry.category === "training" && (
               <div className="flex justify-end -mt-2">
-                <Button variant="outline" size="sm" onClick={() => selectedEntry && exportTrainingLogPDF(selectedEntry)} className="gap-1.5">
+                <Button variant="outline" size="sm" onClick={() => selectedEntry && exportTrainingLogPDF(selectedEntry, trainingTemplate.questions)} className="gap-1.5">
                   <Download className="h-4 w-4" />
                   {t("questionnaires.exportPDF")}
                 </Button>
