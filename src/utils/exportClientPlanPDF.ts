@@ -24,16 +24,24 @@ const fillBackground = (doc: jsPDF) => {
   doc.rect(0, 0, pw, ph, "F");
 };
 
-const addHeader = (doc: jsPDF, title: string, subtitle: string) => {
+const addHeader = (doc: jsPDF, title: string, subtitle: string, logoBase64?: string | null) => {
   fillBackground(doc);
   const pw = doc.internal.pageSize.getWidth();
   let y = 20;
 
-  // Brand name in neon green
+  // Logo + Brand name in neon green
+  const logoSize = 14;
+  let textX = MARGIN;
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, "PNG", MARGIN, y - logoSize + 3, logoSize, logoSize);
+      textX = MARGIN + logoSize + 3;
+    } catch { /* skip logo on error */ }
+  }
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...NEON_GREEN);
-  doc.text("JIP Coaching", MARGIN, y);
+  doc.text("JIP Coaching", textX, y);
 
   // Section title
   doc.setFontSize(9);
