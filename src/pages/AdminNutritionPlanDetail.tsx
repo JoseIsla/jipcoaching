@@ -633,7 +633,7 @@ const AdminNutritionPlanDetail = () => {
               No hay comidas aún. Añade la primera.
             </div>
           )}
-          <AddMealSection onAdd={addMeal} />
+          <AddMealSection onAdd={addMeal} existingMeals={plan.meals} />
         </div>
 
         <Separator className="bg-border" />
