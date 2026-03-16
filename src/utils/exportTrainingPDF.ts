@@ -37,11 +37,7 @@ export const exportTrainingLogPDF = async (entry: QuestionnaireEntry, trainingQu
   let y = 20;
 
   // ── Header with logo ──
-  const textX = addLogoToDoc(doc, logoBase64, margin, y);
-  doc.setFontSize(18);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(...NEON_GREEN);
-  doc.text("JIP Coaching", textX, y);
+  addLogoToDoc(doc, logoBase64, margin, y);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...TEXT_MUTED);

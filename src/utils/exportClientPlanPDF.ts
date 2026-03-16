@@ -29,12 +29,8 @@ const addHeader = (doc: jsPDF, title: string, subtitle: string, logoBase64?: str
   const pw = doc.internal.pageSize.getWidth();
   let y = 20;
 
-  // Logo + Brand name in neon green
-  const textX = addLogoToDoc(doc, logoBase64 ?? null, MARGIN, y);
-  doc.setFontSize(18);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(...NEON_GREEN);
-  doc.text("JIP Coaching", textX, y);
+  // Logo only (no text)
+  addLogoToDoc(doc, logoBase64 ?? null, MARGIN, y);
 
   // Section title
   doc.setFontSize(9);
