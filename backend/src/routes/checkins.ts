@@ -231,6 +231,7 @@ router.post("/:id/submit", async (req, res) => {
               exerciseId: e.exerciseId,
               exerciseName: e.exerciseName,
               section: e.section || "basic",
+              method: e.method || null,
               plannedSets: e.plannedSets,
               plannedReps: e.plannedReps,
               plannedLoad: e.plannedLoad,
@@ -239,6 +240,7 @@ router.post("/:id/submit", async (req, res) => {
               actualRPE: e.actualRPE,
               actualSets: e.actualSets,
               actualReps: e.actualReps,
+              backoffWeights: e.backoffWeights || null,
               comment: e.comment || null,
             })),
           });
