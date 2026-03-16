@@ -1,7 +1,8 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { QuestionnaireEntry } from "@/data/useQuestionnaireStore";
-import { trainingTemplate, nutritionTemplates } from "@/data/questionnaireDefs";
+import type { QuestionDefinition } from "@/data/questionnaireDefs";
+import { nutritionTemplates } from "@/data/questionnaireDefs";
 
 // Brand palette — dark premium + neon green
 const BG_BLACK: [number, number, number] = [0, 0, 0];
