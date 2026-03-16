@@ -60,6 +60,7 @@ const PoliticaCookies = () => {
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default PoliticaCookies;

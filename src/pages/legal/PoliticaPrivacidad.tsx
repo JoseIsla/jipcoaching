@@ -70,6 +70,7 @@ const PoliticaPrivacidad = () => {
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default PoliticaPrivacidad;

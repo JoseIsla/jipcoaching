@@ -64,6 +64,7 @@ const AvisoLegal = () => {
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default AvisoLegal;
