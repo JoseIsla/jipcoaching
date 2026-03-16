@@ -3,7 +3,7 @@ import { api } from "@/services/api";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Plus, Trash2, GripVertical, Utensils, Save, Apple, Salad,
-  Pill, Target, ChevronDown, ChevronUp, X,
+  Pill, Target, ChevronDown, ChevronUp, X, Copy,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
