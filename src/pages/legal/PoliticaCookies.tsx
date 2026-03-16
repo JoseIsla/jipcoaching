@@ -1,8 +1,18 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import LegalBreadcrumbJsonLd from "@/components/legal/LegalBreadcrumbJsonLd";
 
-const PoliticaCookies = () => (
+const PoliticaCookies = () => {
+  useEffect(() => {
+    document.title = "Política de Cookies — JIP Performance Nutrition";
+    const meta = document.querySelector('meta[name="description"]');
+    const original = meta?.getAttribute("content") || "";
+    meta?.setAttribute("content", "Política de cookies de JIP Performance Nutrition: tipos de cookies utilizadas, gestión desde el navegador, cookies de terceros y actualización de la política.");
+    return () => { meta?.setAttribute("content", original); };
+  }, []);
+
+  return (
   <div className="min-h-screen bg-background text-foreground">
     <LegalBreadcrumbJsonLd pageName="Política de Cookies" pageUrl="/legal/cookies" />
     <div className="max-w-3xl mx-auto px-4 py-16">
