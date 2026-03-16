@@ -1,8 +1,18 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import LegalBreadcrumbJsonLd from "@/components/legal/LegalBreadcrumbJsonLd";
 
-const PoliticaPrivacidad = () => (
+const PoliticaPrivacidad = () => {
+  useEffect(() => {
+    document.title = "Política de Privacidad — JIP Performance Nutrition";
+    const meta = document.querySelector('meta[name="description"]');
+    const original = meta?.getAttribute("content") || "";
+    meta?.setAttribute("content", "Política de privacidad de JIP Performance Nutrition: responsable del tratamiento, finalidad, legitimación, conservación de datos y derechos del interesado.");
+    return () => { meta?.setAttribute("content", original); };
+  }, []);
+
+  return (
   <div className="min-h-screen bg-background text-foreground">
     <LegalBreadcrumbJsonLd pageName="Política de Privacidad" pageUrl="/legal/privacidad" />
     <div className="max-w-3xl mx-auto px-4 py-16">
