@@ -91,7 +91,7 @@ const AboutSection = () => {
                   className="bg-background border border-border rounded-xl p-4 text-center transition-shadow hover:shadow-lg hover:shadow-primary/5"
                 >
                   <Icon className="h-5 w-5 text-primary mx-auto mb-2" />
-                  <p className="text-xl font-black text-foreground">
+                  <p className="text-lg font-black text-foreground leading-tight">
                     {value !== undefined ? <AnimatedNumber value={value} suffix={suffix} /> : title}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
