@@ -100,13 +100,14 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry, trainingQuestion
           : "";
 
         return [
-          ex.exerciseName + (ex.comment ? `\n💬 ${ex.comment}` : ""),
+          ex.exerciseName,
           `${ex.plannedSets} × ${ex.plannedReps}`,
           ex.plannedLoad || "—",
           ex.plannedRPE != null ? String(ex.plannedRPE) : "—",
           ex.actualSets ? `${ex.actualSets} × ${ex.actualReps || "?"}` : "—",
           ex.actualWeight != null ? `${ex.actualWeight} kg` : "—",
           ex.actualRPE != null ? `${ex.actualRPE} ${rpeDiffStr}` : "—",
+          ex.comment || "",
         ];
       });
 
@@ -118,8 +119,9 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry, trainingQuestion
             { content: "Ejercicio", colSpan: 1 },
             { content: "PAUTADO", colSpan: 3 },
             { content: "REAL", colSpan: 3 },
+            { content: "Notas", colSpan: 1 },
           ],
-          ["", "Series×Reps", "Carga", "RPE", "Series×Reps", "Peso", "RPE"],
+          ["", "Series×Reps", "Carga", "RPE", "Series×Reps", "Peso", "RPE", ""],
         ],
         body: tableBody,
         theme: "grid",
@@ -127,13 +129,14 @@ export const exportTrainingLogPDF = (entry: QuestionnaireEntry, trainingQuestion
         headStyles,
         alternateRowStyles: { fillColor: [...ALT_ROW] },
         columnStyles: {
-          0: { fontStyle: "bold", halign: "left", cellWidth: 38, textColor: [...WHITE] },
+          0: { fontStyle: "bold", halign: "left", cellWidth: 30, textColor: [...WHITE] },
           1: { halign: "center" },
           2: { halign: "center" },
           3: { halign: "center" },
           4: { halign: "center" },
           5: { halign: "center", fontStyle: "bold", textColor: [...WHITE] },
           6: { halign: "center", fontStyle: "bold" },
+          7: { halign: "left", cellWidth: 30, fontSize: 6.5, textColor: [...TEXT_MUTED] },
         },
         didParseCell: (data) => {
           if (data.section === "body" && data.column.index === 6) {
