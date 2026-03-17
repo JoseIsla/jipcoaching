@@ -21,12 +21,14 @@ import { useToast } from "@/hooks/use-toast";
 import { parseDecimal } from "@/utils/parseDecimal";
 import AdminPhotoComparison from "@/components/admin/AdminPhotoComparison";
 const SBD_NAMES = ["Sentadilla", "Press Banca", "Peso Muerto"];
+const EMPTY_WEIGHT: { date: string; weight: number }[] = [];
+const EMPTY_RM: { id?: string; exerciseId: string; exerciseName: string; weight: number; date: string; reps: number; estimated1RM: number }[] = [];
 
 const ClientProgressCard = ({ client, onClick, t }: { client: ApiClient; onClick: () => void; t: (k: string) => string }) => {
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
-  const wh = useQuestionnaireStore((s) => hasNutrition ? (s.weightHistory[client.id] || []) : []);
-  const rmRecords = useQuestionnaireStore((s) => hasTraining ? (s.rmRecords[client.id] || []) : []);
+  const wh = useQuestionnaireStore((s) => s.weightHistory[client.id] ?? EMPTY_WEIGHT);
+  const rmRecords = useQuestionnaireStore((s) => s.rmRecords[client.id] ?? EMPTY_RM);
   const bestRMs = useMemo(() => {
     const best: Record<string, typeof rmRecords[0]> = {};
     rmRecords.forEach((r) => { const k = r.exerciseName || r.exerciseId; if (!best[k] || r.estimated1RM > best[k].estimated1RM) best[k] = r; });
