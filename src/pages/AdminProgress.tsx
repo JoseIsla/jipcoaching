@@ -161,9 +161,9 @@ const RMDialog = ({ clientId, open, onClose, editRecord }: RMDialogProps) => {
 const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => void; t: (k: string) => string }) => {
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
-  const getWeightHistory = useQuestionnaireStore((s) => s.getWeightHistory);
-  const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
-  const getTrainingProgress = useQuestionnaireStore((s) => s.getTrainingProgress);
+  const weightHistory = useQuestionnaireStore((s) => hasNutrition ? (s.weightHistory[client.id] || []) : []);
+  const rmRecords = useQuestionnaireStore((s) => hasTraining ? (s.rmRecords[client.id] || []) : []);
+  const entries = useQuestionnaireStore((s) => s.entries);
   const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
