@@ -39,7 +39,7 @@ const ClientHome = () => {
     if (hasTraining) await fetchRMRecords(client.id);
   }, [client.id, hasNutrition, hasTraining, generateMyCheckins, fetchEntries, fetchWeightHistory, fetchRMRecords]);
 
-  useEffect(() => { refreshData(); }, [client.id]);
+  useEffect(() => { refreshData(); }, [refreshData]);
   const activePlan = hasNutrition ? nutritionPlans.find((p) => p.clientId === client.id && p.active) : null;
   const activeTraining = hasTraining ? trainingPlans.find((p) => p.clientId === client.id && p.active) : null;
   const pendingCheckins = entries.filter((e) => e.clientId === client.id && isActionablePending(e)).length;
