@@ -32,7 +32,7 @@ const ClientProgress = () => {
     if (hasTraining) await fetchRMRecords(client.id);
   }, [client.id, hasNutrition, hasTraining, fetchEntries, fetchWeightHistory, fetchRMRecords]);
 
-  useEffect(() => { refreshData(); }, [client.id]);
+  useEffect(() => { refreshData(); }, [refreshData]);
 
   // Subscribe directly to store data (not getter functions) for reactivity
   const weightData = useQuestionnaireStore((s) => s.weightHistory[client.id] || []);
