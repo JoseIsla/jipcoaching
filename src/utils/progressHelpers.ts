@@ -5,13 +5,19 @@ export const computeAdherence = (
   entries: ReturnType<typeof useQuestionnaireStore.getState>["entries"],
   clientId: string
 ) => {
-  const clientEntries = entries.filter((e) => e.clientId === clientId);
+  // Only count check-ins that have a definitive outcome:
+  // responded/reviewed = client answered; expired/no_enviado = client didn't answer.
+  // Exclude "pendiente" (still within fill window) to avoid inflating the denominator.
+  const clientEntries = entries.filter(
+    (e) => e.clientId === clientId && e.status !== "pendiente"
+  );
   const byWeek: Record<string, { total: number; answered: number }> = {};
 
   clientEntries.forEach((e) => {
     const key = e.weekLabel;
     if (!byWeek[key]) byWeek[key] = { total: 0, answered: 0 };
     byWeek[key].total += 1;
+    // "respondido" and "revisado" both mean the client submitted the check-in
     if (e.status === "respondido" || e.status === "revisado") byWeek[key].answered += 1;
   });
 
