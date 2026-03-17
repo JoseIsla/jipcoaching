@@ -53,7 +53,7 @@ const ClientProgress = () => {
 
   const trainingProgress = useMemo(() => {
     const trainEntries = entries.filter(
-      (e) => e.clientId === client.id && e.category === "training" && e.status === "respondido"
+      (e) => e.clientId === client.id && e.category === "training" && (e.status === "respondido" || e.status === "revisado")
     );
     const latest = trainEntries[trainEntries.length - 1];
     if (!latest?.responses) return {};
