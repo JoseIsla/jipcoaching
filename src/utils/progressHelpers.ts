@@ -12,7 +12,7 @@ export const computeAdherence = (
     const key = e.weekLabel;
     if (!byWeek[key]) byWeek[key] = { total: 0, answered: 0 };
     byWeek[key].total += 1;
-    if (e.status === "respondido") byWeek[key].answered += 1;
+    if (e.status === "respondido" || e.status === "revisado") byWeek[key].answered += 1;
   });
 
   return Object.entries(byWeek).map(([week, data]) => ({
