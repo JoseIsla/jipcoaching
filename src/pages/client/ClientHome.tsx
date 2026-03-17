@@ -13,6 +13,9 @@ import { useTranslation } from "@/i18n/useTranslation";
 import ClientTestimonialCard from "@/components/client/ClientTestimonialCard";
 import PullToRefresh from "@/components/client/PullToRefresh";
 
+const EMPTY_WEIGHT: { date: string; weight: number }[] = [];
+const EMPTY_RM: { id?: string; exerciseId: string; exerciseName: string; weight: number; date: string; reps: number; estimated1RM: number }[] = [];
+
 const ClientHome = () => {
   const { t } = useTranslation();
   const { client } = useClient();
