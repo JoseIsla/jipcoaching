@@ -188,9 +188,32 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
     if (hasTraining) fetchRMRecords(client.id);
   }, [client.id]);
 
-  const weightHistory = hasNutrition ? getWeightHistory(client.id) : [];
-  const bestRMs = hasTraining ? getBestRMs(client.id) : [];
-  const trainingProgress = hasTraining ? getTrainingProgress(client.id) : null;
+  const bestRMs = useMemo(() => {
+    const best: Record<string, typeof rmRecords[0]> = {};
+    rmRecords.forEach((r) => { const k = r.exerciseName || r.exerciseId; if (!best[k] || r.estimated1RM > best[k].estimated1RM) best[k] = r; });
+    return Object.values(best);
+  }, [rmRecords]);
+  const trainingProgress = useMemo(() => {
+    if (!hasTraining) return null;
+    const trainEntries = entries.filter(
+      (e) => e.clientId === client.id && e.category === "training" && (e.status === "respondido" || e.status === "revisado")
+    );
+    const latest = trainEntries[trainEntries.length - 1];
+    if (!latest?.responses) return null;
+    const r = latest.responses;
+    const qs = latest.templateQuestions || [];
+    const findVal = (keywords: string[], fallbackId: string) => {
+      const q = qs.find((q) => keywords.some((k) => q.label.toLowerCase().includes(k)));
+      return r[q?.id || fallbackId];
+    };
+    return {
+      latestFatigue: findVal(["fatiga", "fatigue"], "tq1") as number | undefined,
+      latestSleep: findVal(["sueño", "sleep", "descanso"], "tq4") as number | undefined,
+      latestMotivation: findVal(["motivación", "motivation", "ánimo"], "tq5") as number | undefined,
+      hasInjury: findVal(["molestia", "dolor", "injury", "pain"], "tq2") as boolean | undefined,
+      injuryDetail: findVal(["describe", "detalle", "detail"], "tq3") as string | undefined,
+    };
+  }, [entries, client.id, hasTraining]);
   const weightDelta = weightHistory.length >= 2 ? (weightHistory[weightHistory.length - 1].weight - weightHistory[0].weight).toFixed(1) : null;
   const defaultTab = hasNutrition ? "nutrition" : "training";
 
