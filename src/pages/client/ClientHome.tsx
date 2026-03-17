@@ -25,8 +25,8 @@ const ClientHome = () => {
   const nutritionPlans = useNutritionPlanStore((s) => s.plans);
   const trainingPlans = useTrainingPlanStore((s) => s.plans);
   const entries = useQuestionnaireStore((s) => s.entries);
-  const getWeightHistory = useQuestionnaireStore((s) => s.getWeightHistory);
-  const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
+  const weightHistory = useQuestionnaireStore((s) => s.weightHistory[client.id] ?? EMPTY_WEIGHT);
+  const rmRecords = useQuestionnaireStore((s) => s.rmRecords[client.id] ?? EMPTY_RM);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
   const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
