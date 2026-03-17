@@ -32,7 +32,7 @@ const ClientProgress = () => {
     if (hasTraining) await fetchRMRecords(client.id);
   }, [client.id, hasNutrition, hasTraining, fetchEntries, fetchWeightHistory, fetchRMRecords]);
 
-  useEffect(() => { refreshData(); }, [client.id]);
+  useEffect(() => { refreshData(); }, [refreshData]);
 
   // Subscribe directly to store data (not getter functions) for reactivity
   const weightData = useQuestionnaireStore((s) => s.weightHistory[client.id] || []);
@@ -53,7 +53,7 @@ const ClientProgress = () => {
 
   const trainingProgress = useMemo(() => {
     const trainEntries = entries.filter(
-      (e) => e.clientId === client.id && e.category === "training" && e.status === "respondido"
+      (e) => e.clientId === client.id && e.category === "training" && (e.status === "respondido" || e.status === "revisado")
     );
     const latest = trainEntries[trainEntries.length - 1];
     if (!latest?.responses) return {};
