@@ -2,7 +2,7 @@
  * Client-side photo upload & gallery for progress tracking.
  * Shows in Progress tab for nutrition clients.
  */
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Camera, Upload, Clock, CheckCircle2, ImageIcon, Loader2, X } from "lucide-react";
 import ClientMediaComments from "./ClientMediaComments";
 import PhotoLightbox from "@/components/ui/photo-lightbox";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useMediaStore } from "@/data/useMediaStore";
-import { PHOTO_ANGLES, MAX_PHOTO_SIZE_MB, MIN_PHOTO_WIDTH, MIN_PHOTO_HEIGHT, getImageDimensions, type PhotoAngle, type ProgressPhoto } from "@/types/media";
+import { PHOTO_ANGLES, PHOTO_INTERVAL_DAYS, MAX_PHOTO_SIZE_MB, MIN_PHOTO_WIDTH, MIN_PHOTO_HEIGHT, getImageDimensions, type PhotoAngle, type ProgressPhoto, type ProgressPhotoSession } from "@/types/media";
 import { compressImage } from "@/utils/compressMedia";
 import { mediaApi } from "@/services/mediaApi";
 
@@ -20,9 +20,8 @@ interface Props {
 
 const ProgressPhotosSection = ({ clientId }: Props) => {
   const { toast } = useToast();
-  const getPhotoSessions = useMediaStore((s) => s.getPhotoSessions);
-  const canUploadFn = useMediaStore((s) => s.canUploadPhotos);
-  const getNextPhotoDateFn = useMediaStore((s) => s.getNextPhotoDate);
+  // Subscribe to raw data for reactivity
+  const allPhotos = useMediaStore((s) => s.photos);
   const addPhotoBatch = useMediaStore((s) => s.addPhotoBatch);
   const fetchPhotos = useMediaStore((s) => s.fetchPhotos);
   const fetchComments = useMediaStore((s) => s.fetchComments);
@@ -33,9 +32,32 @@ const ProgressPhotosSection = ({ clientId }: Props) => {
     fetchComments(clientId);
   }, [clientId]);
 
-  const sessions = getPhotoSessions(clientId);
-  const canUpload = canUploadFn(clientId);
-  const nextDate = getNextPhotoDateFn(clientId);
+  // Compute sessions, canUpload, nextDate from raw photo data
+  const sessions = useMemo<ProgressPhotoSession[]>(() => {
+    const photos = allPhotos.filter((p) => p.clientId === clientId);
+    const byDate: Record<string, ProgressPhoto[]> = {};
+    photos.forEach((p) => {
+      if (!byDate[p.sessionDate]) byDate[p.sessionDate] = [];
+      byDate[p.sessionDate].push(p);
+    });
+    return Object.entries(byDate)
+      .map(([date, photos]) => ({ date, photos: photos.sort((a, b) => a.angle.localeCompare(b.angle)) }))
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [allPhotos, clientId]);
+
+  const canUpload = useMemo(() => {
+    if (sessions.length === 0) return true;
+    const lastDate = new Date(sessions[0].date);
+    const diffDays = Math.floor((Date.now() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays >= PHOTO_INTERVAL_DAYS;
+  }, [sessions]);
+
+  const nextDate = useMemo(() => {
+    if (sessions.length === 0) return null;
+    const lastDate = new Date(sessions[0].date);
+    lastDate.setDate(lastDate.getDate() + PHOTO_INTERVAL_DAYS);
+    return lastDate.toISOString().split("T")[0];
+  }, [sessions]);
 
   const [uploading, setUploading] = useState(false);
   const [compressing, setCompressing] = useState<PhotoAngle | null>(null);
