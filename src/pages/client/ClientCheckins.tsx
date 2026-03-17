@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
@@ -378,12 +378,15 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
 
   const videos = entry.techniqueVideos || [];
 
-  // Unseen comments logic
-  const getComments = useMediaStore((s) => s.getComments);
+  // Unseen comments logic — subscribe to raw comments for reactivity
+  const allComments = useMediaStore((s) => s.comments);
   const seenCommentIds = useClientPreferencesStore((s) => s.seenCommentIds);
   const markCommentsSeen = useClientPreferencesStore((s) => s.markCommentsSeen);
 
-  const videoComments = videos.flatMap((v) => getComments("video", v.id));
+  const videoComments = useMemo(
+    () => videos.flatMap((v) => allComments.filter((c) => c.targetType.toLowerCase() === "video" && c.targetId === v.id)),
+    [allComments, videos]
+  );
   const unseenCount = videoComments.filter((c) => !seenCommentIds.includes(c.id)).length;
 
   // Mark comments as seen when expanded

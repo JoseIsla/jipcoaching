@@ -3,7 +3,7 @@
  * Shows in Progress tab for training clients.
  * Videos auto-expire after 6 days.
  */
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Video, Upload, Clock, Trash2, Film, Loader2 } from "lucide-react";
 import ClientMediaComments from "./ClientMediaComments";
 import { Button } from "@/components/ui/button";
@@ -27,9 +27,9 @@ const daysUntilExpiry = (expiresAt: string): number => {
 
 const TechniqueVideosSection = ({ clientId }: Props) => {
   const { toast } = useToast();
-  const getActiveVideosFn = useMediaStore((s) => s.getActiveVideos);
+  // Subscribe to raw data for reactivity
+  const allVideos = useMediaStore((s) => s.videos);
   const addVideo = useMediaStore((s) => s.addVideo);
-  const removeVideoFromStore = useMediaStore((s) => s.removeVideo);
   const fetchVideos = useMediaStore((s) => s.fetchVideos);
   const fetchComments = useMediaStore((s) => s.fetchComments);
 
@@ -39,7 +39,11 @@ const TechniqueVideosSection = ({ clientId }: Props) => {
     fetchComments(clientId);
   }, [clientId]);
 
-  const activeVideos = getActiveVideosFn(clientId);
+  // Compute active videos from raw data
+  const activeVideos = useMemo(() => {
+    const now = new Date().toISOString();
+    return allVideos.filter((v) => v.clientId === clientId && v.expiresAt > now);
+  }, [allVideos, clientId]);
 
   const [showUpload, setShowUpload] = useState(false);
   const [compressingVideo, setCompressingVideo] = useState(false);
