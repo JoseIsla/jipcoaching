@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import ClientLayout from "@/components/client/ClientLayout";
 import { useClient } from "@/contexts/ClientContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,9 +22,6 @@ const ClientProgress = () => {
   const { client } = useClient();
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
-  const getWeightHistory = useQuestionnaireStore((s) => s.getWeightHistory);
-  const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
-  const getTrainingProgress = useQuestionnaireStore((s) => s.getTrainingProgress);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
   const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
@@ -37,9 +34,44 @@ const ClientProgress = () => {
 
   useEffect(() => { refreshData(); }, [client.id]);
 
-  const weightData = getWeightHistory(client.id);
-  const bestRMs = getBestRMs(client.id);
-  const trainingProgress = getTrainingProgress(client.id);
+  // Subscribe directly to store data (not getter functions) for reactivity
+  const weightData = useQuestionnaireStore((s) => s.weightHistory[client.id] || []);
+  const rmRecords = useQuestionnaireStore((s) => s.rmRecords[client.id] || []);
+  const entries = useQuestionnaireStore((s) => s.entries);
+
+  const bestRMs = useMemo(() => {
+    const records = rmRecords;
+    const bestByExercise: Record<string, typeof records[0]> = {};
+    records.forEach((r) => {
+      const key = r.exerciseName || r.exerciseId;
+      if (!bestByExercise[key] || r.estimated1RM > bestByExercise[key].estimated1RM) {
+        bestByExercise[key] = r;
+      }
+    });
+    return Object.values(bestByExercise);
+  }, [rmRecords]);
+
+  const trainingProgress = useMemo(() => {
+    const trainEntries = entries.filter(
+      (e) => e.clientId === client.id && e.category === "training" && e.status === "respondido"
+    );
+    const latest = trainEntries[trainEntries.length - 1];
+    if (!latest?.responses) return {};
+    const r = latest.responses;
+    const qs = latest.templateQuestions || [];
+    const findVal = (keywords: string[], fallbackId: string) => {
+      const q = qs.find((q) => keywords.some((k) => q.label.toLowerCase().includes(k)));
+      return r[q?.id || fallbackId];
+    };
+    return {
+      latestFatigue: findVal(["fatiga", "fatigue"], "tq1") as number | undefined,
+      latestSleep: findVal(["sueño", "sleep", "descanso"], "tq4") as number | undefined,
+      latestMotivation: findVal(["motivación", "motivation", "ánimo"], "tq5") as number | undefined,
+      hasInjury: findVal(["molestia", "dolor", "injury", "pain"], "tq2") as boolean | undefined,
+      injuryDetail: findVal(["describe", "detalle", "detail"], "tq3") as string | undefined,
+    };
+  }, [entries, client.id]);
+
   const defaultTab = hasNutrition ? "nutrition" : "training";
 
   return (
