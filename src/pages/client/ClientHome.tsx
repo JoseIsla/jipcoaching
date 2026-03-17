@@ -43,13 +43,16 @@ const ClientHome = () => {
   const activePlan = hasNutrition ? nutritionPlans.find((p) => p.clientId === client.id && p.active) : null;
   const activeTraining = hasTraining ? trainingPlans.find((p) => p.clientId === client.id && p.active) : null;
   const pendingCheckins = entries.filter((e) => e.clientId === client.id && isActionablePending(e)).length;
-  const weightHistory = getWeightHistory(client.id);
   const latestWeight = weightHistory.length > 0 ? weightHistory[weightHistory.length - 1] : null;
   const prevWeight = weightHistory.length > 1 ? weightHistory[weightHistory.length - 2] : null;
   const weightDiff = latestWeight && prevWeight ? +(latestWeight.weight - prevWeight.weight).toFixed(1) : null;
   const firstWeight = weightHistory.length > 0 ? weightHistory[0] : null;
   const totalDiff = latestWeight && firstWeight ? +(latestWeight.weight - firstWeight.weight).toFixed(1) : null;
-  const bestRMs = hasTraining ? getBestRMs(client.id) : [];
+  const bestRMs = useMemo(() => {
+    const best: Record<string, typeof rmRecords[0]> = {};
+    rmRecords.forEach((r) => { const k = r.exerciseName || r.exerciseId; if (!best[k] || r.estimated1RM > best[k].estimated1RM) best[k] = r; });
+    return Object.values(best);
+  }, [rmRecords]);
   const mainLifts = bestRMs.filter((r) => ["Sentadilla", "Press Banca", "Peso Muerto"].includes(r.exerciseName));
   const totalRM = mainLifts.reduce((sum, r) => sum + r.estimated1RM, 0);
   const trainingWeekProgress = activeTraining ? Math.round(((activeTraining.currentWeek ?? 0) / activeTraining.weeksDuration) * 100) : 0;
