@@ -16,6 +16,8 @@ const fadeUp = {
   initial: { opacity: 0, y: 16 },
   animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
 };
+const EMPTY_WEIGHT: { date: string; weight: number }[] = [];
+const EMPTY_RM: { id?: string; exerciseId: string; exerciseName: string; weight: number; date: string; reps: number; estimated1RM: number }[] = [];
 
 const ClientProgress = () => {
   const { t } = useTranslation();
@@ -35,8 +37,8 @@ const ClientProgress = () => {
   useEffect(() => { refreshData(); }, [refreshData]);
 
   // Subscribe directly to store data (not getter functions) for reactivity
-  const weightData = useQuestionnaireStore((s) => s.weightHistory[client.id] || []);
-  const rmRecords = useQuestionnaireStore((s) => s.rmRecords[client.id] || []);
+  const weightData = useQuestionnaireStore((s) => s.weightHistory[client.id] ?? EMPTY_WEIGHT);
+  const rmRecords = useQuestionnaireStore((s) => s.rmRecords[client.id] ?? EMPTY_RM);
   const entries = useQuestionnaireStore((s) => s.entries);
 
   const bestRMs = useMemo(() => {
