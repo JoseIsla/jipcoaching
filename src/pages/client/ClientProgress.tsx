@@ -37,8 +37,8 @@ const ClientProgress = () => {
   useEffect(() => { refreshData(); }, [refreshData]);
 
   // Subscribe directly to store data (not getter functions) for reactivity
-  const weightData = useQuestionnaireStore((s) => s.weightHistory[client.id] || []);
-  const rmRecords = useQuestionnaireStore((s) => s.rmRecords[client.id] || []);
+  const weightData = useQuestionnaireStore((s) => s.weightHistory[client.id] ?? EMPTY_WEIGHT);
+  const rmRecords = useQuestionnaireStore((s) => s.rmRecords[client.id] ?? EMPTY_RM);
   const entries = useQuestionnaireStore((s) => s.entries);
 
   const bestRMs = useMemo(() => {

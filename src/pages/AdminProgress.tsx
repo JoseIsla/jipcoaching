@@ -163,8 +163,8 @@ const RMDialog = ({ clientId, open, onClose, editRecord }: RMDialogProps) => {
 const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => void; t: (k: string) => string }) => {
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
-  const weightHistory = useQuestionnaireStore((s) => hasNutrition ? (s.weightHistory[client.id] || []) : []);
-  const rmRecords = useQuestionnaireStore((s) => hasTraining ? (s.rmRecords[client.id] || []) : []);
+  const weightHistory = useQuestionnaireStore((s) => s.weightHistory[client.id] ?? EMPTY_WEIGHT);
+  const rmRecords = useQuestionnaireStore((s) => s.rmRecords[client.id] ?? EMPTY_RM);
   const entries = useQuestionnaireStore((s) => s.entries);
   const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
