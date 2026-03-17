@@ -25,10 +25,13 @@ const SBD_NAMES = ["Sentadilla", "Press Banca", "Peso Muerto"];
 const ClientProgressCard = ({ client, onClick, t }: { client: ApiClient; onClick: () => void; t: (k: string) => string }) => {
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
-  const getWeightHistory = useQuestionnaireStore((s) => s.getWeightHistory);
-  const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
-  const wh = hasNutrition ? getWeightHistory(client.id) : [];
-  const bestRMs = hasTraining ? getBestRMs(client.id) : [];
+  const wh = useQuestionnaireStore((s) => hasNutrition ? (s.weightHistory[client.id] || []) : []);
+  const rmRecords = useQuestionnaireStore((s) => hasTraining ? (s.rmRecords[client.id] || []) : []);
+  const bestRMs = useMemo(() => {
+    const best: Record<string, typeof rmRecords[0]> = {};
+    rmRecords.forEach((r) => { const k = r.exerciseName || r.exerciseId; if (!best[k] || r.estimated1RM > best[k].estimated1RM) best[k] = r; });
+    return Object.values(best);
+  }, [rmRecords]);
   const sbdTotal = bestRMs.filter((r) => SBD_NAMES.includes(r.exerciseName)).reduce((s, r) => s + r.estimated1RM, 0);
   const latestWeight = wh.length > 0 ? wh[wh.length - 1].weight : null;
   const packLabel = client.packType ? (packTypeLabels[String(client.packType)] ?? String(client.packType)) : "";
