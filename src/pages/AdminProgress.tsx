@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Activity, Utensils, Dumbbell, Trophy, Brain, AlertTriangle, Search, Plus, Pencil, Trash2, ChevronRight, Camera } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,10 +25,13 @@ const SBD_NAMES = ["Sentadilla", "Press Banca", "Peso Muerto"];
 const ClientProgressCard = ({ client, onClick, t }: { client: ApiClient; onClick: () => void; t: (k: string) => string }) => {
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
-  const getWeightHistory = useQuestionnaireStore((s) => s.getWeightHistory);
-  const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
-  const wh = hasNutrition ? getWeightHistory(client.id) : [];
-  const bestRMs = hasTraining ? getBestRMs(client.id) : [];
+  const wh = useQuestionnaireStore((s) => hasNutrition ? (s.weightHistory[client.id] || []) : []);
+  const rmRecords = useQuestionnaireStore((s) => hasTraining ? (s.rmRecords[client.id] || []) : []);
+  const bestRMs = useMemo(() => {
+    const best: Record<string, typeof rmRecords[0]> = {};
+    rmRecords.forEach((r) => { const k = r.exerciseName || r.exerciseId; if (!best[k] || r.estimated1RM > best[k].estimated1RM) best[k] = r; });
+    return Object.values(best);
+  }, [rmRecords]);
   const sbdTotal = bestRMs.filter((r) => SBD_NAMES.includes(r.exerciseName)).reduce((s, r) => s + r.estimated1RM, 0);
   const latestWeight = wh.length > 0 ? wh[wh.length - 1].weight : null;
   const packLabel = client.packType ? (packTypeLabels[String(client.packType)] ?? String(client.packType)) : "";
@@ -158,9 +161,9 @@ const RMDialog = ({ clientId, open, onClose, editRecord }: RMDialogProps) => {
 const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => void; t: (k: string) => string }) => {
   const hasNutrition = client.services.includes("nutrition");
   const hasTraining = client.services.includes("training");
-  const getWeightHistory = useQuestionnaireStore((s) => s.getWeightHistory);
-  const getBestRMs = useQuestionnaireStore((s) => s.getBestRMs);
-  const getTrainingProgress = useQuestionnaireStore((s) => s.getTrainingProgress);
+  const weightHistory = useQuestionnaireStore((s) => hasNutrition ? (s.weightHistory[client.id] || []) : []);
+  const rmRecords = useQuestionnaireStore((s) => hasTraining ? (s.rmRecords[client.id] || []) : []);
+  const entries = useQuestionnaireStore((s) => s.entries);
   const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
@@ -185,9 +188,32 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
     if (hasTraining) fetchRMRecords(client.id);
   }, [client.id]);
 
-  const weightHistory = hasNutrition ? getWeightHistory(client.id) : [];
-  const bestRMs = hasTraining ? getBestRMs(client.id) : [];
-  const trainingProgress = hasTraining ? getTrainingProgress(client.id) : null;
+  const bestRMs = useMemo(() => {
+    const best: Record<string, typeof rmRecords[0]> = {};
+    rmRecords.forEach((r) => { const k = r.exerciseName || r.exerciseId; if (!best[k] || r.estimated1RM > best[k].estimated1RM) best[k] = r; });
+    return Object.values(best);
+  }, [rmRecords]);
+  const trainingProgress = useMemo(() => {
+    if (!hasTraining) return null;
+    const trainEntries = entries.filter(
+      (e) => e.clientId === client.id && e.category === "training" && (e.status === "respondido" || e.status === "revisado")
+    );
+    const latest = trainEntries[trainEntries.length - 1];
+    if (!latest?.responses) return null;
+    const r = latest.responses;
+    const qs = latest.templateQuestions || [];
+    const findVal = (keywords: string[], fallbackId: string) => {
+      const q = qs.find((q) => keywords.some((k) => q.label.toLowerCase().includes(k)));
+      return r[q?.id || fallbackId];
+    };
+    return {
+      latestFatigue: findVal(["fatiga", "fatigue"], "tq1") as number | undefined,
+      latestSleep: findVal(["sueño", "sleep", "descanso"], "tq4") as number | undefined,
+      latestMotivation: findVal(["motivación", "motivation", "ánimo"], "tq5") as number | undefined,
+      hasInjury: findVal(["molestia", "dolor", "injury", "pain"], "tq2") as boolean | undefined,
+      injuryDetail: findVal(["describe", "detalle", "detail"], "tq3") as string | undefined,
+    };
+  }, [entries, client.id, hasTraining]);
   const weightDelta = weightHistory.length >= 2 ? (weightHistory[weightHistory.length - 1].weight - weightHistory[0].weight).toFixed(1) : null;
   const defaultTab = hasNutrition ? "nutrition" : "training";
 

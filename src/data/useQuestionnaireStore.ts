@@ -516,7 +516,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
 
   getTrainingProgress: (clientId) => {
     const entries = get().entries.filter(
-      (e) => e.clientId === clientId && e.category === "training" && e.status === "respondido"
+      (e) => e.clientId === clientId && e.category === "training" && (e.status === "respondido" || e.status === "revisado")
     );
     const latest = entries[entries.length - 1];
     if (!latest?.responses) {
