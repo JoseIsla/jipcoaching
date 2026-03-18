@@ -572,8 +572,8 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                       {(ex.method === "TOP_SET_BACKOFFS" || ex.method === "LOAD_DROP") && (
                                         <>
                                           <span className="text-[8px] text-muted-foreground/70 text-center leading-none mt-0.5">
-                                            {ex.method === "LOAD_DROP" && ex.backoffSets
-                                              ? `Back-offs ${ex.backoffSets}×${ex.backoffReps || ex.plannedReps} (kg)`
+                                            {ex.method === "LOAD_DROP"
+                                              ? `Back-offs ${ex.plannedSets}×${ex.plannedReps} (kg)`
                                               : "Back-offs (kg)"}
                                           </span>
                                           <Input
