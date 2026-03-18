@@ -68,7 +68,7 @@ const TrainingProgressTab = ({ bestRMs, trainingProgress }: TrainingProgressTabP
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             {t("clientProgress.personalRecords")}
           </h3>
-          {bestRMs.length === 0 && (
+          {sortedRMs.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">{t("clientProgress.noRecords")}</p>
           )}
           {sortedRMs.map((rm) => (
