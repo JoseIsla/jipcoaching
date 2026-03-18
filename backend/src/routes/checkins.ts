@@ -708,7 +708,7 @@ async function generateCheckinsForClient(clientId: string, packType: string, for
             });
 
             await prisma.checkinTrainingExercise.createMany({
-              data: logExercises.map((ex) => {
+              data: logExercises.map((ex, idx) => {
                 const method = ex.method || "STRAIGHT_SETS";
 
                 // Compute plannedSets based on method

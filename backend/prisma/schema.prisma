@@ -643,6 +643,7 @@ model CheckinTrainingExercise {
   actualReps     String?
   backoffWeights String? @db.VarChar(200)
   comment        String? @db.Text
+  sortOrder      Int     @default(0)
   createdAt      DateTime @default(now())
 
   log CheckinTrainingLog @relation(fields: [logId], references: [id], onDelete: Cascade)
