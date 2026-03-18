@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Dumbbell, Activity } from "lucide-react";
 import { useTranslation } from "@/i18n/useTranslation";
 import { motion } from "framer-motion";
