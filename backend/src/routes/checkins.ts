@@ -757,6 +757,7 @@ async function generateCheckinsForClient(clientId: string, packType: string, for
                   plannedReps,
                   plannedLoad,
                   plannedRPE: ex.topSetRpe,
+                  sortOrder: ex.order ?? idx,
                 };
               }),
             });
