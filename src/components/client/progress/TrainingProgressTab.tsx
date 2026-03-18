@@ -71,7 +71,7 @@ const TrainingProgressTab = ({ bestRMs, trainingProgress }: TrainingProgressTabP
           {bestRMs.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">{t("clientProgress.noRecords")}</p>
           )}
-          {bestRMs.map((rm) => (
+          {sortedRMs.map((rm) => (
             <motion.div key={rm.exerciseId} variants={fadeUp} className="bg-card border border-border rounded-xl p-3 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-foreground">{rm.exerciseName}</p>
