@@ -53,7 +53,11 @@ const ClientHome = () => {
     rmRecords.forEach((r) => { const k = r.exerciseName || r.exerciseId; if (!best[k] || r.estimated1RM > best[k].estimated1RM) best[k] = r; });
     return Object.values(best);
   }, [rmRecords]);
-  const mainLifts = bestRMs.filter((r) => ["Sentadilla", "Press Banca", "Peso Muerto"].includes(r.exerciseName));
+  const SBD_ORDER = ["Sentadilla", "Press Banca", "Peso Muerto"];
+  const mainLifts = useMemo(() => {
+    const filtered = bestRMs.filter((r) => SBD_ORDER.includes(r.exerciseName));
+    return filtered.sort((a, b) => SBD_ORDER.indexOf(a.exerciseName) - SBD_ORDER.indexOf(b.exerciseName));
+  }, [bestRMs]);
   const totalRM = mainLifts.reduce((sum, r) => sum + r.estimated1RM, 0);
   const trainingWeekProgress = activeTraining ? Math.round(((activeTraining.currentWeek ?? 0) / activeTraining.weeksDuration) * 100) : 0;
   const nextCheckin = entries.find((e) => e.clientId === client.id && e.status === "pendiente");
