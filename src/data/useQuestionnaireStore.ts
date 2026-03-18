@@ -445,13 +445,13 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
     if (existingEntry) return existingEntry;
 
     const trainingLog: TrainingLogDay[] = activeWeek.days
-      .filter((day) => day.exercises.some((ex) => ex.section === "basic" || ex.section === "variant"))
+      .filter((day) => day.exercises.some((ex) => ex.section === "basic" || (ex.section as string) === "variant"))
       .map((day) => ({
         dayNumber: day.dayNumber,
         dayName: day.name,
         exercises: [...day.exercises]
           .sort((a, b) => a.order - b.order)
-          .filter((ex) => ex.section === "basic" || ex.section === "variant")
+          .filter((ex) => ex.section === "basic" || (ex.section as string) === "variant")
           .map((ex) => ({
             exerciseId: ex.exerciseId ?? ex.id,
             exerciseName: ex.exerciseName,
