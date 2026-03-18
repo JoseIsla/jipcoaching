@@ -37,8 +37,8 @@ router.get("/", async (req, res) => {
           },
         },
         responses: { include: { question: true } },
-        trainingLogs: {
-          include: { exercises: { orderBy: { createdAt: "asc" } } },
+trainingLogs: {
+          include: { exercises: { orderBy: { sortOrder: "asc" } } },
           orderBy: { dayNumber: "asc" },
         },
         videos: true,
@@ -708,7 +708,7 @@ async function generateCheckinsForClient(clientId: string, packType: string, for
             });
 
             await prisma.checkinTrainingExercise.createMany({
-              data: logExercises.map((ex) => {
+              data: logExercises.map((ex, idx) => {
                 const method = ex.method || "STRAIGHT_SETS";
 
                 // Compute plannedSets based on method
@@ -757,6 +757,7 @@ async function generateCheckinsForClient(clientId: string, packType: string, for
                   plannedReps,
                   plannedLoad,
                   plannedRPE: ex.topSetRpe,
+                  sortOrder: ex.order ?? idx,
                 };
               }),
             });
