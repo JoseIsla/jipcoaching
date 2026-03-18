@@ -537,7 +537,11 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                     )}
                                   </td>
                                   <td className="px-1.5 py-1.5">
-                                    <div className="flex flex-col gap-1">
+                                     <div className="flex flex-col gap-1">
+                                      {/* Label above sets×reps for load_drop showing backoff volume */}
+                                      {ex.method === "LOAD_DROP" && (
+                                        <span className="text-[8px] text-muted-foreground/70 text-center leading-none">Back-offs {ex.plannedSets}×{ex.plannedReps}</span>
+                                      )}
                                       <div className="flex gap-0.5">
                                         <Input
                                           type="text"
@@ -572,9 +576,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                       {(ex.method === "TOP_SET_BACKOFFS" || ex.method === "LOAD_DROP") && (
                                         <>
                                           <span className="text-[8px] text-muted-foreground/70 text-center leading-none mt-0.5">
-                                            {ex.method === "LOAD_DROP"
-                                              ? `Back-offs ${ex.plannedSets}×${ex.plannedReps} (kg)`
-                                              : "Back-offs (kg)"}
+                                            Backoff kg
                                           </span>
                                           <Input
                                             type="text"
