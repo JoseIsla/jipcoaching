@@ -31,12 +31,26 @@ interface TrainingProgressTabProps {
   trainingProgress: TrainingProgressData;
 }
 
+const SBD_ORDER = ["Sentadilla", "Press Banca", "Peso Muerto"];
+
 const TrainingProgressTab = ({ bestRMs, trainingProgress }: TrainingProgressTabProps) => {
   const { t } = useTranslation();
 
-  const squat = bestRMs.find((r) => r.exerciseName === "Sentadilla");
-  const bench = bestRMs.find((r) => r.exerciseName === "Press Banca");
-  const deadlift = bestRMs.find((r) => r.exerciseName === "Peso Muerto");
+  // Sort bestRMs: SBD first in canonical order, then the rest alphabetically
+  const sortedRMs = useMemo(() => {
+    const sbd: BestRM[] = [];
+    const rest: BestRM[] = [];
+    bestRMs.forEach((rm) => {
+      const sbdIdx = SBD_ORDER.indexOf(rm.exerciseName);
+      if (sbdIdx >= 0) sbd[sbdIdx] = rm;
+      else rest.push(rm);
+    });
+    return [...sbd.filter(Boolean), ...rest.sort((a, b) => a.exerciseName.localeCompare(b.exerciseName))];
+  }, [bestRMs]);
+
+  const squat = sortedRMs.find((r) => r.exerciseName === "Sentadilla");
+  const bench = sortedRMs.find((r) => r.exerciseName === "Press Banca");
+  const deadlift = sortedRMs.find((r) => r.exerciseName === "Peso Muerto");
   const sbdTotal = (squat?.estimated1RM || 0) + (bench?.estimated1RM || 0) + (deadlift?.estimated1RM || 0);
 
   return (
