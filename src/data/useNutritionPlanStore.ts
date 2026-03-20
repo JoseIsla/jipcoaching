@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { api } from "@/services/api";
 import type { ApiNutritionPlan } from "@/types/api";
 import { DEV_MOCK } from "@/config/devMode";
@@ -155,7 +156,7 @@ const mapApiPlanToDetail = (p: ApiNutritionPlan): NutritionPlanDetail => {
   };
 };
 
-export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
+export const useNutritionPlanStore = create<NutritionPlanState>()(persist((set, get) => ({
   plans: DEV_MOCK ? mockNutritionPlanList : [],
   details: DEV_MOCK ? mockNutritionDetails : {},
   supplements: DEV_MOCK ? mockSupplements.map((s, i) => ({ ...s, id: `mock-sup-${i}` })) : [],
@@ -168,7 +169,7 @@ export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const query = clientId ? `?clientId=${clientId}` : "";
-      const data = await api.get<ApiNutritionPlan[]>(`/nutrition/plans${query}`);
+      const data = await api.get<ApiNutritionPlan[]>(`/nutrition/plans${query}`, { silent: true });
       const plans = (data ?? []).map(mapApiPlanToListEntry);
       const details: Record<string, NutritionPlanDetail> = {};
       (data ?? []).forEach((p) => { details[p.id] = mapApiPlanToDetail(p); });
@@ -186,7 +187,7 @@ export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
 
     set({ loading: true, error: null });
     try {
-      const plan = await api.get<ApiNutritionPlan>("/nutrition/me/active");
+      const plan = await api.get<ApiNutritionPlan>("/nutrition/me/active", { silent: true });
       set({ loading: false });
       return plan;
     } catch (err: any) {
@@ -292,7 +293,7 @@ export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
   fetchSupplements: async () => {
     if (DEV_MOCK) return;
     try {
-      const data = await api.get<ApiSupplement[]>("/supplements");
+      const data = await api.get<ApiSupplement[]>("/supplements", { silent: true });
       set({ supplements: data ?? [] });
     } catch (err: any) {
       console.error("fetchSupplements error:", err);
@@ -370,4 +371,12 @@ export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
 
     set({ supplements: final });
   },
+}), {
+  name: "jip-nutrition-offline-cache",
+  storage: createJSONStorage(() => localStorage),
+  partialize: (state) => ({
+    plans: state.plans,
+    details: state.details,
+    supplements: state.supplements,
+  }),
 }));
