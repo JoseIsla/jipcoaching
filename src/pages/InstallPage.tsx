@@ -3,20 +3,13 @@ import { Link } from "react-router-dom";
 import { Share, PlusSquare, MoreVertical, Download, Smartphone, CheckCircle2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoJip from "@/assets/logo-jip.png";
-
-type Platform = "ios" | "android" | "other";
-
-const detectPlatform = (): Platform => {
-  const ua = navigator.userAgent;
-  if (/iPad|iPhone|iPod/.test(ua)) return "ios";
-  if (/Android/.test(ua)) return "android";
-  return "other";
-};
+import { canPromptInstall, detectPlatform, INSTALL_PROMPT_EVENT, isStandalone, promptInstall, type Platform } from "@/lib/pwa";
 
 const InstallPage = () => {
   const [platform, setPlatform] = useState<Platform>("other");
   const [isInstalled, setIsInstalled] = useState(false);
   const [activeTab, setActiveTab] = useState<Platform>("ios");
+  const [canNativeInstall, setCanNativeInstall] = useState(false);
 
   useEffect(() => {
     document.title = "Instalar App — JIP Performance Nutrition";
@@ -36,12 +29,32 @@ const InstallPage = () => {
     const detected = detectPlatform();
     setPlatform(detected);
     setActiveTab(detected === "other" ? "ios" : detected);
+    setCanNativeInstall(canPromptInstall());
 
-    const standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (navigator as any).standalone === true;
-    setIsInstalled(standalone);
+    setIsInstalled(isStandalone());
+
+    const handlePromptChange = (event: WindowEventMap[typeof INSTALL_PROMPT_EVENT]) => {
+      setCanNativeInstall(event.detail?.canInstall ?? canPromptInstall());
+    };
+
+    const handleInstalled = () => {
+      setCanNativeInstall(false);
+      setIsInstalled(true);
+    };
+
+    window.addEventListener(INSTALL_PROMPT_EVENT, handlePromptChange);
+    window.addEventListener("appinstalled", handleInstalled);
+
+    return () => {
+      window.removeEventListener(INSTALL_PROMPT_EVENT, handlePromptChange);
+      window.removeEventListener("appinstalled", handleInstalled);
+    };
   }, []);
+
+  const handleNativeInstall = async () => {
+    const installed = await promptInstall();
+    if (installed) setIsInstalled(true);
+  };
 
   if (isInstalled) {
     return (
@@ -184,6 +197,11 @@ const InstallPage = () => {
 
         {/* CTA */}
         <div className="pt-4 text-center">
+          {activeTab === "android" && canNativeInstall && (
+            <Button variant="outline" className="mb-3 w-full h-12 font-semibold text-base" onClick={handleNativeInstall}>
+              Instalar ahora
+            </Button>
+          )}
           <Link to="/login">
             <Button className="w-full h-12 font-semibold text-base">
               Ir al login

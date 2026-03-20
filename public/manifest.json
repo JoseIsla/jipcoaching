@@ -1,10 +1,18 @@
 {
+  "id": "/",
   "name": "JIP Performance Nutrition",
   "short_name": "JIP Performance & Nutrition",
+  "description": "App de coaching con planes de nutrición, entrenamiento, check-ins y seguimiento de progreso.",
+  "lang": "es",
+  "dir": "ltr",
   "start_url": "/login",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#000000",
+  "categories": ["health", "sports", "lifestyle"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/assets/logo-jip-manifest.png",
