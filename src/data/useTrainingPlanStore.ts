@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
 import { api } from "@/services/api";
 import type { ApiTrainingPlan, ApiExercisePrescription } from "@/types/api";
 import { useClientStore } from "./useClientStore";
@@ -161,7 +160,7 @@ const mapApiPlanToListEntry = (apiPlan: ApiTrainingPlan): TrainingPlanListEntry 
   endDate: null,
 });
 
-export const useTrainingPlanStore = create<TrainingPlanState>()(persist((set, get) => ({
+export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
   plans: DEV_MOCK ? (mockTrainingPlans as any[]) : [],
   details: DEV_MOCK ? (mockTrainingDetails as any) : {},
   loading: false,
@@ -184,7 +183,7 @@ export const useTrainingPlanStore = create<TrainingPlanState>()(persist((set, ge
 
     try {
       const query = clientId ? `?clientId=${clientId}` : "";
-      const data = await api.get<ApiTrainingPlan[]>(`/training/plans${query}`, { silent: true });
+      const data = await api.get<ApiTrainingPlan[]>(`/training/plans${query}`);
       const plans = (data ?? []).map(mapApiPlanToListEntry);
       set({ plans, loading: false });
     } catch (err: any) {
@@ -202,7 +201,7 @@ export const useTrainingPlanStore = create<TrainingPlanState>()(persist((set, ge
 
     set({ loading: true, error: null });
     try {
-      const apiPlan = await api.get<ApiTrainingPlan>(`/training/plans/${planId}`, { silent: true });
+      const apiPlan = await api.get<ApiTrainingPlan>(`/training/plans/${planId}`);
       if (!apiPlan) {
         set({ loading: false });
         return null;
@@ -420,11 +419,4 @@ export const useTrainingPlanStore = create<TrainingPlanState>()(persist((set, ge
 
   getActivePlanForClient: (clientId) =>
     get().plans.find((p) => p.clientId === clientId && p.active) || null,
-}), {
-  name: "jip-training-offline-cache",
-  storage: createJSONStorage(() => localStorage),
-  partialize: (state) => ({
-    plans: state.plans,
-    details: state.details,
-  }),
 }));

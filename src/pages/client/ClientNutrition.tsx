@@ -14,7 +14,6 @@ import { exportNutritionPlanPDF } from "@/utils/exportClientPlanPDF";
 import { type ReactNode } from "react";
 import { useTranslation } from "@/i18n/useTranslation";
 import PullToRefresh from "@/components/client/PullToRefresh";
-import OfflineNotice from "@/components/client/OfflineNotice";
 
 const ControlledCollapsible = ({ trigger, children }: { trigger: ReactNode; children: ReactNode }) => {
   const [open, setOpen] = useState(false);
@@ -134,10 +133,6 @@ const ClientNutrition = () => {
               PDF
             </Button>
           )}
-        </motion.div>
-
-        <motion.div variants={fadeUp}>
-          <OfflineNotice />
         </motion.div>
 
         {planDetail && (

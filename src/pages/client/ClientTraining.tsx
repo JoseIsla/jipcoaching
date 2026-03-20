@@ -12,7 +12,6 @@ import { useTrainingPlanStore, TRAINING_METHOD_LABELS, type TrainingPlanFull, ty
 import { exportTrainingWeekPDF } from "@/utils/exportClientPlanPDF";
 import { useTranslation } from "@/i18n/useTranslation";
 import PullToRefresh from "@/components/client/PullToRefresh";
-import OfflineNotice from "@/components/client/OfflineNotice";
 
 const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<string, string | number>) => string }) => {
   const [open, setOpen] = useState(false);
@@ -171,9 +170,6 @@ const ClientTraining = () => {
               PDF
             </Button>
           )}
-        </motion.div>
-        <motion.div variants={fadeUp}>
-          <OfflineNotice />
         </motion.div>
         <motion.div variants={fadeUp} className="space-y-2">
           {Object.entries(blockGroups).map(([block, group]) => (

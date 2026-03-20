@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
 import { api } from "@/services/api";
 import { DEV_MOCK } from "@/config/devMode";
 import {
@@ -60,7 +59,7 @@ interface ExerciseLibraryState {
   editVegetable: (index: number, name: string) => void;
 }
 
-export const useExerciseLibraryStore = create<ExerciseLibraryState>()(persist((set, get) => ({
+export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) => ({
   exercises: [...initialExercises],
   fruits: [...initialFruits],
   vegetables: [...initialVegetables],
@@ -73,7 +72,7 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>()(persist((s
   fetchFoods: async () => {
     if (DEV_MOCK) return;
     try {
-      const data = await api.get<GlobalFoodItem[]>("/foods", { silent: true });
+      const data = await api.get<GlobalFoodItem[]>("/foods");
       const fruitsRaw = (data ?? []).filter((f) => f.type === "FRUIT").sort((a, b) => a.order - b.order);
       const vegetablesRaw = (data ?? []).filter((f) => f.type === "VEGETABLE").sort((a, b) => a.order - b.order);
       set({
@@ -97,7 +96,7 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>()(persist((s
 
     set({ loading: true, error: null });
     try {
-      const data = await api.get<ApiExercise[]>("/exercises", { silent: true });
+      const data = await api.get<ApiExercise[]>("/exercises");
       set({ exercises: (data ?? []).map(toLibraryItem), loading: false });
     } catch (err: any) {
       console.warn("Failed to fetch exercises from API, using local fallback:", err?.message);
@@ -226,14 +225,4 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>()(persist((s
       );
     }
   },
-}), {
-  name: "jip-library-offline-cache",
-  storage: createJSONStorage(() => localStorage),
-  partialize: (state) => ({
-    exercises: state.exercises,
-    fruits: state.fruits,
-    vegetables: state.vegetables,
-    fruitsRaw: state.fruitsRaw,
-    vegetablesRaw: state.vegetablesRaw,
-  }),
 }));

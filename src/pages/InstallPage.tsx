@@ -3,15 +3,20 @@ import { Link } from "react-router-dom";
 import { Share, PlusSquare, MoreVertical, Download, Smartphone, CheckCircle2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoJip from "@/assets/logo-jip.png";
-import { type BeforeInstallPromptEvent, getMobilePlatform, isStandaloneMode } from "@/lib/pwa";
 
 type Platform = "ios" | "android" | "other";
+
+const detectPlatform = (): Platform => {
+  const ua = navigator.userAgent;
+  if (/iPad|iPhone|iPod/.test(ua)) return "ios";
+  if (/Android/.test(ua)) return "android";
+  return "other";
+};
 
 const InstallPage = () => {
   const [platform, setPlatform] = useState<Platform>("other");
   const [isInstalled, setIsInstalled] = useState(false);
   const [activeTab, setActiveTab] = useState<Platform>("ios");
-  const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
     document.title = "Instalar App — JIP Performance Nutrition";
@@ -28,44 +33,15 @@ const InstallPage = () => {
   }, []);
 
   useEffect(() => {
-    const detected = getMobilePlatform();
+    const detected = detectPlatform();
     setPlatform(detected);
     setActiveTab(detected === "other" ? "ios" : detected);
-    setIsInstalled(isStandaloneMode());
+
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as any).standalone === true;
+    setIsInstalled(standalone);
   }, []);
-
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (event: Event) => {
-      const deferredPrompt = event as BeforeInstallPromptEvent;
-      deferredPrompt.preventDefault();
-      setInstallPromptEvent(deferredPrompt);
-    };
-
-    const handleInstalled = () => {
-      setInstallPromptEvent(null);
-      setIsInstalled(true);
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt as EventListener);
-    window.addEventListener("appinstalled", handleInstalled);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt as EventListener);
-      window.removeEventListener("appinstalled", handleInstalled);
-    };
-  }, []);
-
-  const handleAndroidInstall = async () => {
-    if (!installPromptEvent) return;
-
-    await installPromptEvent.prompt();
-    const choice = await installPromptEvent.userChoice;
-    setInstallPromptEvent(null);
-
-    if (choice.outcome === "accepted") {
-      setIsInstalled(true);
-    }
-  };
 
   if (isInstalled) {
     return (
@@ -185,13 +161,6 @@ const InstallPage = () => {
               Usa <span className="text-foreground font-medium">Chrome</span> para mejor compatibilidad
             </p>
 
-            {platform === "android" && installPromptEvent && (
-              <Button onClick={handleAndroidInstall} className="w-full h-12 font-semibold text-base">
-                <Download className="mr-2 h-4 w-4" />
-                Instalar ahora
-              </Button>
-            )}
-
             <Step
               number={1}
               icon={<MoreVertical className="h-5 w-5 text-primary" />}
@@ -215,19 +184,11 @@ const InstallPage = () => {
 
         {/* CTA */}
         <div className="pt-4 text-center">
-          {activeTab === "android" && installPromptEvent ? (
-            <Link to="/login">
-              <Button variant="outline" className="w-full h-12 font-semibold text-base">
-                Ir al login
-              </Button>
-            </Link>
-          ) : (
-            <Link to="/login">
-              <Button className="w-full h-12 font-semibold text-base">
-                Ir al login
-              </Button>
-            </Link>
-          )}
+          <Link to="/login">
+            <Button className="w-full h-12 font-semibold text-base">
+              Ir al login
+            </Button>
+          </Link>
           <Link to="/home" className="block mt-3">
             <span className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Volver a la web

@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
 import { api, API_BASE_URL, AUTH_TOKEN_KEY } from "@/services/api";
 import type { ApiQuestionnaire, ApiSession } from "@/types/api";
 import { DEV_MOCK } from "@/config/devMode";
@@ -169,7 +168,7 @@ interface QuestionnaireState {
   };
 }
 
-export const useQuestionnaireStore = create<QuestionnaireState>()(persist((set, get) => ({
+export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   entries: DEV_MOCK ? mockQuestionnaireEntries : [],
   sessions: [],
   activeQuestionnaire: null,
@@ -185,7 +184,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>()(persist((set, 
     set({ loading: true, error: null });
     try {
       const query = clientId ? `?clientId=${clientId}` : "";
-      const data = await api.get<QuestionnaireEntry[]>(`/checkins${query}`, { silent: true });
+      const data = await api.get<QuestionnaireEntry[]>(`/checkins${query}`);
       // Resolve video URLs
       const resolved = (data ?? []).map((e) => ({
         ...e,
@@ -213,7 +212,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>()(persist((set, 
   fetchWeightHistory: async (clientId) => {
     if (DEV_MOCK) return;
     try {
-      const data = await api.get<WeightEntry[]>(`/checkins/weight/${clientId}`, { silent: true });
+      const data = await api.get<WeightEntry[]>(`/checkins/weight/${clientId}`);
       set((s) => ({
         weightHistory: { ...s.weightHistory, [clientId]: data ?? [] },
       }));
@@ -225,7 +224,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>()(persist((set, 
   fetchRMRecords: async (clientId) => {
     if (DEV_MOCK) return;
     try {
-      const data = await api.get<RMRecord[]>(`/checkins/rm/${clientId}`, { silent: true });
+      const data = await api.get<RMRecord[]>(`/checkins/rm/${clientId}`);
       set((s) => ({
         rmRecords: { ...s.rmRecords, [clientId]: data ?? [] },
       }));
@@ -541,12 +540,4 @@ export const useQuestionnaireStore = create<QuestionnaireState>()(persist((set, 
       injuryDetail: findVal(["describe", "detalle", "detail"], "tq3") as string | undefined,
     };
   },
-}), {
-  name: "jip-progress-offline-cache",
-  storage: createJSONStorage(() => localStorage),
-  partialize: (state) => ({
-    entries: state.entries,
-    weightHistory: state.weightHistory,
-    rmRecords: state.rmRecords,
-  }),
 }));

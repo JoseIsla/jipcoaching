@@ -22,27 +22,6 @@ interface ClientContextType {
   updateClientAvatar: (url: string | null) => void;
 }
 
-const CLIENT_PROFILE_CACHE_PREFIX = "jip-client-profile:";
-
-const readCachedClientProfile = (userId: string | null): ApiClient | null => {
-  if (!userId) return null;
-  try {
-    const raw = localStorage.getItem(`${CLIENT_PROFILE_CACHE_PREFIX}${userId}`);
-    return raw ? JSON.parse(raw) as ApiClient : null;
-  } catch {
-    return null;
-  }
-};
-
-const writeCachedClientProfile = (userId: string | null, client: ApiClient) => {
-  if (!userId) return;
-  try {
-    localStorage.setItem(`${CLIENT_PROFILE_CACHE_PREFIX}${userId}`, JSON.stringify(client));
-  } catch {
-    // ignore storage quota/private mode errors
-  }
-};
-
 const FALLBACK_CLIENT: ApiClient = {
   id: "unknown",
   name: "Cargando…",
@@ -73,14 +52,6 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (status !== "authenticated" || role !== "client") return;
 
-    const cachedClient = readCachedClientProfile(userId);
-    if (cachedClient) {
-      setSelfClient(cachedClient);
-      setClientId(cachedClient.id);
-      fetchTrainingPlans(cachedClient.id);
-      fetchNutritionPlans(cachedClient.id);
-    }
-
     api.get<any>("/clients/me", { silent: true }).then((data) => {
       if (data?.id) {
         const enriched: ApiClient = {
@@ -96,16 +67,15 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
         };
         setSelfClient(enriched);
         setClientId(data.id);
-        writeCachedClientProfile(userId, enriched);
 
         // Fetch plans for this client
-        fetchTrainingPlans(data.id);
-        fetchNutritionPlans(data.id);
+        fetchTrainingPlans();
+        fetchNutritionPlans();
       }
     }).catch((err) => {
       console.warn("Failed to fetch client profile:", err?.message);
     });
-  }, [status, role, userId, fetchNutritionPlans, fetchTrainingPlans]);
+  }, [status, role]);
 
   // Fetch clients only for admin — /api/clients is admin-only
   useEffect(() => {

@@ -10,7 +10,6 @@ import NutritionProgressTab from "@/components/client/progress/NutritionProgress
 import TrainingProgressTab from "@/components/client/progress/TrainingProgressTab";
 import { motion } from "framer-motion";
 import PullToRefresh from "@/components/client/PullToRefresh";
-import OfflineNotice from "@/components/client/OfflineNotice";
 
 const stagger = { animate: { transition: { staggerChildren: 0.08 } } };
 const fadeUp = {
@@ -92,10 +91,6 @@ const ClientProgress = () => {
             {t("clientProgress.title")}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{t("clientProgress.subtitle")}</p>
-        </motion.div>
-
-        <motion.div variants={fadeUp}>
-          <OfflineNotice />
         </motion.div>
 
         <motion.div variants={fadeUp}>

@@ -41,6 +41,20 @@ export default defineConfig(({ mode }) => ({
               expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
             },
           },
+          {
+            // Cache API calls EXCEPT auth endpoints — never cache login/session
+            urlPattern: ({ url }) => {
+              const path = url.pathname;
+              if (/\/(auth|me|login|register|reset-password|verify-email)/i.test(path)) return false;
+              return /\/api\//i.test(path);
+            },
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "api-cache",
+              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 },
+              networkTimeoutSeconds: 10,
+            },
+          },
         ],
       },
       manifest: false,

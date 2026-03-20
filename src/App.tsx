@@ -10,7 +10,6 @@ import { ClientProfileProvider } from "@/contexts/ClientProfileContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthHomeRedirect, PublicRoute, RoleRoute } from "@/components/auth/AuthRoute";
 import LoadingScreen from "@/components/LoadingScreen";
-import PWAUpdateBanner from "@/components/PWAUpdateBanner";
 
 // Eager: landing + login (critical path)
 import LandingPage from "./pages/LandingPage";
@@ -69,7 +68,6 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <PWAUpdateBanner />
       <AuthProvider>
         <AdminProfileProvider>
           <ClientProvider>
