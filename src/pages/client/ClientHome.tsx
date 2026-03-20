@@ -12,6 +12,7 @@ import { useQuestionnaireStore, isActionablePending } from "@/data/useQuestionna
 import { useTranslation } from "@/i18n/useTranslation";
 import ClientTestimonialCard from "@/components/client/ClientTestimonialCard";
 import PullToRefresh from "@/components/client/PullToRefresh";
+import OfflineNotice from "@/components/client/OfflineNotice";
 
 const EMPTY_WEIGHT: { date: string; weight: number }[] = [];
 const EMPTY_RM: { id?: string; exerciseId: string; exerciseName: string; weight: number; date: string; reps: number; estimated1RM: number }[] = [];
@@ -70,6 +71,8 @@ const ClientHome = () => {
           <h1 className="text-2xl font-bold text-foreground">{t("clientHome.greeting", { name: client.name.split(" ")[0] })}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{t("clientHome.todaySummary")}</p>
         </motion.div>
+
+        <OfflineNotice />
 
         {hasNutrition && latestWeight && (
           <motion.button initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.08 }} whileTap={{ scale: 0.98 }} onClick={() => navigate("/client/progress")} className="w-full bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-colors group">
