@@ -42,7 +42,12 @@ export default defineConfig(({ mode }) => ({
             },
           },
           {
-            urlPattern: /^https?:\/\/.*\/api\/.*/i,
+            // Cache API calls EXCEPT auth endpoints — never cache login/session
+            urlPattern: ({ url }) => {
+              const path = url.pathname;
+              if (/\/(auth|me|login|register|reset-password|verify-email)/i.test(path)) return false;
+              return /\/api\//i.test(path);
+            },
             handler: "NetworkFirst",
             options: {
               cacheName: "api-cache",
