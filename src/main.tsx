@@ -5,6 +5,8 @@ import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
 
+const UPDATE_EVENT = "app-update-available";
+
 const updateSW = registerSW({
   immediate: true,
   onOfflineReady() {
@@ -14,6 +16,9 @@ const updateSW = registerSW({
     });
   },
   onNeedRefresh() {
+    window.__APP_UPDATE_SW__ = updateSW;
+    window.dispatchEvent(new Event(UPDATE_EVENT));
+
     const notification = toast({
       title: "Nueva versión disponible",
       description: "Actualiza la app para cargar los últimos cambios en tu móvil.",
@@ -31,5 +36,13 @@ const updateSW = registerSW({
     });
   },
 });
+
+window.__APP_UPDATE_SW__ = updateSW;
+
+if (typeof window !== "undefined") {
+  window.setInterval(() => {
+    void updateSW(false);
+  }, 5 * 60 * 1000);
+}
 
 createRoot(document.getElementById("root")!).render(<App />);
