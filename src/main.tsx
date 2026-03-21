@@ -1,8 +1,8 @@
 import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 import {
-  clearLegacyApiCaches,
   clearPwaCaches,
+  migrateLegacyPwaCaches,
   setInstallPrompt,
   shouldEnableServiceWorker,
   unregisterServiceWorkers,
@@ -12,7 +12,7 @@ import App from "./App.tsx";
 import "./index.css";
 
 const setupServiceWorker = async () => {
-  await clearLegacyApiCaches();
+  await migrateLegacyPwaCaches();
 
   if (!("serviceWorker" in navigator)) return;
 

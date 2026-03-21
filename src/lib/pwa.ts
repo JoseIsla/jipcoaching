@@ -26,6 +26,8 @@ declare global {
 export const INSTALL_PROMPT_EVENT = "app-install-prompt-change";
 
 const PREVIEW_HOST_PATTERNS = [/\.lovableproject\.com$/i, /^localhost$/i, /^127\.0\.0\.1$/i];
+const LEGACY_PWA_CACHE_KEYS = ["api-cache", "images"];
+const PWA_CACHE_MIGRATION_KEY = "jip-pwa-cache-migration-v2";
 
 let deferredInstallPrompt: BeforeInstallPromptEvent | null = null;
 
@@ -43,15 +45,27 @@ export const clearPwaCaches = async () => {
   await Promise.all(cacheKeys.map((key) => window.caches.delete(key)));
 };
 
-export const clearLegacyApiCaches = async () => {
+export const migrateLegacyPwaCaches = async () => {
   if (typeof window === "undefined" || !("caches" in window)) return;
+
+  try {
+    if (window.localStorage.getItem(PWA_CACHE_MIGRATION_KEY) === "done") return;
+  } catch {
+    // ignore storage read failures
+  }
 
   const cacheKeys = await window.caches.keys();
   await Promise.all(
     cacheKeys
-      .filter((key) => key.includes("api-cache"))
+      .filter((key) => LEGACY_PWA_CACHE_KEYS.some((legacyKey) => key.includes(legacyKey)))
       .map((key) => window.caches.delete(key)),
   );
+
+  try {
+    window.localStorage.setItem(PWA_CACHE_MIGRATION_KEY, "done");
+  } catch {
+    // ignore storage write failures
+  }
 };
 
 export const unregisterServiceWorkers = async () => {
