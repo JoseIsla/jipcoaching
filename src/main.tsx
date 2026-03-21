@@ -1,34 +1,27 @@
 import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
-import { setInstallPrompt, type BeforeInstallPromptEvent } from "@/lib/pwa";
+import {
+  clearLegacyApiCaches,
+  clearPwaCaches,
+  setInstallPrompt,
+  shouldEnableServiceWorker,
+  unregisterServiceWorkers,
+  type BeforeInstallPromptEvent,
+} from "@/lib/pwa";
 import App from "./App.tsx";
 import "./index.css";
 
-const clearLegacyApiCaches = async () => {
-  if (!("caches" in window)) return;
+const setupServiceWorker = async () => {
+  await clearLegacyApiCaches();
 
-  const cacheKeys = await window.caches.keys();
-  await Promise.all(
-    cacheKeys
-      .filter((key) => key.includes("api-cache"))
-      .map((key) => window.caches.delete(key)),
-  );
-};
+  if (!("serviceWorker" in navigator)) return;
 
-if (typeof window !== "undefined") {
-  window.addEventListener("beforeinstallprompt", (event) => {
-    event.preventDefault();
-    setInstallPrompt(event as BeforeInstallPromptEvent);
-  });
+  if (!shouldEnableServiceWorker()) {
+    await unregisterServiceWorkers();
+    await clearPwaCaches();
+    return;
+  }
 
-  window.addEventListener("appinstalled", () => {
-    setInstallPrompt(null);
-  });
-
-  void clearLegacyApiCaches();
-}
-
-if ("serviceWorker" in navigator) {
   const updateSW = registerSW({
     immediate: true,
     onNeedRefresh() {
@@ -42,12 +35,34 @@ if ("serviceWorker" in navigator) {
     },
     onRegisteredSW(_swUrl, registration) {
       if (!registration) return;
-      window.setInterval(() => registration.update(), 5 * 60 * 1000);
+
+      const triggerUpdateCheck = () => {
+        if (navigator.onLine) void registration.update();
+      };
+
+      window.setInterval(triggerUpdateCheck, 5 * 60 * 1000);
+      window.addEventListener("online", triggerUpdateCheck);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") triggerUpdateCheck();
+      });
     },
     onRegisterError(error) {
       console.error("Error registrando el service worker", error);
     },
   });
+};
+
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    setInstallPrompt(event as BeforeInstallPromptEvent);
+  });
+
+  window.addEventListener("appinstalled", () => {
+    setInstallPrompt(null);
+  });
+
+  void setupServiceWorker();
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
