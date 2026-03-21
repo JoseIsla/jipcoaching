@@ -46,10 +46,11 @@ const OfflineNotice = () => {
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-foreground">Contenido offline limitado</p>
+          <p className="text-sm font-semibold text-foreground">Modo offline limitado</p>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Sin internet puedes abrir la app y ver recursos estáticos ya cargados. El login, los testimonios,
-            los check-ins, los planes en vivo y cualquier cambio o envío requieren conexión.
+            Si ahora mismo estás sin conexión, seguirás teniendo acceso a lo esencial ya cargado en tu app.
+            Para iniciar sesión, sincronizar planes, enviar check-ins, publicar testimonios o guardar cambios,
+            necesitarás volver a estar online.
           </p>
         </div>
 
