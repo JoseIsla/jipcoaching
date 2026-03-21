@@ -11,6 +11,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthHomeRedirect, PublicRoute, RoleRoute } from "@/components/auth/AuthRoute";
 import LoadingScreen from "@/components/LoadingScreen";
 import PWAUpdateBanner from "@/components/PWAUpdateBanner";
+import OfflineNotice from "@/components/OfflineNotice";
 
 // Eager: landing + login (critical path)
 import LandingPage from "./pages/LandingPage";
@@ -70,6 +71,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <PWAUpdateBanner />
+      <OfflineNotice />
       <AuthProvider>
         <AdminProfileProvider>
           <ClientProvider>
