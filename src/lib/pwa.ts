@@ -25,7 +25,41 @@ declare global {
 
 export const INSTALL_PROMPT_EVENT = "app-install-prompt-change";
 
+const PREVIEW_HOST_PATTERNS = [/\.lovableproject\.com$/i, /^localhost$/i, /^127\.0\.0\.1$/i];
+
 let deferredInstallPrompt: BeforeInstallPromptEvent | null = null;
+
+export const shouldEnableServiceWorker = () => {
+  if (typeof window === "undefined") return false;
+  if (!import.meta.env.PROD) return false;
+
+  return !PREVIEW_HOST_PATTERNS.some((pattern) => pattern.test(window.location.hostname));
+};
+
+export const clearPwaCaches = async () => {
+  if (typeof window === "undefined" || !("caches" in window)) return;
+
+  const cacheKeys = await window.caches.keys();
+  await Promise.all(cacheKeys.map((key) => window.caches.delete(key)));
+};
+
+export const clearLegacyApiCaches = async () => {
+  if (typeof window === "undefined" || !("caches" in window)) return;
+
+  const cacheKeys = await window.caches.keys();
+  await Promise.all(
+    cacheKeys
+      .filter((key) => key.includes("api-cache"))
+      .map((key) => window.caches.delete(key)),
+  );
+};
+
+export const unregisterServiceWorkers = async () => {
+  if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  await Promise.all(registrations.map((registration) => registration.unregister()));
+};
 
 export const isStandalone = () =>
   window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
