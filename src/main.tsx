@@ -4,6 +4,17 @@ import { setInstallPrompt, type BeforeInstallPromptEvent } from "@/lib/pwa";
 import App from "./App.tsx";
 import "./index.css";
 
+const clearLegacyApiCaches = async () => {
+  if (!("caches" in window)) return;
+
+  const cacheKeys = await window.caches.keys();
+  await Promise.all(
+    cacheKeys
+      .filter((key) => key.includes("api-cache"))
+      .map((key) => window.caches.delete(key)),
+  );
+};
+
 if (typeof window !== "undefined") {
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
@@ -13,6 +24,8 @@ if (typeof window !== "undefined") {
   window.addEventListener("appinstalled", () => {
     setInstallPrompt(null);
   });
+
+  void clearLegacyApiCaches();
 }
 
 if ("serviceWorker" in navigator) {
