@@ -1,6 +1,95 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
+
+const TEST_ADMIN = {
+  email: "jose_isla@jipcoaching.com",
+  password: "admin123",
+  name: "José Isla Pérez",
+  phone: "+34676188961",
+};
+
+const TEST_CLIENT = {
+  email: "adrianclv@icloud.com",
+  password: "AdriTemp123",
+  name: "Adrián Cliente",
+  packType: "FULL" as const,
+};
+
+async function ensureTestAccounts() {
+  console.log("🔐 Seeding test accounts...");
+
+  const [adminPasswordHash, clientPasswordHash] = await Promise.all([
+    bcrypt.hash(TEST_ADMIN.password, 12),
+    bcrypt.hash(TEST_CLIENT.password, 12),
+  ]);
+
+  const adminUser = await prisma.user.upsert({
+    where: { email: TEST_ADMIN.email },
+    update: {
+      password: adminPasswordHash,
+      role: "ADMIN",
+    },
+    create: {
+      email: TEST_ADMIN.email,
+      password: adminPasswordHash,
+      role: "ADMIN",
+    },
+  });
+
+  await prisma.adminProfile.upsert({
+    where: { userId: adminUser.id },
+    update: {
+      name: TEST_ADMIN.name,
+      phone: TEST_ADMIN.phone,
+      timezone: "Europe/Madrid",
+      language: "Español",
+    },
+    create: {
+      userId: adminUser.id,
+      name: TEST_ADMIN.name,
+      phone: TEST_ADMIN.phone,
+      timezone: "Europe/Madrid",
+      language: "Español",
+    },
+  });
+
+  const clientUser = await prisma.user.upsert({
+    where: { email: TEST_CLIENT.email },
+    update: {
+      password: clientPasswordHash,
+      role: "CLIENT",
+    },
+    create: {
+      email: TEST_CLIENT.email,
+      password: clientPasswordHash,
+      role: "CLIENT",
+    },
+  });
+
+  await prisma.client.upsert({
+    where: { userId: clientUser.id },
+    update: {
+      name: TEST_CLIENT.name,
+      email: TEST_CLIENT.email,
+      packType: TEST_CLIENT.packType,
+      status: "ACTIVE",
+      monthlyFee: 0,
+    },
+    create: {
+      userId: clientUser.id,
+      name: TEST_CLIENT.name,
+      email: TEST_CLIENT.email,
+      packType: TEST_CLIENT.packType,
+      status: "ACTIVE",
+      monthlyFee: 0,
+      startDate: new Date(),
+    },
+  });
+
+  console.log("✅ Test accounts ready:", TEST_ADMIN.email, TEST_CLIENT.email);
+}
 
 async function main() {
   console.log("🌱 Seeding global tables (supplements, fruits, vegetables)...");
@@ -64,6 +153,8 @@ async function main() {
     });
   }
   console.log("✅ Vegetables seeded:", vegetables.length);
+
+  await ensureTestAccounts();
 
   console.log("🎉 Seed complete!");
 }
