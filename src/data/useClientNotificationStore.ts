@@ -25,6 +25,8 @@ export interface ClientNotification {
 
 interface ClientNotificationState {
   notifications: ClientNotification[];
+  /** IDs dismissed locally during the session so navigation/polling doesn't resurrect them */
+  _dismissedIds: Set<string>;
   /** Tracks last known unread count to detect genuine new notifications */
   _lastKnownUnread: number;
   /** Whether the initial login sound has been played this session */
@@ -37,8 +39,12 @@ interface ClientNotificationState {
   markRead: (id: string) => void;
   /** Mark all as read */
   markAllRead: () => void;
+  /** Remove a notification and remember it was dismissed this session */
+  dismissNotification: (id: string) => void;
   /** Auto-dismiss: remove notifications whose autoDismissKey matches */
   dismissByKey: (key: string) => void;
+  /** Whether an id has been dismissed locally this session */
+  isDismissed: (id: string) => boolean;
   /** Get unread count */
   getUnreadCount: () => number;
   /** Check if sound should play and update tracking. Returns true if sound should play. */
@@ -68,6 +74,7 @@ const getCheckinDayLabel = (service: ServiceType): string => {
 
 export const useClientNotificationStore = create<ClientNotificationState>((set, get) => ({
   notifications: [],
+  _dismissedIds: new Set<string>(),
   _lastKnownUnread: 0,
   _loginSoundPlayed: false,
 
@@ -117,9 +124,13 @@ export const useClientNotificationStore = create<ClientNotificationState>((set, 
   },
 
   addNotification: (notification) =>
-    set((s) => ({
-      notifications: [notification, ...s.notifications],
-    })),
+    set((s) => {
+      if (s._dismissedIds.has(notification.id)) return s;
+      if (s.notifications.some((n) => n.id === notification.id)) return s;
+      return {
+        notifications: [notification, ...s.notifications],
+      };
+    }),
 
   markRead: (id) =>
     set((s) => ({
@@ -133,10 +144,31 @@ export const useClientNotificationStore = create<ClientNotificationState>((set, 
       notifications: s.notifications.map((n) => ({ ...n, read: true })),
     })),
 
+  dismissNotification: (id) =>
+    set((s) => {
+      const dismissed = new Set(s._dismissedIds);
+      dismissed.add(id);
+      return {
+        notifications: s.notifications.filter((n) => n.id !== id),
+        _dismissedIds: dismissed,
+      };
+    }),
+
   dismissByKey: (key) =>
-    set((s) => ({
-      notifications: s.notifications.filter((n) => n.autoDismissKey !== key),
-    })),
+    set((s) => {
+      const dismissed = new Set(s._dismissedIds);
+      const remaining = s.notifications.filter((n) => {
+        const match = n.autoDismissKey === key;
+        if (match) dismissed.add(n.id);
+        return !match;
+      });
+      return {
+        notifications: remaining,
+        _dismissedIds: dismissed,
+      };
+    }),
+
+  isDismissed: (id) => get()._dismissedIds.has(id),
 
   getUnreadCount: () => get().notifications.filter((n) => !n.read).length,
 
@@ -163,5 +195,5 @@ export const useClientNotificationStore = create<ClientNotificationState>((set, 
     return false;
   },
 
-  clear: () => set({ notifications: [], _lastKnownUnread: 0, _loginSoundPlayed: false }),
+  clear: () => set({ notifications: [], _dismissedIds: new Set<string>(), _lastKnownUnread: 0, _loginSoundPlayed: false }),
 }));
