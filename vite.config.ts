@@ -36,7 +36,6 @@ export default defineConfig(({ mode }) => ({
           {
             urlPattern: ({ request, url }) =>
               request.destination === "image" &&
-              url.origin === self.location.origin &&
               !url.pathname.startsWith("/uploads/") &&
               !url.pathname.startsWith("/api/"),
             handler: "StaleWhileRevalidate",
