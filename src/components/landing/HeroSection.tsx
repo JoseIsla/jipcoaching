@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Zap, Target, TrendingUp } from "lucide-react";
-import coachHero from "@/assets/coach-hero.jpg";
+import coachHeroDesktop from "@/assets/coach-hero-1280.webp";
+import coachHeroMobile from "@/assets/coach-hero-720.webp";
 import { useTranslation } from "@/i18n/useTranslation";
 
 const floatingVariants = {
@@ -30,10 +31,14 @@ const HeroSection = () => {
         transition={{ duration: 1.8, ease: "easeOut" }}
       >
         <img
-          src={coachHero}
+          src={coachHeroDesktop}
+          srcSet={`${coachHeroMobile} 720w, ${coachHeroDesktop} 1280w`}
+          sizes="100vw"
           alt="Competición de powerlifting"
           className="w-full h-full object-cover object-[center_45%] opacity-[0.18]"
           loading="eager"
+          fetchPriority="high"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
       </motion.div>
