@@ -1,7 +1,8 @@
 import { motion, useInView } from "framer-motion";
 import { Award, Users, Calendar, GraduationCap } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
-import coachAbout from "@/assets/coach-about.webp";
+import coachAboutDesktop from "@/assets/coach-about-864.webp";
+import coachAboutMobile from "@/assets/coach-about-640.webp";
 import { useTranslation } from "@/i18n/useTranslation";
 
 const AnimatedNumber = ({ value, suffix = "" }: { value: number; suffix?: string }) => {
@@ -70,10 +71,13 @@ const AboutSection = () => {
               className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-border group"
             >
               <img
-                src={coachAbout}
+                src={coachAboutDesktop}
+                srcSet={`${coachAboutMobile} 640w, ${coachAboutDesktop} 864w`}
+                sizes="(max-width: 768px) 100vw, 50vw"
                 alt="Coach en competición de powerlifting"
                 className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
                 loading="lazy"
+                decoding="async"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
               <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-primary/10" />

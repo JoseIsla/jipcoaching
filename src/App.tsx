@@ -57,10 +57,11 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 min — avoid re-fetching on every mount
+      staleTime: 10 * 60 * 1000, // 10 min — avoid re-fetching on every mount
       gcTime: 10 * 60 * 1000,   // 10 min garbage collection
       retry: 1,
       refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     },
   },
 });
