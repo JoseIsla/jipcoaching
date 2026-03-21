@@ -65,6 +65,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   const addNotification = useClientNotificationStore((s) => s.addNotification);
   const markAllRead = useClientNotificationStore((s) => s.markAllRead);
   const unreadCount = useClientNotificationStore((s) => s.getUnreadCount());
+  const dismissNotification = useClientNotificationStore((s) => s.dismissNotification);
 
   // Fetch server-side notifications (only unread) and merge into store
   useEffect(() => {
@@ -76,13 +77,15 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
         }>>("/notifications");
         if (!data || data.length === 0) return;
 
-        const existing = useClientNotificationStore.getState().notifications;
+        const state = useClientNotificationStore.getState();
+        const existing = state.notifications;
         const existingIds = new Set(existing.map((n) => n.id));
 
         // Only process unread notifications from server
         const unreadServerNotifs = data.filter((n) => !n.read);
 
         for (const n of unreadServerNotifs) {
+          if (state.isDismissed(`server-${n.id}`)) continue;
           if (existingIds.has(`server-${n.id}`)) continue;
 
           // Map backend notification type to client notification type
@@ -143,6 +146,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
     const existingVideoComments = notifications.filter((n) => n.type === "video_comment");
     const existingCheckins = notifications.filter((n) => n.type !== "video_comment");
     const existingById = new Map(existingCheckins.map((n) => [n.id, n]));
+    const state = useClientNotificationStore.getState();
 
     if (pendingEntries.length > 0) {
       const checkinNotifs: import("@/data/useClientNotificationStore").ClientNotification[] = [];
@@ -151,6 +155,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
       // Stable IDs — no timestamp, so they persist across re-renders
       if (pendingNutrition.length > 0 && client.services?.includes("nutrition")) {
         const stableId = `cn-${client.id}-nutrition`;
+        if (!state.isDismissed(stableId)) {
         const existing = existingById.get(stableId);
         checkinNotifs.push({
           id: stableId,
@@ -161,10 +166,12 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
           read: existing?.read ?? false,
           link: "/client/checkins",
         });
+        }
       }
 
       if (pendingTraining.length > 0 && client.services?.includes("training")) {
         const stableId = `cn-${client.id}-training`;
+        if (!state.isDismissed(stableId)) {
         const existing = existingById.get(stableId);
         checkinNotifs.push({
           id: stableId,
@@ -175,6 +182,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
           read: existing?.read ?? false,
           link: "/client/checkins",
         });
+        }
       }
 
       const merged = [...existingVideoComments, ...checkinNotifs];
@@ -324,10 +332,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
                             api.patch(`/notifications/${serverId}/read`).catch(() => {});
                             api.delete(`/notifications/${serverId}`).catch(() => {});
                           }
-                          // Remove from local store immediately
-                          useClientNotificationStore.setState((s) => ({
-                            notifications: s.notifications.filter((n) => n.id !== notif.id),
-                          }));
+                          dismissNotification(notif.id);
                           navigate(notif.link);
                         }}
                         className={`w-full text-left p-3 border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors flex items-start gap-2.5 ${
