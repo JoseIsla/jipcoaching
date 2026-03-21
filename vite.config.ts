@@ -4,6 +4,16 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
+const SAFE_OFFLINE_IMAGE_PATHS = [
+  /^\/assets\//,
+  /^\/placeholder\.svg$/,
+  /^\/favicon\.ico$/,
+  /^\/apple-touch-icon(?:-\d+x\d+)?\.png$/,
+  /^\/android-chrome-\d+x\d+\.png$/,
+  /^\/pwa-\d+x\d+\.png$/,
+  /^\/mstile-\d+x\d+\.png$/,
+];
+
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
@@ -36,12 +46,11 @@ export default defineConfig(({ mode }) => ({
           {
             urlPattern: ({ request, url }) =>
               request.destination === "image" &&
-              !url.pathname.startsWith("/uploads/") &&
-              !url.pathname.startsWith("/api/"),
+              SAFE_OFFLINE_IMAGE_PATHS.some((pattern) => pattern.test(url.pathname)),
             handler: "StaleWhileRevalidate",
             options: {
-              cacheName: "images",
-              expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheName: "safe-static-images",
+              expiration: { maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 14 },
               cacheableResponse: { statuses: [200] },
             },
           },
