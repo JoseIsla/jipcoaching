@@ -63,7 +63,6 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   // Notification store
   const notifications = useClientNotificationStore((s) => s.notifications);
   const addNotification = useClientNotificationStore((s) => s.addNotification);
-  const markAllRead = useClientNotificationStore((s) => s.markAllRead);
   const unreadCount = useClientNotificationStore((s) => s.getUnreadCount());
   const dismissNotification = useClientNotificationStore((s) => s.dismissNotification);
 
@@ -138,6 +137,8 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   );
   const pendingNutrition = pendingEntries.filter((e) => e.category === "nutrition");
   const pendingTraining = pendingEntries.filter((e) => e.category === "training");
+  const pendingNutritionSignature = pendingNutrition.map((e) => e.id).sort().join("|");
+  const pendingTrainingSignature = pendingTraining.map((e) => e.id).sort().join("|");
 
   // Generate notifications based on services and pending check-ins
   // Preserve video_comment notifications added by admin actions
@@ -154,7 +155,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
 
       // Stable IDs — no timestamp, so they persist across re-renders
       if (pendingNutrition.length > 0 && client.services?.includes("nutrition")) {
-        const stableId = `cn-${client.id}-nutrition`;
+        const stableId = `cn-${client.id}-nutrition-${pendingNutritionSignature}`;
         if (!state.isDismissed(stableId)) {
         const existing = existingById.get(stableId);
         checkinNotifs.push({
@@ -170,7 +171,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
       }
 
       if (pendingTraining.length > 0 && client.services?.includes("training")) {
-        const stableId = `cn-${client.id}-training`;
+        const stableId = `cn-${client.id}-training-${pendingTrainingSignature}`;
         if (!state.isDismissed(stableId)) {
         const existing = existingById.get(stableId);
         checkinNotifs.push({
@@ -196,7 +197,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
       // No pending check-ins → keep only video comments
       useClientNotificationStore.setState({ notifications: existingVideoComments });
     }
-  }, [client.id, client.services, pendingEntries.length, pendingNutrition.length, pendingTraining.length]);
+  }, [client.id, client.services, pendingEntries.length, pendingNutrition.length, pendingTraining.length, pendingNutritionSignature, pendingTrainingSignature]);
 
   // Auto-toast: once on login, then only if pending count increases (new checkin arrived)
   useEffect(() => {
@@ -246,7 +247,11 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
     setIsLoggingOut(true);
     sessionToastShown = false;
     sessionPrevPending = 0;
-    useClientNotificationStore.getState().clear();
+    useClientNotificationStore.setState({
+      notifications: [],
+      _lastKnownUnread: 0,
+      _loginSoundPlayed: false,
+    });
     await logout();
     navigate("/login", { replace: true });
     setIsLoggingOut(false);
@@ -307,8 +312,12 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
                   {notifications.length > 0 && (
                     <button
                       onClick={() => {
-                        api.patch("/notifications/read-all").catch(() => {});
-                        useClientNotificationStore.getState().clear();
+                        api.patch("/notifications/read-all", undefined, { silent: true }).catch(() => {});
+                        useClientNotificationStore.setState((s) => ({
+                          notifications: [],
+                          _dismissedIds: new Set([...s._dismissedIds, ...s.notifications.map((n) => n.id)]),
+                          _lastKnownUnread: 0,
+                        }));
                       }}
                       className="text-[10px] text-primary hover:underline"
                     >
