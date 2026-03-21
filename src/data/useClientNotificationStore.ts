@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 import type { ServiceType } from "@/types/api";
 
 export type ClientNotificationType =
@@ -22,6 +23,15 @@ export interface ClientNotification {
   /** Auto-dismiss key: when this check-in entry id is submitted, dismiss */
   autoDismissKey?: string;
 }
+
+interface PersistedClientNotificationState {
+  _dismissedIds: string[];
+}
+
+const dismissedIdsStorage = createJSONStorage<PersistedClientNotificationState>(() => localStorage, {
+  reviver: (key, value) => (key === "_dismissedIds" && Array.isArray(value) ? new Set(value) : value),
+  replacer: (key, value) => (key === "_dismissedIds" && value instanceof Set ? Array.from(value) : value),
+});
 
 interface ClientNotificationState {
   notifications: ClientNotification[];
@@ -72,128 +82,143 @@ const getCheckinDayLabel = (service: ServiceType): string => {
   return "";
 };
 
-export const useClientNotificationStore = create<ClientNotificationState>((set, get) => ({
-  notifications: [],
-  _dismissedIds: new Set<string>(),
-  _lastKnownUnread: 0,
-  _loginSoundPlayed: false,
+export const useClientNotificationStore = create<ClientNotificationState>()(
+  persist(
+    (set, get) => ({
+      notifications: [],
+      _dismissedIds: new Set<string>(),
+      _lastKnownUnread: 0,
+      _loginSoundPlayed: false,
 
-  generateForClient: (clientId, services, pendingCheckinIds) => {
-    const existing = get().notifications;
-    if (existing.length > 0 && existing[0].id.startsWith(`cn-${clientId}`)) return;
+      generateForClient: (clientId, services, pendingCheckinIds) => {
+        const existing = get().notifications;
+        if (existing.length > 0 && existing[0].id.startsWith(`cn-${clientId}`)) return;
 
-    const notifs: ClientNotification[] = [];
-    const now = new Date();
+        const notifs: ClientNotification[] = [];
+        const now = new Date();
 
-    services.forEach((service) => {
-      const hasPending = pendingCheckinIds.length > 0;
+        services.forEach((service) => {
+          const hasPending = pendingCheckinIds.length > 0;
 
-      if (service === "nutrition") {
-        const isDay = isCheckinDay("nutrition");
-        if (isDay || hasPending) {
-          notifs.push({
-            id: `cn-${clientId}-nutrition-${now.getTime()}`,
-            type: "nutrition_checkin",
-            titleKey: "clientNotifications.nutritionCheckinTitle",
-            descriptionKey: "clientNotifications.nutritionCheckinDesc",
-            descriptionVars: { day: getCheckinDayLabel("nutrition") || "hoy" },
-            timestamp: now,
-            read: false,
-            link: "/client/checkins",
+          if (service === "nutrition") {
+            const isDay = isCheckinDay("nutrition");
+            if (isDay || hasPending) {
+              notifs.push({
+                id: `cn-${clientId}-nutrition-${now.getTime()}`,
+                type: "nutrition_checkin",
+                titleKey: "clientNotifications.nutritionCheckinTitle",
+                descriptionKey: "clientNotifications.nutritionCheckinDesc",
+                descriptionVars: { day: getCheckinDayLabel("nutrition") || "hoy" },
+                timestamp: now,
+                read: false,
+                link: "/client/checkins",
+              });
+            }
+          }
+
+          if (service === "training") {
+            const isDay = isCheckinDay("training");
+            if (isDay || hasPending) {
+              notifs.push({
+                id: `cn-${clientId}-training-${now.getTime()}`,
+                type: "training_checkin",
+                titleKey: "clientNotifications.trainingCheckinTitle",
+                descriptionKey: "clientNotifications.trainingCheckinDesc",
+                timestamp: now,
+                read: false,
+                link: "/client/checkins",
+              });
+            }
+          }
+        });
+
+        set({ notifications: notifs });
+      },
+
+      addNotification: (notification) =>
+        set((s) => {
+          if (s._dismissedIds.has(notification.id)) return s;
+          if (s.notifications.some((n) => n.id === notification.id)) return s;
+          return {
+            notifications: [notification, ...s.notifications],
+          };
+        }),
+
+      markRead: (id) =>
+        set((s) => ({
+          notifications: s.notifications.map((n) =>
+            n.id === id ? { ...n, read: true } : n
+          ),
+        })),
+
+      markAllRead: () =>
+        set((s) => ({
+          notifications: s.notifications.map((n) => ({ ...n, read: true })),
+        })),
+
+      dismissNotification: (id) =>
+        set((s) => {
+          const dismissed = new Set(s._dismissedIds);
+          dismissed.add(id);
+          return {
+            notifications: s.notifications.filter((n) => n.id !== id),
+            _dismissedIds: dismissed,
+          };
+        }),
+
+      dismissByKey: (key) =>
+        set((s) => {
+          const dismissed = new Set(s._dismissedIds);
+          const remaining = s.notifications.filter((n) => {
+            const match = n.autoDismissKey === key;
+            if (match) dismissed.add(n.id);
+            return !match;
           });
+          return {
+            notifications: remaining,
+            _dismissedIds: dismissed,
+          };
+        }),
+
+      isDismissed: (id) => get()._dismissedIds.has(id),
+
+      getUnreadCount: () => get().notifications.filter((n) => !n.read).length,
+
+      shouldPlaySound: () => {
+        const unread = get().getUnreadCount();
+        const { _lastKnownUnread, _loginSoundPlayed } = get();
+
+        if (!_loginSoundPlayed) {
+          set({ _loginSoundPlayed: true, _lastKnownUnread: unread });
+          return unread > 0;
         }
-      }
 
-      if (service === "training") {
-        const isDay = isCheckinDay("training");
-        if (isDay || hasPending) {
-          notifs.push({
-            id: `cn-${clientId}-training-${now.getTime()}`,
-            type: "training_checkin",
-            titleKey: "clientNotifications.trainingCheckinTitle",
-            descriptionKey: "clientNotifications.trainingCheckinDesc",
-            timestamp: now,
-            read: false,
-            link: "/client/checkins",
-          });
+        if (unread > _lastKnownUnread) {
+          set({ _lastKnownUnread: unread });
+          return true;
         }
-      }
-    });
 
-    set({ notifications: notifs });
-  },
+        if (unread !== _lastKnownUnread) {
+          set({ _lastKnownUnread: unread });
+        }
+        return false;
+      },
 
-  addNotification: (notification) =>
-    set((s) => {
-      if (s._dismissedIds.has(notification.id)) return s;
-      if (s.notifications.some((n) => n.id === notification.id)) return s;
-      return {
-        notifications: [notification, ...s.notifications],
-      };
+      clear: () => set({ notifications: [], _dismissedIds: new Set<string>(), _lastKnownUnread: 0, _loginSoundPlayed: false }),
     }),
-
-  markRead: (id) =>
-    set((s) => ({
-      notifications: s.notifications.map((n) =>
-        n.id === id ? { ...n, read: true } : n
-      ),
-    })),
-
-  markAllRead: () =>
-    set((s) => ({
-      notifications: s.notifications.map((n) => ({ ...n, read: true })),
-    })),
-
-  dismissNotification: (id) =>
-    set((s) => {
-      const dismissed = new Set(s._dismissedIds);
-      dismissed.add(id);
-      return {
-        notifications: s.notifications.filter((n) => n.id !== id),
-        _dismissedIds: dismissed,
-      };
-    }),
-
-  dismissByKey: (key) =>
-    set((s) => {
-      const dismissed = new Set(s._dismissedIds);
-      const remaining = s.notifications.filter((n) => {
-        const match = n.autoDismissKey === key;
-        if (match) dismissed.add(n.id);
-        return !match;
-      });
-      return {
-        notifications: remaining,
-        _dismissedIds: dismissed,
-      };
-    }),
-
-  isDismissed: (id) => get()._dismissedIds.has(id),
-
-  getUnreadCount: () => get().notifications.filter((n) => !n.read).length,
-
-  shouldPlaySound: () => {
-    const unread = get().getUnreadCount();
-    const { _lastKnownUnread, _loginSoundPlayed } = get();
-
-    // First call (login): play once if there are unread
-    if (!_loginSoundPlayed) {
-      set({ _loginSoundPlayed: true, _lastKnownUnread: unread });
-      return unread > 0;
+    {
+      name: "jip-client-notification-dismissed",
+      storage: dismissedIdsStorage,
+      partialize: (state) => ({
+        _dismissedIds: Array.from(state._dismissedIds),
+      }),
+      merge: (persisted, current) => {
+        const typedPersisted = persisted as Partial<PersistedClientNotificationState> | undefined;
+        return {
+          ...current,
+          _dismissedIds: new Set(typedPersisted?._dismissedIds ?? []),
+        };
+      },
     }
-
-    // Subsequent: only play if unread genuinely increased
-    if (unread > _lastKnownUnread) {
-      set({ _lastKnownUnread: unread });
-      return true;
-    }
-
-    // Always sync the tracked count (e.g. if it decreased)
-    if (unread !== _lastKnownUnread) {
-      set({ _lastKnownUnread: unread });
-    }
-    return false;
-  },
-
-  clear: () => set({ notifications: [], _dismissedIds: new Set<string>(), _lastKnownUnread: 0, _loginSoundPlayed: false }),
-}));
+  )
+);
