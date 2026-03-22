@@ -44,7 +44,6 @@ const AdminCheckins = () => {
   const [filterStatus, setFilterStatus] = useState<"all" | "pendiente" | "respondido" | "expirado">("all");
   const allEntries = useQuestionnaireStore((s) => s.entries);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
-  const generateWeeklyCheckins = useQuestionnaireStore((s) => s.generateWeeklyCheckins);
   const markAsReviewed = useQuestionnaireStore((s) => s.markAsReviewed);
 
   const nutritionTemplates = useTemplateStore((s) => s.nutritionTemplates);
@@ -74,9 +73,9 @@ const AdminCheckins = () => {
   }, [markAsReviewed]);
 
   useEffect(() => {
-    generateWeeklyCheckins().then(() => fetchEntries());
+    fetchEntries();
     fetchTemplates();
-  }, []);
+  }, [fetchEntries, fetchTemplates]);
 
   const statusConfig: Record<string, { label: string; icon: typeof CheckCircle2; className: string }> = {
     respondido: { label: t("questionnaires.statusResponded"), icon: CheckCircle2, className: "bg-primary/15 text-primary border-primary/30" },
