@@ -106,13 +106,13 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
             <img src={logoJip} alt="JIP Performance Nutrition" className="h-20 w-auto lg:h-24 2xl:h-28" />
           </div>
 
-          <div className="bg-card border border-border rounded-2xl p-8 space-y-6 lg:p-9 2xl:rounded-3xl 2xl:p-11 2xl:space-y-7">
+          <div className="bg-card border border-border rounded-2xl p-8 space-y-5 lg:p-9 2xl:rounded-3xl 2xl:p-11 2xl:space-y-6">
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold tracking-tight text-foreground xl:text-[1.85rem] 2xl:text-[2.15rem]">{t("login.welcome")}</h1>
             <p className="text-sm text-muted-foreground xl:text-[0.95rem] 2xl:text-base 2xl:max-w-md 2xl:mx-auto">{t("login.subtitle")}</p>
           </div>
-          {error && <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-lg p-3 text-center">{error}</div>}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 2xl:space-y-6">
+          {error && <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-lg px-3 py-2.5 text-center leading-relaxed">{error}</div>}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4.5 2xl:space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-muted-foreground text-sm xl:text-[0.95rem]">{t("login.emailLabel")}</Label>
               <div className="relative">
@@ -120,7 +120,7 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
                 <Input id="email" type="email" placeholder={t("login.emailPlaceholder")} className="pl-10 bg-muted border-border focus:border-primary focus:ring-primary/20 h-12 text-foreground placeholder:text-muted-foreground xl:h-13 xl:text-[0.95rem] 2xl:h-14 2xl:text-base"
                   {...register("email", { required: t("login.emailRequired"), pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: t("login.emailInvalid") } })} />
               </div>
-              {errors.email && <p className="text-destructive text-xs mt-1">{errors.email.message}</p>}
+              {errors.email && <p className="mt-1 text-destructive text-xs leading-relaxed">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-muted-foreground text-sm xl:text-[0.95rem]">{t("login.passwordLabel")}</Label>
@@ -132,13 +132,13 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {errors.password && <p className="text-destructive text-xs mt-1">{errors.password.message}</p>}
+              {errors.password && <p className="mt-1 text-destructive text-xs leading-relaxed">{errors.password.message}</p>}
             </div>
             <Button type="submit" disabled={isLoading} className="w-full h-12 bg-primary text-primary-foreground font-semibold text-base hover:brightness-110 transition-all glow-primary-sm hover:glow-primary xl:h-13 xl:text-[1.02rem] 2xl:h-14 2xl:text-lg">
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : t("login.submit")}
             </Button>
           </form>
-          <div className="text-center">
+          <div className="pt-1 text-center">
             <Link to="/forgot-password" className="text-sm text-muted-foreground hover:text-primary transition-colors xl:text-[0.95rem]">
               {t("forgotPassword.linkText")}
             </Link>
