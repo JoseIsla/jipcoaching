@@ -100,33 +100,33 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
         </button>
       </div>
 
-      <div className="relative z-10 w-full max-w-md animate-fade-in lg:max-w-lg">
+      <div className="relative z-10 w-full max-w-md animate-fade-in lg:max-w-lg 2xl:max-w-xl">
         <div className="flex min-h-[calc(100vh-4rem)] flex-col justify-center gap-8 lg:min-h-[calc(100vh-6rem)] lg:gap-10 2xl:min-h-[calc(100vh-8rem)] 2xl:gap-12">
           <div className="flex justify-center">
-            <img src={logoJip} alt="JIP Performance Nutrition" className="h-20 w-auto lg:h-24" />
+            <img src={logoJip} alt="JIP Performance Nutrition" className="h-20 w-auto lg:h-24 2xl:h-28" />
           </div>
 
-          <div className="bg-card border border-border rounded-2xl p-8 space-y-6 lg:p-9">
+          <div className="bg-card border border-border rounded-2xl p-8 space-y-6 lg:p-9 2xl:rounded-3xl 2xl:p-11 2xl:space-y-7">
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("login.welcome")}</h1>
-            <p className="text-sm text-muted-foreground">{t("login.subtitle")}</p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground xl:text-[1.85rem] 2xl:text-[2.15rem]">{t("login.welcome")}</h1>
+            <p className="text-sm text-muted-foreground xl:text-[0.95rem] 2xl:text-base 2xl:max-w-md 2xl:mx-auto">{t("login.subtitle")}</p>
           </div>
           {error && <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-lg p-3 text-center">{error}</div>}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 2xl:space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-muted-foreground text-sm">{t("login.emailLabel")}</Label>
+              <Label htmlFor="email" className="text-muted-foreground text-sm xl:text-[0.95rem]">{t("login.emailLabel")}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="email" type="email" placeholder={t("login.emailPlaceholder")} className="pl-10 bg-muted border-border focus:border-primary focus:ring-primary/20 h-12 text-foreground placeholder:text-muted-foreground"
+                <Input id="email" type="email" placeholder={t("login.emailPlaceholder")} className="pl-10 bg-muted border-border focus:border-primary focus:ring-primary/20 h-12 text-foreground placeholder:text-muted-foreground xl:h-13 xl:text-[0.95rem] 2xl:h-14 2xl:text-base"
                   {...register("email", { required: t("login.emailRequired"), pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: t("login.emailInvalid") } })} />
               </div>
               {errors.email && <p className="text-destructive text-xs mt-1">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-muted-foreground text-sm">{t("login.passwordLabel")}</Label>
+              <Label htmlFor="password" className="text-muted-foreground text-sm xl:text-[0.95rem]">{t("login.passwordLabel")}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" className="pl-10 pr-10 bg-muted border-border focus:border-primary focus:ring-primary/20 h-12 text-foreground placeholder:text-muted-foreground"
+                <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" className="pl-10 pr-10 bg-muted border-border focus:border-primary focus:ring-primary/20 h-12 text-foreground placeholder:text-muted-foreground xl:h-13 xl:text-[0.95rem] 2xl:h-14 2xl:text-base"
                   {...register("password", { required: t("login.passwordRequired"), minLength: { value: 6, message: t("login.passwordMinLength") } })} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -134,12 +134,12 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
               </div>
               {errors.password && <p className="text-destructive text-xs mt-1">{errors.password.message}</p>}
             </div>
-            <Button type="submit" disabled={isLoading} className="w-full h-12 bg-primary text-primary-foreground font-semibold text-base hover:brightness-110 transition-all glow-primary-sm hover:glow-primary">
+            <Button type="submit" disabled={isLoading} className="w-full h-12 bg-primary text-primary-foreground font-semibold text-base hover:brightness-110 transition-all glow-primary-sm hover:glow-primary xl:h-13 xl:text-[1.02rem] 2xl:h-14 2xl:text-lg">
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : t("login.submit")}
             </Button>
           </form>
           <div className="text-center">
-            <Link to="/forgot-password" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+            <Link to="/forgot-password" className="text-sm text-muted-foreground hover:text-primary transition-colors xl:text-[0.95rem]">
               {t("forgotPassword.linkText")}
             </Link>
           </div>
