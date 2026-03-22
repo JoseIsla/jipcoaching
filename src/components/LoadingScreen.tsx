@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import logoJip from "@/assets/logo-jip.png";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "@/i18n/useTranslation";
@@ -6,11 +7,11 @@ interface LoadingScreenProps {
   message?: string;
 }
 
-const LoadingScreen = ({ message }: LoadingScreenProps) => {
+const LoadingScreen = forwardRef<HTMLDivElement, LoadingScreenProps>(({ message }, ref) => {
   const { t } = useTranslation();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-6">
+    <div ref={ref} className="min-h-screen flex flex-col items-center justify-center bg-background gap-6">
       <div className="animate-fade-in flex flex-col items-center gap-6">
         <img
           src={logoJip}
@@ -24,6 +25,8 @@ const LoadingScreen = ({ message }: LoadingScreenProps) => {
       </div>
     </div>
   );
-};
+});
+
+LoadingScreen.displayName = "LoadingScreen";
 
 export default LoadingScreen;
