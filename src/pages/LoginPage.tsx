@@ -78,7 +78,7 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
   if (showLoadingScreen) return <LoadingScreen />;
 
   return (
-    <div ref={ref} className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden px-4">
+    <div ref={ref} className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-8 lg:px-6 lg:py-12 2xl:py-16">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[120px]" />
       </div>
@@ -100,11 +100,13 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
         </button>
       </div>
 
-      <div className="w-full max-w-md animate-fade-in relative z-10">
-        <div className="flex justify-center mb-10">
-          <img src={logoJip} alt="JIP Performance Nutrition" className="h-24 w-auto" />
-        </div>
-        <div className="bg-card border border-border rounded-2xl p-8 space-y-6">
+      <div className="relative z-10 w-full max-w-md animate-fade-in lg:max-w-lg">
+        <div className="flex min-h-[calc(100vh-4rem)] flex-col justify-center gap-8 lg:min-h-[calc(100vh-6rem)] lg:gap-10 2xl:min-h-[calc(100vh-8rem)] 2xl:gap-12">
+          <div className="flex justify-center">
+            <img src={logoJip} alt="JIP Performance Nutrition" className="h-20 w-auto lg:h-24" />
+          </div>
+
+          <div className="bg-card border border-border rounded-2xl p-8 space-y-6 lg:p-9">
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("login.welcome")}</h1>
             <p className="text-sm text-muted-foreground">{t("login.subtitle")}</p>
@@ -141,15 +143,19 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
               {t("forgotPassword.linkText")}
             </Link>
           </div>
-        </div>
-        <p className="text-center text-xs text-muted-foreground mt-8">© 2026 JIP Performance Nutrition. {t("common.allRightsReserved")}</p>
-        {DEV_MOCK && (
-          <div className="mt-4 bg-muted/50 border border-border rounded-lg p-3 text-xs text-muted-foreground space-y-1">
-            <p className="font-semibold text-foreground">🛠 Modo Desarrollo</p>
-            <p><strong>Admin:</strong> admin@jipcoaching.com / admin123</p>
-            <p><strong>Cliente:</strong> carlos@email.com / client123</p>
           </div>
-        )}
+
+          <div className="space-y-4 pt-1 lg:pt-2">
+            <p className="text-center text-xs text-muted-foreground">© 2026 JIP Performance Nutrition. {t("common.allRightsReserved")}</p>
+            {DEV_MOCK && (
+              <div className="rounded-lg border border-border bg-muted/50 p-3 text-xs text-muted-foreground space-y-1">
+                <p className="font-semibold text-foreground">🛠 Modo Desarrollo</p>
+                <p><strong>Admin:</strong> admin@jipcoaching.com / admin123</p>
+                <p><strong>Cliente:</strong> carlos@email.com / client123</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
       <PWAInstallBanner />
     </div>
