@@ -35,27 +35,27 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-8 lg:px-6 lg:py-12 2xl:py-16">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-8 lg:px-6 lg:py-10 2xl:py-12">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[120px]" />
       </div>
 
-      <div className="relative z-10 w-full max-w-md animate-fade-in lg:max-w-lg 2xl:max-w-xl">
-        <div className="flex min-h-[calc(100vh-4rem)] flex-col justify-center gap-8 lg:min-h-[calc(100vh-6rem)] lg:gap-10 2xl:min-h-[calc(100vh-8rem)] 2xl:gap-12">
+      <div className="relative z-10 w-full max-w-[30rem] animate-fade-in xl:max-w-[32rem]">
+        <div className="flex flex-col justify-center gap-6 lg:gap-7 2xl:gap-8">
           <div className="flex justify-center">
-            <img src={logoJip} alt="JIP Performance Nutrition" className="h-20 w-auto lg:h-24 2xl:h-28" />
+            <img src={logoJip} alt="JIP Performance Nutrition" className="h-20 w-auto lg:h-[5.5rem]" />
           </div>
 
-          <div className="bg-card border border-border rounded-2xl p-8 space-y-5 lg:p-9 2xl:rounded-3xl 2xl:p-11 2xl:space-y-6">
+          <div className="rounded-2xl border border-border bg-card p-7 shadow-sm space-y-4 sm:p-8 lg:space-y-5 lg:p-9 xl:rounded-[1.75rem]">
             {sent ? (
-              <div className="space-y-5 text-center 2xl:space-y-6">
-                <CheckCircle2 className="mx-auto h-12 w-12 text-primary 2xl:h-14 2xl:w-14" />
+              <div className="space-y-4 text-center lg:space-y-5">
+                <CheckCircle2 className="mx-auto h-12 w-12 text-primary" />
                 <div className="space-y-2">
-                  <h1 className="text-xl font-bold tracking-tight text-foreground xl:text-[1.7rem] 2xl:text-[2rem]">{t("forgotPassword.successTitle")}</h1>
-                  <p className="text-sm text-muted-foreground xl:text-[0.95rem] 2xl:mx-auto 2xl:max-w-md 2xl:text-base">{t("forgotPassword.successDesc")}</p>
+                  <h1 className="text-xl font-bold tracking-tight text-foreground xl:text-[1.8rem]">{t("forgotPassword.successTitle")}</h1>
+                  <p className="mx-auto max-w-sm text-sm leading-relaxed text-muted-foreground xl:text-[0.98rem]">{t("forgotPassword.successDesc")}</p>
                 </div>
                 <Link to="/login">
-                  <Button variant="outline" className="mt-1 h-12 w-full font-medium xl:h-13 xl:text-[1.02rem] 2xl:h-14 2xl:text-lg">
+                  <Button variant="outline" className="mt-1 h-12 w-full font-medium xl:h-[3.25rem] xl:text-[1.02rem]">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     {t("forgotPassword.backToLogin")}
                   </Button>
@@ -63,13 +63,13 @@ const ForgotPasswordPage = () => {
               </div>
             ) : (
               <>
-                <div className="text-center space-y-2">
-                  <h1 className="text-2xl font-bold tracking-tight text-foreground xl:text-[1.85rem] 2xl:text-[2.15rem]">{t("forgotPassword.title")}</h1>
-                  <p className="text-sm text-muted-foreground xl:text-[0.95rem] 2xl:mx-auto 2xl:max-w-md 2xl:text-base">{t("forgotPassword.subtitle")}</p>
+                <div className="space-y-2 text-center">
+                  <h1 className="text-2xl font-bold tracking-tight text-foreground xl:text-[2rem]">{t("forgotPassword.title")}</h1>
+                  <p className="mx-auto max-w-sm text-sm leading-relaxed text-muted-foreground xl:text-[0.98rem]">{t("forgotPassword.subtitle")}</p>
                 </div>
 
                 {error && (
-                  <div className="rounded-xl border border-destructive/20 bg-destructive/8 px-3.5 py-3 text-sm text-destructive/90">
+                  <div className="rounded-xl border border-destructive/20 bg-destructive/8 px-3.5 py-2.5 text-sm text-destructive/90">
                     <div className="flex items-start gap-2.5 text-left">
                       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                       <div className="space-y-0.5">
@@ -80,7 +80,7 @@ const ForgotPasswordPage = () => {
                   </div>
                 )}
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4.5 2xl:space-y-5">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 lg:space-y-4.5">
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-sm text-muted-foreground xl:text-[0.95rem]">{t("forgotPassword.emailLabel")}</Label>
                     <div className="relative">
@@ -89,7 +89,7 @@ const ForgotPasswordPage = () => {
                         id="email"
                         type="email"
                         placeholder={t("forgotPassword.emailPlaceholder")}
-                        className="h-12 bg-muted pl-10 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 xl:h-13 xl:text-[0.95rem] 2xl:h-14 2xl:text-base"
+                        className="h-12 border-border bg-muted pl-10 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 xl:h-[3.25rem] xl:text-[0.95rem]"
                         {...register("email", {
                           required: t("forgotPassword.emailRequired"),
                           pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: t("forgotPassword.emailInvalid") },
@@ -107,13 +107,13 @@ const ForgotPasswordPage = () => {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="h-12 w-full bg-primary text-base font-semibold text-primary-foreground transition-all hover:brightness-110 glow-primary-sm hover:glow-primary xl:h-13 xl:text-[1.02rem] 2xl:h-14 2xl:text-lg"
+                    className="h-12 w-full bg-primary text-base font-semibold text-primary-foreground transition-all hover:brightness-110 glow-primary-sm hover:glow-primary xl:h-[3.25rem] xl:text-[1.02rem]"
                   >
                     {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : t("forgotPassword.submitBtn")}
                   </Button>
                 </form>
 
-                <div className="pt-1 text-center">
+                <div className="pt-0.5 text-center">
                   <Link to="/login" className="text-sm text-muted-foreground transition-colors hover:text-foreground xl:text-[0.95rem]">
                     <ArrowLeft className="mr-1 inline h-3 w-3" />
                     {t("forgotPassword.backToLogin")}
