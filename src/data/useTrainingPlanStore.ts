@@ -145,6 +145,13 @@ const mapApiExerciseToEntry = (ex: ApiExercisePrescription, idx: number, exercis
 const getClientName = (p: any): string =>
   p?.client?.name ?? p?.client?.user?.name ?? p?.clientName ?? "";
 
+/** Resolve the real current week from backend week statuses */
+const getCurrentWeekNumber = (weeks?: ApiTrainingPlan["weeks"]): number | null => {
+  if (!weeks?.length) return null;
+  const activeWeek = weeks.find((week) => String(week.status).toUpperCase() === "ACTIVE");
+  return activeWeek?.weekNumber ?? weeks.length;
+};
+
 /** Map API plan to our list entry format */
 const mapApiPlanToListEntry = (apiPlan: ApiTrainingPlan): TrainingPlanListEntry => ({
   id: apiPlan.id,
@@ -154,7 +161,7 @@ const mapApiPlanToListEntry = (apiPlan: ApiTrainingPlan): TrainingPlanListEntry 
   modality: (apiPlan.modality as TrainingModality) || "Powerlifting",
   block: (apiPlan.block as TrainingBlock) || "Hipertrofia",
   weeksDuration: apiPlan.weeks?.length ?? 0,
-  currentWeek: apiPlan.weeks?.length ?? null,
+  currentWeek: getCurrentWeekNumber(apiPlan.weeks),
   active: apiPlan.isActive ?? true,
   startDate: apiPlan.createdAt?.split("T")[0] ?? new Date().toISOString().split("T")[0],
   endDate: null,
@@ -218,7 +225,7 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
         modality: (apiPlan.modality as TrainingModality) || "Powerlifting",
         block: (apiPlan.block as TrainingBlock) || "Hipertrofia",
         weeksDuration: apiPlan.weeks?.length ?? 0,
-        currentWeek: apiPlan.weeks?.length ?? null,
+        currentWeek: getCurrentWeekNumber(apiPlan.weeks),
         active: apiPlan.isActive ?? true,
         startDate: apiPlan.createdAt?.split("T")[0] ?? new Date().toISOString().split("T")[0],
         endDate: null,
