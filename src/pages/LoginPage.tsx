@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { forwardRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Eye, EyeOff, Mail, Lock, Loader2, Globe } from "lucide-react";
@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface LoginFormData { email: string; password: string; }
 
-const LoginPage = () => {
+const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -78,7 +78,7 @@ const LoginPage = () => {
   if (showLoadingScreen) return <LoadingScreen />;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden px-4">
+    <div ref={ref} className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden px-4">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[120px]" />
       </div>
@@ -154,6 +154,8 @@ const LoginPage = () => {
       <PWAInstallBanner />
     </div>
   );
-};
+});
+
+LoginPage.displayName = "LoginPage";
 
 export default LoginPage;

@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { WifiOff, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const DISMISS_KEY = "offline-notice-dismissed";
 
-const OfflineNotice = () => {
+const OfflineNotice = forwardRef<HTMLDivElement>((_, ref) => {
   const [isOffline, setIsOffline] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
@@ -39,7 +39,7 @@ const OfflineNotice = () => {
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-4 z-50 px-4 safe-area-bottom animate-fade-in">
+    <div ref={ref} className="fixed inset-x-0 bottom-4 z-50 px-4 safe-area-bottom animate-fade-in">
       <div className="mx-auto flex max-w-lg items-start gap-3 rounded-2xl border border-border bg-card p-4 shadow-lg shadow-black/30">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground">
           <WifiOff className="h-4 w-4" />
@@ -66,6 +66,8 @@ const OfflineNotice = () => {
       </div>
     </div>
   );
-};
+});
+
+OfflineNotice.displayName = "OfflineNotice";
 
 export default OfflineNotice;

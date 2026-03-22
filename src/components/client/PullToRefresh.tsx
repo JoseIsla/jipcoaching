@@ -56,9 +56,18 @@ const PullToRefresh = forwardRef<HTMLDivElement, PullToRefreshProps>(({ children
     animate(pullY, 0, { duration: 0.3, ease: "easeOut" });
   }, [pullY, refreshing, onRefresh]);
 
+  const setContainerRef = useCallback((node: HTMLDivElement | null) => {
+    containerRef.current = node;
+    if (typeof ref === "function") {
+      ref(node);
+    } else if (ref) {
+      ref.current = node;
+    }
+  }, [ref]);
+
   return (
     <div
-      ref={containerRef}
+      ref={setContainerRef}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
