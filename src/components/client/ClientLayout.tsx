@@ -137,8 +137,12 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   );
   const pendingNutrition = pendingEntries.filter((e) => e.category === "nutrition");
   const pendingTraining = pendingEntries.filter((e) => e.category === "training");
-  const pendingNutritionSignature = pendingNutrition.map((e) => e.id).sort().join("|");
-  const pendingTrainingSignature = pendingTraining.map((e) => e.id).sort().join("|");
+  const pendingNutritionSignature = Array.from(
+    new Set(pendingNutrition.map((e) => `${e.date}-${e.templateId}`))
+  ).sort().join("|");
+  const pendingTrainingSignature = Array.from(
+    new Set(pendingTraining.map((e) => `${e.date}-${e.templateId}`))
+  ).sort().join("|");
 
   // Generate notifications based on services and pending check-ins
   // Preserve video_comment notifications added by admin actions
