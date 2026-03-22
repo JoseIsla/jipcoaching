@@ -78,7 +78,7 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
   if (showLoadingScreen) return <LoadingScreen />;
 
   return (
-    <div ref={ref} className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-8 lg:px-6 lg:py-12 2xl:py-16">
+    <div ref={ref} className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-8 lg:px-6 lg:py-10 2xl:py-12">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[120px]" />
       </div>
@@ -100,19 +100,19 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
         </button>
       </div>
 
-      <div className="relative z-10 w-full max-w-md animate-fade-in lg:max-w-lg 2xl:max-w-xl">
-        <div className="flex min-h-[calc(100vh-4rem)] flex-col justify-center gap-8 lg:min-h-[calc(100vh-6rem)] lg:gap-10 2xl:min-h-[calc(100vh-8rem)] 2xl:gap-12">
+      <div className="relative z-10 w-full max-w-[30rem] animate-fade-in xl:max-w-[32rem]">
+        <div className="flex flex-col justify-center gap-6 lg:gap-7 2xl:gap-8">
           <div className="flex justify-center">
-            <img src={logoJip} alt="JIP Performance Nutrition" className="h-20 w-auto lg:h-24 2xl:h-28" />
+            <img src={logoJip} alt="JIP Performance Nutrition" className="h-20 w-auto lg:h-[5.5rem]" />
           </div>
 
-          <div className="bg-card border border-border rounded-2xl p-8 space-y-5 lg:p-9 2xl:rounded-3xl 2xl:p-11 2xl:space-y-6">
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground xl:text-[1.85rem] 2xl:text-[2.15rem]">{t("login.welcome")}</h1>
-            <p className="text-sm text-muted-foreground xl:text-[0.95rem] 2xl:text-base 2xl:max-w-md 2xl:mx-auto">{t("login.subtitle")}</p>
+          <div className="rounded-2xl border border-border bg-card p-7 shadow-sm space-y-4 sm:p-8 lg:space-y-5 lg:p-9 xl:rounded-[1.75rem]">
+          <div className="space-y-2 text-center">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground xl:text-[2rem]">{t("login.welcome")}</h1>
+            <p className="mx-auto max-w-sm text-sm leading-relaxed text-muted-foreground xl:text-[0.98rem]">{t("login.subtitle")}</p>
           </div>
           {error && (
-            <div className="rounded-xl border border-destructive/20 bg-destructive/8 px-3.5 py-3 text-sm text-destructive/90">
+            <div className="rounded-xl border border-destructive/20 bg-destructive/8 px-3.5 py-2.5 text-sm text-destructive/90">
               <div className="flex items-start gap-2.5 text-left">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 <div className="space-y-0.5">
@@ -122,12 +122,12 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
               </div>
             </div>
           )}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4.5 2xl:space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 lg:space-y-4.5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-muted-foreground text-sm xl:text-[0.95rem]">{t("login.emailLabel")}</Label>
+              <Label htmlFor="email" className="text-sm text-muted-foreground xl:text-[0.95rem]">{t("login.emailLabel")}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="email" type="email" placeholder={t("login.emailPlaceholder")} className="pl-10 bg-muted border-border focus:border-primary focus:ring-primary/20 h-12 text-foreground placeholder:text-muted-foreground xl:h-13 xl:text-[0.95rem] 2xl:h-14 2xl:text-base"
+                <Input id="email" type="email" placeholder={t("login.emailPlaceholder")} className="h-12 border-border bg-muted pl-10 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 xl:h-[3.25rem] xl:text-[0.95rem]"
                   {...register("email", { required: t("login.emailRequired"), pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: t("login.emailInvalid") } })} />
               </div>
               {errors.email && (
@@ -141,7 +141,7 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
               <Label htmlFor="password" className="text-muted-foreground text-sm xl:text-[0.95rem]">{t("login.passwordLabel")}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" className="pl-10 pr-10 bg-muted border-border focus:border-primary focus:ring-primary/20 h-12 text-foreground placeholder:text-muted-foreground xl:h-13 xl:text-[0.95rem] 2xl:h-14 2xl:text-base"
+                <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" className="h-12 border-border bg-muted pl-10 pr-10 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 xl:h-[3.25rem] xl:text-[0.95rem]"
                   {...register("password", { required: t("login.passwordRequired"), minLength: { value: 6, message: t("login.passwordMinLength") } })} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -154,18 +154,18 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
                 </p>
               )}
             </div>
-            <Button type="submit" disabled={isLoading} className="w-full h-12 bg-primary text-primary-foreground font-semibold text-base hover:brightness-110 transition-all glow-primary-sm hover:glow-primary xl:h-13 xl:text-[1.02rem] 2xl:h-14 2xl:text-lg">
+            <Button type="submit" disabled={isLoading} className="h-12 w-full bg-primary text-base font-semibold text-primary-foreground transition-all hover:brightness-110 glow-primary-sm hover:glow-primary xl:h-[3.25rem] xl:text-[1.02rem]">
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : t("login.submit")}
             </Button>
           </form>
-          <div className="pt-1 text-center">
+          <div className="pt-0.5 text-center">
             <Link to="/forgot-password" className="text-sm text-muted-foreground hover:text-primary transition-colors xl:text-[0.95rem]">
               {t("forgotPassword.linkText")}
             </Link>
           </div>
           </div>
 
-          <div className="space-y-4 pt-1 lg:pt-2">
+          <div className="space-y-3 pt-0.5 lg:pt-1">
             <p className="text-center text-xs text-muted-foreground">© 2026 JIP Performance Nutrition. {t("common.allRightsReserved")}</p>
             {DEV_MOCK && (
               <div className="rounded-lg border border-border bg-muted/50 p-3 text-xs text-muted-foreground space-y-1">
