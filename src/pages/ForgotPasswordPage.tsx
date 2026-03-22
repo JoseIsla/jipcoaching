@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { Mail, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Mail, Loader2, ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -35,83 +35,98 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden px-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-8 lg:px-6 lg:py-12 2xl:py-16">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[120px]" />
       </div>
 
-      <div className="w-full max-w-md animate-fade-in relative z-10">
-        <div className="flex justify-center mb-10">
-          <img src={logoJip} alt="JIP Performance Nutrition" className="h-24 w-auto" />
-        </div>
+      <div className="relative z-10 w-full max-w-md animate-fade-in lg:max-w-lg 2xl:max-w-xl">
+        <div className="flex min-h-[calc(100vh-4rem)] flex-col justify-center gap-8 lg:min-h-[calc(100vh-6rem)] lg:gap-10 2xl:min-h-[calc(100vh-8rem)] 2xl:gap-12">
+          <div className="flex justify-center">
+            <img src={logoJip} alt="JIP Performance Nutrition" className="h-20 w-auto lg:h-24 2xl:h-28" />
+          </div>
 
-        <div className="bg-card border border-border rounded-2xl p-8 space-y-6">
-          {sent ? (
-            <div className="text-center space-y-4">
-              <CheckCircle2 className="h-12 w-12 text-primary mx-auto" />
-              <h1 className="text-xl font-bold text-foreground">{t("forgotPassword.successTitle")}</h1>
-              <p className="text-sm text-muted-foreground">{t("forgotPassword.successDesc")}</p>
-              <Link to="/login">
-                <Button variant="outline" className="mt-4 w-full">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  {t("forgotPassword.backToLogin")}
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <>
-              <div className="text-center space-y-2">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("forgotPassword.title")}</h1>
-                <p className="text-sm text-muted-foreground">{t("forgotPassword.subtitle")}</p>
-              </div>
-
-              {error && (
-                <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-lg p-3 text-center">
-                  {error}
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="bg-card border border-border rounded-2xl p-8 space-y-5 lg:p-9 2xl:rounded-3xl 2xl:p-11 2xl:space-y-6">
+            {sent ? (
+              <div className="space-y-5 text-center 2xl:space-y-6">
+                <CheckCircle2 className="mx-auto h-12 w-12 text-primary 2xl:h-14 2xl:w-14" />
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-muted-foreground text-sm">{t("forgotPassword.emailLabel")}</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder={t("forgotPassword.emailPlaceholder")}
-                      className="pl-10 bg-muted border-border focus:border-primary focus:ring-primary/20 h-12 text-foreground placeholder:text-muted-foreground"
-                      {...register("email", {
-                        required: t("forgotPassword.emailRequired"),
-                        pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: t("forgotPassword.emailInvalid") },
-                      })}
-                    />
-                  </div>
-                  {errors.email && <p className="text-destructive text-xs mt-1">{errors.email.message}</p>}
+                  <h1 className="text-xl font-bold tracking-tight text-foreground xl:text-[1.7rem] 2xl:text-[2rem]">{t("forgotPassword.successTitle")}</h1>
+                  <p className="text-sm text-muted-foreground xl:text-[0.95rem] 2xl:mx-auto 2xl:max-w-md 2xl:text-base">{t("forgotPassword.successDesc")}</p>
                 </div>
-
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full h-12 bg-primary text-primary-foreground font-semibold text-base hover:brightness-110 transition-all"
-                >
-                  {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : t("forgotPassword.submitBtn")}
-                </Button>
-              </form>
-
-              <div className="text-center">
-                <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  <ArrowLeft className="h-3 w-3 inline mr-1" />
-                  {t("forgotPassword.backToLogin")}
+                <Link to="/login">
+                  <Button variant="outline" className="mt-1 h-12 w-full font-medium xl:h-13 xl:text-[1.02rem] 2xl:h-14 2xl:text-lg">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    {t("forgotPassword.backToLogin")}
+                  </Button>
                 </Link>
               </div>
-            </>
-          )}
-        </div>
+            ) : (
+              <>
+                <div className="text-center space-y-2">
+                  <h1 className="text-2xl font-bold tracking-tight text-foreground xl:text-[1.85rem] 2xl:text-[2.15rem]">{t("forgotPassword.title")}</h1>
+                  <p className="text-sm text-muted-foreground xl:text-[0.95rem] 2xl:mx-auto 2xl:max-w-md 2xl:text-base">{t("forgotPassword.subtitle")}</p>
+                </div>
 
-        <p className="text-center text-xs text-muted-foreground mt-8">
-          © 2026 JIP Performance Nutrition. {t("common.allRightsReserved")}
-        </p>
+                {error && (
+                  <div className="rounded-xl border border-destructive/20 bg-destructive/8 px-3.5 py-3 text-sm text-destructive/90">
+                    <div className="flex items-start gap-2.5 text-left">
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                      <div className="space-y-0.5">
+                        <p className="font-medium text-foreground">{t("forgotPassword.errorGeneric")}</p>
+                        <p className="leading-relaxed text-destructive/90">{error}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4.5 2xl:space-y-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm text-muted-foreground xl:text-[0.95rem]">{t("forgotPassword.emailLabel")}</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder={t("forgotPassword.emailPlaceholder")}
+                        className="h-12 bg-muted pl-10 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 xl:h-13 xl:text-[0.95rem] 2xl:h-14 2xl:text-base"
+                        {...register("email", {
+                          required: t("forgotPassword.emailRequired"),
+                          pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: t("forgotPassword.emailInvalid") },
+                        })}
+                      />
+                    </div>
+                    {errors.email && (
+                      <p className="mt-1.5 inline-flex items-start gap-1.5 text-xs leading-relaxed text-destructive/85">
+                        <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        <span>{errors.email.message}</span>
+                      </p>
+                    )}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="h-12 w-full bg-primary text-base font-semibold text-primary-foreground transition-all hover:brightness-110 glow-primary-sm hover:glow-primary xl:h-13 xl:text-[1.02rem] 2xl:h-14 2xl:text-lg"
+                  >
+                    {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : t("forgotPassword.submitBtn")}
+                  </Button>
+                </form>
+
+                <div className="pt-1 text-center">
+                  <Link to="/login" className="text-sm text-muted-foreground transition-colors hover:text-foreground xl:text-[0.95rem]">
+                    <ArrowLeft className="mr-1 inline h-3 w-3" />
+                    {t("forgotPassword.backToLogin")}
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
+
+          <p className="text-center text-xs text-muted-foreground">
+            © 2026 JIP Performance Nutrition. {t("common.allRightsReserved")}
+          </p>
+        </div>
       </div>
     </div>
   );
