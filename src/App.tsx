@@ -66,9 +66,17 @@ const queryClient = new QueryClient({
   },
 });
 
+const SafeQueryClientProvider = forwardRef<HTMLDivElement, { children: React.ReactNode }>(({ children }, ref) => (
+  <div ref={ref} style={{ display: "contents" }}>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  </div>
+));
+
+SafeQueryClientProvider.displayName = "SafeQueryClientProvider";
+
 const App = forwardRef<HTMLDivElement>((_, ref) => (
   <div ref={ref}>
-    <QueryClientProvider client={queryClient}>
+    <SafeQueryClientProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -129,7 +137,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
           </AdminProfileProvider>
         </AuthProvider>
       </TooltipProvider>
-    </QueryClientProvider>
+    </SafeQueryClientProvider>
   </div>
 ));
 
