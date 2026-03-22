@@ -1,7 +1,7 @@
 import { forwardRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { Eye, EyeOff, Mail, Lock, Loader2, Globe } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Loader2, Globe, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -111,7 +111,17 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
             <h1 className="text-2xl font-bold tracking-tight text-foreground xl:text-[1.85rem] 2xl:text-[2.15rem]">{t("login.welcome")}</h1>
             <p className="text-sm text-muted-foreground xl:text-[0.95rem] 2xl:text-base 2xl:max-w-md 2xl:mx-auto">{t("login.subtitle")}</p>
           </div>
-          {error && <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-lg px-3 py-2.5 text-center leading-relaxed">{error}</div>}
+          {error && (
+            <div className="rounded-xl border border-destructive/20 bg-destructive/8 px-3.5 py-3 text-sm text-destructive/90">
+              <div className="flex items-start gap-2.5 text-left">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <div className="space-y-0.5">
+                  <p className="font-medium text-foreground">{t("login.error")}</p>
+                  <p className="leading-relaxed text-destructive/90">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4.5 2xl:space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-muted-foreground text-sm xl:text-[0.95rem]">{t("login.emailLabel")}</Label>
@@ -120,7 +130,12 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
                 <Input id="email" type="email" placeholder={t("login.emailPlaceholder")} className="pl-10 bg-muted border-border focus:border-primary focus:ring-primary/20 h-12 text-foreground placeholder:text-muted-foreground xl:h-13 xl:text-[0.95rem] 2xl:h-14 2xl:text-base"
                   {...register("email", { required: t("login.emailRequired"), pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: t("login.emailInvalid") } })} />
               </div>
-              {errors.email && <p className="mt-1 text-destructive text-xs leading-relaxed">{errors.email.message}</p>}
+              {errors.email && (
+                <p className="mt-1.5 inline-flex items-start gap-1.5 text-xs leading-relaxed text-destructive/85">
+                  <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  <span>{errors.email.message}</span>
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-muted-foreground text-sm xl:text-[0.95rem]">{t("login.passwordLabel")}</Label>
@@ -132,7 +147,12 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {errors.password && <p className="mt-1 text-destructive text-xs leading-relaxed">{errors.password.message}</p>}
+              {errors.password && (
+                <p className="mt-1.5 inline-flex items-start gap-1.5 text-xs leading-relaxed text-destructive/85">
+                  <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  <span>{errors.password.message}</span>
+                </p>
+              )}
             </div>
             <Button type="submit" disabled={isLoading} className="w-full h-12 bg-primary text-primary-foreground font-semibold text-base hover:brightness-110 transition-all glow-primary-sm hover:glow-primary xl:h-13 xl:text-[1.02rem] 2xl:h-14 2xl:text-lg">
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : t("login.submit")}
