@@ -408,7 +408,7 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
   getCurrentBlock: (planId) => {
     const detail = get().details[planId];
     if (!detail) return null;
-    const activeWeek = detail.weeks.find((w) => w.status === "active");
+    const activeWeek = detail.weeks.find((w) => String(w.status).toUpperCase() === "ACTIVE");
     return activeWeek?.block || detail.block;
   },
 
