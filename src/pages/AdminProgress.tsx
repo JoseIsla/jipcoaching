@@ -365,14 +365,11 @@ const AdminProgress = () => {
   const [search, setSearch] = useState("");
   const activeClients = useClientStore((s) => s.getActiveClients)();
   const filtered = activeClients.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())).sort((a, b) => a.name.localeCompare(b.name, "es"));
-  const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
-
   const fetchWeightHistory = useQuestionnaireStore((s) => s.fetchWeightHistory);
   const fetchRMRecords = useQuestionnaireStore((s) => s.fetchRMRecords);
 
-  // Fetch all check-ins and per-client weight/RM data
+  // Fetch per-client weight/RM data; check-ins globales ya se cargan en AdminLayout
   useEffect(() => {
-    fetchEntries();
     activeClients.forEach((c) => {
       fetchWeightHistory(c.id);
       fetchRMRecords(c.id);

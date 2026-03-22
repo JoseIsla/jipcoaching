@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useContactLeadsStore, type ContactLead } from "@/data/useContactLeadsStore";
 import { motion } from "framer-motion";
@@ -10,7 +10,6 @@ import { es } from "date-fns/locale";
 
 const AdminLeads = () => {
   const { leads, markAsRead, deleteLead, fetchLeads } = useContactLeadsStore();
-  useEffect(() => { fetchLeads(); }, []);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const selected = leads.find((l) => l.id === selectedId);
