@@ -320,6 +320,82 @@ router.put("/weeks/:weekId", requireRole("ADMIN"), async (req, res) => {
   }
 });
 
+// DELETE /api/training/weeks/:weekId
+router.delete("/weeks/:weekId", requireRole("ADMIN"), async (req, res) => {
+  try {
+    const week = await prisma.trainingWeek.findUnique({
+      where: { id: req.params.weekId as string },
+      include: {
+        plan: true,
+        days: true,
+      },
+    });
+
+    if (!week) {
+      res.status(404).json({ message: "Semana no encontrada" });
+      return;
+    }
+
+    const allWeeks = await prisma.trainingWeek.findMany({
+      where: { planId: week.planId },
+      orderBy: { weekNumber: "asc" },
+    });
+
+    if (allWeeks.length <= 1) {
+      res.status(400).json({ message: "El plan debe mantener al menos una semana" });
+      return;
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.trainingWeek.delete({ where: { id: week.id } });
+
+      const remainingWeeks = allWeeks.filter((item) => item.id !== week.id);
+
+      for (const [index, remainingWeek] of remainingWeeks.entries()) {
+        const nextWeekNumber = index + 1;
+        if (remainingWeek.weekNumber !== nextWeekNumber) {
+          await tx.trainingWeek.update({
+            where: { id: remainingWeek.id },
+            data: { weekNumber: nextWeekNumber },
+          });
+        }
+      }
+
+      const activeWeekStillExists = remainingWeeks.some((item) => item.status === "ACTIVE");
+
+      if (!activeWeekStillExists) {
+        const replacementWeek = remainingWeeks.find((item) => item.weekNumber < week.weekNumber)
+          ?? remainingWeeks[remainingWeeks.length - 1];
+
+        await tx.trainingWeek.update({
+          where: { id: replacementWeek.id },
+          data: { status: "ACTIVE" },
+        });
+      }
+
+      const refreshedWeeks = await tx.trainingWeek.findMany({
+        where: { planId: week.planId },
+        orderBy: { weekNumber: "asc" },
+      });
+
+      const activeWeek = refreshedWeeks.find((item) => item.status === "ACTIVE");
+      const lastWeek = refreshedWeeks[refreshedWeeks.length - 1];
+
+      await tx.trainingPlan.update({
+        where: { id: week.planId },
+        data: {
+          block: activeWeek?.block ?? lastWeek?.block ?? week.plan.block,
+        },
+      });
+    });
+
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error("DELETE /training/weeks/:weekId error:", err);
+    res.status(500).json({ message: "Error al eliminar semana" });
+  }
+});
+
 // ── Days ──
 
 // PUT /api/training/days/:dayId

@@ -11,6 +11,16 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import type { TrainingBlock } from "@/data/useTrainingPlanStore";
 import {
@@ -423,8 +433,10 @@ const AdminTrainingPlanDetail = () => {
   const [plan, setPlan] = useState<TrainingPlanFull | null>(null);
   const [weekIdx, setWeekIdx] = useState(0);
   const [currentWeek, setCurrentWeek] = useState<TrainingWeek | null>(null);
+  const [deleteTargetWeek, setDeleteTargetWeek] = useState<TrainingWeek | null>(null);
 
   const [saving, setSaving] = useState(false);
+  const [deletingWeek, setDeletingWeek] = useState(false);
 
   useEffect(() => {
     if (!planId) return;
@@ -588,6 +600,45 @@ const AdminTrainingPlanDetail = () => {
     }
   };
 
+  const handleDeleteWeek = async () => {
+    if (!plan || !deleteTargetWeek || plan.weeks.length <= 1) return;
+
+    setDeletingWeek(true);
+    try {
+      await api.delete(`/training/weeks/${deleteTargetWeek.id}`);
+      const updatedDetail = await useTrainingPlanStore.getState().fetchPlanDetail(plan.id);
+      if (!updatedDetail || updatedDetail.weeks.length === 0) {
+        navigate("/admin/training");
+        return;
+      }
+
+      setPlan({ ...updatedDetail });
+
+      const nextIdx = Math.min(
+        updatedDetail.weeks.length - 1,
+        plan.weeks.findIndex((week) => week.id === deleteTargetWeek.id)
+      );
+      const safeIdx = nextIdx >= 0 ? nextIdx : 0;
+
+      setWeekIdx(safeIdx);
+      setCurrentWeek(JSON.parse(JSON.stringify(updatedDetail.weeks[safeIdx])));
+      setDeleteTargetWeek(null);
+
+      toast({
+        title: "Semana eliminada",
+        description: `La semana ${deleteTargetWeek.weekNumber} se eliminó correctamente.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err?.message || "Error al eliminar la semana",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingWeek(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6 animate-fade-in">
@@ -604,6 +655,14 @@ const AdminTrainingPlanDetail = () => {
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-xs">{plan.blockVariants || "Sin variantes definidas"}</Badge>
+            <Button
+              variant="outline"
+              className="gap-2"
+              disabled={plan.weeks.length <= 1 || deletingWeek}
+              onClick={() => setDeleteTargetWeek(currentWeek)}
+            >
+              <Trash2 className="h-4 w-4" /> Eliminar semana
+            </Button>
             <Button onClick={handleSave} className="glow-primary-sm gap-2" disabled={saving}>
               <Save className="h-4 w-4" /> {saving ? "Guardando..." : "Guardar semana"}
             </Button>
@@ -628,23 +687,33 @@ const AdminTrainingPlanDetail = () => {
                     const realIdx = group.indices[gi];
                     const isCompleted = w.status === "completed";
                     return (
-                      <Button
-                        key={w.id}
-                        variant={realIdx === weekIdx ? "default" : "outline"}
-                        size="sm"
-                        className={`text-xs shrink-0 gap-1 ${isCompleted && realIdx !== weekIdx ? "opacity-50" : ""}`}
-                        onClick={() => {
-                          if (isCompleted) return;
-                          setWeekIdx(realIdx);
-                          setCurrentWeek(JSON.parse(JSON.stringify(plan.weeks[realIdx])));
-                        }}
-                        disabled={isCompleted}
-                      >
-                        {isCompleted && <Lock className="h-3 w-3" />}
-                        Sem {w.weekNumber}
-                        {w.status === "active" && " ●"}
-                        {w.status === "completed" && " ✓"}
-                      </Button>
+                      <div key={w.id} className="flex items-center gap-1.5">
+                        <Button
+                          variant={realIdx === weekIdx ? "default" : "outline"}
+                          size="sm"
+                          className={`text-xs shrink-0 gap-1 ${isCompleted && realIdx !== weekIdx ? "opacity-50" : ""}`}
+                          onClick={() => {
+                            if (isCompleted) return;
+                            setWeekIdx(realIdx);
+                            setCurrentWeek(JSON.parse(JSON.stringify(plan.weeks[realIdx])));
+                          }}
+                          disabled={isCompleted}
+                        >
+                          {isCompleted && <Lock className="h-3 w-3" />}
+                          Sem {w.weekNumber}
+                          {w.status === "active" && " ●"}
+                          {w.status === "completed" && " ✓"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          disabled={plan.weeks.length <= 1 || deletingWeek}
+                          onClick={() => setDeleteTargetWeek(w)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     );
                   })}
                 </div>
@@ -680,6 +749,29 @@ const AdminTrainingPlanDetail = () => {
             <Save className="h-4 w-4" /> {saving ? "Guardando..." : "Guardar semana"}
           </Button>
         </div>
+
+        <AlertDialog open={!!deleteTargetWeek} onOpenChange={(open) => { if (!open) setDeleteTargetWeek(null); }}>
+          <AlertDialogContent className="bg-card border-border">
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar semana?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {plan.weeks.length <= 1
+                  ? "El plan debe mantener al menos una semana."
+                  : `Se eliminará la semana ${deleteTargetWeek?.weekNumber} y se reordenarán las semanas restantes.`}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deletingWeek}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteWeek}
+                disabled={plan.weeks.length <= 1 || deletingWeek}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deletingWeek ? "Eliminando..." : "Eliminar"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );
