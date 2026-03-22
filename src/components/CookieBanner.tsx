@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { forwardRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Cookie, X } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -6,7 +6,7 @@ import { useTranslation } from "@/i18n/useTranslation";
 
 const COOKIE_CONSENT_KEY = "jip-cookie-consent";
 
-const CookieBanner = () => {
+const CookieBanner = forwardRef<HTMLDivElement>((_, ref) => {
   const [visible, setVisible] = useState(false);
   const { t } = useTranslation();
 
@@ -33,6 +33,7 @@ const CookieBanner = () => {
     <AnimatePresence>
       {visible && (
         <motion.div
+          ref={ref}
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
@@ -90,6 +91,8 @@ const CookieBanner = () => {
       )}
     </AnimatePresence>
   );
-};
+});
+
+CookieBanner.displayName = "CookieBanner";
 
 export default CookieBanner;

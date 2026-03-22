@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Suspense, forwardRef, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -66,69 +66,73 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <PWAUpdateBanner />
-      <OfflineNotice />
-      <AuthProvider>
-        <AdminProfileProvider>
-          <ClientProvider>
-            <ClientProfileProvider>
-            <BrowserRouter>
-              <Suspense fallback={<LoadingScreen />}>
-                <Routes>
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/home" element={<Navigate to="/" replace />} />
-                  <Route path="/legal/aviso-legal" element={<AvisoLegal />} />
-                  <Route path="/legal/privacidad" element={<PoliticaPrivacidad />} />
-                  <Route path="/legal/cookies" element={<PoliticaCookies />} />
-                  <Route
-                    path="/login"
-                    element={
-                      <PublicRoute>
-                        <LoginPage />
-                      </PublicRoute>
-                    }
-                  />
-                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                  <Route path="/reset-password" element={<ResetPasswordPage />} />
-                  <Route path="/verify-email" element={<VerifyEmailPage />} />
-                  <Route path="/install" element={<InstallPage />} />
-                  <Route path="/admin" element={<RoleRoute allowedRole="admin"><AdminDashboard /></RoleRoute>} />
-                  <Route path="/admin/clients" element={<RoleRoute allowedRole="admin"><AdminClients /></RoleRoute>} />
-                  <Route path="/admin/clients/:id" element={<RoleRoute allowedRole="admin"><AdminClientDetail /></RoleRoute>} />
-                  <Route path="/admin/nutrition" element={<RoleRoute allowedRole="admin"><AdminNutrition /></RoleRoute>} />
-                  <Route path="/admin/nutrition/:planId" element={<RoleRoute allowedRole="admin"><AdminNutritionPlanView /></RoleRoute>} />
-                  <Route path="/admin/nutrition/:planId/edit" element={<RoleRoute allowedRole="admin"><AdminNutritionPlanDetail /></RoleRoute>} />
-                  <Route path="/admin/training" element={<RoleRoute allowedRole="admin"><AdminTraining /></RoleRoute>} />
-                  <Route path="/admin/training/:planId" element={<RoleRoute allowedRole="admin"><AdminTrainingPlanView /></RoleRoute>} />
-                  <Route path="/admin/training/:planId/edit" element={<RoleRoute allowedRole="admin"><AdminTrainingPlanDetail /></RoleRoute>} />
-                  <Route path="/admin/exercises" element={<RoleRoute allowedRole="admin"><AdminExerciseLibrary /></RoleRoute>} />
-                  <Route path="/admin/leads" element={<RoleRoute allowedRole="admin"><AdminLeads /></RoleRoute>} />
-                  <Route path="/admin/emails" element={<RoleRoute allowedRole="admin"><AdminEmailTemplates /></RoleRoute>} />
-                  <Route path="/admin/settings" element={<RoleRoute allowedRole="admin"><AdminSettings /></RoleRoute>} />
-                  <Route path="/admin/checkins" element={<RoleRoute allowedRole="admin"><AdminCheckins /></RoleRoute>} />
-                  <Route path="/admin/questionnaires" element={<RoleRoute allowedRole="admin"><AdminQuestionnaires /></RoleRoute>} />
-                  <Route path="/admin/progress" element={<RoleRoute allowedRole="admin"><AdminProgress /></RoleRoute>} />
-                  <Route path="/client" element={<RoleRoute allowedRole="client"><ClientHome /></RoleRoute>} />
-                  <Route path="/client/nutrition" element={<RoleRoute allowedRole="client"><ClientNutrition /></RoleRoute>} />
-                  <Route path="/client/training" element={<RoleRoute allowedRole="client"><ClientTraining /></RoleRoute>} />
-                  <Route path="/client/checkins" element={<RoleRoute allowedRole="client"><ClientCheckins /></RoleRoute>} />
-                  <Route path="/client/progress" element={<RoleRoute allowedRole="client"><ClientProgress /></RoleRoute>} />
-                  <Route path="/client/settings" element={<RoleRoute allowedRole="client"><ClientSettings /></RoleRoute>} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-            </BrowserRouter>
-            </ClientProfileProvider>
-          </ClientProvider>
-        </AdminProfileProvider>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = forwardRef<HTMLDivElement>((_, ref) => (
+  <div ref={ref} style={{ display: "contents" }}>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <PWAUpdateBanner />
+        <OfflineNotice />
+        <AuthProvider>
+          <AdminProfileProvider>
+            <ClientProvider>
+              <ClientProfileProvider>
+              <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <Suspense fallback={<LoadingScreen />}>
+                  <Routes>
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/home" element={<Navigate to="/" replace />} />
+                    <Route path="/legal/aviso-legal" element={<AvisoLegal />} />
+                    <Route path="/legal/privacidad" element={<PoliticaPrivacidad />} />
+                    <Route path="/legal/cookies" element={<PoliticaCookies />} />
+                    <Route
+                      path="/login"
+                      element={
+                        <PublicRoute>
+                          <LoginPage />
+                        </PublicRoute>
+                      }
+                    />
+                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    <Route path="/reset-password" element={<ResetPasswordPage />} />
+                    <Route path="/verify-email" element={<VerifyEmailPage />} />
+                    <Route path="/install" element={<InstallPage />} />
+                    <Route path="/admin" element={<RoleRoute allowedRole="admin"><AdminDashboard /></RoleRoute>} />
+                    <Route path="/admin/clients" element={<RoleRoute allowedRole="admin"><AdminClients /></RoleRoute>} />
+                    <Route path="/admin/clients/:id" element={<RoleRoute allowedRole="admin"><AdminClientDetail /></RoleRoute>} />
+                    <Route path="/admin/nutrition" element={<RoleRoute allowedRole="admin"><AdminNutrition /></RoleRoute>} />
+                    <Route path="/admin/nutrition/:planId" element={<RoleRoute allowedRole="admin"><AdminNutritionPlanView /></RoleRoute>} />
+                    <Route path="/admin/nutrition/:planId/edit" element={<RoleRoute allowedRole="admin"><AdminNutritionPlanDetail /></RoleRoute>} />
+                    <Route path="/admin/training" element={<RoleRoute allowedRole="admin"><AdminTraining /></RoleRoute>} />
+                    <Route path="/admin/training/:planId" element={<RoleRoute allowedRole="admin"><AdminTrainingPlanView /></RoleRoute>} />
+                    <Route path="/admin/training/:planId/edit" element={<RoleRoute allowedRole="admin"><AdminTrainingPlanDetail /></RoleRoute>} />
+                    <Route path="/admin/exercises" element={<RoleRoute allowedRole="admin"><AdminExerciseLibrary /></RoleRoute>} />
+                    <Route path="/admin/leads" element={<RoleRoute allowedRole="admin"><AdminLeads /></RoleRoute>} />
+                    <Route path="/admin/emails" element={<RoleRoute allowedRole="admin"><AdminEmailTemplates /></RoleRoute>} />
+                    <Route path="/admin/settings" element={<RoleRoute allowedRole="admin"><AdminSettings /></RoleRoute>} />
+                    <Route path="/admin/checkins" element={<RoleRoute allowedRole="admin"><AdminCheckins /></RoleRoute>} />
+                    <Route path="/admin/questionnaires" element={<RoleRoute allowedRole="admin"><AdminQuestionnaires /></RoleRoute>} />
+                    <Route path="/admin/progress" element={<RoleRoute allowedRole="admin"><AdminProgress /></RoleRoute>} />
+                    <Route path="/client" element={<RoleRoute allowedRole="client"><ClientHome /></RoleRoute>} />
+                    <Route path="/client/nutrition" element={<RoleRoute allowedRole="client"><ClientNutrition /></RoleRoute>} />
+                    <Route path="/client/training" element={<RoleRoute allowedRole="client"><ClientTraining /></RoleRoute>} />
+                    <Route path="/client/checkins" element={<RoleRoute allowedRole="client"><ClientCheckins /></RoleRoute>} />
+                    <Route path="/client/progress" element={<RoleRoute allowedRole="client"><ClientProgress /></RoleRoute>} />
+                    <Route path="/client/settings" element={<RoleRoute allowedRole="client"><ClientSettings /></RoleRoute>} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </BrowserRouter>
+              </ClientProfileProvider>
+            </ClientProvider>
+          </AdminProfileProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </div>
+));
+
+App.displayName = "App";
 
 export default App;

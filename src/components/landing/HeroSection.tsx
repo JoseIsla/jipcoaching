@@ -37,7 +37,6 @@ const HeroSection = () => {
           alt="Competición de powerlifting"
           className="w-full h-full object-cover object-[center_45%] opacity-[0.18]"
           loading="eager"
-          fetchPriority="high"
           decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
