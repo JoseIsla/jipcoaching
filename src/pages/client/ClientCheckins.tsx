@@ -966,6 +966,7 @@ const ClientCheckins = () => {
   const getOrCreateTrainingEntry = useQuestionnaireStore((s) => s.getOrCreateTrainingEntry);
   const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
   const generateMyCheckins = useQuestionnaireStore((s) => s.generateMyCheckins);
+  const fetchComments = useMediaStore((s) => s.fetchComments);
 
   // Ensure we don't create the local auto check-in before the API has had a chance to return.
   const [hasFetched, setHasFetched] = useState(false);
@@ -977,14 +978,17 @@ const ClientCheckins = () => {
     setSyncError(false);
     try {
       await generateMyCheckins();
-      await fetchEntries(client.id);
+      await Promise.all([
+        fetchEntries(client.id),
+        fetchComments(client.id),
+      ]);
       setHasFetched(true);
     } catch {
       setSyncError(true);
     } finally {
       setIsSyncing(false);
     }
-  }, [client.id, fetchEntries, generateMyCheckins]);
+  }, [client.id, fetchComments, fetchEntries, generateMyCheckins]);
 
   // Generate + fetch check-ins from API on mount
   useEffect(() => {
