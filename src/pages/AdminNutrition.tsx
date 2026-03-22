@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Utensils, MoreHorizontal, CheckCircle2, XCircle, Calendar, User, Power, Pencil, ChevronDown, ChevronUp, Eye } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -22,8 +22,6 @@ const AdminNutrition = () => {
   const plans = useNutritionPlanStore((s) => s.plans);
   const fetchPlans = useNutritionPlanStore((s) => s.fetchPlans);
   const togglePlanActive = useNutritionPlanStore((s) => s.togglePlanActive);
-
-  useEffect(() => { fetchPlans(); }, []);
 
   const matchesSearch = (p: NutritionPlanListEntry) =>
     (p.clientName ?? "").toLowerCase().includes(search.toLowerCase()) ||

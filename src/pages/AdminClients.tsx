@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus, Utensils, Dumbbell, MoreHorizontal, UserX, UserCheck, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,8 +35,6 @@ const AdminClients = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { clients, fetchClients, addClient, updateClientStatus, deleteClient: removeClient } = useClientStore();
-
-  useEffect(() => { fetchClients(); }, [fetchClients]);
 
   const handleClientAdded = async (data: NewClientData) => {
     // The AddClientSheet now handles calling the API directly
