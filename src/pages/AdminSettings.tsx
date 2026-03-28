@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Camera, Save, Shield, Bell, Globe, User, Trash2, Loader2 } from "lucide-react";
+import { Camera, Save, Shield, Bell, Globe, User, Trash2, Loader2, Sun, Moon, Monitor } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useLanguageStore, type Language } from "@/i18n/store";
