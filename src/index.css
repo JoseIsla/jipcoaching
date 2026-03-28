@@ -116,12 +116,24 @@
     box-shadow: 0 0 20px hsl(110 100% 54% / 0.3), 0 0 60px hsl(110 100% 54% / 0.1);
   }
 
+  .light .glow-primary {
+    box-shadow: 0 4px 14px hsl(110 72% 30% / 0.15), 0 1px 3px hsl(110 72% 30% / 0.1);
+  }
+
   .glow-primary-sm {
     box-shadow: 0 0 10px hsl(110 100% 54% / 0.2);
   }
 
+  .light .glow-primary-sm {
+    box-shadow: 0 2px 8px hsl(110 72% 30% / 0.12);
+  }
+
   .text-glow {
     text-shadow: 0 0 20px hsl(110 100% 54% / 0.5);
+  }
+
+  .light .text-glow {
+    text-shadow: none;
   }
 
   .safe-area-top {
