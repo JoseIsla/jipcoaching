@@ -63,7 +63,7 @@ router.get("/admin", async (req, res) => {
 // PUT /api/profile/admin
 router.put("/admin", async (req, res) => {
   try {
-    const { name, phone, timezone, language, notifications } = req.body;
+    const { name, phone, timezone, language, theme, notifications } = req.body;
     await prisma.adminProfile.update({
       where: { userId: req.user!.userId },
       data: {
@@ -71,6 +71,7 @@ router.put("/admin", async (req, res) => {
         ...(phone !== undefined && { phone }),
         ...(timezone !== undefined && { timezone }),
         ...(language !== undefined && { language }),
+        ...(theme !== undefined && { theme }),
         ...(notifications && {
           notifEmail: notifications.email,
           notifPush: notifications.push,
