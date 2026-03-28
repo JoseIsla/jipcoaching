@@ -108,7 +108,7 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
       <div className="relative z-10 w-full max-w-[30rem] animate-fade-in xl:max-w-[32rem]">
         <div className="flex flex-col justify-center gap-6 lg:gap-7 2xl:gap-8">
           <div className="flex justify-center">
-            <img src={logoJip} alt="JIP Performance Nutrition" className="h-20 w-auto lg:h-[5.5rem]" />
+            <img src={activeLogo} alt="JIP Performance Nutrition" className="h-20 w-auto lg:h-[5.5rem]" />
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-7 shadow-sm space-y-4 sm:p-8 lg:space-y-5 lg:p-9 xl:rounded-[1.75rem]">
