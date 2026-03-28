@@ -103,6 +103,7 @@ router.get("/client", async (req, res) => {
       email: client.user.email,
       phone: client.phone,
       avatarUrl: client.user.avatarUrl,
+      theme: client.theme,
     });
   } catch (err: any) {
     res.status(500).json({ message: "Error al obtener perfil" });
