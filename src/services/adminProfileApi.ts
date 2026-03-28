@@ -21,6 +21,7 @@ export interface AdminProfile {
   avatarUrl: string | null;
   timezone: string;
   language: string;
+  theme: string;
   notifications: {
     email: boolean;
     push: boolean;

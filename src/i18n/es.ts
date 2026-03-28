@@ -525,6 +525,14 @@ const es = {
     language: "Idioma",
     spanish: "Español",
     english: "English",
+    // Appearance
+    appearance: "Apariencia",
+    appearanceDesc: "Elige el modo de visualización",
+    darkMode: "Oscuro",
+    lightMode: "Claro",
+    systemMode: "Sistema",
+    themeSaved: "Tema actualizado",
+    themeSavedDesc: "Tu preferencia de tema se ha guardado.",
   },
 
   // ── Client Panel ──

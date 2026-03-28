@@ -26,6 +26,7 @@ export interface ClientProfile {
   email: string;
   phone: string;
   avatarUrl: string | null;
+  theme: string;
 }
 
 export interface UpdateClientProfilePayload {

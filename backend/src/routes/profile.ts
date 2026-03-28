@@ -113,12 +113,13 @@ router.get("/client", async (req, res) => {
 // PUT /api/profile/client
 router.put("/client", async (req, res) => {
   try {
-    const { name, phone } = req.body;
+    const { name, phone, theme } = req.body;
     await prisma.client.update({
       where: { userId: req.user!.userId },
       data: {
         ...(name !== undefined && { name }),
         ...(phone !== undefined && { phone }),
+        ...(theme !== undefined && { theme }),
       },
     });
     res.json({ success: true });

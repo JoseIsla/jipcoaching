@@ -521,6 +521,14 @@ const en: Translations = {
     language: "Language",
     spanish: "Español",
     english: "English",
+    // Appearance
+    appearance: "Appearance",
+    appearanceDesc: "Choose your display mode",
+    darkMode: "Dark",
+    lightMode: "Light",
+    systemMode: "System",
+    themeSaved: "Theme updated",
+    themeSavedDesc: "Your theme preference has been saved.",
   },
 
   // ── Client Panel ──

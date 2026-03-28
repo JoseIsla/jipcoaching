@@ -219,6 +219,7 @@ model Client {
   status      ClientStatus @default(ACTIVE)
   monthlyFee  Float        @default(0)
   notes       String?      @db.Text
+  theme       String       @default("dark") @db.VarChar(10)
   startDate   DateTime?
   lastPaidAt  DateTime?
   createdAt   DateTime     @default(now())
