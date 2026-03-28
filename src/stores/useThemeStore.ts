@@ -12,7 +12,15 @@ const applyTheme = (theme: ThemeMode) => {
   const isLight =
     theme === "light" ||
     (theme === "system" && window.matchMedia("(prefers-color-scheme: light)").matches);
+
+  // Enable transition class briefly for smooth theme change
+  document.documentElement.classList.add("theme-transitioning");
   document.documentElement.classList.toggle("light", isLight);
+
+  // Remove transition class after animation completes to avoid interfering with other transitions
+  setTimeout(() => {
+    document.documentElement.classList.remove("theme-transitioning");
+  }, 400);
 };
 
 export const useThemeStore = create<ThemeState>((set, get) => ({
