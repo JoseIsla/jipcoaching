@@ -60,6 +60,7 @@ let mockProfile: ClientProfile = {
   email: "carlos@email.com",
   phone: "+34 612 345 678",
   avatarUrl: null,
+  theme: "dark",
 };
 
 // ── Fetch Profile ──

@@ -66,6 +66,7 @@ let mockProfile: AdminProfile = {
   avatarUrl: null,
   timezone: "Europe/Madrid",
   language: "Español",
+  theme: "dark",
   notifications: { email: true, push: true, newClient: true, paymentReminder: true },
 };
 
