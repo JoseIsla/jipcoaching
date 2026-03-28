@@ -66,19 +66,19 @@ const NutritionProgressTab = ({ clientId, weightData }: NutritionProgressTabProp
             </h3>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={weightData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 16%)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis
                   dataKey="date"
-                  tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }}
+                  tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                   tickFormatter={(d) => { const dt = new Date(d); return `${dt.getDate()}/${dt.getMonth() + 1}`; }}
                 />
-                <YAxis domain={["dataMin - 1", "dataMax + 1"]} tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }} />
+                <YAxis domain={["dataMin - 1", "dataMax + 1"]} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
                 <Tooltip
-                  contentStyle={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(110 100% 54% / 0.3)", borderRadius: 8, fontSize: 12, color: "hsl(0 0% 100%)" }}
-                  itemStyle={{ color: "hsl(110 100% 54%)" }}
+                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--primary) / 0.3)", borderRadius: 8, fontSize: 12, color: "hsl(var(--card-foreground))" }}
+                  itemStyle={{ color: "hsl(var(--primary))" }}
                   labelFormatter={(d) => new Date(d).toLocaleDateString("es-ES")}
                 />
-                <Line type="monotone" dataKey="weight" stroke="hsl(110 100% 54%)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                <Line type="monotone" dataKey="weight" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
               </LineChart>
             </ResponsiveContainer>
           </motion.div>

@@ -33,13 +33,13 @@ const AdherenceCard = ({ clientId }: AdherenceCardProps) => {
       {adherenceData.length > 0 ? (
         <ResponsiveContainer width="100%" height={120}>
           <BarChart data={adherenceData} barCategoryGap="20%">
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 16%)" vertical={false} />
-            <XAxis dataKey="week" tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }} axisLine={false} tickLine={false} />
-            <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
-            <ReferenceLine y={100} stroke="hsl(110 100% 54%)" strokeDasharray="3 3" strokeOpacity={0.3} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+            <XAxis dataKey="week" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+            <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
+            <ReferenceLine y={100} stroke="hsl(var(--primary))" strokeDasharray="3 3" strokeOpacity={0.3} />
             <Tooltip
-              contentStyle={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(0 0% 16%)", borderRadius: 8, fontSize: 12, color: "hsl(0 0% 100%)" }}
-              itemStyle={{ color: "hsl(110 100% 54%)" }}
+              contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12, color: "hsl(var(--card-foreground))" }}
+              itemStyle={{ color: "hsl(var(--primary))" }}
               formatter={(value: number, _name: string, props: any) => [`${value}% (${props.payload.answered}/${props.payload.total})`, props.payload.weekFull]}
               labelFormatter={() => ""}
             />
