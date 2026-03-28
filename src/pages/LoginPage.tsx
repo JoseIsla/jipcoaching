@@ -26,6 +26,9 @@ const LoginPage = forwardRef<HTMLDivElement>((_, ref) => {
   const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
   const setLanguage = useLanguageStore((s) => s.setLanguage);
   const language = useLanguageStore((s) => s.language);
+  const theme = useThemeStore((s) => s.theme);
+  const isLightActive = theme === "light" || (theme === "system" && typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: light)").matches);
+  const activeLogo = isLightActive ? logoJipDark : logoJip;
 
   const [userChangedLang, setUserChangedLang] = useState(false);
   useState(() => {
