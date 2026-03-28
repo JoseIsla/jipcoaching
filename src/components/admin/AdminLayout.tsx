@@ -22,6 +22,8 @@ interface AdminLayoutProps {
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const location = useLocation();
   const { userId } = useAuth();
+  const { profile } = useAdminProfile();
+  const initTheme = useThemeStore((s) => s.initTheme);
   const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
   const fetchNotifications = useNotificationStore((s) => s.fetchNotifications);
   const fetchLeads = useContactLeadsStore((s) => s.fetchLeads);
