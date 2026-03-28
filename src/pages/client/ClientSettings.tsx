@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Camera, Mail, Lock, User, Eye, EyeOff, Globe, Trash2, Volume2, Vibrate, Loader2 } from "lucide-react";
+import { Camera, Mail, Lock, User, Eye, EyeOff, Globe, Trash2, Volume2, Vibrate, Loader2, Sun, Moon, Monitor } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useLanguageStore, type Language } from "@/i18n/store";
