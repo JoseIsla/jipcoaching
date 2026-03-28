@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useLanguageStore, type Language } from "@/i18n/store";
 import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
+import { useThemeStore, type ThemeMode } from "@/stores/useThemeStore";
 
 const ClientSettings = () => {
   const { profile, loading, saving, saveProfile, handleUploadAvatar, handleDeleteAvatar, handleChangeEmail, handleChangePassword } = useClientProfile();
