@@ -21,6 +21,8 @@ import {
   Activity,
 } from "lucide-react";
 import logoJip from "@/assets/logo-jip.png";
+import logoJipDark from "@/assets/logo-jip-dark.png";
+import { useThemeStore } from "@/stores/useThemeStore";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
