@@ -104,6 +104,9 @@ export const MobileMenuButton = () => {
 const AdminSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const theme = useThemeStore((s) => s.theme);
+  const isLightActive = theme === "light" || (theme === "system" && window.matchMedia("(prefers-color-scheme: light)").matches);
+  const activeLogo = isLightActive ? logoJipDark : logoJip;
   const location = useLocation();
   const isMobile = useIsMobile();
   const { t } = useTranslation();
