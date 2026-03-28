@@ -21,6 +21,7 @@ export interface AdminProfile {
   avatarUrl: string | null;
   timezone: string;
   language: string;
+  theme: string;
   notifications: {
     email: boolean;
     push: boolean;
@@ -65,6 +66,7 @@ let mockProfile: AdminProfile = {
   avatarUrl: null,
   timezone: "Europe/Madrid",
   language: "Español",
+  theme: "dark",
   notifications: { email: true, push: true, newClient: true, paymentReminder: true },
 };
 

@@ -6,6 +6,8 @@ import AdminHeader from "@/components/admin/AdminHeader";
 import AnimatedPage from "@/components/admin/AnimatedPage";
 import { useLanguageStore } from "@/i18n/store";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminProfile } from "@/contexts/AdminProfileContext";
+import { useThemeStore } from "@/stores/useThemeStore";
 import { useNotificationStore } from "@/data/notificationStore";
 import { useContactLeadsStore } from "@/data/useContactLeadsStore";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
@@ -20,6 +22,8 @@ interface AdminLayoutProps {
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const location = useLocation();
   const { userId } = useAuth();
+  const { profile } = useAdminProfile();
+  const initTheme = useThemeStore((s) => s.initTheme);
   const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
   const fetchNotifications = useNotificationStore((s) => s.fetchNotifications);
   const fetchLeads = useContactLeadsStore((s) => s.fetchLeads);
@@ -30,6 +34,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const fetchTrainingPlans = useTrainingPlanStore((s) => s.fetchPlans);
 
   useEffect(() => { if (userId) setCurrentUser(userId); }, [setCurrentUser, userId]);
+
+  // Initialize theme from profile
+  useEffect(() => {
+    if (profile?.theme) initTheme(profile.theme);
+  }, [profile?.theme, initTheme]);
 
   // Fetch notifications and leads on mount + poll every 60s
   useEffect(() => {

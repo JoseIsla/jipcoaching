@@ -26,6 +26,7 @@ export interface ClientProfile {
   email: string;
   phone: string;
   avatarUrl: string | null;
+  theme: string;
 }
 
 export interface UpdateClientProfilePayload {
@@ -59,6 +60,7 @@ let mockProfile: ClientProfile = {
   email: "carlos@email.com",
   phone: "+34 612 345 678",
   avatarUrl: null,
+  theme: "dark",
 };
 
 // ── Fetch Profile ──

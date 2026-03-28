@@ -47,6 +47,7 @@ router.get("/admin", async (req, res) => {
       avatarUrl: user.avatarUrl,
       timezone: user.adminProfile.timezone,
       language: user.adminProfile.language,
+      theme: user.adminProfile.theme,
       notifications: {
         email: user.adminProfile.notifEmail,
         push: user.adminProfile.notifPush,
@@ -62,7 +63,7 @@ router.get("/admin", async (req, res) => {
 // PUT /api/profile/admin
 router.put("/admin", async (req, res) => {
   try {
-    const { name, phone, timezone, language, notifications } = req.body;
+    const { name, phone, timezone, language, theme, notifications } = req.body;
     await prisma.adminProfile.update({
       where: { userId: req.user!.userId },
       data: {
@@ -70,6 +71,7 @@ router.put("/admin", async (req, res) => {
         ...(phone !== undefined && { phone }),
         ...(timezone !== undefined && { timezone }),
         ...(language !== undefined && { language }),
+        ...(theme !== undefined && { theme }),
         ...(notifications && {
           notifEmail: notifications.email,
           notifPush: notifications.push,
@@ -101,6 +103,7 @@ router.get("/client", async (req, res) => {
       email: client.user.email,
       phone: client.phone,
       avatarUrl: client.user.avatarUrl,
+      theme: client.theme,
     });
   } catch (err: any) {
     res.status(500).json({ message: "Error al obtener perfil" });
@@ -110,12 +113,13 @@ router.get("/client", async (req, res) => {
 // PUT /api/profile/client
 router.put("/client", async (req, res) => {
   try {
-    const { name, phone } = req.body;
+    const { name, phone, theme } = req.body;
     await prisma.client.update({
       where: { userId: req.user!.userId },
       data: {
         ...(name !== undefined && { name }),
         ...(phone !== undefined && { phone }),
+        ...(theme !== undefined && { theme }),
       },
     });
     res.json({ success: true });

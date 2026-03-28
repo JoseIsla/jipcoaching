@@ -13,11 +13,12 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Camera, Mail, Lock, User, Eye, EyeOff, Globe, Trash2, Volume2, Vibrate, Loader2 } from "lucide-react";
+import { Camera, Mail, Lock, User, Eye, EyeOff, Globe, Trash2, Volume2, Vibrate, Loader2, Sun, Moon, Monitor } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useLanguageStore, type Language } from "@/i18n/store";
 import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
+import { useThemeStore, type ThemeMode } from "@/stores/useThemeStore";
 
 const ClientSettings = () => {
   const { profile, loading, saving, saveProfile, handleUploadAvatar, handleDeleteAvatar, handleChangeEmail, handleChangePassword } = useClientProfile();
@@ -32,6 +33,8 @@ const ClientSettings = () => {
   const notifVibration = useClientPreferencesStore((s) => s.notificationVibration);
   const setNotifSound = useClientPreferencesStore((s) => s.setNotificationSound);
   const setNotifVibration = useClientPreferencesStore((s) => s.setNotificationVibration);
+  const currentTheme = useThemeStore((s) => s.theme);
+  const setTheme = useThemeStore((s) => s.setTheme);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -378,6 +381,38 @@ const ClientSettings = () => {
               </div>
               <Switch checked={notifVibration} onCheckedChange={setNotifVibration} />
             </div>
+          </div>
+        </motion.div>
+
+        {/* Appearance */}
+        <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-5 space-y-4">
+          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Sun className="h-4 w-4 text-primary" />
+            {t("settings.appearance")}
+          </h2>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { value: "dark" as ThemeMode, label: t("settings.darkMode"), icon: Moon },
+              { value: "light" as ThemeMode, label: t("settings.lightMode"), icon: Sun },
+              { value: "system" as ThemeMode, label: t("settings.systemMode"), icon: Monitor },
+            ]).map((opt) => (
+              <button
+                key={opt.value}
+                onClick={async () => {
+                  setTheme(opt.value);
+                  await saveProfile({ name, phone, theme: opt.value } as any);
+                  toast({ title: t("settings.themeSaved"), description: t("settings.themeSavedDesc") });
+                }}
+                className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 transition-all ${
+                  currentTheme === opt.value
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-muted/30 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                }`}
+              >
+                <opt.icon className="h-4 w-4" />
+                <span className="text-xs font-medium">{opt.label}</span>
+              </button>
+            ))}
           </div>
         </motion.div>
 
