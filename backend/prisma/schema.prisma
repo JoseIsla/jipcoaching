@@ -195,6 +195,7 @@ model AdminProfile {
   notifPush     Boolean @default(true)
   notifNewClient    Boolean @default(true)
   notifPaymentReminder Boolean @default(true)
+  theme         String  @default("dark") @db.VarChar(10)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
