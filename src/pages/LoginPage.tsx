@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import LoadingScreen from "@/components/LoadingScreen";
 import PWAInstallBanner from "@/components/PWAInstallBanner";
 import logoJip from "@/assets/logo-jip.png";
+import logoJipDark from "@/assets/logo-jip-dark.png";
+import { useThemeStore } from "@/stores/useThemeStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "@/services/api";
 import { DEV_MOCK } from "@/config/devMode";
