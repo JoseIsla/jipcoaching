@@ -45,6 +45,8 @@ const AdminSettings = () => {
   const { t } = useTranslation();
   const setAppLanguage = useLanguageStore((s) => s.setLanguage);
   const appLanguage = useLanguageStore((s) => s.language);
+  const currentTheme = useThemeStore((s) => s.theme);
+  const setTheme = useThemeStore((s) => s.setTheme);
 
   const {
     profile,
