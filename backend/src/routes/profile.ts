@@ -47,6 +47,7 @@ router.get("/admin", async (req, res) => {
       avatarUrl: user.avatarUrl,
       timezone: user.adminProfile.timezone,
       language: user.adminProfile.language,
+      theme: user.adminProfile.theme,
       notifications: {
         email: user.adminProfile.notifEmail,
         push: user.adminProfile.notifPush,
