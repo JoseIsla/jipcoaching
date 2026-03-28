@@ -6,6 +6,8 @@ import AdminHeader from "@/components/admin/AdminHeader";
 import AnimatedPage from "@/components/admin/AnimatedPage";
 import { useLanguageStore } from "@/i18n/store";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminProfile } from "@/contexts/AdminProfileContext";
+import { useThemeStore } from "@/stores/useThemeStore";
 import { useNotificationStore } from "@/data/notificationStore";
 import { useContactLeadsStore } from "@/data/useContactLeadsStore";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
