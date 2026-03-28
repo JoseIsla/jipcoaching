@@ -60,6 +60,14 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
   const location = useLocation();
 
   useEffect(() => { if (userId) setCurrentUser(userId); }, [setCurrentUser, userId]);
+
+  // Initialize theme from profile
+  const { profile: clientProfile } = useClientProfile();
+  const initTheme = useThemeStore((s) => s.initTheme);
+  useEffect(() => {
+    if (clientProfile?.theme) initTheme(clientProfile.theme);
+  }, [clientProfile?.theme, initTheme]);
+
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Notification store

@@ -35,6 +35,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   useEffect(() => { if (userId) setCurrentUser(userId); }, [setCurrentUser, userId]);
 
+  // Initialize theme from profile
+  useEffect(() => {
+    if (profile?.theme) initTheme(profile.theme);
+  }, [profile?.theme, initTheme]);
+
   // Fetch notifications and leads on mount + poll every 60s
   useEffect(() => {
     fetchNotifications();
