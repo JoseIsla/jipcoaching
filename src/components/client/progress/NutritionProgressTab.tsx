@@ -91,13 +91,13 @@ const NutritionProgressTab = ({ clientId, weightData }: NutritionProgressTabProp
             </h3>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={weightDeltas}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 16%)" vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: "hsl(0 0% 60%)" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}kg`} />
-                <ReferenceLine y={0} stroke="hsl(0 0% 30%)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}kg`} />
+                <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" />
                 <Tooltip
-                  contentStyle={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(110 100% 54% / 0.3)", borderRadius: 8, fontSize: 12, color: "hsl(0 0% 100%)" }}
-                  itemStyle={{ color: "hsl(110 100% 54%)" }}
+                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--primary) / 0.3)", borderRadius: 8, fontSize: 12, color: "hsl(var(--card-foreground))" }}
+                  itemStyle={{ color: "hsl(var(--primary))" }}
                   formatter={(value: number) => [`${value > 0 ? "+" : ""}${value} kg`, "Variación"]}
                   labelFormatter={(label) => `Semana ${label}`}
                 />
