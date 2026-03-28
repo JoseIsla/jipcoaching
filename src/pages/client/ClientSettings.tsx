@@ -384,6 +384,38 @@ const ClientSettings = () => {
           </div>
         </motion.div>
 
+        {/* Appearance */}
+        <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-5 space-y-4">
+          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Sun className="h-4 w-4 text-primary" />
+            {t("settings.appearance")}
+          </h2>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { value: "dark" as ThemeMode, label: t("settings.darkMode"), icon: Moon },
+              { value: "light" as ThemeMode, label: t("settings.lightMode"), icon: Sun },
+              { value: "system" as ThemeMode, label: t("settings.systemMode"), icon: Monitor },
+            ]).map((opt) => (
+              <button
+                key={opt.value}
+                onClick={async () => {
+                  setTheme(opt.value);
+                  await saveProfile({ name, phone, theme: opt.value } as any);
+                  toast({ title: t("settings.themeSaved"), description: t("settings.themeSavedDesc") });
+                }}
+                className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 transition-all ${
+                  currentTheme === opt.value
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-muted/30 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                }`}
+              >
+                <opt.icon className="h-4 w-4" />
+                <span className="text-xs font-medium">{opt.label}</span>
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
         {/* Language */}
         <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">

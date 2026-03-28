@@ -408,6 +408,43 @@ const AdminSettings = () => {
           </CardContent>
         </Card>
 
+        {/* Appearance */}
+        <Card className="bg-card border-border">
+          <CardHeader className="flex flex-row items-center gap-2">
+            <Sun className="h-5 w-5 text-primary" />
+            <div>
+              <CardTitle className="text-lg">{t("settings.appearance")}</CardTitle>
+              <CardDescription>{t("settings.appearanceDesc")}</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-3">
+              {([
+                { value: "dark" as ThemeMode, label: t("settings.darkMode"), icon: Moon },
+                { value: "light" as ThemeMode, label: t("settings.lightMode"), icon: Sun },
+                { value: "system" as ThemeMode, label: t("settings.systemMode"), icon: Monitor },
+              ]).map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={async () => {
+                    setTheme(opt.value);
+                    await saveProfile({ name, phone, timezone, language, notifications, theme: opt.value } as any);
+                    toast({ title: t("settings.themeSaved"), description: t("settings.themeSavedDesc") });
+                  }}
+                  className={`flex flex-col items-center gap-2 rounded-lg border p-4 transition-all ${
+                    currentTheme === opt.value
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-muted/30 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                  }`}
+                >
+                  <opt.icon className="h-5 w-5" />
+                  <span className="text-sm font-medium">{opt.label}</span>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Preferences */}
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center gap-2">
