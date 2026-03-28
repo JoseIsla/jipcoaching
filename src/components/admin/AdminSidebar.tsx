@@ -21,6 +21,8 @@ import {
   Activity,
 } from "lucide-react";
 import logoJip from "@/assets/logo-jip.png";
+import logoJipDark from "@/assets/logo-jip-dark.png";
+import { useThemeStore } from "@/stores/useThemeStore";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
@@ -102,6 +104,9 @@ export const MobileMenuButton = () => {
 const AdminSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const theme = useThemeStore((s) => s.theme);
+  const isLightActive = theme === "light" || (theme === "system" && window.matchMedia("(prefers-color-scheme: light)").matches);
+  const activeLogo = isLightActive ? logoJipDark : logoJip;
   const location = useLocation();
   const isMobile = useIsMobile();
   const { t } = useTranslation();
@@ -227,7 +232,7 @@ const AdminSidebar = () => {
       >
         <div className="flex items-center justify-center h-20 border-b border-sidebar-border px-4">
           {!collapsed ? (
-            <img src={logoJip} alt="JIP" className="h-12 w-auto" />
+            <img src={activeLogo} alt="JIP" className="h-12 w-auto" />
           ) : (
             <span className="text-primary font-black text-xl">J</span>
           )}
@@ -261,7 +266,7 @@ const AdminSidebar = () => {
         }`}
       >
         <div className="flex items-center justify-between h-16 border-b border-sidebar-border px-4">
-          <img src={logoJip} alt="JIP" className="h-10 w-auto" />
+          <img src={activeLogo} alt="JIP" className="h-10 w-auto" />
           <button
             onClick={() => setMobileOpen(false)}
             className="text-muted-foreground hover:text-foreground"
