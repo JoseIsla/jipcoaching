@@ -16,6 +16,7 @@ import { Camera, Save, Shield, Bell, Globe, User, Trash2, Loader2, Sun, Moon, Mo
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useLanguageStore, type Language } from "@/i18n/store";
+import { useThemeStore, type ThemeMode } from "@/stores/useThemeStore";
 
 const TIMEZONES = [
   "Europe/Madrid",
