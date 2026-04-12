@@ -710,6 +710,15 @@ const AdminTrainingPlanDetail = () => {
                           onValueChange={async (newStatus) => {
                             setUpdatingStatus(true);
                             try {
+                              // If setting a week to ACTIVE, first mark the currently active week as COMPLETED
+                              if (newStatus === "ACTIVE") {
+                                const currentlyActive = plan.weeks.find(
+                                  (wk) => wk.id !== w.id && (wk.status?.toUpperCase() === "ACTIVE")
+                                );
+                                if (currentlyActive) {
+                                  await api.put(`/training/weeks/${currentlyActive.id}`, { status: "COMPLETED" });
+                                }
+                              }
                               await api.put(`/training/weeks/${w.id}`, { status: newStatus });
                               const updatedDetail = await useTrainingPlanStore.getState().fetchPlanDetail(plan.id);
                               if (updatedDetail) {
