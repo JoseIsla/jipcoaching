@@ -193,11 +193,12 @@ const ClientTraining = () => {
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-semibold text-foreground">{t("clientTraining.week", { n: currentWeek.weekNumber })}</span>
-              {currentWeek.status === "active" && (
-                <Badge variant="default" className="text-[10px]">
-                  {t("clientTraining.current")}
-                </Badge>
-              )}
+              {(() => {
+                const s = String(currentWeek.status).toUpperCase();
+                if (s === "ACTIVE") return <Badge variant="default" className="text-[10px]">{t("clientTraining.current")}</Badge>;
+                if (s === "COMPLETED") return <Badge variant="secondary" className="text-[10px]">Completada ✓</Badge>;
+                return <Badge variant="outline" className="text-[10px]">Borrador</Badge>;
+              })()}
             </div>
             {currentWeek.generalNotes && <div className="bg-muted/30 border border-border/40 rounded-lg p-3"><p className="text-xs text-muted-foreground">{currentWeek.generalNotes}</p></div>}
             <div className="space-y-2">{[...currentWeek.days].sort((a, b) => a.dayNumber - b.dayNumber).map((day) => <DayView key={day.id} day={day} t={t} />)}</div>
