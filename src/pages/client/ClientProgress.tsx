@@ -112,8 +112,9 @@ const ClientProgress = () => {
             )}
 
             {hasTraining && (
-              <TabsContent value="training">
+              <TabsContent value="training" className="space-y-4">
                 <TrainingProgressTab bestRMs={bestRMs} trainingProgress={trainingProgress} />
+                <TechniqueVideosSection clientId={client.id} />
               </TabsContent>
             )}
           </Tabs>
