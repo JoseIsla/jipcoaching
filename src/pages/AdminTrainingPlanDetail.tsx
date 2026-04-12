@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "@/services/api";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, Plus, Trash2, GripVertical, Dumbbell, ChevronDown, ChevronRight, Lock, Copy } from "lucide-react";
+import { ArrowLeft, Save, Plus, Trash2, GripVertical, Dumbbell, ChevronDown, ChevronRight, Lock, Copy, Circle, CheckCircle2, FileEdit } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -434,6 +434,7 @@ const AdminTrainingPlanDetail = () => {
   const [weekIdx, setWeekIdx] = useState(0);
   const [currentWeek, setCurrentWeek] = useState<TrainingWeek | null>(null);
   const [deleteTargetWeek, setDeleteTargetWeek] = useState<TrainingWeek | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [deletingWeek, setDeletingWeek] = useState(false);
@@ -685,29 +686,59 @@ const AdminTrainingPlanDetail = () => {
                 <div className="flex gap-2 flex-wrap">
                   {group.weeks.map((w, gi) => {
                     const realIdx = group.indices[gi];
-                    const isCompleted = w.status === "completed";
+                    const statusUpper = String(w.status).toUpperCase();
+                    const isCompleted = statusUpper === "COMPLETED";
+                    const isActive = statusUpper === "ACTIVE";
                     return (
-                      <div key={w.id} className="flex items-center gap-1.5">
+                      <div key={w.id} className="flex items-center gap-1">
                         <Button
                           variant={realIdx === weekIdx ? "default" : "outline"}
                           size="sm"
-                          className={`text-xs shrink-0 gap-1 ${isCompleted && realIdx !== weekIdx ? "opacity-50" : ""}`}
+                          className={`text-xs shrink-0 gap-1 ${isCompleted && realIdx !== weekIdx ? "opacity-60" : ""}`}
                           onClick={() => {
-                            if (isCompleted) return;
                             setWeekIdx(realIdx);
                             setCurrentWeek(JSON.parse(JSON.stringify(plan.weeks[realIdx])));
                           }}
-                          disabled={isCompleted}
                         >
                           {isCompleted && <Lock className="h-3 w-3" />}
                           Sem {w.weekNumber}
-                          {w.status === "active" && " ●"}
-                          {w.status === "completed" && " ✓"}
+                          {isActive && " ●"}
+                          {isCompleted && " ✓"}
                         </Button>
+                        <Select
+                          value={statusUpper}
+                          onValueChange={async (newStatus) => {
+                            setUpdatingStatus(true);
+                            try {
+                              await api.put(`/training/weeks/${w.id}`, { status: newStatus });
+                              const updatedDetail = await useTrainingPlanStore.getState().fetchPlanDetail(plan.id);
+                              if (updatedDetail) {
+                                setPlan({ ...updatedDetail });
+                                // Keep viewing the same week
+                                setCurrentWeek(JSON.parse(JSON.stringify(updatedDetail.weeks[weekIdx])));
+                              }
+                              toast({ title: "Estado actualizado", description: `Semana ${w.weekNumber} → ${newStatus === "ACTIVE" ? "Activa" : newStatus === "COMPLETED" ? "Completada" : "Borrador"}` });
+                            } catch (err: any) {
+                              toast({ title: "Error", description: err?.message || "Error al cambiar estado", variant: "destructive" });
+                            } finally {
+                              setUpdatingStatus(false);
+                            }
+                          }}
+                          disabled={updatingStatus}
+                        >
+                          <SelectTrigger className="h-7 w-7 p-0 border-none bg-transparent hover:bg-muted/50 [&>svg]:hidden justify-center">
+                            {isActive ? <Circle className="h-3.5 w-3.5 text-primary fill-primary" /> : isCompleted ? <CheckCircle2 className="h-3.5 w-3.5 text-muted-foreground" /> : <FileEdit className="h-3.5 w-3.5 text-muted-foreground" />}
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ACTIVE"><span className="flex items-center gap-1.5"><Circle className="h-3 w-3 text-primary fill-primary" /> Activa</span></SelectItem>
+                            <SelectItem value="COMPLETED"><span className="flex items-center gap-1.5"><CheckCircle2 className="h-3 w-3" /> Completada</span></SelectItem>
+                            <SelectItem value="DRAFT"><span className="flex items-center gap-1.5"><FileEdit className="h-3 w-3" /> Borrador</span></SelectItem>
+                          </SelectContent>
+                        </Select>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
                           disabled={plan.weeks.length <= 1 || deletingWeek}
                           onClick={() => setDeleteTargetWeek(w)}
                         >
