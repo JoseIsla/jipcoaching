@@ -8,6 +8,7 @@ import { useTranslation } from "@/i18n/useTranslation";
 import AdherenceCard from "@/components/client/progress/AdherenceCard";
 import NutritionProgressTab from "@/components/client/progress/NutritionProgressTab";
 import TrainingProgressTab from "@/components/client/progress/TrainingProgressTab";
+import TechniqueVideosSection from "@/components/client/TechniqueVideosSection";
 import { motion } from "framer-motion";
 import PullToRefresh from "@/components/client/PullToRefresh";
 
@@ -111,8 +112,9 @@ const ClientProgress = () => {
             )}
 
             {hasTraining && (
-              <TabsContent value="training">
+              <TabsContent value="training" className="space-y-4">
                 <TrainingProgressTab bestRMs={bestRMs} trainingProgress={trainingProgress} />
+                <TechniqueVideosSection clientId={client.id} />
               </TabsContent>
             )}
           </Tabs>
