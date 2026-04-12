@@ -434,6 +434,7 @@ const AdminTrainingPlanDetail = () => {
   const [weekIdx, setWeekIdx] = useState(0);
   const [currentWeek, setCurrentWeek] = useState<TrainingWeek | null>(null);
   const [deleteTargetWeek, setDeleteTargetWeek] = useState<TrainingWeek | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [deletingWeek, setDeletingWeek] = useState(false);
