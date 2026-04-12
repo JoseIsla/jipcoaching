@@ -735,8 +735,8 @@ const AdminTrainingPlanDetail = () => {
                           }}
                           disabled={updatingStatus}
                         >
-                          <SelectTrigger className="h-7 w-7 p-0 border-none bg-transparent hover:bg-muted/50 [&>svg]:hidden justify-center">
-                            {isActive ? <Circle className="h-3.5 w-3.5 text-primary fill-primary" /> : isCompleted ? <CheckCircle2 className="h-3.5 w-3.5 text-muted-foreground" /> : <FileEdit className="h-3.5 w-3.5 text-muted-foreground" />}
+                          <SelectTrigger className="h-7 px-2 text-[10px] rounded-md border border-border bg-muted/40 hover:bg-muted gap-1 [&>svg:last-child]:h-3 [&>svg:last-child]:w-3">
+                            {isActive ? <><Circle className="h-3 w-3 text-primary fill-primary" /> <span>Activa</span></> : isCompleted ? <><CheckCircle2 className="h-3 w-3 text-muted-foreground" /> <span>Completada</span></> : <><FileEdit className="h-3 w-3 text-muted-foreground" /> <span>Borrador</span></>}
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="ACTIVE"><span className="flex items-center gap-1.5"><Circle className="h-3 w-3 text-primary fill-primary" /> Activa</span></SelectItem>
