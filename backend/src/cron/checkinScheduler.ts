@@ -254,7 +254,7 @@ async function generateTrainingCheckins() {
         });
 
         await prisma.checkinTrainingExercise.createMany({
-          data: logExercises.map((ex) => {
+          data: logExercises.map((ex, idx) => {
             const method = ex.method || "STRAIGHT_SETS";
 
             // Compute plannedSets based on method
@@ -303,6 +303,7 @@ async function generateTrainingCheckins() {
               plannedReps,
               plannedLoad,
               plannedRPE: ex.topSetRpe,
+              sortOrder: ex.order ?? idx,
             };
           }),
         });
