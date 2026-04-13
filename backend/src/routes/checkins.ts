@@ -55,6 +55,13 @@ trainingLogs: {
       return `${year}-${month}-${day}`;
     };
 
+    // Collect all video URLs to batch-resolve TechniqueVideo IDs
+    const allVideoUrls = checkins.flatMap((c) => c.videos.map((v) => v.url));
+    const techniqueVideos = allVideoUrls.length > 0
+      ? await prisma.techniqueVideo.findMany({ where: { url: { in: allVideoUrls } }, select: { id: true, url: true } })
+      : [];
+    const urlToTechniqueId = new Map(techniqueVideos.map((tv) => [tv.url, tv.id]));
+
     // Transform to match frontend QuestionnaireEntry format
     const rawResult = checkins.map((c) => ({
       id: c.id,
@@ -93,6 +100,7 @@ trainingLogs: {
       })),
       techniqueVideos: c.videos.map((v) => ({
         id: v.id,
+        techniqueVideoId: urlToTechniqueId.get(v.url) || undefined,
         exerciseName: v.exerciseName,
         url: v.url,
         notes: v.notes,
