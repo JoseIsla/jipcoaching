@@ -866,7 +866,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                         <div className="p-2 space-y-1.5">
                           <p className="text-xs font-semibold text-foreground">{v.exerciseName}</p>
                           {v.notes && <p className="text-[10px] text-muted-foreground">{v.notes}</p>}
-                          <ClientMediaComments targetType="video" targetId={v.id} />
+                          <ClientMediaComments targetType="video" targetId={v.techniqueVideoId || v.id} />
                         </div>
                       </div>
                     ))}

@@ -65,6 +65,7 @@ export type QuestionnaireStatus = "pendiente" | "respondido" | "revisado" | "exp
 
 export interface CheckinVideo {
   id: string;
+  techniqueVideoId?: string;
   exerciseName: string;
   url: string;
   notes?: string;
