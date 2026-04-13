@@ -97,6 +97,7 @@ trainingLogs: {
         url: v.url,
         notes: v.notes,
         uploadedAt: v.uploadedAt.toISOString(),
+        techniqueVideoId: (v as any).techniqueVideoId || undefined,
       })),
       planId: c.planId,
       weekNumber: c.weekNumber,
