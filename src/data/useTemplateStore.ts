@@ -127,7 +127,7 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
   // ── API actions ──
 
   fetchTemplates: async () => {
-    if (DEV_MOCK) return;
+    if (isLocalMode()) return;
     set({ loading: true, error: null });
     try {
       const data = await api.get<ApiTemplate[]>("/questionnaires");
@@ -157,7 +157,7 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
   },
 
   saveTemplate: async (templateId: string) => {
-    if (DEV_MOCK) return;
+    if (isLocalMode()) return;
     const state = get();
 
     // Check if this is a mock template that needs to be created first

@@ -141,7 +141,7 @@ export const useMediaStore = create<MediaState>((set, get) => ({
   loading: false,
 
   fetchPhotos: async (clientId) => {
-    if (DEV_MOCK) return;
+    if (isLocalMode()) return;
     set({ loading: true });
     try {
       const data = await api.get<ProgressPhoto[]>(`/clients/${clientId}/media/photos`);
@@ -160,7 +160,7 @@ export const useMediaStore = create<MediaState>((set, get) => ({
   },
 
   fetchVideos: async (clientId) => {
-    if (DEV_MOCK) return;
+    if (isLocalMode()) return;
     set({ loading: true });
     try {
       const data = await api.get<TechniqueVideo[]>(`/clients/${clientId}/media/videos`);
@@ -179,7 +179,7 @@ export const useMediaStore = create<MediaState>((set, get) => ({
   },
 
   fetchComments: async (clientId) => {
-    if (DEV_MOCK) return;
+    if (isLocalMode()) return;
     try {
       const data = await api.get<MediaComment[]>(`/media/comments?clientId=${clientId}`);
       set((s) => ({
@@ -238,20 +238,20 @@ export const useMediaStore = create<MediaState>((set, get) => ({
   })),
   removePhoto: (photoId) => {
     set((s) => ({ photos: s.photos.filter((p) => p.id !== photoId) }));
-    if (!DEV_MOCK) {
+    if (!isLocalMode()) {
       api.delete(`/media/photos/${photoId}`).catch(() => {});
     }
   },
   addVideo: (video) => set((s) => ({ videos: [...s.videos, video] })),
   removeVideo: (videoId) => {
     set((s) => ({ videos: s.videos.filter((v) => v.id !== videoId) }));
-    if (!DEV_MOCK) {
+    if (!isLocalMode()) {
       api.delete(`/media/videos/${videoId}`).catch(() => {});
     }
   },
   addComment: (comment) => {
     set((s) => ({ comments: [...s.comments, comment] }));
-    if (!DEV_MOCK) {
+    if (!isLocalMode()) {
       // Post to API — server will generate id/createdAt
       api.post<MediaComment>("/media/comments", {
         targetType: comment.targetType,
@@ -275,7 +275,7 @@ export const useMediaStore = create<MediaState>((set, get) => ({
     const exists = get().comments.some((c) => c.id === commentId);
     if (!exists) return;
     set((s) => ({ comments: s.comments.filter((c) => c.id !== commentId) }));
-    if (!DEV_MOCK) {
+    if (!isLocalMode()) {
       api.delete(`/media/comments/${commentId}`).catch(() => {});
     }
   },
