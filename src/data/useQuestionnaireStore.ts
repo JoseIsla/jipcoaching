@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { api, API_BASE_URL, AUTH_TOKEN_KEY } from "@/services/api";
 import type { ApiQuestionnaire, ApiSession } from "@/types/api";
-import { DEV_MOCK } from "@/config/devMode";
+import { DEV_MOCK, isLocalMode } from "@/config/devMode";
 import { mockQuestionnaireEntries, mockWeightHistory, mockRMRecords } from "@/data/mockCheckins";
 import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
 import { useClientDetailStore } from "@/data/useClientDetailStore";
@@ -181,7 +181,13 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   // ── API actions ──
 
   fetchEntries: async (clientId) => {
-    if (DEV_MOCK) return;
+    if (isLocalMode()) {
+      // Seed mock data if store is empty (demo mode)
+      if (get().entries.length === 0) {
+        set({ entries: mockQuestionnaireEntries, weightHistory: mockWeightHistory, rmRecords: mockRMRecords });
+      }
+      return;
+    }
     set({ loading: true, error: null });
     try {
       const query = clientId ? `?clientId=${clientId}` : "";
@@ -211,7 +217,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   },
 
   fetchWeightHistory: async (clientId) => {
-    if (DEV_MOCK) return;
+    if (isLocalMode()) return;
     try {
       const data = await api.get<WeightEntry[]>(`/checkins/weight/${clientId}`);
       set((s) => ({
@@ -223,7 +229,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   },
 
   fetchRMRecords: async (clientId) => {
-    if (DEV_MOCK) return;
+    if (isLocalMode()) return;
     try {
       const data = await api.get<RMRecord[]>(`/checkins/rm/${clientId}`);
       set((s) => ({
