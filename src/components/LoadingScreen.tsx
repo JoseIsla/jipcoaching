@@ -1,5 +1,4 @@
 import logoJip from "@/assets/logo-jip.png";
-import logoJip from "@/assets/logo-jip.png";
 import logoJipDark from "@/assets/logo-jip-dark.png";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "@/i18n/useTranslation";
