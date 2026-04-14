@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { api } from "@/services/api";
-import { DEV_MOCK } from "@/config/devMode";
+import { DEV_MOCK, isLocalMode } from "@/config/devMode";
 
 export type NotificationType = "checkin" | "client" | "plan" | "system";
 
@@ -99,8 +99,13 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   _dismissedIds: new Set<string>(),
 
   fetchNotifications: async () => {
-    if (DEV_MOCK) return;
-
+    if (isLocalMode()) {
+      // Seed mock notifications if store is empty (demo mode)
+      if (get().notifications.length === 0) {
+        set({ notifications: initialNotifications, unreadCount: initialNotifications.filter((n) => !n.read).length });
+      }
+      return;
+    }
     set({ loading: true });
     try {
       const data = await api.get<any[]>("/notifications");
@@ -127,7 +132,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       return { notifications: updated, unreadCount: updated.filter((n) => !n.read).length };
     });
 
-    if (!DEV_MOCK) {
+    if (!isLocalMode()) {
       api.patch(`/notifications/${id}/read`).catch(() => {});
     }
   },
@@ -138,7 +143,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       unreadCount: 0,
     }));
 
-    if (!DEV_MOCK) {
+    if (!isLocalMode()) {
       api.patch("/notifications/read-all").catch(() => {});
     }
   },
@@ -155,7 +160,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       };
     });
 
-    if (!DEV_MOCK) {
+    if (!isLocalMode()) {
       api.delete(`/notifications/${id}`).catch(() => {});
     }
   },
@@ -168,7 +173,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       return { notifications: [], unreadCount: 0, _dismissedIds: dismissed };
     });
 
-    if (!DEV_MOCK) {
+    if (!isLocalMode()) {
       ids.forEach((id) => api.delete(`/notifications/${id}`).catch(() => {}));
     }
   },

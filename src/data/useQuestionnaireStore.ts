@@ -282,7 +282,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   },
 
   generateMyCheckins: async () => {
-    if (DEV_MOCK) return;
+    if (isLocalMode()) return;
     try {
       await api.post("/checkins/generate-mine", {});
     } catch (err: any) {
@@ -291,7 +291,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   },
 
   generateWeeklyCheckins: async () => {
-    if (DEV_MOCK) return 0;
+    if (isLocalMode()) return 0;
     try {
       const result = await api.post<{ created: number }>("/checkins/generate-weekly", {});
       return result?.created ?? 0;
@@ -308,7 +308,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
         e.id === entryId ? { ...e, status: "revisado" as const } : e
       ),
     }));
-    if (!DEV_MOCK) {
+    if (!isLocalMode()) {
       try {
         await api.patch(`/checkins/${entryId}/review`, {});
       } catch (err: any) {
@@ -330,7 +330,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
     const entry = state.entries.find((e) => e.id === entryId);
 
     // Submit to API and confirm before updating local state
-    if (!DEV_MOCK && entry) {
+    if (!isLocalMode() && entry) {
       try {
         await api.post(`/checkins/${entryId}/submit`, { responses, trainingLog });
       } catch (err: any) {
