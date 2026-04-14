@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { api } from "@/services/api";
-import { DEV_MOCK } from "@/config/devMode";
+import { DEV_MOCK, isLocalMode } from "@/config/devMode";
 import {
   exerciseLibrary as initialExercises,
   type ExerciseLibraryItem,

@@ -11,7 +11,7 @@
  */
 
 import { api, API_BASE_URL, AUTH_TOKEN_KEY } from "@/services/api";
-import { DEV_MOCK } from "@/config/devMode";
+import { DEV_MOCK, isLocalMode } from "@/config/devMode";
 
 /** Resolve relative upload URLs to full server URLs */
 const resolveAvatarUrl = (url: string | null): string | null => {

@@ -4,7 +4,7 @@
  */
 import { create } from "zustand";
 import { api, API_BASE_URL } from "@/services/api";
-import { DEV_MOCK } from "@/config/devMode";
+import { DEV_MOCK, isLocalMode } from "@/config/devMode";
 import type { ProgressPhoto, ProgressPhotoSession, TechniqueVideo, MediaComment } from "@/types/media";
 import { PHOTO_INTERVAL_DAYS } from "@/types/media";
 

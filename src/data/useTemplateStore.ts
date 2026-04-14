@@ -7,7 +7,7 @@ import {
   type QuestionDefinition,
 } from "@/data/questionnaireDefs";
 import { api } from "@/services/api";
-import { DEV_MOCK } from "@/config/devMode";
+import { DEV_MOCK, isLocalMode } from "@/config/devMode";
 
 // ── API → Frontend mappers ──
 
