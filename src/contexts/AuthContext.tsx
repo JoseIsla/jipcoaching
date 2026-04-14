@@ -1,4 +1,4 @@
-import { createContext, forwardRef, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { fetchSessionRequest, loginRequest, type LoginPayload, type UserRole } from "@/services/authApi";
 import { AUTH_TOKEN_KEY } from "@/services/api";
 import { disableDemoMode } from "@/config/devMode";
@@ -23,7 +23,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export const AuthProvider = forwardRef<unknown, { children: ReactNode }>(({ children }, _ref) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [status, setStatus] = useState<AuthStatus>("checking");
   const [role, setRole] = useState<UserRole | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -93,9 +93,7 @@ export const AuthProvider = forwardRef<unknown, { children: ReactNode }>(({ chil
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-});
-
-AuthProvider.displayName = "AuthProvider";
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

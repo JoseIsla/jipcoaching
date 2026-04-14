@@ -1,4 +1,4 @@
-import { createContext, forwardRef, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { compressImage } from "@/utils/compressMedia";
 import { API_BASE_URL } from "@/services/api";
@@ -30,7 +30,7 @@ interface AdminProfileContextValue {
 
 const AdminProfileContext = createContext<AdminProfileContextValue | null>(null);
 
-export const AdminProfileProvider = forwardRef<unknown, { children: ReactNode }>(({ children }, _ref) => {
+export const AdminProfileProvider = ({ children }: { children: ReactNode }) => {
   const { status, role } = useAuth();
   const [profile, setProfile] = useState<AdminProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -127,9 +127,7 @@ export const AdminProfileProvider = forwardRef<unknown, { children: ReactNode }>
       {children}
     </AdminProfileContext.Provider>
   );
-});
-
-AdminProfileProvider.displayName = "AdminProfileProvider";
+};
 
 export function useAdminProfile() {
   const ctx = useContext(AdminProfileContext);

@@ -1,4 +1,4 @@
-import { createContext, forwardRef, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { compressImage } from "@/utils/compressMedia";
 import { API_BASE_URL } from "@/services/api";
@@ -30,7 +30,7 @@ interface ClientProfileContextValue {
 
 const ClientProfileContext = createContext<ClientProfileContextValue | null>(null);
 
-export const ClientProfileProvider = forwardRef<unknown, { children: ReactNode }>(({ children }, _ref) => {
+export const ClientProfileProvider = ({ children }: { children: ReactNode }) => {
   const { status, role } = useAuth();
   const [profile, setProfile] = useState<ClientProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -128,9 +128,7 @@ export const ClientProfileProvider = forwardRef<unknown, { children: ReactNode }
       {children}
     </ClientProfileContext.Provider>
   );
-});
-
-ClientProfileProvider.displayName = "ClientProfileProvider";
+};
 
 export function useClientProfile() {
   const ctx = useContext(ClientProfileContext);

@@ -1,4 +1,4 @@
-import { createContext, forwardRef, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import type { ApiClient } from "@/types/api";
 import { isClientActive, getServicesFromPack } from "@/types/api";
 import { useClientStore } from "@/data/useClientStore";
@@ -39,7 +39,7 @@ export const useClient = () => {
   return ctx;
 };
 
-export const ClientProvider = forwardRef<unknown, { children: ReactNode }>(({ children }, _ref) => {
+export const ClientProvider = ({ children }: { children: ReactNode }) => {
   const { status, role, userId } = useAuth();
   const allStoreClients = useClientStore((s) => s.clients);
   const fetchClients = useClientStore((s) => s.fetchClients);
@@ -119,6 +119,4 @@ export const ClientProvider = forwardRef<unknown, { children: ReactNode }>(({ ch
       {children}
     </ClientContext.Provider>
   );
-});
-
-ClientProvider.displayName = "ClientProvider";
+};
