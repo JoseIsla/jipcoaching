@@ -141,7 +141,10 @@ export const useMediaStore = create<MediaState>((set, get) => ({
   loading: false,
 
   fetchPhotos: async (clientId) => {
-    if (isLocalMode()) return;
+    if (isLocalMode()) {
+      if (get().photos.length === 0) set({ photos: mockPhotos });
+      return;
+    }
     set({ loading: true });
     try {
       const data = await api.get<ProgressPhoto[]>(`/clients/${clientId}/media/photos`);
@@ -160,7 +163,10 @@ export const useMediaStore = create<MediaState>((set, get) => ({
   },
 
   fetchVideos: async (clientId) => {
-    if (isLocalMode()) return;
+    if (isLocalMode()) {
+      if (get().videos.length === 0) set({ videos: mockVideos });
+      return;
+    }
     set({ loading: true });
     try {
       const data = await api.get<TechniqueVideo[]>(`/clients/${clientId}/media/videos`);
@@ -179,7 +185,10 @@ export const useMediaStore = create<MediaState>((set, get) => ({
   },
 
   fetchComments: async (clientId) => {
-    if (isLocalMode()) return;
+    if (isLocalMode()) {
+      if (get().comments.length === 0) set({ comments: mockComments });
+      return;
+    }
     try {
       const data = await api.get<MediaComment[]>(`/media/comments?clientId=${clientId}`);
       set((s) => ({
