@@ -30,7 +30,7 @@ interface AdminProfileContextValue {
 
 const AdminProfileContext = createContext<AdminProfileContextValue | null>(null);
 
-export const AdminProfileProvider = forwardRef<unknown, { children: ReactNode }>(({ children }, _ref) => {
+export const AdminProfileProvider = ({ children }: { children: ReactNode }) => {
   const { status, role } = useAuth();
   const [profile, setProfile] = useState<AdminProfile | null>(null);
   const [loading, setLoading] = useState(true);

@@ -39,7 +39,7 @@ export const useClient = () => {
   return ctx;
 };
 
-export const ClientProvider = forwardRef<unknown, { children: ReactNode }>(({ children }, _ref) => {
+export const ClientProvider = ({ children }: { children: ReactNode }) => {
   const { status, role, userId } = useAuth();
   const allStoreClients = useClientStore((s) => s.clients);
   const fetchClients = useClientStore((s) => s.fetchClients);

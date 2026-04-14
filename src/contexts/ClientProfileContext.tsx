@@ -30,7 +30,7 @@ interface ClientProfileContextValue {
 
 const ClientProfileContext = createContext<ClientProfileContextValue | null>(null);
 
-export const ClientProfileProvider = forwardRef<unknown, { children: ReactNode }>(({ children }, _ref) => {
+export const ClientProfileProvider = ({ children }: { children: ReactNode }) => {
   const { status, role } = useAuth();
   const [profile, setProfile] = useState<ClientProfile | null>(null);
   const [loading, setLoading] = useState(true);
