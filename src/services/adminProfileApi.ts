@@ -11,7 +11,7 @@
  */
 
 import { api, API_BASE_URL, AUTH_TOKEN_KEY } from "@/services/api";
-import { DEV_MOCK, isLocalMode } from "@/config/devMode";
+import { DEV_MOCK } from "@/config/devMode";
 
 export interface AdminProfile {
   name: string;
@@ -73,7 +73,7 @@ let mockProfile: AdminProfile = {
 // ── Fetch Profile ──
 
 export async function fetchAdminProfile(): Promise<ApiResponse<AdminProfile>> {
-  if (isLocalMode()) {
+  if (DEV_MOCK) {
     await delay(400);
     return { success: true, data: { ...mockProfile } };
   }
@@ -89,7 +89,7 @@ export async function fetchAdminProfile(): Promise<ApiResponse<AdminProfile>> {
 // ── Update Profile ──
 
 export async function updateAdminProfile(payload: UpdateProfilePayload): Promise<ApiResponse<AdminProfile>> {
-  if (isLocalMode()) {
+  if (DEV_MOCK) {
     await delay();
     mockProfile = { ...mockProfile, ...payload };
     return { success: true, data: { ...mockProfile } };
@@ -114,7 +114,7 @@ export async function uploadAvatar(file: File): Promise<ApiResponse<{ avatarUrl:
     return { success: false, error: "Formato no permitido. Usa JPG, PNG o WebP." };
   }
 
-  if (isLocalMode()) {
+  if (DEV_MOCK) {
     await delay(800);
     const avatarUrl = URL.createObjectURL(file);
     mockProfile = { ...mockProfile, avatarUrl };
@@ -147,7 +147,7 @@ export async function uploadAvatar(file: File): Promise<ApiResponse<{ avatarUrl:
 // ── Delete Avatar ──
 
 export async function deleteAvatar(): Promise<ApiResponse> {
-  if (isLocalMode()) {
+  if (DEV_MOCK) {
     await delay();
     mockProfile = { ...mockProfile, avatarUrl: null };
     return { success: true };
@@ -164,7 +164,7 @@ export async function deleteAvatar(): Promise<ApiResponse> {
 // ── Change Email ──
 
 export async function changeEmail(payload: ChangeEmailPayload): Promise<ApiResponse> {
-  if (isLocalMode()) {
+  if (DEV_MOCK) {
     await delay();
     if (!payload.currentPassword) return { success: false, error: "Contraseña incorrecta." };
     return { success: true };
@@ -181,7 +181,7 @@ export async function changeEmail(payload: ChangeEmailPayload): Promise<ApiRespo
 // ── Change Password ──
 
 export async function changePassword(payload: ChangePasswordPayload): Promise<ApiResponse> {
-  if (isLocalMode()) {
+  if (DEV_MOCK) {
     await delay();
     if (!payload.currentPassword) return { success: false, error: "Contraseña actual incorrecta." };
     return { success: true };

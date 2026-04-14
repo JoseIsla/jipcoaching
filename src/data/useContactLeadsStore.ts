@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { api } from "@/services/api";
-import { DEV_MOCK, isLocalMode } from "@/config/devMode";
+import { DEV_MOCK } from "@/config/devMode";
 import { useNotificationStore } from "./notificationStore";
 
 export interface ContactLead {
@@ -49,13 +49,7 @@ export const useContactLeadsStore = create<ContactLeadsStore>((set, get) => ({
   loading: false,
 
   fetchLeads: async () => {
-    if (isLocalMode()) {
-      // Seed mock leads if store is empty (demo mode)
-      if (get().leads.length === 0) {
-        set({ leads: mockLeads });
-      }
-      return;
-    }
+    if (DEV_MOCK) return;
 
     set({ loading: true });
     try {
@@ -79,7 +73,7 @@ export const useContactLeadsStore = create<ContactLeadsStore>((set, get) => ({
   },
 
   addLead: (lead) => {
-    if (isLocalMode()) {
+    if (DEV_MOCK) {
       set((state) => ({
         leads: [
           {
@@ -115,7 +109,7 @@ export const useContactLeadsStore = create<ContactLeadsStore>((set, get) => ({
       leads: state.leads.map((l) => (l.id === id ? { ...l, read: true } : l)),
     }));
 
-    if (!isLocalMode()) {
+    if (!DEV_MOCK) {
       api.patch(`/leads/${id}/read`).catch(() => {});
     }
   },
@@ -125,7 +119,7 @@ export const useContactLeadsStore = create<ContactLeadsStore>((set, get) => ({
       leads: state.leads.filter((l) => l.id !== id),
     }));
 
-    if (!isLocalMode()) {
+    if (!DEV_MOCK) {
       api.delete(`/leads/${id}`).catch(() => {});
     }
   },

@@ -11,7 +11,7 @@
  */
 
 import { api, API_BASE_URL, AUTH_TOKEN_KEY } from "@/services/api";
-import { DEV_MOCK, isLocalMode } from "@/config/devMode";
+import { DEV_MOCK } from "@/config/devMode";
 
 /** Resolve relative upload URLs to full server URLs */
 const resolveAvatarUrl = (url: string | null): string | null => {
@@ -66,7 +66,7 @@ let mockProfile: ClientProfile = {
 // ── Fetch Profile ──
 
 export async function fetchClientProfile(): Promise<ApiResponse<ClientProfile>> {
-  if (isLocalMode()) {
+  if (DEV_MOCK) {
     await delay(400);
     return { success: true, data: { ...mockProfile } };
   }
@@ -85,7 +85,7 @@ export async function fetchClientProfile(): Promise<ApiResponse<ClientProfile>> 
 // ── Update Profile ──
 
 export async function updateClientProfile(payload: UpdateClientProfilePayload): Promise<ApiResponse<ClientProfile>> {
-  if (isLocalMode()) {
+  if (DEV_MOCK) {
     await delay();
     mockProfile = { ...mockProfile, ...payload };
     return { success: true, data: { ...mockProfile } };
@@ -112,7 +112,7 @@ export async function uploadClientAvatar(file: File): Promise<ApiResponse<{ avat
     return { success: false, error: "Formato no permitido. Usa JPG, PNG o WebP." };
   }
 
-  if (isLocalMode()) {
+  if (DEV_MOCK) {
     await delay(800);
     const avatarUrl = URL.createObjectURL(file);
     mockProfile = { ...mockProfile, avatarUrl };
@@ -146,7 +146,7 @@ export async function uploadClientAvatar(file: File): Promise<ApiResponse<{ avat
 // ── Delete Avatar ──
 
 export async function deleteClientAvatar(): Promise<ApiResponse> {
-  if (isLocalMode()) {
+  if (DEV_MOCK) {
     await delay();
     mockProfile = { ...mockProfile, avatarUrl: null };
     return { success: true };
@@ -163,7 +163,7 @@ export async function deleteClientAvatar(): Promise<ApiResponse> {
 // ── Change Email ──
 
 export async function changeClientEmail(payload: ChangeEmailPayload): Promise<ApiResponse> {
-  if (isLocalMode()) {
+  if (DEV_MOCK) {
     await delay();
     if (!payload.currentPassword) return { success: false, error: "Contraseña incorrecta." };
     return { success: true };
@@ -180,7 +180,7 @@ export async function changeClientEmail(payload: ChangeEmailPayload): Promise<Ap
 // ── Change Password ──
 
 export async function changeClientPassword(payload: ChangePasswordPayload): Promise<ApiResponse> {
-  if (isLocalMode()) {
+  if (DEV_MOCK) {
     await delay();
     if (!payload.currentPassword) return { success: false, error: "Contraseña actual incorrecta." };
     if (payload.newPassword.length < 6) return { success: false, error: "La contraseña debe tener al menos 6 caracteres." };

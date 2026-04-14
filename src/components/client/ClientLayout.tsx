@@ -1,9 +1,8 @@
-import { type ReactNode, useState, useEffect, useRef } from "react";
+import { type ReactNode, forwardRef, useState, useEffect, useRef } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings, LogOut, Loader2, Bell, MessageSquare, CreditCard, FileText, Info } from "lucide-react";
 import PullToRefresh from "./PullToRefresh";
-import DemoBanner from "@/components/DemoBanner";
 import { useClientProfile } from "@/contexts/ClientProfileContext";
 import { useThemeStore } from "@/stores/useThemeStore";
 import { useClient } from "@/contexts/ClientContext";
@@ -19,7 +18,6 @@ import { useQuestionnaireStore, isActionablePending } from "@/data/useQuestionna
 import { useToast } from "@/hooks/use-toast";
 import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 import { api } from "@/services/api";
-import { isLocalMode } from "@/config/devMode";
 
 const formatRelativeTime = (date: Date) => {
   const now = Date.now();
@@ -52,7 +50,7 @@ const playNotificationFeedback = () => {
 let sessionToastShown = false;
 let sessionPrevPending = 0;
 
-const ClientLayout = ({ children }: { children: ReactNode }) => {
+const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ children }, ref) => {
   const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
   const { t } = useTranslation();
   const { client, setClientId, allClients } = useClient();
@@ -80,8 +78,6 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
 
   // Fetch server-side notifications (only unread) and merge into store
   useEffect(() => {
-    if (isLocalMode()) return;
-
     const fetchServerNotifications = async () => {
       try {
         const data = await api.get<Array<{
@@ -276,7 +272,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div ref={ref} className="min-h-screen bg-background flex flex-col">
       {/* Safe area spacer */}
       <div className="bg-card safe-area-top" />
 
@@ -330,9 +326,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
                   {notifications.length > 0 && (
                     <button
                       onClick={() => {
-                        if (!isLocalMode()) {
-                          api.patch("/notifications/read-all", undefined, { silent: true }).catch(() => {});
-                        }
+                        api.patch("/notifications/read-all", undefined, { silent: true }).catch(() => {});
                         useClientNotificationStore.setState((s) => ({
                           notifications: [],
                           _dismissedIds: new Set([...s._dismissedIds, ...s.notifications.map((n) => n.id)]),
@@ -357,7 +351,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
                         key={notif.id}
                         onClick={() => {
                           const serverId = notif.id.startsWith("server-") ? notif.id.replace("server-", "") : null;
-                          if (serverId && !isLocalMode()) {
+                          if (serverId) {
                             api.patch(`/notifications/${serverId}/read`).catch(() => {});
                             api.delete(`/notifications/${serverId}`).catch(() => {});
                           }
@@ -488,9 +482,10 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
           })}
         </div>
       </nav>
-      <DemoBanner />
     </div>
   );
-};
+});
+
+ClientLayout.displayName = "ClientLayout";
 
 export default ClientLayout;

@@ -6,7 +6,6 @@ import { TrendingUp, Loader2 } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { api } from "@/services/api";
 import { useTranslation } from "@/i18n/useTranslation";
-import { isLocalMode } from "@/config/devMode";
 
 const item = (delay: number) => ({
   initial: { opacity: 0, y: 16 },
@@ -20,34 +19,12 @@ interface EvolutionPoint {
   total: number;
 }
 
-const demoEvolution: EvolutionPoint[] = [
-  { month: "2025-11", newClients: 1, total: 1 },
-  { month: "2025-12", newClients: 1, total: 2 },
-  { month: "2026-01", newClients: 2, total: 4 },
-  { month: "2026-02", newClients: 1, total: 5 },
-  { month: "2026-03", newClients: 2, total: 7 },
-];
-
 const ClientEvolutionChart = () => {
   const { t } = useTranslation();
   const [data, setData] = useState<{ month: string; total: number; new: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isLocalMode()) {
-      const formatted = demoEvolution.map((p) => {
-        const date = parse(p.month, "yyyy-MM", new Date());
-        return {
-          month: format(date, "MMM yy", { locale: esLocale }),
-          total: p.total,
-          new: p.newClients,
-        };
-      });
-      setData(formatted);
-      setLoading(false);
-      return;
-    }
-
     api
       .get<EvolutionPoint[]>("/clients/stats/evolution")
       .then((raw) => {

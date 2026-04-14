@@ -4,7 +4,6 @@ import { AnimatePresence } from "framer-motion";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
 import AnimatedPage from "@/components/admin/AnimatedPage";
-import DemoBanner from "@/components/DemoBanner";
 import { useLanguageStore } from "@/i18n/store";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminProfile } from "@/contexts/AdminProfileContext";
@@ -72,7 +71,6 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             </AnimatedPage>
           </AnimatePresence>
         </main>
-        <DemoBanner />
       </div>
     </div>
   );

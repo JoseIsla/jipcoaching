@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { api, API_BASE_URL, AUTH_TOKEN_KEY } from "@/services/api";
 import type { ApiQuestionnaire, ApiSession } from "@/types/api";
-import { DEV_MOCK, isLocalMode } from "@/config/devMode";
+import { DEV_MOCK } from "@/config/devMode";
 import { mockQuestionnaireEntries, mockWeightHistory, mockRMRecords } from "@/data/mockCheckins";
 import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
 import { useClientDetailStore } from "@/data/useClientDetailStore";
@@ -181,13 +181,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   // ── API actions ──
 
   fetchEntries: async (clientId) => {
-    if (isLocalMode()) {
-      // Seed mock data if store is empty (demo mode)
-      if (get().entries.length === 0) {
-        set({ entries: mockQuestionnaireEntries, weightHistory: mockWeightHistory, rmRecords: mockRMRecords });
-      }
-      return;
-    }
+    if (DEV_MOCK) return;
     set({ loading: true, error: null });
     try {
       const query = clientId ? `?clientId=${clientId}` : "";
@@ -217,7 +211,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   },
 
   fetchWeightHistory: async (clientId) => {
-    if (isLocalMode()) return;
+    if (DEV_MOCK) return;
     try {
       const data = await api.get<WeightEntry[]>(`/checkins/weight/${clientId}`);
       set((s) => ({
@@ -229,7 +223,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   },
 
   fetchRMRecords: async (clientId) => {
-    if (isLocalMode()) return;
+    if (DEV_MOCK) return;
     try {
       const data = await api.get<RMRecord[]>(`/checkins/rm/${clientId}`);
       set((s) => ({
@@ -282,7 +276,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   },
 
   generateMyCheckins: async () => {
-    if (isLocalMode()) return;
+    if (DEV_MOCK) return;
     try {
       await api.post("/checkins/generate-mine", {});
     } catch (err: any) {
@@ -291,7 +285,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   },
 
   generateWeeklyCheckins: async () => {
-    if (isLocalMode()) return 0;
+    if (DEV_MOCK) return 0;
     try {
       const result = await api.post<{ created: number }>("/checkins/generate-weekly", {});
       return result?.created ?? 0;
@@ -308,7 +302,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
         e.id === entryId ? { ...e, status: "revisado" as const } : e
       ),
     }));
-    if (!isLocalMode()) {
+    if (!DEV_MOCK) {
       try {
         await api.patch(`/checkins/${entryId}/review`, {});
       } catch (err: any) {
@@ -330,7 +324,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
     const entry = state.entries.find((e) => e.id === entryId);
 
     // Submit to API and confirm before updating local state
-    if (!isLocalMode() && entry) {
+    if (!DEV_MOCK && entry) {
       try {
         await api.post(`/checkins/${entryId}/submit`, { responses, trainingLog });
       } catch (err: any) {

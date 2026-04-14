@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { api, API_BASE_URL } from "@/services/api";
 import type { ApiClient, CreateClientDto, ServiceType } from "@/types/api";
 import { isClientActive, getServicesFromPack } from "@/types/api";
-import { DEV_MOCK, isLocalMode } from "@/config/devMode";
+import { DEV_MOCK } from "@/config/devMode";
 import { mockClients } from "@/data/mockClients";
 
 /** Resolve relative upload URLs to full server URLs */
@@ -48,7 +48,7 @@ export const useClientStore = create<ClientStore>((set, get) => ({
 
     set({ loading: true, error: null });
 
-    if (isLocalMode()) {
+    if (DEV_MOCK) {
       await new Promise((r) => setTimeout(r, 300));
       set({ clients: mockClients, loading: false });
       return;
@@ -63,7 +63,7 @@ export const useClientStore = create<ClientStore>((set, get) => ({
   },
 
   addClient: async (dto: CreateClientDto) => {
-    if (isLocalMode()) {
+    if (DEV_MOCK) {
       await new Promise((r) => setTimeout(r, 300));
       const created: ApiClient = {
         id: `mock-${Date.now()}`,
@@ -91,7 +91,7 @@ export const useClientStore = create<ClientStore>((set, get) => ({
       ),
     }));
     // Persist to API
-    if (!isLocalMode()) {
+    if (!DEV_MOCK) {
       api.put(`/clients/${id}`, updates).catch((err) => {
         console.error("Failed to update client:", err);
       });
@@ -106,11 +106,9 @@ export const useClientStore = create<ClientStore>((set, get) => ({
       ),
     }));
     // Persist to API
-    if (!isLocalMode()) {
-      api.patch(`/clients/${id}/status`, { status }).catch((err) => {
-        console.error("Failed to update client status:", err);
-      });
-    }
+    api.patch(`/clients/${id}/status`, { status }).catch((err) => {
+      console.error("Failed to update client status:", err);
+    });
   },
 
   deleteClient: (id) => {
@@ -118,11 +116,9 @@ export const useClientStore = create<ClientStore>((set, get) => ({
       clients: state.clients.filter((c) => c.id !== id),
     }));
     // Persist to API
-    if (!isLocalMode()) {
-      api.delete(`/clients/${id}`).catch((err) => {
-        console.error("Failed to delete client:", err);
-      });
-    }
+    api.delete(`/clients/${id}`).catch((err) => {
+      console.error("Failed to delete client:", err);
+    });
   },
 
   getClient: (id) => get().clients.find((c) => c.id === id),

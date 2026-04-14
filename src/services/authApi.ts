@@ -1,6 +1,6 @@
 import { api, AUTH_TOKEN_KEY, setLoginInProgress } from "@/services/api";
 import type { LoginResponse, MeResponse, UserRole } from "@/types/api";
-import { DEV_MOCK, DEV_USERS, DEMO_USERS, enableDemoMode } from "@/config/devMode";
+import { DEV_MOCK, DEV_USERS } from "@/config/devMode";
 
 export type { UserRole };
 
@@ -29,22 +29,6 @@ const normalizeRole = (role: string | undefined): UserRole | null => {
   return null;
 };
 
-// ── Demo login ──
-const tryDemoLogin = (payload: LoginPayload): ApiResponse<AuthSession> | null => {
-  const admin = DEMO_USERS.admin;
-  const client = DEMO_USERS.client;
-
-  if (payload.email === admin.email && payload.password === admin.password) {
-    enableDemoMode();
-    return { success: true, data: { token: "demo-token-admin", role: "admin", userId: admin.userId } };
-  }
-  if (payload.email === client.email && payload.password === client.password) {
-    enableDemoMode();
-    return { success: true, data: { token: "demo-token-client", role: "client", userId: client.userId } };
-  }
-  return null;
-};
-
 // ── Dev mock login ──
 const mockLogin = (payload: LoginPayload): ApiResponse<AuthSession> => {
   const admin = DEV_USERS.admin;
@@ -60,16 +44,6 @@ const mockLogin = (payload: LoginPayload): ApiResponse<AuthSession> => {
 };
 
 export const loginRequest = async (payload: LoginPayload): Promise<ApiResponse<AuthSession>> => {
-  // Always check demo credentials first (works in both dev and prod)
-  const demoResult = tryDemoLogin(payload);
-  if (demoResult) {
-    await new Promise((r) => setTimeout(r, 400));
-    if (demoResult.success && demoResult.data) {
-      localStorage.setItem(AUTH_TOKEN_KEY, demoResult.data.token);
-    }
-    return demoResult;
-  }
-
   if (DEV_MOCK) {
     await new Promise((r) => setTimeout(r, 400));
     const result = mockLogin(payload);
@@ -113,18 +87,6 @@ export const loginRequest = async (payload: LoginPayload): Promise<ApiResponse<A
 
 export const fetchSessionRequest = async (token: string | null): Promise<ApiResponse<AuthSession>> => {
   if (!token) return { success: false };
-
-  // Handle demo tokens
-  if (token === "demo-token-admin") {
-    await new Promise((r) => setTimeout(r, 200));
-    enableDemoMode();
-    return { success: true, data: { token, role: "admin", userId: DEMO_USERS.admin.userId } };
-  }
-  if (token === "demo-token-client") {
-    await new Promise((r) => setTimeout(r, 200));
-    enableDemoMode();
-    return { success: true, data: { token, role: "client", userId: DEMO_USERS.client.userId } };
-  }
 
   if (DEV_MOCK) {
     await new Promise((r) => setTimeout(r, 200));

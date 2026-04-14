@@ -1,11 +1,9 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, forwardRef, useContext, useState, useEffect, type ReactNode } from "react";
 import type { ApiClient } from "@/types/api";
 import { isClientActive, getServicesFromPack } from "@/types/api";
 import { useClientStore } from "@/data/useClientStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { api, API_BASE_URL } from "@/services/api";
-import { isLocalMode } from "@/config/devMode";
-import { mockClients } from "@/data/mockClients";
 
 /** Resolve relative upload URLs to full server URLs */
 const resolveUrl = (url: string | null | undefined): string | undefined => {
@@ -39,7 +37,7 @@ export const useClient = () => {
   return ctx;
 };
 
-export const ClientProvider = ({ children }: { children: ReactNode }) => {
+export const ClientProvider = forwardRef<unknown, { children: ReactNode }>(({ children }, _ref) => {
   const { status, role, userId } = useAuth();
   const allStoreClients = useClientStore((s) => s.clients);
   const fetchClients = useClientStore((s) => s.fetchClients);
@@ -53,22 +51,6 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
   // For CLIENT role, fetch their own client record from /api/clients/me
   useEffect(() => {
     if (status !== "authenticated" || role !== "client") return;
-
-    if (isLocalMode()) {
-      const demoClient =
-        allStoreClients.find((c) => c.id === userId) ??
-        mockClients.find((c) => c.id === userId) ??
-        mockClients[0];
-
-      if (demoClient) {
-        setSelfClient(demoClient);
-        setClientId(demoClient.id);
-        fetchTrainingPlans();
-        fetchNutritionPlans();
-      }
-
-      return;
-    }
 
     api.get<any>("/clients/me", { silent: true }).then((data) => {
       if (data?.id) {
@@ -93,7 +75,7 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
     }).catch((err) => {
       console.warn("Failed to fetch client profile:", err?.message);
     });
-  }, [status, role, userId, allStoreClients, fetchNutritionPlans, fetchTrainingPlans]);
+  }, [status, role]);
 
   // Fetch clients only for admin — /api/clients is admin-only
   useEffect(() => {
@@ -119,4 +101,6 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </ClientContext.Provider>
   );
-};
+});
+
+ClientProvider.displayName = "ClientProvider";

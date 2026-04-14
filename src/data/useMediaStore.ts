@@ -4,7 +4,7 @@
  */
 import { create } from "zustand";
 import { api, API_BASE_URL } from "@/services/api";
-import { DEV_MOCK, isLocalMode } from "@/config/devMode";
+import { DEV_MOCK } from "@/config/devMode";
 import type { ProgressPhoto, ProgressPhotoSession, TechniqueVideo, MediaComment } from "@/types/media";
 import { PHOTO_INTERVAL_DAYS } from "@/types/media";
 
@@ -141,10 +141,7 @@ export const useMediaStore = create<MediaState>((set, get) => ({
   loading: false,
 
   fetchPhotos: async (clientId) => {
-    if (isLocalMode()) {
-      if (get().photos.length === 0) set({ photos: mockPhotos });
-      return;
-    }
+    if (DEV_MOCK) return;
     set({ loading: true });
     try {
       const data = await api.get<ProgressPhoto[]>(`/clients/${clientId}/media/photos`);
@@ -163,10 +160,7 @@ export const useMediaStore = create<MediaState>((set, get) => ({
   },
 
   fetchVideos: async (clientId) => {
-    if (isLocalMode()) {
-      if (get().videos.length === 0) set({ videos: mockVideos });
-      return;
-    }
+    if (DEV_MOCK) return;
     set({ loading: true });
     try {
       const data = await api.get<TechniqueVideo[]>(`/clients/${clientId}/media/videos`);
@@ -185,10 +179,7 @@ export const useMediaStore = create<MediaState>((set, get) => ({
   },
 
   fetchComments: async (clientId) => {
-    if (isLocalMode()) {
-      if (get().comments.length === 0) set({ comments: mockComments });
-      return;
-    }
+    if (DEV_MOCK) return;
     try {
       const data = await api.get<MediaComment[]>(`/media/comments?clientId=${clientId}`);
       set((s) => ({
@@ -247,20 +238,20 @@ export const useMediaStore = create<MediaState>((set, get) => ({
   })),
   removePhoto: (photoId) => {
     set((s) => ({ photos: s.photos.filter((p) => p.id !== photoId) }));
-    if (!isLocalMode()) {
+    if (!DEV_MOCK) {
       api.delete(`/media/photos/${photoId}`).catch(() => {});
     }
   },
   addVideo: (video) => set((s) => ({ videos: [...s.videos, video] })),
   removeVideo: (videoId) => {
     set((s) => ({ videos: s.videos.filter((v) => v.id !== videoId) }));
-    if (!isLocalMode()) {
+    if (!DEV_MOCK) {
       api.delete(`/media/videos/${videoId}`).catch(() => {});
     }
   },
   addComment: (comment) => {
     set((s) => ({ comments: [...s.comments, comment] }));
-    if (!isLocalMode()) {
+    if (!DEV_MOCK) {
       // Post to API — server will generate id/createdAt
       api.post<MediaComment>("/media/comments", {
         targetType: comment.targetType,
@@ -284,7 +275,7 @@ export const useMediaStore = create<MediaState>((set, get) => ({
     const exists = get().comments.some((c) => c.id === commentId);
     if (!exists) return;
     set((s) => ({ comments: s.comments.filter((c) => c.id !== commentId) }));
-    if (!isLocalMode()) {
+    if (!DEV_MOCK) {
       api.delete(`/media/comments/${commentId}`).catch(() => {});
     }
   },
