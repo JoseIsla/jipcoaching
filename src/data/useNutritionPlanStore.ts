@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { api } from "@/services/api";
 import type { ApiNutritionPlan } from "@/types/api";
-import { DEV_MOCK } from "@/config/devMode";
+import { DEV_MOCK, isLocalMode } from "@/config/devMode";
 import { mockNutritionPlanList, mockNutritionDetails, mockSupplements } from "@/data/mockPlans";
 import {
   type NutritionPlanDetail,
@@ -163,7 +163,13 @@ export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
   error: null,
 
   fetchPlans: async (clientId) => {
-    if (DEV_MOCK) return;
+    if (isLocalMode()) {
+      // Seed mock data if store is empty (demo mode starts empty)
+      if (get().plans.length === 0) {
+        set({ plans: mockNutritionPlanList, details: mockNutritionDetails, supplements: mockSupplements.map((s, i) => ({ ...s, id: `mock-sup-${i}` })) });
+      }
+      return;
+    }
 
     set({ loading: true, error: null });
     try {
@@ -179,7 +185,7 @@ export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
   },
 
   fetchActiveClientPlan: async () => {
-    if (DEV_MOCK) {
+    if (isLocalMode()) {
       await new Promise((r) => setTimeout(r, 200));
       return null;
     }
@@ -290,7 +296,7 @@ export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
   setSupplements: (sups) => set({ supplements: sups }),
 
   fetchSupplements: async () => {
-    if (DEV_MOCK) return;
+    if (isLocalMode()) return;
     try {
       const data = await api.get<ApiSupplement[]>("/supplements");
       set({ supplements: data ?? [] });
@@ -329,7 +335,7 @@ export const useNutritionPlanStore = create<NutritionPlanState>((set, get) => ({
 
   /** Diff-based sync: compare local edits with store and persist changes */
   saveSupplements: async (edited) => {
-    if (DEV_MOCK) {
+    if (isLocalMode()) {
       set({ supplements: edited });
       return;
     }

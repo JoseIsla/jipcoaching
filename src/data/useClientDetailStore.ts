@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { clientDetailStore as mockStore, type ClientDetail } from "@/data/clientStore";
-import { DEV_MOCK } from "@/config/devMode";
+import { DEV_MOCK, isLocalMode } from "@/config/devMode";
 import { api, API_BASE_URL } from "@/services/api";
 
 /** Resolve relative upload URLs to full server URLs */
@@ -82,8 +82,16 @@ export const useClientDetailStore = create<ClientDetailState>((set, get) => ({
   loading: false,
 
   fetchDetail: async (clientId) => {
-    // If DEV_MOCK, just return from mock store
-    if (DEV_MOCK) return get().details[clientId];
+    if (isLocalMode()) {
+      // Seed mock data if needed (demo mode)
+      const existing = get().details[clientId];
+      if (existing) return existing;
+      if (mockStore[clientId]) {
+        set((state) => ({ details: { ...state.details, [clientId]: mockStore[clientId] } }));
+        return mockStore[clientId];
+      }
+      return undefined;
+    }
 
     // Always refetch from server to get latest data (e.g. updated weight)
     set({ loading: true });

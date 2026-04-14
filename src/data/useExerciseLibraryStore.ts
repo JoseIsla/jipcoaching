@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { api } from "@/services/api";
-import { DEV_MOCK } from "@/config/devMode";
+import { DEV_MOCK, isLocalMode } from "@/config/devMode";
 import {
   exerciseLibrary as initialExercises,
   type ExerciseLibraryItem,
@@ -70,7 +70,7 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
 
   // ── Fetch global food items from API ──
   fetchFoods: async () => {
-    if (DEV_MOCK) return;
+    if (isLocalMode()) return;
     try {
       const data = await api.get<GlobalFoodItem[]>("/foods");
       const fruitsRaw = (data ?? []).filter((f) => f.type === "FRUIT").sort((a, b) => a.order - b.order);
@@ -89,7 +89,7 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
   // ── API-backed exercises ──
 
   fetchExercises: async () => {
-    if (DEV_MOCK) {
+    if (isLocalMode()) {
       set({ loading: false });
       return;
     }
@@ -161,7 +161,7 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
   // ── Fruits (API-backed) ──
   addFruit: (name) => {
     set((s) => ({ fruits: [...s.fruits, name] }));
-    if (!DEV_MOCK) {
+    if (!isLocalMode()) {
       api.post("/foods", { type: "FRUIT", name }).catch((err) =>
         console.warn("Failed to add fruit:", err?.message)
       );
@@ -173,7 +173,7 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
       fruits: s.fruits.filter((_, i) => i !== index),
       fruitsRaw: s.fruitsRaw.filter((_, i) => i !== index),
     }));
-    if (!DEV_MOCK && raw?.id) {
+    if (!isLocalMode() && raw?.id) {
       api.delete(`/foods/${raw.id}`).catch((err) =>
         console.warn("Failed to delete fruit:", err?.message)
       );
@@ -185,7 +185,7 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
       fruits: s.fruits.map((f, i) => (i === index ? name : f)),
       fruitsRaw: s.fruitsRaw.map((f, i) => (i === index ? { ...f, name } : f)),
     }));
-    if (!DEV_MOCK && raw?.id) {
+    if (!isLocalMode() && raw?.id) {
       api.put(`/foods/${raw.id}`, { name }).catch((err) =>
         console.warn("Failed to update fruit:", err?.message)
       );
@@ -195,7 +195,7 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
   // ── Vegetables (API-backed) ──
   addVegetable: (name) => {
     set((s) => ({ vegetables: [...s.vegetables, name] }));
-    if (!DEV_MOCK) {
+    if (!isLocalMode()) {
       api.post("/foods", { type: "VEGETABLE", name }).catch((err) =>
         console.warn("Failed to add vegetable:", err?.message)
       );
@@ -207,7 +207,7 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
       vegetables: s.vegetables.filter((_, i) => i !== index),
       vegetablesRaw: s.vegetablesRaw.filter((_, i) => i !== index),
     }));
-    if (!DEV_MOCK && raw?.id) {
+    if (!isLocalMode() && raw?.id) {
       api.delete(`/foods/${raw.id}`).catch((err) =>
         console.warn("Failed to delete vegetable:", err?.message)
       );
@@ -219,7 +219,7 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
       vegetables: s.vegetables.map((v, i) => (i === index ? name : v)),
       vegetablesRaw: s.vegetablesRaw.map((v, i) => (i === index ? { ...v, name } : v)),
     }));
-    if (!DEV_MOCK && raw?.id) {
+    if (!isLocalMode() && raw?.id) {
       api.put(`/foods/${raw.id}`, { name }).catch((err) =>
         console.warn("Failed to update vegetable:", err?.message)
       );

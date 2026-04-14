@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, Save, RotateCcw, Mail, UserPlus, CreditCard, AlertTriangle, KeyRound, MailCheck, Loader2, CloudOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/services/api";
-import { DEV_MOCK } from "@/config/devMode";
+import { DEV_MOCK, isLocalMode } from "@/config/devMode";
 import { useTranslation } from "@/i18n/useTranslation";
 
 /* ── Shared style tokens ── */
@@ -223,7 +223,7 @@ const TemplateEditor = ({ def, apiData, onSaved }: { def: TemplateConfig; apiDat
   };
 
   const handleSave = async () => {
-    if (DEV_MOCK) {
+    if (isLocalMode()) {
       toast({ title: t("emailTemplates.devSaveTitle"), description: t("emailTemplates.devSaveDesc") });
       return;
     }
@@ -353,7 +353,7 @@ const AdminEmailTemplates = () => {
   const { t } = useTranslation();
 
   const fetchTemplates = useCallback(async () => {
-    if (DEV_MOCK) { setLoading(false); return; }
+    if (isLocalMode()) { setLoading(false); return; }
     try {
       const data = await api.get<any[]>("/email-templates");
       const map: Record<string, TemplateState> = {};
@@ -386,7 +386,7 @@ const AdminEmailTemplates = () => {
             <p className="text-muted-foreground text-sm mt-1">
               {t("emailTemplates.subtitle")}
             </p>
-            {DEV_MOCK && (
+            {isLocalMode() && (
               <div className="flex items-center gap-2 mt-2 text-xs text-amber-500">
                 <CloudOff className="h-3.5 w-3.5" />
                 {t("emailTemplates.devMode")}

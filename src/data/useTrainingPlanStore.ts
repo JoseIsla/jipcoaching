@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { api } from "@/services/api";
 import type { ApiTrainingPlan, ApiExercisePrescription } from "@/types/api";
 import { useClientStore } from "./useClientStore";
-import { DEV_MOCK } from "@/config/devMode";
+import { DEV_MOCK, isLocalMode } from "@/config/devMode";
 import { mockTrainingPlans, mockTrainingDetails } from "@/data/mockPlans";
 import { useExerciseLibraryStore } from "./useExerciseLibraryStore";
 
@@ -176,9 +176,8 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
   fetchPlans: async (clientId) => {
     set({ loading: true, error: null });
 
-    if (DEV_MOCK) {
+    if (isLocalMode()) {
       await new Promise((r) => setTimeout(r, 300));
-      // Seed with mock plans if store is empty
       const current = get().plans;
       if (current.length === 0) {
         set({ plans: mockTrainingPlans as any[], details: mockTrainingDetails as any, loading: false });
@@ -199,8 +198,7 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
   },
 
   fetchPlanDetail: async (planId) => {
-    if (DEV_MOCK) {
-      // In dev mode, return from local details cache
+    if (isLocalMode()) {
       const cached = get().details[planId];
       if (cached) return cached;
       return null;

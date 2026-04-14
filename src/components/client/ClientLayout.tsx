@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings, LogOut, Loader2, Bell, MessageSquare, CreditCard, FileText, Info } from "lucide-react";
 import PullToRefresh from "./PullToRefresh";
+import DemoBanner from "@/components/DemoBanner";
 import { useClientProfile } from "@/contexts/ClientProfileContext";
 import { useThemeStore } from "@/stores/useThemeStore";
 import { useClient } from "@/contexts/ClientContext";
@@ -482,6 +483,7 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
           })}
         </div>
       </nav>
+      <DemoBanner />
     </div>
   );
 });

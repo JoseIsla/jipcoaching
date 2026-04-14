@@ -1,6 +1,7 @@
 import { createContext, forwardRef, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { fetchSessionRequest, loginRequest, type LoginPayload, type UserRole } from "@/services/authApi";
 import { AUTH_TOKEN_KEY } from "@/services/api";
+import { disableDemoMode } from "@/config/devMode";
 
 type AuthStatus = "checking" | "authenticated" | "unauthenticated";
 
@@ -30,6 +31,7 @@ export const AuthProvider = forwardRef<unknown, { children: ReactNode }>(({ chil
 
   const clearSession = useCallback(() => {
     localStorage.removeItem(AUTH_TOKEN_KEY);
+    disableDemoMode();
     setToken(null);
     setRole(null);
     setUserId(null);

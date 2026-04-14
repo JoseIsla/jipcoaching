@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { api } from "@/services/api";
-import { DEV_MOCK } from "@/config/devMode";
+import { DEV_MOCK, isLocalMode } from "@/config/devMode";
 
 export interface Testimonial {
   id: string;
@@ -24,7 +24,7 @@ export const useTestimonialStore = create<TestimonialStore>((set, get) => ({
   loading: false,
 
   fetchTestimonials: async () => {
-    if (DEV_MOCK) return;
+    if (isLocalMode()) return;
 
     set({ loading: true });
     try {
@@ -47,7 +47,7 @@ export const useTestimonialStore = create<TestimonialStore>((set, get) => ({
   },
 
   addTestimonial: (t) => {
-    if (DEV_MOCK) {
+    if (isLocalMode()) {
       set((state) => {
         const filtered = state.testimonials.filter((x) => x.clientId !== t.clientId);
         return {
