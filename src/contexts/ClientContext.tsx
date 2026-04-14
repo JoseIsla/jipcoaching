@@ -119,6 +119,4 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </ClientContext.Provider>
   );
-});
-
-ClientProvider.displayName = "ClientProvider";
+};

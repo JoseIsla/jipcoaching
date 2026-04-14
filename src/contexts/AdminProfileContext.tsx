@@ -127,9 +127,7 @@ export const AdminProfileProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </AdminProfileContext.Provider>
   );
-});
-
-AdminProfileProvider.displayName = "AdminProfileProvider";
+};
 
 export function useAdminProfile() {
   const ctx = useContext(AdminProfileContext);

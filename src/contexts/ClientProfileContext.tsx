@@ -128,9 +128,7 @@ export const ClientProfileProvider = ({ children }: { children: ReactNode }) => 
       {children}
     </ClientProfileContext.Provider>
   );
-});
-
-ClientProfileProvider.displayName = "ClientProfileProvider";
+};
 
 export function useClientProfile() {
   const ctx = useContext(ClientProfileContext);
