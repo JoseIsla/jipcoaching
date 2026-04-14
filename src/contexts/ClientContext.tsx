@@ -4,6 +4,8 @@ import { isClientActive, getServicesFromPack } from "@/types/api";
 import { useClientStore } from "@/data/useClientStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { api, API_BASE_URL } from "@/services/api";
+import { isLocalMode } from "@/config/devMode";
+import { mockClients } from "@/data/mockClients";
 
 /** Resolve relative upload URLs to full server URLs */
 const resolveUrl = (url: string | null | undefined): string | undefined => {
@@ -52,6 +54,22 @@ export const ClientProvider = forwardRef<unknown, { children: ReactNode }>(({ ch
   useEffect(() => {
     if (status !== "authenticated" || role !== "client") return;
 
+    if (isLocalMode()) {
+      const demoClient =
+        allStoreClients.find((c) => c.id === userId) ??
+        mockClients.find((c) => c.id === userId) ??
+        mockClients[0];
+
+      if (demoClient) {
+        setSelfClient(demoClient);
+        setClientId(demoClient.id);
+        fetchTrainingPlans();
+        fetchNutritionPlans();
+      }
+
+      return;
+    }
+
     api.get<any>("/clients/me", { silent: true }).then((data) => {
       if (data?.id) {
         const enriched: ApiClient = {
@@ -75,7 +93,7 @@ export const ClientProvider = forwardRef<unknown, { children: ReactNode }>(({ ch
     }).catch((err) => {
       console.warn("Failed to fetch client profile:", err?.message);
     });
-  }, [status, role]);
+  }, [status, role, userId, allStoreClients, fetchNutritionPlans, fetchTrainingPlans]);
 
   // Fetch clients only for admin — /api/clients is admin-only
   useEffect(() => {

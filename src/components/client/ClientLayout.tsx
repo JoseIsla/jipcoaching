@@ -19,6 +19,7 @@ import { useQuestionnaireStore, isActionablePending } from "@/data/useQuestionna
 import { useToast } from "@/hooks/use-toast";
 import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 import { api } from "@/services/api";
+import { isLocalMode } from "@/config/devMode";
 
 const formatRelativeTime = (date: Date) => {
   const now = Date.now();
@@ -79,6 +80,8 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
 
   // Fetch server-side notifications (only unread) and merge into store
   useEffect(() => {
+    if (isLocalMode()) return;
+
     const fetchServerNotifications = async () => {
       try {
         const data = await api.get<Array<{
@@ -327,7 +330,9 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
                   {notifications.length > 0 && (
                     <button
                       onClick={() => {
-                        api.patch("/notifications/read-all", undefined, { silent: true }).catch(() => {});
+                        if (!isLocalMode()) {
+                          api.patch("/notifications/read-all", undefined, { silent: true }).catch(() => {});
+                        }
                         useClientNotificationStore.setState((s) => ({
                           notifications: [],
                           _dismissedIds: new Set([...s._dismissedIds, ...s.notifications.map((n) => n.id)]),
@@ -352,7 +357,7 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
                         key={notif.id}
                         onClick={() => {
                           const serverId = notif.id.startsWith("server-") ? notif.id.replace("server-", "") : null;
-                          if (serverId) {
+                          if (serverId && !isLocalMode()) {
                             api.patch(`/notifications/${serverId}/read`).catch(() => {});
                             api.delete(`/notifications/${serverId}`).catch(() => {});
                           }
