@@ -121,8 +121,6 @@ const PWAInstallBanner = () => {
       </div>
     </div>
   );
-});
-
-PWAInstallBanner.displayName = "PWAInstallBanner";
+};
 
 export default PWAInstallBanner;

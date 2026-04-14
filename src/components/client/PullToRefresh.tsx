@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, forwardRef, type ReactNode } from "react";
+import { useState, useRef, useCallback, type ReactNode } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { Loader2 } from "lucide-react";
 
@@ -10,7 +10,7 @@ interface PullToRefreshProps {
   onRefresh?: () => Promise<void>;
 }
 
-const PullToRefresh = forwardRef<HTMLDivElement, PullToRefreshProps>(({ children, onRefresh }, ref) => {
+const PullToRefresh = ({ children, onRefresh }: PullToRefreshProps) => {
   const [refreshing, setRefreshing] = useState(false);
   const pullY = useMotionValue(0);
   const isDragging = useRef(false);
@@ -56,14 +56,6 @@ const PullToRefresh = forwardRef<HTMLDivElement, PullToRefreshProps>(({ children
     animate(pullY, 0, { duration: 0.3, ease: "easeOut" });
   }, [pullY, refreshing, onRefresh]);
 
-  const setContainerRef = useCallback((node: HTMLDivElement | null) => {
-    containerRef.current = node;
-    if (typeof ref === "function") {
-      ref(node);
-    } else if (ref) {
-      ref.current = node;
-    }
-  }, [ref]);
 
   return (
     <div
