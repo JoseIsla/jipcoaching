@@ -1,4 +1,4 @@
-import { type ReactNode, forwardRef, useState, useEffect, useRef } from "react";
+import { type ReactNode, useState, useEffect, useRef } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings, LogOut, Loader2, Bell, MessageSquare, CreditCard, FileText, Info } from "lucide-react";
@@ -52,7 +52,7 @@ const playNotificationFeedback = () => {
 let sessionToastShown = false;
 let sessionPrevPending = 0;
 
-const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ children }, ref) => {
+const ClientLayout = ({ children }: { children: ReactNode }) => {
   const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
   const { t } = useTranslation();
   const { client, setClientId, allClients } = useClient();
@@ -276,7 +276,7 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
   };
 
   return (
-    <div ref={ref} className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Safe area spacer */}
       <div className="bg-card safe-area-top" />
 
@@ -491,8 +491,6 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
       <DemoBanner />
     </div>
   );
-});
-
-ClientLayout.displayName = "ClientLayout";
+};
 
 export default ClientLayout;

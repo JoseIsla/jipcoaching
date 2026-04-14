@@ -1,8 +1,8 @@
-import { forwardRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const PWAUpdateBanner = forwardRef<HTMLDivElement>((_, ref) => {
+const PWAUpdateBanner = () => {
   const [visible, setVisible] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [applyUpdate, setApplyUpdate] = useState<null | (() => Promise<void>)>(null);
@@ -32,7 +32,7 @@ const PWAUpdateBanner = forwardRef<HTMLDivElement>((_, ref) => {
   if (!visible) return null;
 
   return (
-    <div ref={ref} className="fixed inset-x-0 top-4 z-50 px-4 animate-fade-in">
+    <div className="fixed inset-x-0 top-4 z-50 px-4 animate-fade-in">
       <div className="mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-lg shadow-black/30">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <RefreshCw className={`h-4 w-4 ${isUpdating ? "animate-spin" : ""}`} />
@@ -62,8 +62,6 @@ const PWAUpdateBanner = forwardRef<HTMLDivElement>((_, ref) => {
       </div>
     </div>
   );
-});
-
-PWAUpdateBanner.displayName = "PWAUpdateBanner";
+};
 
 export default PWAUpdateBanner;

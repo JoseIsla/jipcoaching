@@ -1,9 +1,9 @@
-import { forwardRef, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { X, Share, PlusSquare, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { canPromptInstall, detectPlatform, INSTALL_PROMPT_EVENT, isSafari, isStandalone, promptInstall } from "@/lib/pwa";
 
-const PWAInstallBanner = forwardRef<HTMLDivElement>((_, ref) => {
+const PWAInstallBanner = () => {
   const [show, setShow] = useState(false);
   const [nativeInstallAvailable, setNativeInstallAvailable] = useState(false);
 
@@ -57,7 +57,7 @@ const PWAInstallBanner = forwardRef<HTMLDivElement>((_, ref) => {
   if (!show) return null;
 
   return (
-    <div ref={ref} className="fixed bottom-0 inset-x-0 z-50 animate-fade-in">
+    <div className="fixed bottom-0 inset-x-0 z-50 animate-fade-in">
       <div className="mx-3 mb-3 bg-card border border-border rounded-2xl p-4 shadow-lg shadow-black/40">
         <button
           onClick={dismiss}
@@ -121,8 +121,6 @@ const PWAInstallBanner = forwardRef<HTMLDivElement>((_, ref) => {
       </div>
     </div>
   );
-});
-
-PWAInstallBanner.displayName = "PWAInstallBanner";
+};
 
 export default PWAInstallBanner;
