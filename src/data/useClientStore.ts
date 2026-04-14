@@ -106,9 +106,11 @@ export const useClientStore = create<ClientStore>((set, get) => ({
       ),
     }));
     // Persist to API
-    api.patch(`/clients/${id}/status`, { status }).catch((err) => {
-      console.error("Failed to update client status:", err);
-    });
+    if (!isLocalMode()) {
+      api.patch(`/clients/${id}/status`, { status }).catch((err) => {
+        console.error("Failed to update client status:", err);
+      });
+    }
   },
 
   deleteClient: (id) => {
@@ -116,9 +118,11 @@ export const useClientStore = create<ClientStore>((set, get) => ({
       clients: state.clients.filter((c) => c.id !== id),
     }));
     // Persist to API
-    api.delete(`/clients/${id}`).catch((err) => {
-      console.error("Failed to delete client:", err);
-    });
+    if (!isLocalMode()) {
+      api.delete(`/clients/${id}`).catch((err) => {
+        console.error("Failed to delete client:", err);
+      });
+    }
   },
 
   getClient: (id) => get().clients.find((c) => c.id === id),

@@ -8,6 +8,7 @@
  */
 
 import { toast } from "@/hooks/use-toast";
+import { isLocalMode } from "@/config/devMode";
 
 const AUTH_TOKEN_KEY = "jip_auth_token";
 
@@ -19,6 +20,8 @@ const API_BASE_URL = (
 
 const getToken = (): string | null => localStorage.getItem(AUTH_TOKEN_KEY);
 
+const isDemoToken = (token: string | null): boolean => token?.startsWith("demo-token-") ?? false;
+
 /** Track when a login is in progress to avoid the 401 interceptor clearing the session */
 let _loginInProgress = false;
 export const setLoginInProgress = (v: boolean) => { _loginInProgress = v; };
@@ -26,6 +29,8 @@ export const setLoginInProgress = (v: boolean) => { _loginInProgress = v; };
 const clearSessionAndRedirect = () => {
   // Don't interfere during login flow or on login/landing pages
   if (_loginInProgress) return;
+  const token = getToken();
+  if (isLocalMode() || isDemoToken(token)) return;
   const path = window.location.pathname;
   if (path === "/login" || path === "/" || path === "/forgot-password" || path === "/reset-password" || path === "/verify-email") return;
   localStorage.removeItem(AUTH_TOKEN_KEY);
