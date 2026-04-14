@@ -31,6 +31,7 @@ export const AuthProvider = forwardRef<unknown, { children: ReactNode }>(({ chil
 
   const clearSession = useCallback(() => {
     localStorage.removeItem(AUTH_TOKEN_KEY);
+    disableDemoMode();
     setToken(null);
     setRole(null);
     setUserId(null);
