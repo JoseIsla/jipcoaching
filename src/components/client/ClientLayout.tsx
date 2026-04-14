@@ -276,7 +276,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <div ref={ref} className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Safe area spacer */}
       <div className="bg-card safe-area-top" />
 
