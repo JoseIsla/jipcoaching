@@ -491,8 +491,6 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
       <DemoBanner />
     </div>
   );
-});
-
-ClientLayout.displayName = "ClientLayout";
+};
 
 export default ClientLayout;
