@@ -59,7 +59,7 @@ const PullToRefresh = ({ children, onRefresh }: PullToRefreshProps) => {
 
   return (
     <div
-      ref={setContainerRef}
+      ref={containerRef}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -100,8 +100,6 @@ const PullToRefresh = ({ children, onRefresh }: PullToRefreshProps) => {
       </motion.div>
     </div>
   );
-});
-
-PullToRefresh.displayName = "PullToRefresh";
+};
 
 export default PullToRefresh;
