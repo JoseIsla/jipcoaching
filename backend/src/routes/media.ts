@@ -1,7 +1,11 @@
 import { Router, Request, Response, NextFunction } from "express";
+import path from "path";
 import { prisma } from "../server";
 import { authenticate, requireRole } from "../middleware/auth";
 import { uploadProgressPhoto, uploadVideo } from "../middleware/upload";
+import { transcodeVideoInBackground } from "../utils/transcodeVideo";
+
+const UPLOAD_DIR = process.env.UPLOAD_DIR || "./uploads";
 
 const router = Router({ mergeParams: true });
 router.use(authenticate);
@@ -154,6 +158,13 @@ router.post("/videos/:cid?", uploadVideo.single("file"), async (req, res) => {
         expiresAt,
       },
     });
+
+    // Background transcode to H.264/MP4 for browser compatibility (non-blocking)
+    transcodeVideoInBackground({
+      sourcePath: path.resolve(UPLOAD_DIR, "videos", req.file.filename),
+      oldUrl: url,
+      updateCheckinVideos: true,
+    }).catch((e) => console.error("[media] background transcode error:", e));
 
     // Notify all admins about new technique video
     try {
