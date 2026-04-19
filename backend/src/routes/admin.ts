@@ -165,14 +165,17 @@ router.get(
   authenticate,
   requireRole("ADMIN"),
   (_req: Request, res: Response): void => {
+    // Extract failed-file lines so the UI can list them separately
+    const failures = job.log.filter((l) => l.includes("✗ Failed"));
     res.json({
       running: job.running,
       startedAt: job.startedAt,
       finishedAt: job.finishedAt,
       exitCode: job.exitCode,
       summary: job.summary,
-      // return only the last 80 lines for UI display
-      logTail: job.log.slice(-80),
+      failures,
+      // return the last 200 lines so failed entries are visible even at the end of long runs
+      logTail: job.log.slice(-200),
       logLines: job.log.length,
     });
   }

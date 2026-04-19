@@ -73,27 +73,45 @@ const probeCodec = (file: string): Promise<string> =>
     proc.on("close", () => resolve(out.trim().toLowerCase()));
   });
 
-const runFfmpeg = (input: string, output: string): Promise<void> =>
+const runFfmpeg = (input: string, output: string, attempt: 1 | 2 = 1): Promise<void> =>
   new Promise((resolve, reject) => {
-    const proc = spawn(getFfmpegPath(), [
+    // Attempt 1: standard re-encode with audio
+    // Attempt 2 (fallback): force pixel format conversion + drop problematic audio metadata,
+    //   handle videos without audio, rotated videos, variable framerate, HDR HEVC tone-mapping…
+    const baseArgs = [
       "-y",
+      "-fflags", "+genpts+igndts",
+      "-err_detect", "ignore_err",
       "-i", input,
+    ];
+    const videoArgs = [
+      "-map", "0:v:0",
       "-c:v", "libx264",
       "-preset", "veryfast",
       "-crf", "23",
       "-pix_fmt", "yuv420p",
-      "-vf", "scale='min(1280,iw)':-2",
-      "-c:a", "aac",
-      "-b:a", "128k",
+      "-vf", "scale='min(1280,iw)':-2,format=yuv420p",
+      "-r", "30",
       "-movflags", "+faststart",
-      output,
-    ]);
+      "-max_muxing_queue_size", "9999",
+    ];
+    const audioArgs = attempt === 1
+      ? ["-map", "0:a:0?", "-c:a", "aac", "-b:a", "128k", "-ac", "2", "-ar", "44100"]
+      : ["-an"]; // fallback: drop audio entirely if first attempt fails
+    const args = [...baseArgs, ...videoArgs, ...audioArgs, output];
+    const proc = spawn(getFfmpegPath(), args);
     let stderr = "";
     proc.stderr.on("data", (d) => { stderr += d.toString(); });
     proc.on("error", reject);
     proc.on("close", (code) => {
       if (code === 0) resolve();
-      else reject(new Error(`ffmpeg exit ${code}: ${stderr.slice(-300)}`));
+      else if (attempt === 1) {
+        // retry without audio — many failures come from corrupt/exotic audio tracks
+        console.log(`    ↻ Retrying without audio (first attempt failed: code ${code})`);
+        runFfmpeg(input, output, 2).then(resolve).catch(reject);
+      } else {
+        reject(new Error(`ffmpeg exit ${code}: ${stderr.slice(-500)}`));
+      }
     });
   });
 
