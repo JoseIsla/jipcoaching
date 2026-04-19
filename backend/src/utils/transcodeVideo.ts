@@ -23,6 +23,32 @@ import fs from "fs";
 import path from "path";
 import { prisma } from "../server";
 
+/**
+ * Resolve ffmpeg / ffprobe binaries.
+ *
+ * Priority:
+ *   1. The npm packages @ffmpeg-installer/ffmpeg and @ffprobe-installer/ffprobe
+ *      ship precompiled static binaries for every major platform → zero
+ *      sysadmin work, no apt/SSH needed (this is the default in production).
+ *   2. If the npm package isn't installed for some reason, fall back to the
+ *      system binary on $PATH.
+ */
+let FFMPEG_PATH = "ffmpeg";
+let FFPROBE_PATH = "ffprobe";
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const installer = require("@ffmpeg-installer/ffmpeg");
+  if (installer?.path && fs.existsSync(installer.path)) FFMPEG_PATH = installer.path;
+} catch { /* fall back to PATH */ }
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const probeInstaller = require("@ffprobe-installer/ffprobe");
+  if (probeInstaller?.path && fs.existsSync(probeInstaller.path)) FFPROBE_PATH = probeInstaller.path;
+} catch { /* fall back to PATH */ }
+
+export const getFfmpegPath = () => FFMPEG_PATH;
+export const getFfprobePath = () => FFPROBE_PATH;
+
 /** Extensions / containers we always re-encode (likely HEVC or compatibility risk) */
 const ALWAYS_TRANSCODE_EXT = new Set([".mov", ".avi", ".mkv", ".webm"]);
 
@@ -31,7 +57,7 @@ let ffmpegAvailable: boolean | null = null;
 const isFfmpegAvailable = (): Promise<boolean> => {
   if (ffmpegAvailable !== null) return Promise.resolve(ffmpegAvailable);
   return new Promise((resolve) => {
-    const proc = spawn("ffmpeg", ["-version"]);
+    const proc = spawn(FFMPEG_PATH, ["-version"]);
     proc.on("error", () => { ffmpegAvailable = false; resolve(false); });
     proc.on("close", (code) => { ffmpegAvailable = code === 0; resolve(ffmpegAvailable!); });
   });
@@ -46,7 +72,7 @@ const isAlreadyH264Mp4 = (filePath: string): Promise<boolean> => {
   if (ext !== ".mp4") return Promise.resolve(false);
 
   return new Promise((resolve) => {
-    const proc = spawn("ffprobe", [
+    const proc = spawn(FFPROBE_PATH, [
       "-v", "error",
       "-select_streams", "v:0",
       "-show_entries", "stream=codec_name",
@@ -109,7 +135,7 @@ export async function transcodeVideoInBackground(opts: TranscodeOptions): Promis
     await new Promise<void>((resolve, reject) => {
       // Re-encode video to H.264 (yuv420p for max compatibility), audio to AAC.
       // -movflags +faststart enables progressive download / HTML5 streaming.
-      const proc = spawn("ffmpeg", [
+      const proc = spawn(FFMPEG_PATH, [
         "-y",
         "-i", sourcePath,
         "-c:v", "libx264",

@@ -9,18 +9,26 @@
 
 ## Requisitos del sistema
 
-### FFmpeg (obligatorio para vídeos de técnica)
+### FFmpeg (incluido automáticamente)
 
-El backend transcodifica automáticamente cada vídeo subido a **H.264 + AAC en contenedor MP4** para que se reproduzca correctamente en todos los navegadores (sin esto, vídeos grabados con iPhone en HEVC/H.265 se ven en negro en Chrome/Firefox/Android).
+El backend transcodifica cada vídeo subido a **H.264 + AAC en contenedor MP4** para que se reproduzca correctamente en todos los navegadores (sin esto, vídeos grabados con iPhone en HEVC/H.265 se ven en negro en Chrome/Firefox/Android).
 
-Instalar en el VPS (Ubuntu/Debian):
+**No necesitas instalar FFmpeg manualmente.** El paquete `@ffmpeg-installer/ffmpeg` (y `@ffprobe-installer/ffprobe`) descarga el binario estático apropiado para tu sistema durante `npm install`. Funciona sin SSH, sin `apt`, sin Plesk.
+
+> Si por algún motivo el binario del paquete npm no estuviera disponible, el código intentará usar `ffmpeg` del PATH del sistema como fallback.
+
+### Migrar vídeos antiguos (subidos antes de tener transcodificación)
+
+Si ya tenías vídeos en `.mov`/HEVC subidos antes de añadir la transcodificación automática, ejecuta una sola vez:
+
 ```bash
-sudo apt update
-sudo apt install -y ffmpeg
-ffmpeg -version   # verificar instalación
+cd backend
+npm run transcode:legacy            # convierte todos los vídeos pendientes
+npm run transcode:legacy -- --dry-run   # solo lista lo que haría, sin tocar nada
+npm run transcode:legacy -- --force     # re-encoda incluso los ya en H.264
 ```
 
-Si `ffmpeg` no está disponible, las subidas seguirán funcionando pero los vídeos no se transcodificarán (se guardarán en su formato original).
+El script es **idempotente**: detecta automáticamente qué vídeos ya están en H.264/MP4 y los salta. Puedes relanzarlo cuando quieras. Actualiza también las URLs en la base de datos (`TechniqueVideo` y `CheckinVideo`).
 
 ## Configuración
 
