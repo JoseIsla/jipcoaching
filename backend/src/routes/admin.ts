@@ -56,16 +56,22 @@ const resolveScriptPath = (): string | null => {
   return null;
 };
 
-const resolveTsxBin = (): string => {
-  // Prefer the tsx binary installed by the backend (works in both dev and prod)
+/**
+ * Locate tsx's CLI JS entry so we can run it with the *current* Node binary.
+ * This avoids relying on the `#!/usr/bin/env node` shebang of node_modules/.bin/tsx,
+ * which fails on Plesk/Passenger with "env: 'node': No such file or directory" (exit 127).
+ */
+const resolveTsxCliJs = (): string | null => {
   const candidates = [
-    path.resolve(process.cwd(), "node_modules/.bin/tsx"),
-    path.resolve(__dirname, "../../node_modules/.bin/tsx"),
+    path.resolve(process.cwd(), "node_modules/tsx/dist/cli.mjs"),
+    path.resolve(__dirname, "../../node_modules/tsx/dist/cli.mjs"),
+    path.resolve(process.cwd(), "node_modules/tsx/dist/cli.js"),
+    path.resolve(__dirname, "../../node_modules/tsx/dist/cli.js"),
   ];
   for (const p of candidates) {
     if (fs.existsSync(p)) return p;
   }
-  return "tsx"; // fallback to PATH
+  return null;
 };
 
 // POST /api/admin/transcode-legacy?dryRun=1&force=1
@@ -90,7 +96,16 @@ router.post(
 
     const dryRun = req.query.dryRun === "1" || req.query.dryRun === "true";
     const force = req.query.force === "1" || req.query.force === "true";
-    const args: string[] = [scriptPath];
+
+    const tsxCli = resolveTsxCliJs();
+    if (!tsxCli) {
+      res.status(500).json({
+        message: "No se encontró tsx en node_modules. Ejecuta `npm install` en el backend.",
+      });
+      return;
+    }
+
+    const args: string[] = [tsxCli, scriptPath];
     if (dryRun) args.push("--dry-run");
     if (force) args.push("--force");
 
@@ -102,10 +117,12 @@ router.post(
     job.log = [];
     job.summary = null;
 
-    const tsxBin = resolveTsxBin();
-    pushLog(`▶ Lanzando: ${tsxBin} ${args.join(" ")}`);
+    // Use the *current* Node binary — Plesk/Passenger doesn't put `node` on PATH
+    // for child processes, which makes the env-shebang approach fail with code 127.
+    const nodeBin = process.execPath;
+    pushLog(`▶ Lanzando: ${nodeBin} ${args.join(" ")}`);
 
-    const child = spawn(tsxBin, args, {
+    const child = spawn(nodeBin, args, {
       cwd: path.resolve(__dirname, "../.."),
       env: { ...process.env },
       detached: false,
