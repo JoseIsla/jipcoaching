@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useLanguageStore, type Language } from "@/i18n/store";
 import { useThemeStore, type ThemeMode } from "@/stores/useThemeStore";
+import TranscodeLegacyCard from "@/components/admin/settings/TranscodeLegacyCard";
 
 const TIMEZONES = [
   "Europe/Madrid",
@@ -484,6 +485,9 @@ const AdminSettings = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Mantenimiento — migración de vídeos antiguos */}
+        <TranscodeLegacyCard />
       </div>
     </AdminLayout>
   );
