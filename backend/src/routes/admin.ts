@@ -96,7 +96,16 @@ router.post(
 
     const dryRun = req.query.dryRun === "1" || req.query.dryRun === "true";
     const force = req.query.force === "1" || req.query.force === "true";
-    const args: string[] = [scriptPath];
+
+    const tsxCli = resolveTsxCliJs();
+    if (!tsxCli) {
+      res.status(500).json({
+        message: "No se encontró tsx en node_modules. Ejecuta `npm install` en el backend.",
+      });
+      return;
+    }
+
+    const args: string[] = [tsxCli, scriptPath];
     if (dryRun) args.push("--dry-run");
     if (force) args.push("--force");
 
@@ -108,10 +117,12 @@ router.post(
     job.log = [];
     job.summary = null;
 
-    const tsxBin = resolveTsxBin();
-    pushLog(`▶ Lanzando: ${tsxBin} ${args.join(" ")}`);
+    // Use the *current* Node binary — Plesk/Passenger doesn't put `node` on PATH
+    // for child processes, which makes the env-shebang approach fail with code 127.
+    const nodeBin = process.execPath;
+    pushLog(`▶ Lanzando: ${nodeBin} ${args.join(" ")}`);
 
-    const child = spawn(tsxBin, args, {
+    const child = spawn(nodeBin, args, {
       cwd: path.resolve(__dirname, "../.."),
       env: { ...process.env },
       detached: false,
