@@ -5,6 +5,22 @@
 - **Prisma ORM** → MariaDB
 - **JWT** para autenticación
 - **Multer** para subida de archivos
+- **FFmpeg** (binario del sistema) para transcodificar vídeos a H.264/MP4
+
+## Requisitos del sistema
+
+### FFmpeg (obligatorio para vídeos de técnica)
+
+El backend transcodifica automáticamente cada vídeo subido a **H.264 + AAC en contenedor MP4** para que se reproduzca correctamente en todos los navegadores (sin esto, vídeos grabados con iPhone en HEVC/H.265 se ven en negro en Chrome/Firefox/Android).
+
+Instalar en el VPS (Ubuntu/Debian):
+```bash
+sudo apt update
+sudo apt install -y ffmpeg
+ffmpeg -version   # verificar instalación
+```
+
+Si `ffmpeg` no está disponible, las subidas seguirán funcionando pero los vídeos no se transcodificarán (se guardarán en su formato original).
 
 ## Configuración
 
