@@ -56,16 +56,22 @@ const resolveScriptPath = (): string | null => {
   return null;
 };
 
-const resolveTsxBin = (): string => {
-  // Prefer the tsx binary installed by the backend (works in both dev and prod)
+/**
+ * Locate tsx's CLI JS entry so we can run it with the *current* Node binary.
+ * This avoids relying on the `#!/usr/bin/env node` shebang of node_modules/.bin/tsx,
+ * which fails on Plesk/Passenger with "env: 'node': No such file or directory" (exit 127).
+ */
+const resolveTsxCliJs = (): string | null => {
   const candidates = [
-    path.resolve(process.cwd(), "node_modules/.bin/tsx"),
-    path.resolve(__dirname, "../../node_modules/.bin/tsx"),
+    path.resolve(process.cwd(), "node_modules/tsx/dist/cli.mjs"),
+    path.resolve(__dirname, "../../node_modules/tsx/dist/cli.mjs"),
+    path.resolve(process.cwd(), "node_modules/tsx/dist/cli.js"),
+    path.resolve(__dirname, "../../node_modules/tsx/dist/cli.js"),
   ];
   for (const p of candidates) {
     if (fs.existsSync(p)) return p;
   }
-  return "tsx"; // fallback to PATH
+  return null;
 };
 
 // POST /api/admin/transcode-legacy?dryRun=1&force=1
