@@ -13,6 +13,7 @@ interface JobStatus {
   finishedAt: string | null;
   exitCode: number | null;
   summary: string | null;
+  failures?: string[];
   logTail: string[];
   logLines: number;
 }
