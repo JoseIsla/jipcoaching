@@ -20,6 +20,7 @@ import { api } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { parseDecimal } from "@/utils/parseDecimal";
 import AdminPhotoComparison from "@/components/admin/AdminPhotoComparison";
+import AdminWeekTechniqueVideos from "@/components/admin/AdminWeekTechniqueVideos";
 const SBD_NAMES = ["Sentadilla", "Press Banca", "Peso Muerto"];
 const EMPTY_WEIGHT: { date: string; weight: number }[] = [];
 const EMPTY_RM: { id?: string; exerciseId: string; exerciseName: string; weight: number; date: string; reps: number; estimated1RM: number }[] = [];
@@ -350,6 +351,9 @@ const ClientDetail = ({ client, onBack, t }: { client: ApiClient; onBack: () => 
                 )}
               </div>
             )}
+
+            {/* Technique videos uploaded in this week's training check-ins */}
+            <AdminWeekTechniqueVideos clientId={client.id} />
           </TabsContent>
         )}
       </Tabs>
