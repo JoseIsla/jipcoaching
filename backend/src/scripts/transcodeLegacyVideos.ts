@@ -18,7 +18,24 @@ import fs from "fs";
 import path from "path";
 import { spawn } from "child_process";
 import { PrismaClient } from "@prisma/client";
-import { getFfmpegPath, getFfprobePath } from "../utils/transcodeVideo";
+
+// Resolve ffmpeg/ffprobe paths WITHOUT importing from ../server (which would start the HTTP server).
+const getFfmpegPath = (): string => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const installer = require("@ffmpeg-installer/ffmpeg");
+    if (installer?.path) return installer.path;
+  } catch { /* fallback */ }
+  return "ffmpeg";
+};
+const getFfprobePath = (): string => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const installer = require("@ffprobe-installer/ffprobe");
+    if (installer?.path) return installer.path;
+  } catch { /* fallback */ }
+  return "ffprobe";
+};
 
 const prisma = new PrismaClient();
 
