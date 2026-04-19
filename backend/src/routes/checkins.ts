@@ -4,6 +4,9 @@ import path from "path";
 import { prisma } from "../server";
 import { authenticate, requireRole } from "../middleware/auth";
 import { uploadVideo } from "../middleware/upload";
+import { transcodeVideoInBackground } from "../utils/transcodeVideo";
+
+const UPLOAD_DIR = process.env.UPLOAD_DIR || "./uploads";
 
 const router = Router();
 router.use(authenticate);
@@ -832,6 +835,14 @@ router.post("/:id/videos", uploadVideo.single("file"), async (req, res) => {
         notes,
       },
     });
+
+    // Background transcode to H.264/MP4 for browser compatibility (non-blocking).
+    // Updates BOTH techniqueVideo and checkinVideo URLs to the new .mp4 path.
+    transcodeVideoInBackground({
+      sourcePath: path.resolve(UPLOAD_DIR, "videos", req.file.filename),
+      oldUrl: url,
+      updateCheckinVideos: true,
+    }).catch((e) => console.error("[checkins] background transcode error:", e));
 
     // Notify admins
     try {
