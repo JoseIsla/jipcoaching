@@ -45,7 +45,7 @@ const AdminWeekTechniqueVideos = ({ clientId, windowDays = 7 }: Props) => {
     for (const e of entries) {
       if (e.clientId !== clientId) continue;
       if (e.category !== "training") continue;
-      const refDate = new Date(e.respondedAt || e.scheduledFor || e.dueDate || 0).getTime();
+      const refDate = e.date ? new Date(e.date).getTime() : 0;
       if (!refDate || refDate < cutoff) continue;
       for (const v of e.techniqueVideos ?? []) {
         out.push({
@@ -55,7 +55,7 @@ const AdminWeekTechniqueVideos = ({ clientId, windowDays = 7 }: Props) => {
           url: v.url,
           notes: v.notes,
           uploadedAt: v.uploadedAt,
-          entryDate: e.scheduledFor || e.dueDate || "",
+          entryDate: e.date,
         });
       }
     }
