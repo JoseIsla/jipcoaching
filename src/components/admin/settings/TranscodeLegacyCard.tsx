@@ -186,6 +186,17 @@ const TranscodeLegacyCard = () => {
           )}
         </div>
 
+        {status?.failures && status.failures.length > 0 && !status.running && (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3">
+            <p className="text-xs font-medium text-destructive mb-2">
+              Vídeos que no se pudieron convertir ({status.failures.length})
+            </p>
+            <pre className="text-[11px] leading-relaxed text-destructive/90 whitespace-pre-wrap font-mono max-h-48 overflow-y-auto">
+              {status.failures.join("\n")}
+            </pre>
+          </div>
+        )}
+
         {status?.summary && !status.running && (
           <div className="rounded-lg border border-border bg-muted/30 p-3">
             <p className="text-xs font-medium text-foreground mb-1">Resumen de la última ejecución</p>
