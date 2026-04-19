@@ -135,12 +135,17 @@ const processFile = async (filename: string, idx: number, total: number): Promis
     return;
   }
 
-  // Probe codec
+  // Probe codec. We treat ONLY h264/avc1 inside .mp4 as browser-safe.
+  // Anything else (hevc/h265, prores, vp9, av1, empty/unknown) → re-encode,
+  // because Chrome/Firefox on Windows/Android don't ship HEVC by default
+  // and many phones produce HEVC-in-MP4 containers (the file has .mp4
+  // extension but the video stream is hevc → black frame, audio only).
   const codec = await probeCodec(fullPath);
-  const isH264Mp4 = ext === ".mp4" && (codec === "h264" || codec === "avc1");
+  const SAFE_CODECS = new Set(["h264", "avc1"]);
+  const isH264Mp4 = ext === ".mp4" && SAFE_CODECS.has(codec);
 
   if (isH264Mp4 && !FORCE) {
-    console.log(`${prefix} ✓ Already H.264/MP4: ${filename}`);
+    console.log(`${prefix} ✓ Already H.264/MP4 (codec=${codec}): ${filename}`);
     stats.skipped++;
     return;
   }
@@ -162,6 +167,13 @@ const processFile = async (filename: string, idx: number, total: number): Promis
 
   try {
     await runFfmpeg(fullPath, tempPath);
+
+    // Verify the produced file is actually H.264 — otherwise abort & keep original.
+    const newCodec = await probeCodec(tempPath);
+    if (!SAFE_CODECS.has(newCodec)) {
+      throw new Error(`output codec is "${newCodec || "unknown"}", expected h264`);
+    }
+
     fs.renameSync(tempPath, targetPath);
 
     // If source had a different extension, remove it (replaced by .mp4)
@@ -173,7 +185,7 @@ const processFile = async (filename: string, idx: number, total: number): Promis
     stats.dbUpdated += updated;
     stats.converted++;
     const secs = ((Date.now() - startedAt) / 1000).toFixed(1);
-    console.log(`${prefix} ✓ Done in ${secs}s (DB rows updated: ${updated})`);
+    console.log(`${prefix} ✓ Done in ${secs}s (codec=${newCodec}, DB rows updated: ${updated})`);
   } catch (err) {
     stats.failed++;
     console.error(`${prefix} ✗ Failed: ${(err as Error).message}`);
