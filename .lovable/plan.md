@@ -1,61 +1,55 @@
 
-
-## Plan: Modo Claro/Oscuro persistente en base de datos
+## Plan: Pantalla de cuenta desactivada + email de despedida
 
 ### Resumen
-Añadir un campo `theme` a `AdminProfile` y `Client` en la base de datos para que la preferencia de tema (dark/light/system) se persista entre sesiones y dispositivos. Selector de apariencia en Configuracion de admin y cliente.
+Cuando un cliente tenga estado `PAUSED`, verá una pantalla de bloqueo en su panel con instrucciones para reactivar vía WhatsApp. Además, al desactivar desde el admin, se enviará automáticamente un email de despedida.
 
-### Cambios
+### Verificación previa
+El botón "Desactivar cliente" en la vista de detalle del admin llama a `PATCH /clients/:id/status` con `{ status: "PAUSED" }` -- esto ya funciona correctamente y es coherente con el flujo.
 
-**1. Schema Prisma + Migración**
-- Añadir campo `theme String @default("dark") @db.VarChar(10)` a `AdminProfile` y `Client`
-- Crear migración SQL
+---
 
-**2. Backend API**
-- En `GET /api/profile/admin` y `PATCH /api/profile/admin`: incluir `theme` en lectura/escritura
-- En `GET /api/profile/client` y `PATCH /api/profile/client`: incluir `theme` en lectura/escritura
+### 1. Pantalla de bloqueo del cliente (Frontend)
 
-**3. Store de tema (`src/stores/useThemeStore.ts`)**
-- Zustand store con estado `theme: "dark" | "light" | "system"`
-- Método `setTheme(theme)` que:
-  - Aplica/quita clase `light` en `<html>`
-  - Escucha `prefers-color-scheme` para modo system
-- Método `initTheme(themeFromApi)` para cargar desde perfil
-- NO usa localStorage como fuente de verdad; el backend es la fuente
+**Crear `src/components/client/ClientDeactivatedScreen.tsx`**
+- Pantalla completa con icono de candado, mensaje "Tu cuenta está desactivada"
+- Instrucciones: contactar por WhatsApp al +34 676188961 para pagar y reactivar
+- Botón directo de WhatsApp (`wa.me/34676188961` con mensaje predefinido)
+- Botón de cerrar sesión
+- Respeta el tema claro/oscuro del cliente
 
-**4. Variables CSS modo claro (`src/index.css`)**
-- Bloque `.light` dentro de `@layer base` con:
-  - Fondo blanco/gris claro, texto oscuro
-  - Cards blancas con bordes sutiles
-  - Primary verde adaptado para legibilidad sobre fondo claro (hsl(110 80% 35%))
-  - Sidebar, muted, accent, destructive adaptados
+**Modificar `src/contexts/ClientContext.tsx`**
+- Exponer `clientStatus` en el contexto (ya se recibe `status` del endpoint `/api/clients/me`)
 
-**5. UI en AdminSettings**
-- Nueva card "Apariencia" con icono Sun/Moon
-- Selector con 3 opciones: Oscuro, Claro, Sistema
-- Al cambiar, llama a PATCH del perfil + actualiza store
+**Modificar `src/components/client/ClientLayout.tsx`**
+- Si el `clientStatus` no es `ACTIVE`: renderizar `ClientDeactivatedScreen` en lugar del contenido (header, tabs, children)
+- Mantener la inicialización del tema para que la pantalla de bloqueo se vea con el tema configurado del cliente
 
-**6. UI en ClientSettings**
-- Misma card "Apariencia" con selector idéntico
-- Al cambiar, llama a PATCH del perfil de cliente + actualiza store
+**Traducciones (`src/i18n/es.ts`, `src/i18n/en.ts`)**
+- Claves: `deactivated.title`, `deactivated.message`, `deactivated.whatsappButton`, `deactivated.logoutButton`
 
-**7. Inicialización al login**
-- En `AdminLayout`: al cargar perfil, llamar `initTheme(profile.theme)`
-- En `ClientLayout`: al cargar perfil del cliente, llamar `initTheme(profile.theme)`
+---
 
-**8. Traducciones i18n**
-- `es.ts` y `en.ts`: claves `settings.appearance`, `settings.lightMode`, `settings.darkMode`, `settings.systemMode`
+### 2. Email de despedida al desactivar (Backend)
+
+**Modificar `backend/src/utils/emailBuilder.ts`**
+- Añadir template `ACCOUNT_DEACTIVATED` en los defaults:
+  - Subject: "Tu cuenta ha sido desactivada – JIP Coaching"
+  - Heading: "Gracias por confiar en nosotros, {{nombre}}"
+  - BodyText: mensaje de agradecimiento + instrucciones para volver contactando por WhatsApp
+  - Sin CTA
+
+**Modificar `backend/src/routes/clients.ts`**
+- En `PATCH /:id/status` (línea 472): antes del update, leer el estado actual del cliente
+- Si cambia de `ACTIVE` a `PAUSED`: enviar email de despedida asíncrono usando `buildEmail('ACCOUNT_DEACTIVATED', ...)` + nodemailer (ya configurado en ese archivo)
+- Obtener el email del cliente a través de su User asociado
+
+---
 
 ### Archivos
-- **Crear**: `src/stores/useThemeStore.ts`
-- **Crear**: migración Prisma (add theme field)
-- **Modificar**: `backend/prisma/schema.prisma`
-- **Modificar**: `backend/src/routes/profile.ts`
-- **Modificar**: `src/index.css`
-- **Modificar**: `src/pages/AdminSettings.tsx`
-- **Modificar**: `src/pages/client/ClientSettings.tsx`
-- **Modificar**: `src/components/admin/AdminLayout.tsx`
+- **Crear**: `src/components/client/ClientDeactivatedScreen.tsx`
+- **Modificar**: `src/contexts/ClientContext.tsx`
 - **Modificar**: `src/components/client/ClientLayout.tsx`
 - **Modificar**: `src/i18n/es.ts`, `src/i18n/en.ts`
-- **Modificar**: `src/contexts/AdminProfileContext.tsx`, `src/contexts/ClientProfileContext.tsx` (incluir theme en tipos)
-
+- **Modificar**: `backend/src/utils/emailBuilder.ts`
+- **Modificar**: `backend/src/routes/clients.ts`
