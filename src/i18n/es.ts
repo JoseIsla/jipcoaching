@@ -833,6 +833,14 @@ const es = {
     disclaimerTextLabel: "Texto de descargo",
     disclaimerTextPlaceholder: "Si no solicitaste este cambio...",
   },
+
+  // ── Deactivated account ──
+  deactivated: {
+    title: "Tu cuenta está desactivada",
+    message: "Tu suscripción ha finalizado. Para reactivar tu cuenta y seguir disfrutando de todos los servicios de JIP Coaching, contacta por WhatsApp y realiza el pago del mes correspondiente.",
+    whatsappButton: "Contactar por WhatsApp",
+    logoutButton: "Cerrar sesión",
+  },
 } as const;
 
 export default es;
