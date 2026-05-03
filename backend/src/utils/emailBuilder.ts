@@ -58,6 +58,14 @@ const DEFAULTS: Record<string, TemplateFields> = {
     ctaLabel: "Confirmar nuevo email",
     extras: { disclaimerText: "Si no solicitaste este cambio, puedes ignorar este email. Tu email seguirá siendo el mismo." },
   },
+  ACCOUNT_DEACTIVATED: {
+    subject: "Tu cuenta ha sido desactivada – JIP Coaching",
+    heading: "Gracias por confiar en nosotros, {{nombre}}",
+    subheading: "Tu cuenta en JIP Coaching ha sido desactivada.",
+    bodyText: "Queremos agradecerte la confianza depositada durante este tiempo. Ha sido un placer acompañarte en tu camino.\n\nSi en algún momento deseas volver, estaremos encantados de recibirte. Solo tienes que contactar por WhatsApp al +34 676 18 89 61 y realizar el pago del mes correspondiente para reactivar tu cuenta.\n\n¡Te deseamos lo mejor! 💪",
+    ctaLabel: "",
+    extras: {},
+  },
 };
 
 /**
