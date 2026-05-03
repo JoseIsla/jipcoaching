@@ -69,11 +69,6 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
     if (clientProfile?.theme) initTheme(clientProfile.theme);
   }, [clientProfile?.theme, initTheme]);
 
-  // If client is not ACTIVE, show deactivation screen (theme is already initialized above)
-  if (role === "client" && client.status && client.status !== "ACTIVE") {
-    return <ClientDeactivatedScreen onLogout={handleLogout} isLoggingOut={isLoggingOut} />;
-  }
-
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Notification store
@@ -276,6 +271,11 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
     navigate("/login", { replace: true });
     setIsLoggingOut(false);
   };
+
+  // If client is not ACTIVE, show deactivation screen (theme is already initialized above)
+  if (role === "client" && client.status && client.status !== "ACTIVE") {
+    return <ClientDeactivatedScreen onLogout={handleLogout} isLoggingOut={isLoggingOut} />;
+  }
 
   return (
     <div ref={ref} className="min-h-screen bg-background flex flex-col">
