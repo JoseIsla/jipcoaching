@@ -864,6 +864,7 @@ enum EmailTemplateType {
   PAYMENT_REMINDER
   PASSWORD_RESET
   EMAIL_CHANGE
+  ACCOUNT_DEACTIVATED
 }
 
 model EmailTemplate {
