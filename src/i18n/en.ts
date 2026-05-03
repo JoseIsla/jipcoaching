@@ -822,6 +822,8 @@ const en: Translations = {
     passwordResetDesc: "Sent when a user requests to reset their password.",
     emailChangeLabel: "Email change",
     emailChangeDesc: "Sent when a user requests to change their email address. Includes a verification link.",
+    accountDeactivatedLabel: "Account deactivated",
+    accountDeactivatedDesc: "Automatically sent when a client's account is deactivated from the admin panel.",
     warningTextLabel: "Warning text",
     warningTextPlaceholder: "Password change recommendation...",
     disclaimerTextLabel: "Disclaimer text",
