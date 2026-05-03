@@ -17,6 +17,7 @@ import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
 
 interface ClientContextType {
   client: ApiClient;
+  clientStatus: string | undefined;
   setClientId: (id: string) => void;
   allClients: ApiClient[];
   updateClientAvatar: (url: string | null) => void;
@@ -97,7 +98,7 @@ export const ClientProvider = forwardRef<unknown, { children: ReactNode }>(({ ch
   };
 
   return (
-    <ClientContext.Provider value={{ client, setClientId, allClients: activeClients, updateClientAvatar }}>
+    <ClientContext.Provider value={{ client, clientStatus: client.status, setClientId, allClients: activeClients, updateClientAvatar }}>
       {children}
     </ClientContext.Provider>
   );

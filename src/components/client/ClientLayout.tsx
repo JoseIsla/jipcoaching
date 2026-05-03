@@ -18,6 +18,7 @@ import { useQuestionnaireStore, isActionablePending } from "@/data/useQuestionna
 import { useToast } from "@/hooks/use-toast";
 import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 import { api } from "@/services/api";
+import ClientDeactivatedScreen from "./ClientDeactivatedScreen";
 
 const formatRelativeTime = (date: Date) => {
   const now = Date.now();
@@ -54,7 +55,7 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
   const setCurrentUser = useLanguageStore((s) => s.setCurrentUser);
   const { t } = useTranslation();
   const { client, setClientId, allClients } = useClient();
-  const { logout, userId } = useAuth();
+  const { logout, userId, role } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -270,6 +271,11 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
     navigate("/login", { replace: true });
     setIsLoggingOut(false);
   };
+
+  // If client is not ACTIVE, show deactivation screen (theme is already initialized above)
+  if (role === "client" && client.status && client.status !== "ACTIVE") {
+    return <ClientDeactivatedScreen onLogout={handleLogout} isLoggingOut={isLoggingOut} />;
+  }
 
   return (
     <div ref={ref} className="min-h-screen bg-background flex flex-col">

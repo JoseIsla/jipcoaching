@@ -827,6 +827,14 @@ const en: Translations = {
     disclaimerTextLabel: "Disclaimer text",
     disclaimerTextPlaceholder: "If you didn't request this change...",
   },
+
+  // ── Deactivated account ──
+  deactivated: {
+    title: "Your account is deactivated",
+    message: "Your subscription has ended. To reactivate your account and continue enjoying all JIP Coaching services, please contact us via WhatsApp and complete the corresponding monthly payment.",
+    whatsappButton: "Contact via WhatsApp",
+    logoutButton: "Log out",
+  },
 };
 
 export default en;

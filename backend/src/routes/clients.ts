@@ -472,10 +472,27 @@ router.patch("/:id/set-paid-date", requireRole("ADMIN"), async (req, res) => {
 router.patch("/:id/status", requireRole("ADMIN"), async (req, res) => {
   try {
     const { status } = req.body;
+
+    // Read current client to detect ACTIVE → PAUSED transition
+    const current = await prisma.client.findUnique({
+      where: { id: req.params.id as string },
+      include: { user: { select: { email: true } } },
+    });
+
     const client = await prisma.client.update({
       where: { id: req.params.id as string },
       data: { status },
     });
+
+    // Send farewell email on ACTIVE → PAUSED
+    if (current && current.status === "ACTIVE" && status === "PAUSED" && current.user?.email) {
+      buildEmail("ACCOUNT_DEACTIVATED", { nombre: current.name })
+        .then(({ subject, html }) =>
+          transporter.sendMail({ from: FROM_EMAIL, to: current.user!.email, subject, html })
+        )
+        .catch((err: any) => console.error("Failed to send deactivation email:", err?.message));
+    }
+
     res.json(client);
   } catch (err: any) {
     console.error("PATCH /clients/:id/status error:", err);
