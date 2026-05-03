@@ -1,4 +1,5 @@
 import { Lock, LogOut, MessageCircle } from "lucide-react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTranslation } from "@/i18n/useTranslation";
@@ -17,17 +18,40 @@ const ClientDeactivatedScreen = ({ onLogout, isLoggingOut }: Props) => {
   const { t } = useTranslation();
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
-        {/* Lock icon */}
-        <div className="flex justify-center">
-          <div className="h-20 w-20 rounded-full bg-destructive/10 flex items-center justify-center">
-            <Lock className="h-10 w-10 text-destructive" />
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 overflow-hidden">
+      <motion.div
+        className="w-full max-w-md space-y-6"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
+        {/* Lock icon with pulse ring */}
+        <motion.div
+          className="flex justify-center"
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
+        >
+          <div className="relative">
+            {/* Pulsing ring */}
+            <motion.div
+              className="absolute inset-0 rounded-full bg-destructive/10"
+              animate={{ scale: [1, 1.35, 1], opacity: [0.5, 0, 0.5] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <div className="relative h-20 w-20 rounded-full bg-destructive/10 flex items-center justify-center">
+              <Lock className="h-10 w-10 text-destructive" />
+            </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Main card */}
-        <Card className="border-border">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        >
+        <Card className="border-border backdrop-blur-sm">
           <CardContent className="pt-6 text-center space-y-4">
             <h1 className="text-xl font-bold text-foreground">
               {t("deactivated.title")}
@@ -64,11 +88,17 @@ const ClientDeactivatedScreen = ({ onLogout, isLoggingOut }: Props) => {
             </Button>
           </CardContent>
         </Card>
+        </motion.div>
 
-        <p className="text-center text-xs text-muted-foreground">
+        <motion.p
+          className="text-center text-xs text-muted-foreground"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
           © {new Date().getFullYear()} JIP Performance Nutrition
-        </p>
-      </div>
+        </motion.p>
+      </motion.div>
     </div>
   );
 };
