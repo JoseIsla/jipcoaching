@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Eye, Save, RotateCcw, Mail, UserPlus, CreditCard, AlertTriangle, KeyRound, MailCheck, Loader2, CloudOff } from "lucide-react";
+import { UserX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/services/api";
 import { DEV_MOCK } from "@/config/devMode";
@@ -103,6 +104,17 @@ const TEMPLATE_DEFS: TemplateConfig[] = [
     extraFields: [
       { key: "disclaimerText", labelKey: "emailTemplates.disclaimerTextLabel", placeholderKey: "emailTemplates.disclaimerTextPlaceholder", defaultValue: "Si no solicitaste este cambio, puedes ignorar este email. Tu email seguirá siendo el mismo." },
     ],
+  },
+  {
+    id: "account_deactivated",
+    labelKey: "emailTemplates.accountDeactivatedLabel",
+    icon: UserX,
+    descriptionKey: "emailTemplates.accountDeactivatedDesc",
+    subject: "Tu cuenta ha sido desactivada – JIP Coaching",
+    heading: "Gracias por confiar en nosotros, {{nombre}}",
+    subheading: "Tu cuenta en JIP Coaching ha sido desactivada.",
+    bodyText: "Queremos agradecerte la confianza depositada durante este tiempo. Ha sido un placer acompañarte en tu camino.\n\nSi en algún momento deseas volver, estaremos encantados de recibirte. Solo tienes que contactar por WhatsApp al +34 676 18 89 61 y realizar el pago del mes correspondiente para reactivar tu cuenta.\n\n¡Te deseamos lo mejor! 💪",
+    ctaLabel: "",
   },
 ];
 

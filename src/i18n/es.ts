@@ -827,6 +827,8 @@ const es = {
     passwordResetDesc: "Se envía cuando un usuario solicita restablecer su contraseña.",
     emailChangeLabel: "Cambio de email",
     emailChangeDesc: "Se envía cuando un usuario solicita cambiar su dirección de email. Incluye un enlace de verificación.",
+    accountDeactivatedLabel: "Cuenta desactivada",
+    accountDeactivatedDesc: "Se envía automáticamente cuando se desactiva la cuenta de un cliente desde el panel de administración.",
     // Extra field labels
     warningTextLabel: "Texto de advertencia",
     warningTextPlaceholder: "Recomendación de cambio de contraseña...",
