@@ -238,6 +238,7 @@ model Client {
   nutritionIntake   NutritionIntake?
   trainingIntake    TrainingIntake?
   testimonial       Testimonial?
+  physicalMarks     ClientPhysicalMark[]
 
   @@map("clients")
 }
@@ -279,6 +280,9 @@ model TrainingIntake {
   goal            String?
   currentSBD      String?
   injuries        String? @db.Text
+  oppositionType  String? @db.VarChar(30)
+  examDate        DateTime?
+  currentMarks    String? @db.Text // JSON
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -897,4 +901,41 @@ model GlobalFoodItem {
 
   @@unique([type, name])
   @@map("global_food_items")
+}
+
+// ── Opposition Physical Tests ──
+
+enum OppositionType {
+  POLICIA_NACIONAL
+  POLICIA_LOCAL
+  BOMBEROS
+  TROPA_MARINERIA
+}
+
+model PhysicalTestScale {
+  id              String         @id @default(uuid())
+  oppositionType  OppositionType
+  testName        String         @db.VarChar(100)
+  gender          String         @db.VarChar(10)
+  minValue        Float
+  maxValue        Float
+  unit            String         @db.VarChar(20)
+  score           Int
+  createdAt       DateTime       @default(now())
+
+  @@map("physical_test_scales")
+}
+
+model ClientPhysicalMark {
+  id         String   @id @default(uuid())
+  clientId   String
+  testName   String   @db.VarChar(100)
+  value      Float
+  unit       String   @db.VarChar(20)
+  recordedAt DateTime @default(now())
+  notes      String?  @db.Text
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("client_physical_marks")
 }
