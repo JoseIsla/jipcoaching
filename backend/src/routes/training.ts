@@ -464,4 +464,77 @@ router.put("/days/:dayId", requireRole("ADMIN"), async (req, res) => {
   }
 });
 
+// ── Physical Test Scales ──
+
+// GET /api/training/physical-scales?oppositionType=POLICIA_NACIONAL&gender=MALE
+router.get("/physical-scales", async (req, res) => {
+  try {
+    const { oppositionType, gender } = req.query;
+    const where: any = {};
+    if (oppositionType) where.oppositionType = oppositionType as string;
+    if (gender) where.gender = gender as string;
+
+    const scales = await prisma.physicalTestScale.findMany({ where, orderBy: [{ testName: "asc" }, { score: "asc" }] });
+    res.json(scales);
+  } catch (err: any) {
+    console.error("GET /training/physical-scales error:", err);
+    res.status(500).json({ message: "Error al obtener baremos" });
+  }
+});
+
+// ── Client Physical Marks ──
+
+// GET /api/training/physical-marks?clientId=xxx
+router.get("/physical-marks", async (req, res) => {
+  try {
+    let clientId = req.query.clientId as string | undefined;
+
+    if ((req.user as any).role === "CLIENT") {
+      const client = await prisma.client.findUnique({ where: { userId: (req.user as any).userId } });
+      if (!client) { res.status(404).json({ message: "Cliente no encontrado" }); return; }
+      clientId = client.id;
+    }
+
+    if (!clientId) { res.status(400).json({ message: "clientId requerido" }); return; }
+
+    const marks = await prisma.clientPhysicalMark.findMany({
+      where: { clientId },
+      orderBy: { recordedAt: "desc" },
+    });
+    res.json(marks);
+  } catch (err: any) {
+    console.error("GET /training/physical-marks error:", err);
+    res.status(500).json({ message: "Error al obtener marcas" });
+  }
+});
+
+// POST /api/training/physical-marks
+router.post("/physical-marks", async (req, res) => {
+  try {
+    const { clientId, testName, value, unit, notes } = req.body;
+    if (!clientId || !testName || value == null || !unit) {
+      res.status(400).json({ message: "Faltan campos requeridos" }); return;
+    }
+
+    const mark = await prisma.clientPhysicalMark.create({
+      data: { clientId, testName, value: parseFloat(value), unit, notes },
+    });
+    res.status(201).json(mark);
+  } catch (err: any) {
+    console.error("POST /training/physical-marks error:", err);
+    res.status(500).json({ message: "Error al registrar marca" });
+  }
+});
+
+// DELETE /api/training/physical-marks/:id
+router.delete("/physical-marks/:id", requireRole("ADMIN"), async (req, res) => {
+  try {
+    await prisma.clientPhysicalMark.delete({ where: { id: (req.params as any).id } });
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error("DELETE /training/physical-marks error:", err);
+    res.status(500).json({ message: "Error al eliminar marca" });
+  }
+});
+
 export default router;
