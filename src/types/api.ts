@@ -56,6 +56,44 @@ export interface TrainingIntakeDto {
   goal?: string;
   currentSBD?: string;
   injuries?: string;
+  oppositionType?: OppositionType;
+  examDate?: string;
+  currentMarks?: string; // JSON
+}
+
+export enum OppositionType {
+  POLICIA_NACIONAL = "POLICIA_NACIONAL",
+  POLICIA_LOCAL = "POLICIA_LOCAL",
+  BOMBEROS = "BOMBEROS",
+  TROPA_MARINERIA = "TROPA_MARINERIA",
+}
+
+export const oppositionTypeLabels: Record<OppositionType, string> = {
+  [OppositionType.POLICIA_NACIONAL]: "Policía Nacional",
+  [OppositionType.POLICIA_LOCAL]: "Policía Local",
+  [OppositionType.BOMBEROS]: "Bomberos",
+  [OppositionType.TROPA_MARINERIA]: "Tropa y Marinería",
+};
+
+export interface PhysicalTestScaleEntry {
+  id: string;
+  oppositionType: OppositionType;
+  testName: string;
+  gender: string;
+  minValue: number;
+  maxValue: number;
+  unit: string;
+  score: number;
+}
+
+export interface ClientPhysicalMark {
+  id: string;
+  clientId: string;
+  testName: string;
+  value: number;
+  unit: string;
+  recordedAt: string;
+  notes?: string;
 }
 
 export interface CreateClientDto {
