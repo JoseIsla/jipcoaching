@@ -1,7 +1,7 @@
 import { useClientStore } from "./useClientStore";
 
 export type TrainingBlock = "Hipertrofia" | "Intensificación" | "Peaking" | "Tapering";
-export type TrainingModality = "Powerlifting" | "Powerbuilding";
+export type TrainingModality = "Powerlifting" | "Powerbuilding" | "Oposiciones - Policía Nacional" | "Oposiciones - Policía Local" | "Oposiciones - Bomberos" | "Oposiciones - Tropa y Marinería";
 
 // ==================== TYPES ====================
 

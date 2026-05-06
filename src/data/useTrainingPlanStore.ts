@@ -32,7 +32,13 @@ import type {
 } from "@/data/trainingPlanStore";
 
 export type TrainingBlock = "Hipertrofia" | "Intensificación" | "Peaking" | "Tapering";
-export type TrainingModality = "Powerlifting" | "Powerbuilding";
+export type TrainingModality = "Powerlifting" | "Powerbuilding" | "Oposiciones - Policía Nacional" | "Oposiciones - Policía Local" | "Oposiciones - Bomberos" | "Oposiciones - Tropa y Marinería";
+
+export type OppositionBlock = "Fuerza Base" | "Resistencia" | "Velocidad/Agilidad" | "Específico Pruebas" | "Simulacro";
+
+export const isOppositionModality = (m: string): boolean => m.startsWith("Oposiciones");
+
+export const OPPOSITION_BLOCKS: OppositionBlock[] = ["Fuerza Base", "Resistencia", "Velocidad/Agilidad", "Específico Pruebas", "Simulacro"];
 
 interface TrainingPlanListEntry {
   id: string;

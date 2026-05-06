@@ -8,10 +8,11 @@ import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, Dumbbell, Lock, Calendar, Download } from "lucide-react";
 import AnimatedChevron from "@/components/ui/animated-chevron";
 import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-content";
-import { useTrainingPlanStore, TRAINING_METHOD_LABELS, type TrainingPlanFull, type TrainingWeek, type TrainingDay } from "@/data/useTrainingPlanStore";
+import { useTrainingPlanStore, TRAINING_METHOD_LABELS, isOppositionModality, type TrainingPlanFull, type TrainingWeek, type TrainingDay } from "@/data/useTrainingPlanStore";
 import { exportTrainingWeekPDF } from "@/utils/exportClientPlanPDF";
 import { useTranslation } from "@/i18n/useTranslation";
 import PullToRefresh from "@/components/client/PullToRefresh";
+import PhysicalTestTracker from "@/components/client/PhysicalTestTracker";
 
 const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<string, string | number>) => string }) => {
   const [open, setOpen] = useState(false);
@@ -202,6 +203,17 @@ const ClientTraining = () => {
             </div>
             {currentWeek.generalNotes && <div className="bg-muted/30 border border-border/40 rounded-lg p-3"><p className="text-xs text-muted-foreground">{currentWeek.generalNotes}</p></div>}
             <div className="space-y-2">{[...currentWeek.days].sort((a, b) => a.dayNumber - b.dayNumber).map((day) => <DayView key={day.id} day={day} t={t} />)}</div>
+          </motion.div>
+        )}
+
+        {/* Physical test tracker for opposition plans */}
+        {isOppositionModality(plan.modality) && (
+          <motion.div variants={fadeUp}>
+            <PhysicalTestTracker
+              clientId={client.id}
+              modality={plan.modality}
+              gender={client.sex?.toUpperCase() === "F" || client.sex?.toUpperCase() === "FEMALE" ? "FEMALE" : "MALE"}
+            />
           </motion.div>
         )}
       </motion.div>
