@@ -10,7 +10,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { useToast } from "@/hooks/use-toast";
 import { useClientStore } from "@/data/useClientStore";
 import { useClientDetailStore } from "@/data/useClientDetailStore";
-import { PackType, ClientStatus, packTypeLabels, getServicesFromPack, type CreateClientDto, type NutritionIntakeDto, type TrainingIntakeDto } from "@/types/api";
+import { PackType, ClientStatus, packTypeLabels, getServicesFromPack, type CreateClientDto, type NutritionIntakeDto, type TrainingIntakeDto, OppositionType, oppositionTypeLabels } from "@/types/api";
 import { useTranslation } from "@/i18n/useTranslation";
 import { parseDecimal } from "@/utils/parseDecimal";
 import { DecimalInput } from "@/components/ui/decimal-input";
@@ -379,9 +379,30 @@ const AddClientSheet = ({ open, onClose, onClientAdded }: AddClientSheetProps) =
                     <SelectItem value="Fuerza general">Fuerza general</SelectItem>
                     <SelectItem value="Funcional">Funcional</SelectItem>
                     <SelectItem value="Otro">Otro</SelectItem>
+                    <SelectItem value="Oposiciones">Oposiciones</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
+              {trainIntake.modality === "Oposiciones" && (
+                <div className="space-y-3 bg-muted/30 rounded-lg p-3">
+                  <div>
+                    <Label className="text-foreground text-xs">Tipo de oposición</Label>
+                    <Select value={trainIntake.oppositionType || ""} onValueChange={(v) => setTrainIntake({ ...trainIntake, oppositionType: v as OppositionType })}>
+                      <SelectTrigger className={inputCls}><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                      <SelectContent className="bg-card border-border">
+                        {Object.entries(oppositionTypeLabels).map(([k, v]) => (
+                          <SelectItem key={k} value={k}>{v}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-foreground text-xs">Fecha prevista del examen</Label>
+                    <Input type="date" value={trainIntake.examDate || ""} onChange={(e) => setTrainIntake({ ...trainIntake, examDate: e.target.value })} className={inputCls} />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <Label className="text-foreground text-xs">{t("addClient.trainingGoal")}</Label>
