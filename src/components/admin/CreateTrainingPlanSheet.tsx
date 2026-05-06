@@ -11,11 +11,16 @@ import {
 } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import type { TrainingBlock, TrainingModality } from "@/data/useTrainingPlanStore";
-import { useTrainingPlanStore } from "@/data/useTrainingPlanStore";
+import { useTrainingPlanStore, isOppositionModality, OPPOSITION_BLOCKS } from "@/data/useTrainingPlanStore";
+import type { OppositionBlock } from "@/data/useTrainingPlanStore";
 import { api } from "@/services/api";
 
 const BLOCKS: TrainingBlock[] = ["Hipertrofia", "Intensificación", "Peaking", "Tapering"];
-const MODALITIES: TrainingModality[] = ["Powerlifting", "Powerbuilding"];
+const MODALITIES: TrainingModality[] = [
+  "Powerlifting", "Powerbuilding",
+  "Oposiciones - Policía Nacional", "Oposiciones - Policía Local",
+  "Oposiciones - Bomberos", "Oposiciones - Tropa y Marinería",
+];
 
 const CreateTrainingPlanSheet = ({ onCreated }: { onCreated?: () => void }) => {
   const [open, setOpen] = useState(false);
@@ -31,6 +36,9 @@ const CreateTrainingPlanSheet = ({ onCreated }: { onCreated?: () => void }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const isOppo = isOppositionModality(modality);
+  const activeBlocks = isOppo ? OPPOSITION_BLOCKS : BLOCKS;
+
   const clients = useTrainingPlanStore((s) => s.getClientsWithService)();
   const getActivePlanForClient = useTrainingPlanStore((s) => s.getActivePlanForClient);
   
@@ -39,7 +47,7 @@ const CreateTrainingPlanSheet = ({ onCreated }: { onCreated?: () => void }) => {
 
   const reset = () => {
     setClientId(""); setPlanName(""); setModality("Powerlifting");
-    setBlock("Hipertrofia"); setWeeksDuration(8); setDaysPerWeek(4);
+    setBlock("Hipertrofia" as any); setWeeksDuration(8); setDaysPerWeek(4);
     setBlockVariants(""); setConfirmDeactivate(false);
   };
 
@@ -147,10 +155,10 @@ const CreateTrainingPlanSheet = ({ onCreated }: { onCreated?: () => void }) => {
           {/* Block */}
           <div className="space-y-2">
             <Label>Bloque inicial</Label>
-            <Select value={block} onValueChange={(v) => setBlock(v as TrainingBlock)}>
+            <Select value={block} onValueChange={(v) => setBlock(v as any)}>
               <SelectTrigger className="bg-background border-border"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {BLOCKS.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                {activeBlocks.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
