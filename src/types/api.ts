@@ -120,6 +120,7 @@ export interface ApiClient {
   monthlyFee?: number;
   notes?: string;
   avatarUrl?: string | null;
+  sex?: string;
   /** Computed from packType — not from the API */
   services: ServiceType[];
 }
