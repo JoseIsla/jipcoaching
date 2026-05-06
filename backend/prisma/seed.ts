@@ -156,7 +156,60 @@ async function main() {
 
   await ensureTestAccounts();
 
+  // ════════════════════════════════════════════
+  // 4. OPPOSITION EXERCISES (additive, no deletes)
+  // ════════════════════════════════════════════
+  await seedOppositionExercises();
+
   console.log("🎉 Seed complete!");
+}
+
+async function seedOppositionExercises() {
+  console.log("🏃 Seeding opposition exercises...");
+
+  const exercises: { name: string; category: "BASIC" | "VARIANT" | "ACCESSORY"; muscleGroup: string }[] = [
+    // Resistance
+    { name: "Carrera 1000m", category: "BASIC", muscleGroup: "Resistencia" },
+    { name: "Carrera 2000m", category: "BASIC", muscleGroup: "Resistencia" },
+    { name: "Carrera 3000m", category: "BASIC", muscleGroup: "Resistencia" },
+    { name: "Course Navette", category: "BASIC", muscleGroup: "Resistencia" },
+    // Speed
+    { name: "Sprint 50m", category: "BASIC", muscleGroup: "Velocidad" },
+    { name: "Sprint 60m", category: "BASIC", muscleGroup: "Velocidad" },
+    { name: "Sprint 100m", category: "BASIC", muscleGroup: "Velocidad" },
+    { name: "Sprint 200m", category: "BASIC", muscleGroup: "Velocidad" },
+    // Agility
+    { name: "Circuito agilidad PN", category: "BASIC", muscleGroup: "Agilidad" },
+    { name: "Circuito agilidad INEF", category: "BASIC", muscleGroup: "Agilidad" },
+    // Specific force
+    { name: "Trepa de cuerda", category: "BASIC", muscleGroup: "Fuerza específica" },
+    { name: "Press banca (marcas)", category: "BASIC", muscleGroup: "Fuerza específica" },
+    { name: "Lanzamiento balón medicinal", category: "BASIC", muscleGroup: "Fuerza específica" },
+    // Jumps
+    { name: "Salto vertical", category: "BASIC", muscleGroup: "Salto" },
+    { name: "Salto horizontal", category: "BASIC", muscleGroup: "Salto" },
+    // Swimming
+    { name: "Natación 50m", category: "BASIC", muscleGroup: "Natación" },
+    { name: "Natación 100m", category: "BASIC", muscleGroup: "Natación" },
+    // Bar / specific
+    { name: "Suspensión en barra", category: "BASIC", muscleGroup: "Fuerza específica" },
+    { name: "Subida de torre", category: "BASIC", muscleGroup: "Específico bomberos" },
+    // Accessories
+    { name: "Dominadas (opos)", category: "ACCESSORY", muscleGroup: "Tren superior" },
+    { name: "Flexiones (opos)", category: "ACCESSORY", muscleGroup: "Tren superior" },
+    { name: "Abdominales (opos)", category: "ACCESSORY", muscleGroup: "Core" },
+    { name: "Buceo 25m", category: "ACCESSORY", muscleGroup: "Natación" },
+  ];
+
+  let created = 0;
+  for (const ex of exercises) {
+    const existing = await prisma.exercise.findFirst({ where: { name: ex.name } });
+    if (!existing) {
+      await prisma.exercise.create({ data: ex });
+      created++;
+    }
+  }
+  console.log(`✅ Opposition exercises seeded: ${created} new, ${exercises.length - created} already existed`);
 }
 
 main()
