@@ -55,3 +55,13 @@ export const getOppositionTypeFromModality = (modality: string): OppositionType 
   if (modality === "Oposiciones - Tropa y Marinería") return OppositionType.TROPA_MARINERIA;
   return null;
 };
+
+/** Filter tests applicable to a specific gender */
+export const getTestsForGender = (
+  opType: OppositionType,
+  gender: "MALE" | "FEMALE"
+): OppositionTestDef[] => {
+  return OPPOSITION_TESTS[opType].filter(
+    (t) => !t.gender || t.gender === gender
+  );
+};
