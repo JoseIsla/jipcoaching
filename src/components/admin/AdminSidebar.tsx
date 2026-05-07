@@ -19,6 +19,7 @@ import {
   TrendingUp,
   FileCheck,
   Activity,
+  Trophy,
 } from "lucide-react";
 import logoJip from "@/assets/logo-jip.png";
 import logoJipDark from "@/assets/logo-jip-dark.png";
@@ -81,6 +82,7 @@ const navEntries: NavEntry[] = [
     ],
   },
   { key: "sidebar.library", icon: Library, path: "/admin/exercises" },
+  { key: "sidebar.baremos", icon: Trophy, path: "/admin/baremos" },
   { key: "sidebar.leads", icon: Inbox, path: "/admin/leads" },
   { key: "sidebar.questionnaires", icon: ClipboardList, path: "/admin/questionnaires" },
   { key: "sidebar.emails", icon: Mail, path: "/admin/emails" },
