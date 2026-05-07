@@ -30,6 +30,9 @@ import { useMediaStore } from "@/data/useMediaStore";
 import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 import { mediaApi } from "@/services/mediaApi";
 import { parseDecimal } from "@/utils/parseDecimal";
+import { useTrainingPlanStore, isOppositionModality } from "@/data/useTrainingPlanStore";
+import { OPPOSITION_TESTS, getOppositionTypeFromModality } from "@/data/oppositionScales";
+import { Trophy } from "lucide-react";
 
 /** Build default responses for all questions so untouched fields are still submitted. */
 const buildDefaultResponses = (
@@ -243,6 +246,15 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const { client } = useClient();
   const [open, setOpen] = useState(false);
   const [trainingLog, setTrainingLog] = useState<TrainingLogDay[]>(entry.trainingLog || []);
+
+  // Opposition physical marks state
+  const plans = useTrainingPlanStore((s) => s.plans);
+  const activePlan = plans.find((p) => p.clientId === client.id && p.active);
+  const isOpposition = activePlan ? isOppositionModality(activePlan.modality) : false;
+  const opType = activePlan ? getOppositionTypeFromModality(activePlan.modality) : null;
+  const opTests = opType ? OPPOSITION_TESTS[opType] : [];
+  const [physicalMarks, setPhysicalMarks] = useState<Record<string, string>>({});
+
   const storeTrainingTemplate = useTemplateStore((s) => s.trainingTemplate);
   const apiQuestions: QuestionDefinition[] = (entry.templateQuestions || []).map((q) => ({
     id: q.id, label: q.label, type: q.type as any, required: q.required, options: q.options,
@@ -451,7 +463,18 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
         actualReps: ex.actualReps || ex.plannedReps,
       })),
     }));
-    const success = await submitEntry(entry.id, responses, finalLog);
+
+    // Build physical marks array for opposition clients
+    const marksPayload = isOpposition
+      ? Object.entries(physicalMarks)
+          .filter(([, v]) => v && v.trim() !== "")
+          .map(([testName, value]) => {
+            const testDef = opTests.find((t) => t.testName === testName);
+            return { testName, value: parseFloat(value), unit: testDef?.unit || "seconds" };
+          })
+      : undefined;
+
+    const success = await submitEntry(entry.id, responses, finalLog, marksPayload);
     if (success) {
       setSubmitted(true);
       toast({ title: t("clientCheckins.checkinSent"), description: t("clientCheckins.checkinSentDesc") });
