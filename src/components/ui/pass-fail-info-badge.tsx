@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -96,6 +96,7 @@ const PassFailInfoBadge = ({
   const label = labelProp ?? defaults.label;
   const title = titleProp ?? defaults.title;
   const description = descProp ?? defaults.description;
+  const badgeRef = useRef<HTMLDivElement>(null);
 
   const colorClass =
     variant === "noApto"
@@ -105,27 +106,38 @@ const PassFailInfoBadge = ({
   const boeSource = boeRef ? `Fuente: ${boeRef}` : "";
   const ariaLabel = `${label} — ${title}. ${description}${boeSource ? ` ${boeSource}` : ""}`;
 
+  const openDrawer = useCallback(() => setDrawerOpen(true), []);
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       e.stopPropagation();
-      setDrawerOpen(true);
+      openDrawer();
+    }
+  }, [openDrawer]);
+
+  // Return focus to badge when drawer closes
+  const handleDrawerChange = useCallback((open: boolean) => {
+    setDrawerOpen(open);
+    if (!open) {
+      requestAnimationFrame(() => badgeRef.current?.focus());
     }
   }, []);
 
   const badge = (
     <Badge
+      ref={badgeRef}
       variant="outline"
       className={`text-[9px] flex items-center gap-1 cursor-help ${colorClass} focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring`}
       tabIndex={0}
       role="button"
       aria-label={ariaLabel}
+      aria-haspopup="dialog"
+      aria-expanded={drawerOpen}
       onClick={(e) => {
-        if (isTouch) {
-          e.stopPropagation();
-          e.preventDefault();
-          setDrawerOpen(true);
-        }
+        e.stopPropagation();
+        e.preventDefault();
+        openDrawer();
       }}
       onKeyDown={handleKeyDown}
     >
@@ -142,53 +154,57 @@ const PassFailInfoBadge = ({
     </>
   );
 
-  if (isTouch) {
-    return (
-      <>
-        {badge}
-        <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} aria-label={title}>
-          <DrawerContent className="px-4 pb-safe">
-            <DrawerHeader className="px-0 pb-2 relative">
-              <DrawerTitle className="text-sm pr-8">{title}</DrawerTitle>
-              <DrawerClose asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-3 h-7 w-7 rounded-full"
-                  aria-label="Cerrar"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </DrawerClose>
-            </DrawerHeader>
-            <DrawerDescription className="text-xs text-muted-foreground leading-relaxed">
-              {description}
-            </DrawerDescription>
-            {boeRef && <BoeCitation boeRef={boeRef} />}
-            <DrawerFooter className="px-0 pt-4">
-              <DrawerClose asChild>
-                <Button variant="secondary" size="sm" className="w-full text-xs">
-                  Cerrar
-                </Button>
-              </DrawerClose>
-            </DrawerFooter>
-          </DrawerContent>
-        </Drawer>
-      </>
-    );
-  }
+  const drawer = (
+    <Drawer open={drawerOpen} onOpenChange={handleDrawerChange}>
+      <DrawerContent className="px-4 pb-safe" role="dialog" aria-modal="true" aria-labelledby="pf-drawer-title">
+        <DrawerHeader className="px-0 pb-2 relative">
+          <DrawerTitle id="pf-drawer-title" className="text-sm pr-8">{title}</DrawerTitle>
+          <DrawerClose asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-0 top-3 h-7 w-7 rounded-full"
+              aria-label="Cerrar"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </DrawerClose>
+        </DrawerHeader>
+        <DrawerDescription className="text-xs text-muted-foreground leading-relaxed">
+          {description}
+        </DrawerDescription>
+        {boeRef && <BoeCitation boeRef={boeRef} />}
+        <DrawerFooter className="px-0 pt-4">
+          <DrawerClose asChild>
+            <Button variant="secondary" size="sm" className="w-full text-xs">
+              Cerrar
+            </Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  );
 
-  return (
-    <TooltipProvider delayDuration={200}>
-      <Tooltip>
-        <TooltipTrigger asChild onClick={(e) => e.stopPropagation()} aria-describedby={undefined}>
-          {badge}
-        </TooltipTrigger>
-        <TooltipContent side="left" className="max-w-[240px] text-[10px] leading-relaxed" role="tooltip">
-          {infoContent}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+  // On non-touch devices, wrap badge with hover tooltip; drawer is always available
+  return isTouch ? (
+    <>
+      {badge}
+      {drawer}
+    </>
+  ) : (
+    <>
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {badge}
+          </TooltipTrigger>
+          <TooltipContent side="left" className="max-w-[240px] text-[10px] leading-relaxed" role="tooltip">
+            {infoContent}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      {drawer}
+    </>
   );
 };
 
