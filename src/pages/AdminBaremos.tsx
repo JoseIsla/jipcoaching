@@ -285,6 +285,7 @@ const AdminBaremos = () => {
                       <thead>
                         <tr className="bg-muted/50">
                           <th className="px-3 py-2 text-left text-xs text-muted-foreground font-medium">Puntos</th>
+                          {isPassFail && <th className="px-3 py-2 text-left text-xs text-muted-foreground font-medium">Estado</th>}
                           <th className="px-3 py-2 text-left text-xs text-muted-foreground font-medium">Mín</th>
                           <th className="px-3 py-2 text-left text-xs text-muted-foreground font-medium">Máx</th>
                           <th className="px-3 py-2 text-right text-xs text-muted-foreground font-medium">Acciones</th>
