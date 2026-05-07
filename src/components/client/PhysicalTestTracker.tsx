@@ -19,6 +19,7 @@ import { exportPhysicalMarksPDF } from "@/utils/exportPhysicalMarksPDF";
 interface Props {
   clientId: string;
   modality: string;
+  clientName?: string;
   gender?: string; // "MALE" | "FEMALE"
   isAdmin?: boolean;
 }
@@ -46,7 +47,7 @@ const formatTimeValue = (seconds: number): string => {
   return `${seconds.toFixed(1)}''`;
 };
 
-const PhysicalTestTracker = ({ clientId, modality, gender = "MALE", isAdmin }: Props) => {
+const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gender = "MALE", isAdmin }: Props) => {
   const { toast } = useToast();
   const [scales, setScales] = useState<PhysicalTestScaleEntry[]>([]);
   const [marks, setMarks] = useState<ClientPhysicalMark[]>([]);
@@ -151,12 +152,13 @@ const PhysicalTestTracker = ({ clientId, modality, gender = "MALE", isAdmin }: P
               className="gap-1.5 text-xs"
               onClick={() =>
                 exportPhysicalMarksPDF({
-                  clientName: "Cliente",
+                  clientName,
                   oppositionLabel: oppositionTypeLabels[opType!],
                   gender,
                   tests,
                   scales,
                   marks,
+                  lastCheckinDate: marks.length > 0 ? marks[0].recordedAt : null,
                 })
               }
             >
