@@ -14,30 +14,60 @@ const useIsTouchDevice = () => {
 };
 
 export interface PassFailInfoBadgeProps {
-  label: string;
-  title: string;
-  description: string;
+  /** Override label text. Defaults based on variant. */
+  label?: string;
+  /** Override title text. Defaults based on variant. */
+  title?: string;
+  /** Override description text. Defaults based on variant. */
+  description?: string;
   boeRef?: string;
   variant?: "default" | "apto" | "noApto";
 }
 
+/** Canonical copy per variant — single source of truth */
+const VARIANT_DEFAULTS: Record<string, { label: string; title: string; description: string }> = {
+  default: {
+    label: "Apto / No Apto",
+    title: "Sistema eliminatorio",
+    description:
+      "El aspirante debe alcanzar la marca mínima establecida en el baremo oficial para obtener «Apto». No alcanzarla supone la calificación de «No Apto» y la eliminación del proceso selectivo.",
+  },
+  apto: {
+    label: "Apto",
+    title: "Marca apta",
+    description:
+      "La marca registrada alcanza o supera el mínimo exigido en el baremo oficial. Resultado: «Apto».",
+  },
+  noApto: {
+    label: "No Apto",
+    title: "Marca no apta",
+    description:
+      "La marca registrada no alcanza el mínimo exigido en el baremo oficial. Resultado: «No Apto» — el aspirante queda eliminado del proceso selectivo.",
+  },
+};
+
 /** Badge that shows tooltip on desktop, drawer on mobile — explains BOE pass/fail system */
 const PassFailInfoBadge = ({
-  label,
-  title,
-  description,
+  label: labelProp,
+  title: titleProp,
+  description: descProp,
   boeRef,
   variant = "default",
 }: PassFailInfoBadgeProps) => {
   const isTouch = useIsTouchDevice();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const defaults = VARIANT_DEFAULTS[variant] ?? VARIANT_DEFAULTS.default;
+  const label = labelProp ?? defaults.label;
+  const title = titleProp ?? defaults.title;
+  const description = descProp ?? defaults.description;
 
   const colorClass =
     variant === "noApto"
       ? "border-destructive/30 text-destructive"
       : "border-green-500/30 text-green-400";
 
-  const ariaLabel = `${label} — ${title}. ${description}${boeRef ? ` Fuente: ${boeRef}` : ""}`;
+  const boeSource = boeRef ? `Fuente: ${boeRef}` : "";
+  const ariaLabel = `${label} — ${title}. ${description}${boeSource ? ` ${boeSource}` : ""}`;
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -72,7 +102,7 @@ const PassFailInfoBadge = ({
     <>
       <p className="font-semibold mb-1">{title}</p>
       <p>{description}</p>
-      {boeRef && <p className="mt-1 text-muted-foreground">Fuente: {boeRef}</p>}
+      {boeRef && <p className="mt-1 text-muted-foreground">📄 {boeSource}</p>}
     </>
   );
 
@@ -90,7 +120,7 @@ const PassFailInfoBadge = ({
             </DrawerDescription>
             {boeRef && (
               <p className="text-[11px] text-muted-foreground mt-3 pt-3 border-t border-border/30">
-                📄 Fuente: {boeRef}
+                📄 {boeSource}
               </p>
             )}
           </DrawerContent>
