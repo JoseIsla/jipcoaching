@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerClose } from "@/components/ui/drawer";
 import { FileText, ChevronDown, CheckCircle2, XCircle, CalendarDays, Info, HelpCircle } from "lucide-react";
 import AnimatedChevron from "@/components/ui/animated-chevron";
 import { useTrainingPlanStore, isOppositionModality } from "@/data/useTrainingPlanStore";
@@ -269,6 +270,102 @@ const ClientBOE = () => {
   );
 };
 
+
+/** Detect touch-primary device (mobile) */
+const useIsTouchDevice = () => {
+  const [isTouch, setIsTouch] = useState(false);
+  useEffect(() => {
+    setIsTouch(window.matchMedia("(pointer: coarse)").matches);
+  }, []);
+  return isTouch;
+};
+
+/** Badge that shows tooltip on desktop, drawer on mobile */
+const PassFailInfoBadge = ({
+  label,
+  title,
+  description,
+  boeRef,
+  variant = "default",
+}: {
+  label: string;
+  title: string;
+  description: string;
+  boeRef?: string;
+  variant?: "default" | "apto" | "noApto";
+}) => {
+  const isTouch = useIsTouchDevice();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const colorClass =
+    variant === "apto"
+      ? "border-green-500/30 text-green-400"
+      : variant === "noApto"
+      ? "border-destructive/30 text-destructive"
+      : "border-green-500/30 text-green-400";
+
+  const badge = (
+    <Badge
+      variant="outline"
+      className={`text-[9px] flex items-center gap-1 cursor-help ${colorClass}`}
+      onClick={(e) => {
+        if (isTouch) {
+          e.stopPropagation();
+          e.preventDefault();
+          setDrawerOpen(true);
+        }
+      }}
+    >
+      {label}
+      <HelpCircle className="h-2.5 w-2.5" />
+    </Badge>
+  );
+
+  const infoContent = (
+    <>
+      <p className="font-semibold mb-1">{title}</p>
+      <p>{description}</p>
+      {boeRef && <p className="mt-1 text-muted-foreground">Fuente: {boeRef}</p>}
+    </>
+  );
+
+  if (isTouch) {
+    return (
+      <>
+        {badge}
+        <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <DrawerContent className="px-4 pb-6">
+            <DrawerHeader className="px-0 pb-2">
+              <DrawerTitle className="text-sm">{title}</DrawerTitle>
+            </DrawerHeader>
+            <DrawerDescription className="text-xs text-muted-foreground leading-relaxed">
+              {description}
+            </DrawerDescription>
+            {boeRef && (
+              <p className="text-[11px] text-muted-foreground mt-3 pt-3 border-t border-border/30">
+                📄 Fuente: {boeRef}
+              </p>
+            )}
+          </DrawerContent>
+        </Drawer>
+      </>
+    );
+  }
+
+  return (
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+          {badge}
+        </TooltipTrigger>
+        <TooltipContent side="left" className="max-w-[240px] text-[10px] leading-relaxed">
+          {infoContent}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
 /** Individual test card with collapsible description */
 interface TestCardProps {
   testDef: { testName: string; unit: string; unitLabel: string; lowerIsBetter: boolean };
@@ -320,21 +417,12 @@ const TestCard = ({ testDef, scales, isPassFail, isGC, gcConv, gender, boeRef }:
             <Badge variant="outline" className="text-[9px]">{testDef.unitLabel}</Badge>
           </div>
           {isPassFail && (
-            <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
-                  <Badge variant="outline" className="text-[9px] border-green-500/30 text-green-400 flex items-center gap-1 cursor-help">
-                    Apto / No Apto
-                    <HelpCircle className="h-2.5 w-2.5" />
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent side="left" className="max-w-[240px] text-[10px] leading-relaxed">
-                  <p className="font-semibold mb-1">Sistema eliminatorio</p>
-                  <p>El aspirante debe alcanzar la marca mínima para obtener «Apto». No alcanzarla supone la eliminación del proceso.</p>
-                  {boeRef && <p className="mt-1 text-muted-foreground">Fuente: {boeRef}</p>}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <PassFailInfoBadge
+              label="Apto / No Apto"
+              title="Sistema eliminatorio"
+              description="El aspirante debe alcanzar la marca mínima para obtener «Apto». No alcanzarla supone la eliminación del proceso."
+              boeRef={boeRef}
+            />
           )}
         </CollapsibleTrigger>
         <CollapsibleContent>
@@ -401,21 +489,15 @@ const ScaleTable = ({ testName, entries, isPassFail, boeRef }: { testName: strin
         <div key={s.id} className="flex items-center justify-between px-3 py-1.5 text-[11px]">
           <span className="text-muted-foreground">{s.minValue} – {s.maxValue}</span>
           {isPassFail ? (
-            <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge variant="outline" className={`text-[9px] cursor-help ${s.score >= 5 ? "border-green-500/30 text-green-400" : "border-destructive/30 text-destructive"}`}>
-                    {s.score >= 5 ? "Apto" : "No Apto"}
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent side="left" className="max-w-[220px] text-[10px]">
-                  {s.score >= 5
-                    ? "La marca está dentro del rango apto según el baremo oficial."
-                    : "La marca no alcanza el mínimo exigido. Resultado: eliminado."}
-                  {boeRef && <p className="mt-1 text-muted-foreground">Fuente: {boeRef}</p>}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <PassFailInfoBadge
+              label={s.score >= 5 ? "Apto" : "No Apto"}
+              title={s.score >= 5 ? "Marca apta" : "Marca no apta"}
+              description={s.score >= 5
+                ? "La marca está dentro del rango apto según el baremo oficial."
+                : "La marca no alcanza el mínimo exigido. Resultado: eliminado."}
+              boeRef={boeRef}
+              variant={s.score >= 5 ? "apto" : "noApto"}
+            />
           ) : (
             <span className="text-foreground font-bold">{s.score} pts</span>
           )}
