@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Plus, Trash2, TrendingUp, TrendingDown, Target, Download, Pencil } from "lucide-react";
+import { Trophy, Plus, Trash2, TrendingUp, TrendingDown, Target, Download, Pencil, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -84,6 +84,9 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
   }, [clientId, opType, gender]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Detect pass/fail mode: if all scores in scales are 0 or 5, it's apto/no-apto
+  const isPassFail = scales.length > 0 && scales.every(s => s.score === 0 || s.score === 5);
 
   const getScore = (testName: string, value: number): number => {
     const matching = scales.filter(s => s.testName === testName);
@@ -268,17 +271,45 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
       </div>
 
       {/* Total score summary */}
-      <Card className={`p-4 border ${scoreBg(totalScore / tests.length)}`}>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider">Puntuación total</p>
-            <p className={`text-2xl font-bold ${scoreColor(totalScore / tests.length)}`}>
-              {totalScore} / {maxScore}
-            </p>
+      {isPassFail ? (
+        <Card className="p-4 border border-border/50">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Evaluación Apto / No Apto</p>
+              <p className="text-2xl font-bold text-foreground">
+                {tests.filter(t => {
+                  const m = getLatestMark(t.testName);
+                  return m && getScore(t.testName, m.value) >= 5;
+                }).length} / {tests.length}
+                <span className="text-sm font-normal text-muted-foreground ml-2">pruebas superadas</span>
+              </p>
+            </div>
+            {tests.every(t => {
+              const m = getLatestMark(t.testName);
+              return m && getScore(t.testName, m.value) >= 5;
+            }) ? (
+              <CheckCircle2 className="h-8 w-8 text-green-400 opacity-80" />
+            ) : (
+              <Target className="h-8 w-8 text-muted-foreground opacity-60" />
+            )}
           </div>
-          <Target className={`h-8 w-8 ${scoreColor(totalScore / tests.length)} opacity-60`} />
-        </div>
-      </Card>
+          <p className="text-[10px] text-muted-foreground mt-2">
+            Baremos oficiales BOE — Grupo &lt;35 años. Calificación: apto o no apto.
+          </p>
+        </Card>
+      ) : (
+        <Card className={`p-4 border ${scoreBg(totalScore / tests.length)}`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Puntuación total</p>
+              <p className={`text-2xl font-bold ${scoreColor(totalScore / tests.length)}`}>
+                {totalScore} / {maxScore}
+              </p>
+            </div>
+            <Target className={`h-8 w-8 ${scoreColor(totalScore / tests.length)} opacity-60`} />
+          </div>
+        </Card>
+      )}
 
       {/* Test cards */}
       <div className="space-y-2">
@@ -342,10 +373,26 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
                     </Button>
                   )}
                   {score !== null && (
-                    <div className={`flex flex-col items-center rounded-lg px-3 py-2 border ${scoreBg(score)}`}>
-                      <span className={`text-xl font-bold ${scoreColor(score)}`}>{score}</span>
-                      <span className="text-[9px] text-muted-foreground uppercase">pts</span>
-                    </div>
+                    isPassFail ? (
+                      <div className={`flex items-center gap-1.5 rounded-lg px-3 py-2 border ${score >= 5 ? "bg-green-500/10 border-green-500/20" : "bg-destructive/10 border-destructive/20"}`}>
+                        {score >= 5 ? (
+                          <>
+                            <CheckCircle2 className="h-4 w-4 text-green-400" />
+                            <span className="text-xs font-bold text-green-400 uppercase">Apto</span>
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="h-4 w-4 text-destructive" />
+                            <span className="text-xs font-bold text-destructive uppercase">No Apto</span>
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                      <div className={`flex flex-col items-center rounded-lg px-3 py-2 border ${scoreBg(score)}`}>
+                        <span className={`text-xl font-bold ${scoreColor(score)}`}>{score}</span>
+                        <span className="text-[9px] text-muted-foreground uppercase">pts</span>
+                      </div>
+                    )
                   )}
                 </div>
               </div>
