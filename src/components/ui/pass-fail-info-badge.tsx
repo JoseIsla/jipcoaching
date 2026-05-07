@@ -125,15 +125,14 @@ const PassFailInfoBadge = ({
   }, []);
 
   const badge = (
-    <Badge
+    <div
       ref={badgeRef}
-      variant="outline"
-      className={`text-[9px] flex items-center gap-1 cursor-help ${colorClass} focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring`}
       tabIndex={0}
       role="button"
       aria-label={ariaLabel}
       aria-haspopup="dialog"
       aria-expanded={drawerOpen}
+      className="inline-flex"
       onClick={(e) => {
         e.stopPropagation();
         e.preventDefault();
@@ -141,9 +140,14 @@ const PassFailInfoBadge = ({
       }}
       onKeyDown={handleKeyDown}
     >
-      {label}
-      <HelpCircle className="h-2.5 w-2.5" />
-    </Badge>
+      <Badge
+        variant="outline"
+        className={`text-[9px] flex items-center gap-1 cursor-help ${colorClass} focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring`}
+      >
+        {label}
+        <HelpCircle className="h-2.5 w-2.5" />
+      </Badge>
+    </div>
   );
 
   const infoContent = (
