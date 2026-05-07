@@ -590,7 +590,7 @@ router.get("/physical-marks", async (req, res) => {
   }
 });
 
-// DELETE /api/training/physical-marks/:id
+// PUT /api/training/physical-marks/:id — Update a mark (client: own only, admin: any)
 router.put("/physical-marks/:id", async (req, res) => {
   try {
     const markId = (req.params as any).id;
