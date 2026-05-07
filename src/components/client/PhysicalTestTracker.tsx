@@ -17,7 +17,6 @@ import type { PhysicalTestScaleEntry, ClientPhysicalMark } from "@/types/api";
 import { OPPOSITION_TESTS, getOppositionTypeFromModality, getTestsForGender, type OppositionTestDef } from "@/data/oppositionScales";
 import { GC_CONVOCATORIAS, getGCApto, getGCThresholdValue, type GCConvocatoria } from "@/data/guardiaCivilConvocatorias";
 import { exportPhysicalMarksPDF } from "@/utils/exportPhysicalMarksPDF";
-import { getGCThresholdValue } from "@/data/guardiaCivilConvocatorias";
 import { mapDeleteMarkError } from "@/utils/mapDeleteMarkError";
 import { CalendarDays } from "lucide-react";
 
