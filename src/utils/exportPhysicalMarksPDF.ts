@@ -11,6 +11,10 @@ const WHITE: [number, number, number] = [255, 255, 255];
 const TEXT_MUTED: [number, number, number] = [140, 140, 140];
 const TEXT_LIGHT: [number, number, number] = [210, 210, 210];
 const ALT_ROW: [number, number, number] = [22, 22, 22];
+const COLOR_EXCELLENT: [number, number, number] = [57, 255, 20];
+const COLOR_GOOD: [number, number, number] = [255, 200, 50];
+const COLOR_FAIR: [number, number, number] = [255, 140, 50];
+const COLOR_LOW: [number, number, number] = [255, 80, 80];
 
 const fillBackground = (doc: jsPDF) => {
   const pw = doc.internal.pageSize.getWidth();
@@ -42,6 +46,7 @@ interface ExportParams {
   tests: OppositionTestDef[];
   scales: PhysicalTestScaleEntry[];
   marks: ClientPhysicalMark[];
+  lastCheckinDate?: string | null;
 }
 
 const getScore = (scales: PhysicalTestScaleEntry[], testName: string, value: number): number => {
@@ -52,7 +57,7 @@ const getScore = (scales: PhysicalTestScaleEntry[], testName: string, value: num
 };
 
 export const exportPhysicalMarksPDF = async (params: ExportParams) => {
-  const { clientName, oppositionLabel, gender, tests, scales, marks } = params;
+  const { clientName, oppositionLabel, gender, tests, scales, marks, lastCheckinDate } = params;
   const logoBase64 = await loadLogoBase64();
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -74,10 +79,17 @@ export const exportPhysicalMarksPDF = async (params: ExportParams) => {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
   doc.setTextColor(...TEXT_MUTED);
-  doc.text(`${clientName} — ${oppositionLabel} (${gender === "MALE" ? "Hombre" : "Mujer"})`, margin, y);
+  doc.text(`Atleta: ${clientName}`, margin, y);
   y += 5;
-  doc.text(`Fecha: ${new Date().toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}`, margin, y);
-  y += 10;
+  doc.text(`Oposición: ${oppositionLabel} (${gender === "MALE" ? "Hombre" : "Mujer"})`, margin, y);
+  y += 5;
+  doc.text(`Fecha del informe: ${new Date().toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}`, margin, y);
+  y += 5;
+  if (lastCheckinDate) {
+    doc.text(`Último check-in: ${new Date(lastCheckinDate).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}`, margin, y);
+    y += 5;
+  }
+  y += 6;
 
   // Total score
   let totalScore = 0;
@@ -142,6 +154,40 @@ export const exportPhysicalMarksPDF = async (params: ExportParams) => {
       }
     },
   });
+
+  // Legend after table
+  const finalY = (doc as any).lastAutoTable?.finalY ?? y + 40;
+  let ly = finalY + 10;
+
+  // Check if legend fits on current page
+  if (ly + 30 > doc.internal.pageSize.getHeight() - 15) {
+    doc.addPage();
+    fillBackground(doc);
+    ly = 20;
+  }
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(...WHITE);
+  doc.text("Leyenda de puntuación", margin, ly);
+  ly += 6;
+
+  const legendItems: { label: string; color: [number, number, number] }[] = [
+    { label: "8–10  Excelente", color: COLOR_EXCELLENT },
+    { label: "5–7    Bueno", color: COLOR_GOOD },
+    { label: "1–4    Mejorable", color: COLOR_FAIR },
+    { label: "0        Insuficiente", color: COLOR_LOW },
+  ];
+
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  for (const item of legendItems) {
+    doc.setFillColor(...item.color);
+    doc.circle(margin + 2, ly - 1.2, 1.8, "F");
+    doc.setTextColor(...item.color);
+    doc.text(item.label, margin + 7, ly);
+    ly += 5;
+  }
 
   doc.save(`marcas_${clientName.replace(/\s+/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`);
 };
