@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
-import { HelpCircle, Copy, CheckCheck } from "lucide-react";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerClose, DrawerFooter } from "@/components/ui/drawer";
+import { HelpCircle, Copy, CheckCheck, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 /** Detect touch-primary device */
@@ -147,14 +147,31 @@ const PassFailInfoBadge = ({
       <>
         {badge}
         <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} aria-label={title}>
-          <DrawerContent className="px-4 pb-6">
-            <DrawerHeader className="px-0 pb-2">
-              <DrawerTitle className="text-sm">{title}</DrawerTitle>
+          <DrawerContent className="px-4 pb-safe">
+            <DrawerHeader className="px-0 pb-2 relative">
+              <DrawerTitle className="text-sm pr-8">{title}</DrawerTitle>
+              <DrawerClose asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-3 h-7 w-7 rounded-full"
+                  aria-label="Cerrar"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </DrawerClose>
             </DrawerHeader>
             <DrawerDescription className="text-xs text-muted-foreground leading-relaxed">
               {description}
             </DrawerDescription>
             {boeRef && <BoeCitation boeRef={boeRef} />}
+            <DrawerFooter className="px-0 pt-4">
+              <DrawerClose asChild>
+                <Button variant="secondary" size="sm" className="w-full text-xs">
+                  Cerrar
+                </Button>
+              </DrawerClose>
+            </DrawerFooter>
           </DrawerContent>
         </Drawer>
       </>
