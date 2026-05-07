@@ -484,17 +484,25 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
                   )}
                   {score !== null && (
                     isPassFail ? (
-                      <div className={`flex items-center gap-1.5 rounded-lg px-3 py-2 border ${score >= 5 ? "bg-green-500/10 border-green-500/20" : "bg-destructive/10 border-destructive/20"}`}>
-                        {score >= 5 ? (
-                          <>
-                            <CheckCircle2 className="h-4 w-4 text-green-400" />
-                            <span className="text-xs font-bold text-green-400 uppercase">Apto</span>
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="h-4 w-4 text-destructive" />
-                            <span className="text-xs font-bold text-destructive uppercase">No Apto</span>
-                          </>
+                      <div className={`flex flex-col items-center rounded-lg px-3 py-2 border ${score >= 5 ? "bg-green-500/10 border-green-500/20" : "bg-destructive/10 border-destructive/20"}`}>
+                        <div className="flex items-center gap-1.5">
+                          {score >= 5 ? (
+                            <>
+                              <CheckCircle2 className="h-4 w-4 text-green-400" />
+                              <span className="text-xs font-bold text-green-400 uppercase">Apto</span>
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="h-4 w-4 text-destructive" />
+                              <span className="text-xs font-bold text-destructive uppercase">No Apto</span>
+                            </>
+                          )}
+                        </div>
+                        {isGC && gcThreshold !== null && (
+                          <span className="text-[9px] text-muted-foreground mt-0.5 whitespace-nowrap">
+                            {testDef.lowerIsBetter ? "≤" : "≥"}{" "}
+                            {testDef.unit === "seconds" ? formatTimeValue(gcThreshold) : `${gcThreshold} ${testDef.unitLabel}`}
+                          </span>
                         )}
                       </div>
                     ) : (
