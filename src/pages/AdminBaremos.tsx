@@ -15,6 +15,15 @@ import { OppositionType, oppositionTypeLabels } from "@/types/api";
 import type { PhysicalTestScaleEntry } from "@/types/api";
 import { GC_CONVOCATORIAS, type GCConvocatoria } from "@/data/guardiaCivilConvocatorias";
 
+const formatTimeValue = (seconds: number): string => {
+  if (seconds >= 60) {
+    const m = Math.floor(seconds / 60);
+    const s = Math.round(seconds % 60);
+    return `${m}'${s.toString().padStart(2, "0")}''`;
+  }
+  return `${seconds.toFixed(1)}''`;
+};
+
 const OPPOSITION_TYPES = Object.values(OppositionType);
 const GENDERS = ["MALE", "FEMALE"] as const;
 const genderLabel = (g: string) => (g === "MALE" ? "Hombre" : "Mujer");
