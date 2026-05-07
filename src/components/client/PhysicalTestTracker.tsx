@@ -65,6 +65,10 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
   const [deletingMarkId, setDeletingMarkId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const opType = getOppositionTypeFromModality(modality);
+  const genderKey = (gender?.toUpperCase() === "FEMALE" ? "FEMALE" : "MALE") as "MALE" | "FEMALE";
+
   // Guardia Civil convocatoria & age group selectors
   const isGC = opType === OppositionType.GUARDIA_CIVIL;
   const [gcConvYear, setGcConvYear] = useState<number>(GC_CONVOCATORIAS[0].year);
@@ -75,7 +79,6 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
     [gcConvYear]
   );
 
-  // For GC, derive tests from the selected convocatoria age group
   const gcTests: OppositionTestDef[] = useMemo(() => {
     if (!isGC) return [];
     const ag = gcConv.ageGroups.find(a => a.key === gcAgeGroup);
@@ -88,8 +91,6 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
     }));
   }, [isGC, gcConv, gcAgeGroup]);
 
-  const opType = getOppositionTypeFromModality(modality);
-  const genderKey = (gender?.toUpperCase() === "FEMALE" ? "FEMALE" : "MALE") as "MALE" | "FEMALE";
   const baseTests = opType ? getTestsForGender(opType, genderKey) : [];
   const tests = isGC && gcTests.length > 0 ? gcTests : baseTests;
 
