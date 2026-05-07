@@ -59,6 +59,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
   const [editingMark, setEditingMark] = useState<ClientPhysicalMark | null>(null);
   const [editValue, setEditValue] = useState("");
   const [confirmEditOpen, setConfirmEditOpen] = useState(false);
+  const [deletingMarkId, setDeletingMarkId] = useState<string | null>(null);
 
   const opType = getOppositionTypeFromModality(modality);
   const tests = opType ? OPPOSITION_TESTS[opType] : [];
@@ -142,6 +143,18 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
     }
   };
 
+  const handleDeleteMark = async (markId: string) => {
+    try {
+      await api.delete(`/training/physical-marks/${markId}`);
+      toast({ title: "Marca eliminada" });
+      await fetchData();
+    } catch {
+      toast({ title: "Error", description: "No se pudo eliminar la marca", variant: "destructive" });
+    } finally {
+      setDeletingMarkId(null);
+    }
+  };
+
   if (!opType || tests.length === 0) return null;
 
   const totalScore = tests.reduce((acc, t) => {
@@ -165,12 +178,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
             {oppositionTypeLabels[opType]}
           </Badge>
         </div>
-        <Dialog open={addOpen} onOpenChange={setAddOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-              <Plus className="h-3.5 w-3.5" /> Registrar
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
           {marks.length > 0 && (
             <Button
               variant="outline"
@@ -191,41 +199,48 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
               <Download className="h-3.5 w-3.5" /> PDF
             </Button>
           )}
-          <DialogContent className="bg-card border-border">
-            <DialogHeader>
-              <DialogTitle>Registrar nueva marca</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <Label>Prueba</Label>
-                <Select value={selectedTest} onValueChange={setSelectedTest}>
-                  <SelectTrigger className="bg-background border-border"><SelectValue placeholder="Seleccionar prueba" /></SelectTrigger>
-                  <SelectContent>
-                    {tests.map(t => (
-                      <SelectItem key={t.testName} value={t.testName}>{t.testName}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {selectedTest && (
-                <div className="space-y-2">
-                  <Label>Valor ({tests.find(t => t.testName === selectedTest)?.unitLabel})</Label>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={newValue}
-                    onChange={(e) => setNewValue(e.target.value)}
-                    placeholder={tests.find(t => t.testName === selectedTest)?.unit === "seconds" ? "Ej: 10.5" : "Ej: 12"}
-                    className="bg-background border-border"
-                  />
-                </div>
-              )}
-              <Button onClick={handleAddMark} className="w-full" disabled={!selectedTest || !newValue || submitting}>
-                {submitting ? "Guardando..." : "Guardar marca"}
+          <Dialog open={addOpen} onOpenChange={setAddOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                <Plus className="h-3.5 w-3.5" /> Registrar
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="bg-card border-border">
+              <DialogHeader>
+                <DialogTitle>Registrar nueva marca</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div className="space-y-2">
+                  <Label>Prueba</Label>
+                  <Select value={selectedTest} onValueChange={setSelectedTest}>
+                    <SelectTrigger className="bg-background border-border"><SelectValue placeholder="Seleccionar prueba" /></SelectTrigger>
+                    <SelectContent>
+                      {tests.map(t => (
+                        <SelectItem key={t.testName} value={t.testName}>{t.testName}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {selectedTest && (
+                  <div className="space-y-2">
+                    <Label>Valor ({tests.find(t => t.testName === selectedTest)?.unitLabel})</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={newValue}
+                      onChange={(e) => setNewValue(e.target.value)}
+                      placeholder={tests.find(t => t.testName === selectedTest)?.unit === "seconds" ? "Ej: 10.5" : "Ej: 12"}
+                      className="bg-background border-border"
+                    />
+                  </div>
+                )}
+                <Button onClick={handleAddMark} className="w-full" disabled={!selectedTest || !newValue || submitting}>
+                  {submitting ? "Guardando..." : "Guardar marca"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Total score summary */}
@@ -292,6 +307,16 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                   )}
+                  {isAdmin && latest && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-destructive hover:text-destructive"
+                      onClick={() => setDeletingMarkId(latest.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
                   {score !== null && (
                     <div className={`flex flex-col items-center rounded-lg px-3 py-2 border ${scoreBg(score)}`}>
                       <span className={`text-xl font-bold ${scoreColor(score)}`}>{score}</span>
@@ -356,6 +381,24 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmEdit} disabled={submitting}>
               {submitting ? "Guardando..." : "Confirmar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deletingMarkId} onOpenChange={(open) => { if (!open) setDeletingMarkId(null); }}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar marca?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción eliminará la marca permanentemente y no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deletingMarkId && handleDeleteMark(deletingMarkId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
