@@ -163,7 +163,6 @@ async function main() {
 
 async function seedPhysicalTestScales() {
   console.log("🏋️ Seeding physical test scales...");
-  await prisma.physicalTestScale.deleteMany({});
 
   type Row = { oppositionType: any; testName: string; gender: string; minValue: number; maxValue: number; unit: string; score: number };
   const rows: Row[] = [];
@@ -320,10 +319,33 @@ async function seedPhysicalTestScales() {
     }
   }
 
+  // Upsert: match on (oppositionType, testName, gender, minValue, maxValue) to avoid duplicates
+  let created = 0;
+  let updated = 0;
   for (const row of rows) {
-    await prisma.physicalTestScale.create({ data: row });
+    const existing = await prisma.physicalTestScale.findFirst({
+      where: {
+        oppositionType: row.oppositionType,
+        testName: row.testName,
+        gender: row.gender,
+        minValue: row.minValue,
+        maxValue: row.maxValue,
+      },
+    });
+    if (existing) {
+      if (existing.score !== row.score || existing.unit !== row.unit) {
+        await prisma.physicalTestScale.update({
+          where: { id: existing.id },
+          data: { score: row.score, unit: row.unit },
+        });
+        updated++;
+      }
+    } else {
+      await prisma.physicalTestScale.create({ data: row });
+      created++;
+    }
   }
-  console.log("✅ Physical test scales seeded:", rows.length);
+  console.log(`✅ Physical test scales seeded: ${rows.length} total (${created} created, ${updated} updated, ${rows.length - created - updated} unchanged)`);
 }
 
 main()
