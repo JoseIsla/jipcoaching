@@ -698,7 +698,8 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                       </p>
                       <div className="space-y-2">
                         {opTests.map((test) => (
-                          <div key={test.testName} className="flex items-center gap-2">
+                          <div key={test.testName} className="space-y-0.5">
+                          <div className="flex items-center gap-2">
                             <Label className="text-xs text-foreground flex-1 min-w-0 truncate">{test.testName}</Label>
                             <Input
                               type="number"
@@ -716,6 +717,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                           {markErrors[test.testName] && (
                             <p className="text-[10px] text-destructive pl-1 -mt-1">{markErrors[test.testName]}</p>
                           )}
+                          </div>
                         ))}
                       </div>
                     </div>
