@@ -621,7 +621,10 @@ router.put("/physical-marks/:id", async (req, res) => {
 // DELETE /api/training/physical-marks/:id
 router.delete("/physical-marks/:id", requireRole("ADMIN"), async (req, res) => {
   try {
-    await prisma.clientPhysicalMark.delete({ where: { id: (req.params as any).id } });
+    const markId = (req.params as any).id;
+    const existing = await prisma.clientPhysicalMark.findUnique({ where: { id: markId } });
+    if (!existing) { res.status(404).json({ message: "Marca no encontrada" }); return; }
+    await prisma.clientPhysicalMark.delete({ where: { id: markId } });
     res.json({ success: true });
   } catch (err: any) {
     console.error("DELETE /training/physical-marks error:", err);
