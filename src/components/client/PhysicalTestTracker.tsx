@@ -14,7 +14,7 @@ import { ApiError } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { OppositionType, oppositionTypeLabels } from "@/types/api";
 import type { PhysicalTestScaleEntry, ClientPhysicalMark } from "@/types/api";
-import { OPPOSITION_TESTS, getOppositionTypeFromModality } from "@/data/oppositionScales";
+import { OPPOSITION_TESTS, getOppositionTypeFromModality, getTestsForGender } from "@/data/oppositionScales";
 import type { OppositionTestDef } from "@/data/oppositionScales";
 import { exportPhysicalMarksPDF } from "@/utils/exportPhysicalMarksPDF";
 
@@ -64,7 +64,8 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
   const [deleting, setDeleting] = useState(false);
 
   const opType = getOppositionTypeFromModality(modality);
-  const tests = opType ? OPPOSITION_TESTS[opType] : [];
+  const genderKey = (gender?.toUpperCase() === "FEMALE" ? "FEMALE" : "MALE") as "MALE" | "FEMALE";
+  const tests = opType ? getTestsForGender(opType, genderKey) : [];
 
   const fetchData = useCallback(async () => {
     if (!opType) return;
