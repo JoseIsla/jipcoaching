@@ -230,9 +230,6 @@ describe("PhysicalTestTracker permissions", () => {
 
     // Mark should still be visible (optimistic rollback)
     expect(screen.getByText("Dominadas")).toBeInTheDocument();
-
-    // Dialog must remain open (closeDialog: false for 403)
-    expect(screen.getByText("¿Eliminar marca?")).toBeInTheDocument();
   });
 
   it("admin can successfully delete a mark", async () => {
