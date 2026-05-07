@@ -415,7 +415,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deletingMarkId && handleDeleteMark(deletingMarkId)} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction onClick={(e) => { e.preventDefault(); deletingMarkId && handleDeleteMark(deletingMarkId); }} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               {deleting ? "Eliminando..." : "Eliminar"}
             </AlertDialogAction>
           </AlertDialogFooter>
