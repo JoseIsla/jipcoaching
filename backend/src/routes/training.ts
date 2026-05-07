@@ -591,6 +591,34 @@ router.get("/physical-marks", async (req, res) => {
 });
 
 // DELETE /api/training/physical-marks/:id
+router.put("/physical-marks/:id", async (req, res) => {
+  try {
+    const markId = (req.params as any).id;
+    const { value, notes } = req.body;
+
+    // Verify ownership for clients
+    if ((req.user as any).role === "CLIENT") {
+      const client = await prisma.client.findUnique({ where: { userId: (req.user as any).userId } });
+      if (!client) { res.status(404).json({ message: "Cliente no encontrado" }); return; }
+      const mark = await prisma.clientPhysicalMark.findUnique({ where: { id: markId } });
+      if (!mark || mark.clientId !== client.id) { res.status(403).json({ message: "Acceso denegado" }); return; }
+    }
+
+    const updated = await prisma.clientPhysicalMark.update({
+      where: { id: markId },
+      data: {
+        ...(value !== undefined ? { value: parseFloat(value) } : {}),
+        ...(notes !== undefined ? { notes } : {}),
+      },
+    });
+    res.json(updated);
+  } catch (err: any) {
+    console.error("PUT /training/physical-marks/:id error:", err);
+    res.status(500).json({ message: "Error al actualizar marca" });
+  }
+});
+
+// DELETE /api/training/physical-marks/:id
 router.delete("/physical-marks/:id", requireRole("ADMIN"), async (req, res) => {
   try {
     await prisma.clientPhysicalMark.delete({ where: { id: (req.params as any).id } });
