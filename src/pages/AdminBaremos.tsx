@@ -97,6 +97,9 @@ const AdminBaremos = () => {
   // Sort each group by score ascending
   Object.values(grouped).forEach((arr) => arr.sort((a, b) => a.score - b.score));
 
+  // Detect pass/fail mode for current view
+  const isPassFail = scales.length > 0 && scales.every(s => s.score === 0 || s.score === 5);
+
   const openCreate = () => {
     setEditingId(null);
     setForm(emptyForm(selectedType));
@@ -291,6 +294,7 @@ const AdminBaremos = () => {
                         {entries.map((s) => (
                           <tr key={s.id} className="border-t border-border/50">
                             <td className="px-3 py-2 font-bold text-primary">{s.score}</td>
+                            {/* Show apto/no-apto label for pass/fail scales */}
                             <td className="px-3 py-2 text-foreground">{s.minValue}</td>
                             <td className="px-3 py-2 text-foreground">{s.maxValue}</td>
                             <td className="px-3 py-2 text-right">
