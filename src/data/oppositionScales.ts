@@ -1,6 +1,9 @@
 /**
- * Opposition physical test definitions per type.
+ * Opposition physical test definitions per type and gender.
  * Used by the frontend to show which tests apply to each opposition type.
+ *
+ * Some tests differ by gender (e.g. Dominadas for men vs Suspensión en barra for women
+ * in Policía Nacional). The `gender` field is optional — when absent the test applies to both.
  */
 import { OppositionType } from "@/types/api";
 
@@ -9,19 +12,21 @@ export interface OppositionTestDef {
   unit: string;
   unitLabel: string;
   lowerIsBetter: boolean; // true for time-based tests
+  /** If set, the test only applies to this gender. Omit for both genders. */
+  gender?: "MALE" | "FEMALE";
 }
 
 export const OPPOSITION_TESTS: Record<OppositionType, OppositionTestDef[]> = {
   [OppositionType.POLICIA_NACIONAL]: [
     { testName: "Circuito de agilidad", unit: "seconds", unitLabel: "seg", lowerIsBetter: true },
-    { testName: "Dominadas", unit: "reps", unitLabel: "reps", lowerIsBetter: false },
-    { testName: "Suspensión en barra", unit: "seconds", unitLabel: "seg", lowerIsBetter: false },
+    { testName: "Dominadas", unit: "reps", unitLabel: "reps", lowerIsBetter: false, gender: "MALE" },
+    { testName: "Suspensión en barra", unit: "seconds", unitLabel: "seg", lowerIsBetter: false, gender: "FEMALE" },
     { testName: "Carrera 1000m", unit: "seconds", unitLabel: "seg", lowerIsBetter: true },
   ],
   [OppositionType.POLICIA_LOCAL]: [
     { testName: "Circuito de agilidad", unit: "seconds", unitLabel: "seg", lowerIsBetter: true },
-    { testName: "Dominadas", unit: "reps", unitLabel: "reps", lowerIsBetter: false },
-    { testName: "Suspensión en barra", unit: "seconds", unitLabel: "seg", lowerIsBetter: false },
+    { testName: "Dominadas", unit: "reps", unitLabel: "reps", lowerIsBetter: false, gender: "MALE" },
+    { testName: "Suspensión en barra", unit: "seconds", unitLabel: "seg", lowerIsBetter: false, gender: "FEMALE" },
     { testName: "Carrera 1000m", unit: "seconds", unitLabel: "seg", lowerIsBetter: true },
   ],
   [OppositionType.BOMBEROS]: [
@@ -49,4 +54,14 @@ export const getOppositionTypeFromModality = (modality: string): OppositionType 
   if (modality === "Oposiciones - Bomberos") return OppositionType.BOMBEROS;
   if (modality === "Oposiciones - Tropa y Marinería") return OppositionType.TROPA_MARINERIA;
   return null;
+};
+
+/** Filter tests applicable to a specific gender */
+export const getTestsForGender = (
+  opType: OppositionType,
+  gender: "MALE" | "FEMALE"
+): OppositionTestDef[] => {
+  return OPPOSITION_TESTS[opType].filter(
+    (t) => !t.gender || t.gender === gender
+  );
 };
