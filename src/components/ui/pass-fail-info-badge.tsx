@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Copy, CheckCheck } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 /** Detect touch-primary device */
 const useIsTouchDevice = () => {
@@ -20,6 +22,7 @@ export interface PassFailInfoBadgeProps {
   title?: string;
   /** Override description text. Defaults based on variant. */
   description?: string;
+  /** Full BOE citation string, e.g. "BOE Resolución 160/38240/2025, 28 mayo 2025" */
   boeRef?: string;
   variant?: "default" | "apto" | "noApto";
 }
@@ -44,6 +47,39 @@ const VARIANT_DEFAULTS: Record<string, { label: string; title: string; descripti
     description:
       "La marca registrada no alcanza el mínimo exigido en el baremo oficial. Resultado: «No Apto» — el aspirante queda eliminado del proceso selectivo.",
   },
+};
+
+/** Structured BOE citation block with copy button */
+const BoeCitation = ({ boeRef }: { boeRef: string }) => {
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(boeRef);
+      setCopied(true);
+      toast({ title: "Referencia copiada", description: boeRef, duration: 2000 });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: "No se pudo copiar", variant: "destructive", duration: 2000 });
+    }
+  }, [boeRef, toast]);
+
+  return (
+    <div className="mt-3 pt-3 border-t border-border/30 space-y-2">
+      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Referencia BOE</p>
+      <p className="text-[11px] text-foreground leading-relaxed">📄 {boeRef}</p>
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-7 text-[10px] gap-1.5 w-full"
+        onClick={(e) => { e.stopPropagation(); handleCopy(); }}
+      >
+        {copied ? <CheckCheck className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3" />}
+        {copied ? "Copiada" : "Copiar referencia"}
+      </Button>
+    </div>
+  );
 };
 
 /** Badge that shows tooltip on desktop, drawer on mobile — explains BOE pass/fail system */
@@ -102,7 +138,7 @@ const PassFailInfoBadge = ({
     <>
       <p className="font-semibold mb-1">{title}</p>
       <p>{description}</p>
-      {boeRef && <p className="mt-1 text-muted-foreground">📄 {boeSource}</p>}
+      {boeRef && <p className="mt-1.5 text-muted-foreground text-[9px]">📄 {boeRef}</p>}
     </>
   );
 
@@ -118,11 +154,7 @@ const PassFailInfoBadge = ({
             <DrawerDescription className="text-xs text-muted-foreground leading-relaxed">
               {description}
             </DrawerDescription>
-            {boeRef && (
-              <p className="text-[11px] text-muted-foreground mt-3 pt-3 border-t border-border/30">
-                📄 {boeSource}
-              </p>
-            )}
+            {boeRef && <BoeCitation boeRef={boeRef} />}
           </DrawerContent>
         </Drawer>
       </>
