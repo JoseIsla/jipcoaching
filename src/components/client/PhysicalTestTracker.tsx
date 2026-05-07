@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { api } from "@/services/api";
+import { ApiError } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { OppositionType, oppositionTypeLabels } from "@/types/api";
 import type { PhysicalTestScaleEntry, ClientPhysicalMark } from "@/types/api";
@@ -147,11 +148,24 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
   const handleDeleteMark = async (markId: string) => {
     setDeleting(true);
     try {
-      await api.delete(`/training/physical-marks/${markId}`);
+      await api.delete(`/training/physical-marks/${markId}`, { silent: true });
       toast({ title: "Marca eliminada" });
       await fetchData();
-    } catch {
-      toast({ title: "Error", description: "No se pudo eliminar la marca", variant: "destructive" });
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 401) {
+          toast({ title: "Sesión expirada", description: "Inicia sesión de nuevo para continuar", variant: "destructive" });
+        } else if (err.status === 403) {
+          toast({ title: "Acceso denegado", description: "No tienes permisos para eliminar esta marca", variant: "destructive" });
+        } else if (err.status === 404) {
+          toast({ title: "Marca no encontrada", description: "Es posible que ya haya sido eliminada", variant: "destructive" });
+          await fetchData();
+        } else {
+          toast({ title: "Error del servidor", description: err.message || "No se pudo eliminar la marca", variant: "destructive" });
+        }
+      } else {
+        toast({ title: "Error de conexión", description: "Comprueba tu conexión a internet e inténtalo de nuevo", variant: "destructive" });
+      }
     } finally {
       setDeleting(false);
       setDeletingMarkId(null);
