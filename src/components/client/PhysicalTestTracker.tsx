@@ -416,7 +416,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
 
       {/* Delete confirmation */}
       <AlertDialog open={!!deletingMarkId} onOpenChange={(open) => { if (!open && !deleting) setDeletingMarkId(null); }}>
-        <AlertDialogContent className="bg-card border-border" onEscapeKeyDown={(e) => { if (deleting) e.preventDefault(); }} onPointerDownOutside={(e) => { if (deleting) e.preventDefault(); }}>
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar marca?</AlertDialogTitle>
             <AlertDialogDescription>
