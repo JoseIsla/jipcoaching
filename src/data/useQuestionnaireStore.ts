@@ -149,7 +149,7 @@ interface QuestionnaireState {
   markAsReviewed: (entryId: string) => Promise<void>;
 
   // Legacy local actions (kept for UI compat)
-  submitEntry: (entryId: string, responses: Record<string, string | number | boolean>, trainingLog?: TrainingLogDay[]) => Promise<boolean>;
+  submitEntry: (entryId: string, responses: Record<string, string | number | boolean>, trainingLog?: TrainingLogDay[], physicalMarks?: { testName: string; value: number; unit: string }[]) => Promise<boolean>;
   addVideoToEntry: (entryId: string, video: CheckinVideo) => void;
   removeVideoFromEntry: (entryId: string, videoId: string) => void;
   getPendingCount: (clientId?: string) => number;
@@ -319,14 +319,14 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
 
   // ── Legacy local actions ──
 
-  submitEntry: async (entryId, responses, trainingLog) => {
+  submitEntry: async (entryId, responses, trainingLog, physicalMarks) => {
     const state = get();
     const entry = state.entries.find((e) => e.id === entryId);
 
     // Submit to API and confirm before updating local state
     if (!DEV_MOCK && entry) {
       try {
-        await api.post(`/checkins/${entryId}/submit`, { responses, trainingLog });
+        await api.post(`/checkins/${entryId}/submit`, { responses, trainingLog, physicalMarks });
       } catch (err: any) {
         console.error("Error submitting check-in to API:", err);
         toast({ title: "Error al enviar", description: err?.message || "No se pudo enviar el check-in. Inténtalo de nuevo.", variant: "destructive" });
