@@ -29,7 +29,7 @@ const oppositionDescriptions: Record<OppositionType, string> = {
   [OppositionType.TROPA_MARINERIA]:
     "Sistema apto / no apto. Pruebas: salto vertical, flexiones de brazos, Course Navette.",
   [OppositionType.GUARDIA_CIVIL]:
-    "Sistema apto / no apto (BOE convocatoria 2022-2025, grupo <35 años). Pruebas: circuito de agilidad, carrera 2000m, flexiones de brazos, natación 50m. Marcas mínimas diferenciadas por sexo y edad.",
+    "Sistema apto / no apto (BOE Resolución 160/38240/2025, 28 mayo 2025 — convocatoria vigente). Pruebas: resistencia 2000m, circuito de agilidad, flexiones de brazos, natación 50m. Marcas grupo <35 años, diferenciadas por sexo.",
 };
 
 interface FormState {
