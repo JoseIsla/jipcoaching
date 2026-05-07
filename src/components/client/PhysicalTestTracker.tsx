@@ -113,7 +113,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
   useEffect(() => { fetchData(); }, [fetchData]);
 
   // Detect pass/fail mode: if all scores in scales are 0 or 5, it's apto/no-apto
-  const isPassFail = scales.length > 0 && scales.every(s => s.score === 0 || s.score === 5);
+  const isPassFail = isGC || (scales.length > 0 && scales.every(s => s.score === 0 || s.score === 5));
 
   const getScore = (testName: string, value: number): number => {
     // For GC, use frontend convocatoria thresholds
