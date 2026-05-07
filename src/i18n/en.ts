@@ -114,6 +114,7 @@ const en: Translations = {
     progress: "Progress",
     tracking: "Tracking",
     library: "Library",
+    baremos: "Baremos",
     leads: "Leads",
     checkins: "Check-ins",
     questionnaires: "Templates",

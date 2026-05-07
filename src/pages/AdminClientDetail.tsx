@@ -9,6 +9,8 @@ import {
 import AdminLayout from "@/components/admin/AdminLayout";
 import AdminPhotoComparison from "@/components/admin/AdminPhotoComparison";
 import AdminVideoReview from "@/components/admin/AdminVideoReview";
+import PhysicalTestTracker from "@/components/client/PhysicalTestTracker";
+import { useTrainingPlanStore, isOppositionModality } from "@/data/useTrainingPlanStore";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -432,11 +434,16 @@ const AdminClientDetail = () => {
   const clientStore = useClientStore();
   const { details, fetchDetail, loading } = useClientDetailStore();
   const client = id ? details[id] : null;
+  const trainingPlans = useTrainingPlanStore((s) => s.plans);
+  const fetchTrainingPlans = useTrainingPlanStore((s) => s.fetchPlans);
 
   // Fetch from API if not in store
   useEffect(() => {
     if (id && !details[id]) {
       fetchDetail(id);
+    }
+    if (id) {
+      fetchTrainingPlans(id);
     }
   }, [id]);
 
@@ -813,6 +820,23 @@ const AdminClientDetail = () => {
             <AdminPhotoComparison clientId={client.id} />
           </div>
         )}
+
+        {/* ── Physical Marks for opposition clients ── */}
+        {(() => {
+          const activePlan = trainingPlans.find((p) => p.clientId === client.id && p.active);
+          if (!activePlan || !isOppositionModality(activePlan.modality)) return null;
+          return (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-foreground">Marcas Físicas — Oposiciones</h2>
+              <PhysicalTestTracker
+                clientId={client.id}
+                modality={activePlan.modality}
+                gender={client.trainingIntake?.modality?.includes("Mujer") ? "FEMALE" : "MALE"}
+                isAdmin
+              />
+            </div>
+          );
+        })()}
       </div>
 
       <EditClientSheet client={client} open={editing} onClose={() => setEditing(false)} />

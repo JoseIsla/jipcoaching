@@ -43,6 +43,7 @@ const AdminNutritionPlanView = lazy(() => import("./pages/AdminNutritionPlanView
 const AdminExerciseLibrary = lazy(() => import("./pages/AdminExerciseLibrary"));
 const AdminLeads = lazy(() => import("./pages/AdminLeads"));
 const AdminEmailTemplates = lazy(() => import("./pages/AdminEmailTemplates"));
+const AdminBaremos = lazy(() => import("./pages/AdminBaremos"));
 
 // Client pages
 const ClientHome = lazy(() => import("./pages/client/ClientHome"));
@@ -110,6 +111,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
                     <Route path="/admin/exercises" element={<RoleRoute allowedRole="admin"><AdminExerciseLibrary /></RoleRoute>} />
                     <Route path="/admin/leads" element={<RoleRoute allowedRole="admin"><AdminLeads /></RoleRoute>} />
                     <Route path="/admin/emails" element={<RoleRoute allowedRole="admin"><AdminEmailTemplates /></RoleRoute>} />
+                    <Route path="/admin/baremos" element={<RoleRoute allowedRole="admin"><AdminBaremos /></RoleRoute>} />
                     <Route path="/admin/settings" element={<RoleRoute allowedRole="admin"><AdminSettings /></RoleRoute>} />
                     <Route path="/admin/checkins" element={<RoleRoute allowedRole="admin"><AdminCheckins /></RoleRoute>} />
                     <Route path="/admin/questionnaires" element={<RoleRoute allowedRole="admin"><AdminQuestionnaires /></RoleRoute>} />

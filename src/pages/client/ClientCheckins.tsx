@@ -30,6 +30,9 @@ import { useMediaStore } from "@/data/useMediaStore";
 import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 import { mediaApi } from "@/services/mediaApi";
 import { parseDecimal } from "@/utils/parseDecimal";
+import { useTrainingPlanStore, isOppositionModality } from "@/data/useTrainingPlanStore";
+import { OPPOSITION_TESTS, getOppositionTypeFromModality } from "@/data/oppositionScales";
+import { Trophy } from "lucide-react";
 
 /** Build default responses for all questions so untouched fields are still submitted. */
 const buildDefaultResponses = (
@@ -243,6 +246,15 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const { client } = useClient();
   const [open, setOpen] = useState(false);
   const [trainingLog, setTrainingLog] = useState<TrainingLogDay[]>(entry.trainingLog || []);
+
+  // Opposition physical marks state
+  const plans = useTrainingPlanStore((s) => s.plans);
+  const activePlan = plans.find((p) => p.clientId === client.id && p.active);
+  const isOpposition = activePlan ? isOppositionModality(activePlan.modality) : false;
+  const opType = activePlan ? getOppositionTypeFromModality(activePlan.modality) : null;
+  const opTests = opType ? OPPOSITION_TESTS[opType] : [];
+  const [physicalMarks, setPhysicalMarks] = useState<Record<string, string>>({});
+
   const storeTrainingTemplate = useTemplateStore((s) => s.trainingTemplate);
   const apiQuestions: QuestionDefinition[] = (entry.templateQuestions || []).map((q) => ({
     id: q.id, label: q.label, type: q.type as any, required: q.required, options: q.options,
@@ -451,7 +463,18 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
         actualReps: ex.actualReps || ex.plannedReps,
       })),
     }));
-    const success = await submitEntry(entry.id, responses, finalLog);
+
+    // Build physical marks array for opposition clients
+    const marksPayload = isOpposition
+      ? Object.entries(physicalMarks)
+          .filter(([, v]) => v && v.trim() !== "")
+          .map(([testName, value]) => {
+            const testDef = opTests.find((t) => t.testName === testName);
+            return { testName, value: parseFloat(value), unit: testDef?.unit || "seconds" };
+          })
+      : undefined;
+
+    const success = await submitEntry(entry.id, responses, finalLog, marksPayload);
     if (success) {
       setSubmitted(true);
       toast({ title: t("clientCheckins.checkinSent"), description: t("clientCheckins.checkinSentDesc") });
@@ -648,6 +671,32 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
 
                 {/* ── Optional Technique Videos ── */}
                 <div className="border-t border-border pt-3 space-y-3">
+                  {/* Physical marks for opposition clients */}
+                  {isOpposition && opTests.length > 0 && (
+                    <div className="border-b border-border pb-3 space-y-3">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                        <Trophy className="h-3 w-3 text-accent" />
+                        Marcas de pruebas físicas (opcional)
+                      </p>
+                      <div className="space-y-2">
+                        {opTests.map((test) => (
+                          <div key={test.testName} className="flex items-center gap-2">
+                            <Label className="text-xs text-foreground flex-1 min-w-0 truncate">{test.testName}</Label>
+                            <Input
+                              type="number"
+                              step="0.1"
+                              placeholder={test.unit === "seconds" ? "seg" : test.unitLabel}
+                              value={physicalMarks[test.testName] || ""}
+                              onChange={(e) => setPhysicalMarks({ ...physicalMarks, [test.testName]: e.target.value })}
+                              className="h-8 w-24 text-xs bg-background border-border text-center"
+                            />
+                            <span className="text-[10px] text-muted-foreground w-8">{test.unitLabel}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                       <Video className="h-3 w-3 text-primary" />

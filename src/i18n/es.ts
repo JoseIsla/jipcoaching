@@ -112,6 +112,7 @@ const es = {
     progress: "Progreso",
     tracking: "Seguimiento",
     library: "Biblioteca",
+    baremos: "Baremos",
     leads: "Leads",
     checkins: "Check-ins",
     questionnaires: "Plantillas",

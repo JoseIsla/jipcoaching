@@ -1,141 +1,70 @@
 
-# Soporte para Opositores: Pruebas Físicas
+# Completar funcionalidad de Oposiciones
 
-## Resumen
-
-Extender la app para soportar un nuevo tipo de atleta: **opositores** (Policía Nacional, Policía Local, Bomberos, Tropa y Marinería). Se añaden modalidades de entrenamiento, baremos oficiales de puntuación, y adaptaciones en check-ins y panel de cliente. Todo lo existente (Powerlifting/Powerbuilding) permanece intacto.
-
-## Cambios principales
-
-### 1. Nuevas modalidades de entrenamiento
-
-Ampliar `TrainingModality` para incluir:
-- `Oposiciones - Policía Nacional`
-- `Oposiciones - Policía Local`
-- `Oposiciones - Bomberos`
-- `Oposiciones - Tropa y Marinería`
-
-Los bloques para opositores serán diferentes a los de PL/PB:
-- `Fuerza Base`, `Resistencia`, `Velocidad/Agilidad`, `Específico Pruebas`, `Simulacro`
-
-### 2. Baremos de pruebas físicas (nueva tabla + seed)
-
-Crear tabla `PhysicalTestScale` para almacenar los baremos oficiales:
-
-```
-PhysicalTestScale:
-  id, oppositionType, testName, gender, minValue, maxValue, unit, score, createdAt
-```
-
-**Policía Nacional** (baremos exactos de la web):
-- Circuito de agilidad (segundos, H/M)
-- Dominadas hombres (repeticiones)  
-- Suspensión mujeres (segundos)
-- Carrera 1000m (segundos, H/M)
-
-**Bomberos** (baremos de referencia):
-- Carrera 60m / 100m, Carrera 1000m / 2000m
-- Natación 50m, Salto vertical
-- Press de banca, Dominadas
-- Circuito de agilidad
-
-**Policía Local** (baremos de referencia similares a Policía Nacional)
-
-**Tropa y Marinería**:
-- Salto vertical, Flexiones de brazos, Course Navette
-
-### 3. Evaluador de marcas en panel de cliente
-
-Nueva sección en la vista de entrenamiento del cliente opositor que muestre:
-- Sus últimas marcas por prueba
-- Puntuación según baremo oficial
-- Progreso visual
-
-### 4. Check-ins de entrenamiento adaptados
-
-Cuando el plan es de tipo oposiciones, los check-ins de entrenamiento incluirán preguntas específicas:
-- Tiempos en pruebas de velocidad/resistencia
-- Repeticiones en dominadas/flexiones
-- Marcas en natación, salto, etc.
-
-### 5. Intake de entrenamiento ampliado
-
-Añadir campos opcionales al `TrainingIntake`:
-- `oppositionType` (tipo de oposición)
-- `examDate` (fecha prevista del examen)
-- `currentMarks` (JSON con marcas actuales por prueba)
-
-### 6. Seed de baremos
-
-Nuevo script de seed que SOLO añade los datos de baremos sin tocar nada existente.
+4 bloques de trabajo para completar el sistema de oposiciones.
 
 ---
 
-## Detalles técnicos
+## 1. Check-ins de entrenamiento adaptados para opositores
 
-### Prisma Schema — nuevos tipos y tablas
+Cuando el plan activo del cliente es de tipo oposiciones, el check-in de entrenamiento incluirá una sección adicional para registrar marcas de pruebas físicas.
 
-```prisma
-enum OppositionType {
-  POLICIA_NACIONAL
-  POLICIA_LOCAL
-  BOMBEROS
-  TROPA_MARINERIA
-}
+- **`src/pages/client/ClientCheckins.tsx`** (o componente de submit de check-in): Detectar si el plan activo es de oposiciones. Si lo es, mostrar campos extra por cada prueba física (ej: "Circuito de agilidad: ___ seg", "Dominadas: ___ reps").
+- **`backend/src/routes/checkins.ts`**: En el endpoint `POST /:id/submit`, si se reciben `physicalMarks` en el body, crear automáticamente registros en `ClientPhysicalMark` vinculados al cliente.
+- El cliente podrá ver su puntuación inmediata tras registrar marcas en el check-in.
 
-model PhysicalTestScale {
-  id              String         @id @default(uuid())
-  oppositionType  OppositionType
-  testName        String         @db.VarChar(100)
-  gender          String         @db.VarChar(10) // MALE, FEMALE
-  minValue        Float
-  maxValue        Float
-  unit            String         @db.VarChar(20) // "seconds", "reps", "cm", "kg"
-  score           Int            // 0-10
-  createdAt       DateTime       @default(now())
-  @@map("physical_test_scales")
-}
+---
 
-model ClientPhysicalMark {
-  id              String         @id @default(uuid())
-  clientId        String
-  testName        String         @db.VarChar(100)
-  value           Float
-  recordedAt      DateTime       @default(now())
-  notes           String?        @db.Text
+## 2. Vista admin de marcas físicas en detalle de cliente
 
-  client Client @relation(...)
-  @@map("client_physical_marks")
-}
-```
+Nueva sección en `AdminClientDetail.tsx` que se muestra solo si el cliente tiene un plan de oposiciones activo.
 
-### Archivos a modificar
+- Mostrar tabla con las últimas marcas por prueba, puntuación según baremo, y tendencia (mejora/empeora).
+- Reutilizar `PhysicalTestTracker` con `isAdmin={true}` pasando el `clientId`.
+- El admin podrá registrar marcas manualmente y eliminarlas.
+- Se muestra junto a la sección de "Contexto Inicial" o como card nueva entre la info del cliente.
 
-| Archivo | Cambio |
+---
+
+## 3. Panel admin de gestión de baremos
+
+Nueva página `AdminBaremos.tsx` accesible desde el sidebar (bajo Entrenamiento o como sección propia).
+
+- Listado de baremos agrupados por tipo de oposición y prueba.
+- CRUD: ver escalas existentes, editar rangos/puntuaciones, añadir nuevas escalas.
+- Endpoints backend: `PUT /training/physical-scales/:id`, `POST /training/physical-scales`, `DELETE /training/physical-scales/:id`.
+- Filtros por oposición y género.
+
+---
+
+## 4. PDF de marcas/baremo del opositor
+
+Nueva utilidad `exportPhysicalMarksPDF` que genera un PDF con:
+
+- Nombre del cliente, tipo de oposición, fecha.
+- Tabla con cada prueba: última marca, puntuación según baremo, historial reciente.
+- Puntuación total.
+- Botón de descarga en `PhysicalTestTracker` y en la vista admin del cliente.
+
+---
+
+## Archivos principales a crear/modificar
+
+| Archivo | Acción |
 |---------|--------|
-| `backend/prisma/schema.prisma` | Añadir enum, modelos, campos |
-| `backend/prisma/seed.ts` | Función `seedPhysicalTestScales()` al final |
-| Migración nueva | ALTER tables + nuevas tablas |
-| `src/data/useTrainingPlanStore.ts` | Ampliar tipos TrainingModality |
-| `src/components/admin/CreateTrainingPlanSheet.tsx` | Nuevas modalidades y bloques condicionales |
-| `src/types/api.ts` | Nuevos tipos para oposiciones |
-| `src/data/oppositionScales.ts` | Datos de baremos para el frontend |
-| `src/components/client/PhysicalTestTracker.tsx` | Nuevo componente de seguimiento |
-| `src/pages/client/ClientTraining.tsx` | Integrar tracker para opositores |
-| `backend/src/routes/training.ts` | Endpoints para marcas físicas |
-| `src/i18n/es.ts` + `en.ts` | Traducciones |
+| `src/pages/AdminBaremos.tsx` | Crear — página de gestión de baremos |
+| `src/App.tsx` | Modificar — añadir ruta `/admin/baremos` |
+| `src/components/admin/AdminSidebar.tsx` | Modificar — enlace al panel de baremos |
+| `src/pages/AdminClientDetail.tsx` | Modificar — sección de marcas para opositores |
+| `src/pages/client/ClientCheckins.tsx` | Modificar — campos de marcas físicas en check-in training |
+| `backend/src/routes/checkins.ts` | Modificar — guardar marcas físicas al submit |
+| `backend/src/routes/training.ts` | Modificar — endpoints CRUD para baremos |
+| `src/utils/exportPhysicalMarksPDF.ts` | Crear — generador PDF |
+| `src/components/client/PhysicalTestTracker.tsx` | Modificar — botón PDF |
+| `src/i18n/es.ts` + `en.ts` | Modificar — traducciones |
 
-### Archivos que NO se tocan
-- Lógica de powerlifting/powerbuilding existente
-- Planes de nutrición
-- Sistema de check-ins de nutrición
-- Sistema de billing
-- Landing page
+## Lo que NO se toca
 
-## Flujo de uso
-
-1. Admin crea cliente con pack TRAINING o FULL
-2. Admin crea plan de entrenamiento → selecciona modalidad "Oposiciones - Policía Nacional"
-3. Los bloques se adaptan automáticamente (Fuerza Base, Resistencia, etc.)
-4. El cliente ve su plan + una sección de "Mis Marcas" con puntuación según baremo
-5. En los check-ins semanales, puede registrar tiempos/marcas de pruebas específicas
+- Lógica de powerlifting/powerbuilding
+- Nutrición, billing, landing
+- Check-ins de nutrición

@@ -484,6 +484,57 @@ router.get("/physical-scales", async (req, res) => {
 
 // ── Client Physical Marks ──
 
+// POST /api/training/physical-scales — Admin create new scale entry
+router.post("/physical-scales", requireRole("ADMIN"), async (req, res) => {
+  try {
+    const { oppositionType, testName, gender, minValue, maxValue, unit, score } = req.body;
+    if (!oppositionType || !testName || !gender || minValue == null || maxValue == null || score == null) {
+      res.status(400).json({ message: "Faltan campos requeridos" }); return;
+    }
+    const scale = await prisma.physicalTestScale.create({
+      data: { oppositionType, testName, gender, minValue: parseFloat(minValue), maxValue: parseFloat(maxValue), unit: unit || "seconds", score: parseInt(score) },
+    });
+    res.status(201).json(scale);
+  } catch (err: any) {
+    console.error("POST /training/physical-scales error:", err);
+    res.status(500).json({ message: "Error al crear baremo" });
+  }
+});
+
+// PUT /api/training/physical-scales/:id — Admin update scale entry
+router.put("/physical-scales/:id", requireRole("ADMIN"), async (req, res) => {
+  try {
+    const { oppositionType, testName, gender, minValue, maxValue, unit, score } = req.body;
+    const scale = await prisma.physicalTestScale.update({
+      where: { id: (req.params as any).id },
+      data: {
+        ...(oppositionType !== undefined && { oppositionType }),
+        ...(testName !== undefined && { testName }),
+        ...(gender !== undefined && { gender }),
+        ...(minValue !== undefined && { minValue: parseFloat(minValue) }),
+        ...(maxValue !== undefined && { maxValue: parseFloat(maxValue) }),
+        ...(unit !== undefined && { unit }),
+        ...(score !== undefined && { score: parseInt(score) }),
+      },
+    });
+    res.json(scale);
+  } catch (err: any) {
+    console.error("PUT /training/physical-scales/:id error:", err);
+    res.status(500).json({ message: "Error al actualizar baremo" });
+  }
+});
+
+// DELETE /api/training/physical-scales/:id — Admin delete scale entry
+router.delete("/physical-scales/:id", requireRole("ADMIN"), async (req, res) => {
+  try {
+    await prisma.physicalTestScale.delete({ where: { id: (req.params as any).id } });
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error("DELETE /training/physical-scales/:id error:", err);
+    res.status(500).json({ message: "Error al eliminar baremo" });
+  }
+});
+
 // GET /api/training/physical-marks?clientId=xxx
 router.get("/physical-marks", async (req, res) => {
   try {

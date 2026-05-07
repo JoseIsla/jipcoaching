@@ -187,7 +187,7 @@ router.post("/", async (req, res) => {
 // POST /api/checkins/:id/submit — Submit responses
 router.post("/:id/submit", async (req, res) => {
   try {
-    const { responses, trainingLog } = req.body;
+    const { responses, trainingLog, physicalMarks } = req.body;
     const checkinId = req.params.id as string;
 
     // Save responses — validate question IDs exist before inserting to avoid FK errors
@@ -267,6 +267,23 @@ router.post("/:id/submit", async (req, res) => {
       data: { status: "RESPONDED" },
       include: { client: { select: { name: true } } },
     });
+
+    // Save physical marks for opposition clients
+    if (physicalMarks && Array.isArray(physicalMarks) && updatedCheckin.clientId) {
+      for (const mark of physicalMarks) {
+        if (mark.testName && mark.value != null && mark.unit) {
+          await prisma.clientPhysicalMark.create({
+            data: {
+              clientId: updatedCheckin.clientId,
+              testName: mark.testName,
+              value: parseFloat(mark.value),
+              unit: mark.unit,
+              notes: mark.notes || null,
+            },
+          });
+        }
+      }
+    }
 
     // Create notification for all admins
     try {
