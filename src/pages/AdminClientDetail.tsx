@@ -831,6 +831,7 @@ const AdminClientDetail = () => {
               <PhysicalTestTracker
                 clientId={client.id}
                 modality={activePlan.modality}
+                clientName={client.name}
                 gender={client.trainingIntake?.modality?.includes("Mujer") ? "FEMALE" : "MALE"}
                 isAdmin
               />
