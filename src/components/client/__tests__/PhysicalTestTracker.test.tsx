@@ -217,15 +217,9 @@ describe("PhysicalTestTracker permissions", () => {
       expect(mockDelete).toHaveBeenCalledWith("/training/physical-marks/mark-1", { silent: true });
     });
 
-    // Exact 403 toast message from mapDeleteMarkError
+    // Exact 403 inline error message rendered in dialog
     await waitFor(() => {
-      expect(mockToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: "Acceso denegado",
-          description: "No tienes permisos para eliminar esta marca",
-          variant: "destructive",
-        })
-      );
+      expect(screen.getByText("Acceso denegado: No tienes permisos para eliminar esta marca")).toBeInTheDocument();
     });
 
     // Mark should still be visible (optimistic rollback)
@@ -245,12 +239,10 @@ describe("PhysicalTestTracker permissions", () => {
     await waitFor(() => expect(screen.getByText("¿Eliminar marca?")).toBeInTheDocument());
     await user.click(screen.getByRole("button", { name: /eliminar/i }));
 
-    // Wait for the error to be handled
+    // Inline error visible and dialog stays open
     await waitFor(() => {
-      expect(mockToast).toHaveBeenCalled();
+      expect(screen.getByText(/Acceso denegado/)).toBeInTheDocument();
     });
-
-    // Dialog must remain open for 403
     expect(screen.getByText("¿Eliminar marca?")).toBeInTheDocument();
   });
 
