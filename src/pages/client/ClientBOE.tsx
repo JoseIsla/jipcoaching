@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { FileText, ChevronDown, CheckCircle2, XCircle, CalendarDays, Info } from "lucide-react";
+import { FileText, ChevronDown, CalendarDays, Info } from "lucide-react";
 import AnimatedChevron from "@/components/ui/animated-chevron";
 import PassFailInfoBadge from "@/components/ui/pass-fail-info-badge";
 import { useTrainingPlanStore, isOppositionModality } from "@/data/useTrainingPlanStore";
@@ -354,11 +354,10 @@ const TestCard = ({ testDef, scales, isPassFail, isGC, gcConv, gender, boeRef }:
                     <span className="text-muted-foreground">{s.minValue} – {s.maxValue} {testDef.unitLabel}</span>
                     <div className="flex items-center gap-1.5">
                       {isPassFail ? (
-                        s.score >= 5 ? (
-                          <><CheckCircle2 className="h-3 w-3 text-green-400" /><span className="text-green-400 font-medium">Apto</span></>
-                        ) : (
-                          <><XCircle className="h-3 w-3 text-destructive" /><span className="text-destructive font-medium">No Apto</span></>
-                        )
+                        <PassFailInfoBadge
+                          boeRef={boeRef}
+                          variant={s.score >= 5 ? "apto" : "noApto"}
+                        />
                       ) : (
                         <span className="text-foreground font-medium">{s.score} pts</span>
                       )}
