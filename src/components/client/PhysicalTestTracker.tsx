@@ -294,7 +294,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
             )}
           </div>
           <p className="text-[10px] text-muted-foreground mt-2">
-            Baremos oficiales BOE — Grupo &lt;35 años. Calificación: apto o no apto.
+            Baremos oficiales BOE (Resolución 160/38240/2025) — Grupo &lt;35 años. Calificación: apto o no apto.
           </p>
         </Card>
       ) : (
