@@ -17,6 +17,7 @@ import type { PhysicalTestScaleEntry, ClientPhysicalMark } from "@/types/api";
 import { OPPOSITION_TESTS, getOppositionTypeFromModality, getTestsForGender } from "@/data/oppositionScales";
 import type { OppositionTestDef } from "@/data/oppositionScales";
 import { exportPhysicalMarksPDF } from "@/utils/exportPhysicalMarksPDF";
+import { mapDeleteMarkError } from "@/utils/mapDeleteMarkError";
 
 interface Props {
   clientId: string;
@@ -158,26 +159,14 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
       // Sync with server in background (no flicker since mark is already gone)
       fetchData();
     } catch (err) {
-      // Rollback optimistic removal
       setMarks(previousMarks);
-      if (err instanceof ApiError) {
-        if (err.status === 401) {
-          toast({ title: "Sesión expirada", description: "Inicia sesión de nuevo para continuar", variant: "destructive" });
-          setDeletingMarkId(null);
-        } else if (err.status === 403) {
-          toast({ title: "Acceso denegado", description: "No tienes permisos para eliminar esta marca", variant: "destructive" });
-          // Keep dialog open so admin sees the error
-        } else if (err.status === 404) {
-          toast({ title: "Marca no encontrada", description: "Es posible que ya haya sido eliminada", variant: "destructive" });
-          setDeletingMarkId(null);
-          fetchData();
-        } else {
-          toast({ title: "Error del servidor", description: err.message || "No se pudo eliminar la marca", variant: "destructive" });
-          // Keep dialog open for retry
-        }
-      } else {
-        toast({ title: "Error de conexión", description: "Comprueba tu conexión a internet e inténtalo de nuevo", variant: "destructive" });
-        // Keep dialog open for retry
+      const mapped = mapDeleteMarkError(err);
+      toast({ title: mapped.title, description: mapped.description, variant: "destructive" });
+      if (mapped.closeDialog) {
+        setDeletingMarkId(null);
+      }
+      if (mapped.refetch) {
+        fetchData();
       }
     } finally {
       setDeleting(false);
