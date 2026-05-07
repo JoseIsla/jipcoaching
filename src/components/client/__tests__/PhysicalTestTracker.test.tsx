@@ -191,6 +191,48 @@ describe("PhysicalTestTracker permissions", () => {
     });
   });
 
+  // ── Backend permission: only ADMIN can delete ──
+
+  it("client receives 403 when trying to delete a mark", async () => {
+    // Simulate backend 403 response
+    mockDelete.mockRejectedValueOnce(
+      Object.assign(new Error("Forbidden"), { response: { status: 403, data: { message: "Acceso denegado: se requiere rol ADMIN" } } })
+    );
+
+    const user = userEvent.setup();
+    renderTracker({ isAdmin: true }); // render with delete button visible
+    await waitFor(() => expect(screen.getByText("Dominadas")).toBeInTheDocument());
+
+    const trashButton = screen.getAllByRole("button").find(b => b.querySelector("svg.lucide-trash2"))!;
+    await user.click(trashButton);
+    await waitFor(() => expect(screen.getByText("¿Eliminar marca?")).toBeInTheDocument());
+    await user.click(screen.getByRole("button", { name: /eliminar/i }));
+
+    await waitFor(() => {
+      expect(mockDelete).toHaveBeenCalledWith("/training/physical-marks/mark-1", { silent: true });
+    });
+
+    // Mark should still be visible (optimistic rollback)
+    await waitFor(() => expect(screen.getByText("Dominadas")).toBeInTheDocument());
+  });
+
+  it("admin can successfully delete a mark", async () => {
+    mockDelete.mockResolvedValueOnce({ success: true });
+
+    const user = userEvent.setup();
+    renderTracker({ isAdmin: true });
+    await waitFor(() => expect(screen.getByText("Dominadas")).toBeInTheDocument());
+
+    const trashButton = screen.getAllByRole("button").find(b => b.querySelector("svg.lucide-trash2"))!;
+    await user.click(trashButton);
+    await waitFor(() => expect(screen.getByText("¿Eliminar marca?")).toBeInTheDocument());
+    await user.click(screen.getByRole("button", { name: /eliminar/i }));
+
+    await waitFor(() => {
+      expect(mockDelete).toHaveBeenCalledWith("/training/physical-marks/mark-1", { silent: true });
+    });
+  });
+
   it("fetches scales scoped to the opposition type and gender", async () => {
     renderTracker({ gender: "FEMALE" });
     await waitFor(() => {
