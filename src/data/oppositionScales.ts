@@ -45,6 +45,12 @@ export const OPPOSITION_TESTS: Record<OppositionType, OppositionTestDef[]> = {
     { testName: "Flexiones de brazos", unit: "reps", unitLabel: "reps", lowerIsBetter: false },
     { testName: "Course Navette", unit: "periods", unitLabel: "periodos", lowerIsBetter: false },
   ],
+  [OppositionType.GUARDIA_CIVIL]: [
+    { testName: "Circuito de agilidad", unit: "seconds", unitLabel: "seg", lowerIsBetter: true },
+    { testName: "Carrera 2000m", unit: "seconds", unitLabel: "seg", lowerIsBetter: true },
+    { testName: "Flexiones de brazos", unit: "reps", unitLabel: "reps", lowerIsBetter: false },
+    { testName: "Natación 50m", unit: "seconds", unitLabel: "seg", lowerIsBetter: true },
+  ],
 };
 
 /** Get the opposition type from a training modality string */
@@ -53,6 +59,7 @@ export const getOppositionTypeFromModality = (modality: string): OppositionType 
   if (modality === "Oposiciones - Policía Local") return OppositionType.POLICIA_LOCAL;
   if (modality === "Oposiciones - Bomberos") return OppositionType.BOMBEROS;
   if (modality === "Oposiciones - Tropa y Marinería") return OppositionType.TROPA_MARINERIA;
+  if (modality === "Oposiciones - Guardia Civil") return OppositionType.GUARDIA_CIVIL;
   return null;
 };
 
