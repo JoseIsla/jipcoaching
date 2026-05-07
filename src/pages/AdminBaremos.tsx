@@ -294,7 +294,13 @@ const AdminBaremos = () => {
                         {entries.map((s) => (
                           <tr key={s.id} className="border-t border-border/50">
                             <td className="px-3 py-2 font-bold text-primary">{s.score}</td>
-                            {/* Show apto/no-apto label for pass/fail scales */}
+                            {isPassFail && (
+                              <td className="px-3 py-2">
+                                <Badge variant="outline" className={`text-[10px] ${s.score >= 5 ? "border-green-500/30 text-green-400" : "border-destructive/30 text-destructive"}`}>
+                                  {s.score >= 5 ? "Apto" : "No Apto"}
+                                </Badge>
+                              </td>
+                            )}
                             <td className="px-3 py-2 text-foreground">{s.minValue}</td>
                             <td className="px-3 py-2 text-foreground">{s.maxValue}</td>
                             <td className="px-3 py-2 text-right">
