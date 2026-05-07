@@ -322,9 +322,6 @@ const TestCard = ({ testDef, scales, isPassFail, isGC, gcConv, gender, boeRef }:
           </div>
           {isPassFail && (
             <PassFailInfoBadge
-              label="Apto / No Apto"
-              title="Sistema eliminatorio"
-              description="El aspirante debe alcanzar la marca mínima para obtener «Apto». No alcanzarla supone la eliminación del proceso."
               boeRef={boeRef}
             />
           )}
@@ -394,11 +391,6 @@ const ScaleTable = ({ testName, entries, isPassFail, boeRef }: { testName: strin
           <span className="text-muted-foreground">{s.minValue} – {s.maxValue}</span>
           {isPassFail ? (
             <PassFailInfoBadge
-              label={s.score >= 5 ? "Apto" : "No Apto"}
-              title={s.score >= 5 ? "Marca apta" : "Marca no apta"}
-              description={s.score >= 5
-                ? "La marca está dentro del rango apto según el baremo oficial."
-                : "La marca no alcanza el mínimo exigido. Resultado: eliminado."}
               boeRef={boeRef}
               variant={s.score >= 5 ? "apto" : "noApto"}
             />
