@@ -28,18 +28,33 @@ const OPPOSITION_TYPES = Object.values(OppositionType);
 const GENDERS = ["MALE", "FEMALE"] as const;
 const genderLabel = (g: string) => (g === "MALE" ? "Hombre" : "Mujer");
 
-/** Short description per opposition type shown below the tabs */
-const oppositionDescriptions: Record<OppositionType, string> = {
-  [OppositionType.POLICIA_NACIONAL]:
-    "Escala 0-10 puntos por prueba según BOE. Pruebas: circuito de agilidad, dominadas (H) / suspensión en barra (M), carrera 1000m.",
-  [OppositionType.POLICIA_LOCAL]:
-    "Mismos baremos de referencia que Policía Nacional. Consultar convocatoria municipal específica.",
-  [OppositionType.BOMBEROS]:
-    "Sistema apto / no apto. Pruebas: carreras (60m, 100m, 1000m, 2000m), natación 50m, salto vertical, press de banca, dominadas, circuito de agilidad.",
-  [OppositionType.TROPA_MARINERIA]:
-    "Sistema apto / no apto. Pruebas: salto vertical, flexiones de brazos, Course Navette.",
-  [OppositionType.GUARDIA_CIVIL]:
-    "Sistema apto / no apto (BOE Resolución 160/38240/2025, 28 mayo 2025 — convocatoria vigente). Pruebas: resistencia 2000m, circuito de agilidad, flexiones de brazos, natación 50m. Marcas grupo <35 años, diferenciadas por sexo.",
+/** Description + BOE source per opposition type */
+const oppositionInfo: Record<OppositionType, { description: string; boeRef: string; ageNote: string }> = {
+  [OppositionType.POLICIA_NACIONAL]: {
+    description: "Escala 0-10 puntos por prueba. Pruebas: circuito de agilidad, dominadas (H) / suspensión en barra (M), carrera 1000m.",
+    boeRef: "BOE Resolución del 11 de septiembre de 2024 (Orden INT/1136/2024) — Escala Básica CNP.",
+    ageNote: "Baremos únicos sin distinción de grupo de edad. Diferenciados por sexo.",
+  },
+  [OppositionType.POLICIA_LOCAL]: {
+    description: "Mismos baremos de referencia que Policía Nacional. Consultar convocatoria municipal específica.",
+    boeRef: "Varía según municipio. Referencia base: baremos CNP.",
+    ageNote: "Depende de la convocatoria municipal concreta.",
+  },
+  [OppositionType.BOMBEROS]: {
+    description: "Sistema apto / no apto. Pruebas: carreras (60m, 100m, 1000m, 2000m), natación 50m, salto vertical, press de banca, dominadas, circuito de agilidad.",
+    boeRef: "Varía según comunidad autónoma y ayuntamiento convocante.",
+    ageNote: "Marcas generales. Consultar tramos de edad de cada convocatoria específica.",
+  },
+  [OppositionType.TROPA_MARINERIA]: {
+    description: "Sistema apto / no apto. Pruebas: salto vertical, flexiones de brazos, Course Navette.",
+    boeRef: "BOE — Resolución del MINISDEF, convocatoria anual de Tropa y Marinería.",
+    ageNote: "Baremos únicos. No hay distinción por rango de edad.",
+  },
+  [OppositionType.GUARDIA_CIVIL]: {
+    description: "Sistema apto / no apto. Pruebas: resistencia 2000m, circuito de agilidad, flexiones de brazos, natación 50m.",
+    boeRef: "Seleccionar convocatoria arriba para ver la referencia BOE exacta.",
+    ageNote: "3 grupos de edad: <35 años, 35-40 años, ≥40 años. Marcas diferenciadas por sexo y edad.",
+  },
 };
 
 interface FormState {
@@ -321,9 +336,17 @@ const AdminBaremos = () => {
             <p className="text-xs text-muted-foreground">
               {filtered.length} baremo{filtered.length !== 1 ? "s" : ""} en {Object.keys(grouped).length} prueba{Object.keys(grouped).length !== 1 ? "s" : ""}
             </p>
-            <p className="text-xs text-muted-foreground/70 italic">
-              {oppositionDescriptions[selectedType]}
-            </p>
+            <div className="space-y-0.5">
+              <p className="text-xs text-muted-foreground/70 italic">
+                {oppositionInfo[selectedType].description}
+              </p>
+              <p className="text-[10px] text-muted-foreground/50">
+                📄 {oppositionInfo[selectedType].boeRef}
+              </p>
+              <p className="text-[10px] text-muted-foreground/50">
+                👥 {oppositionInfo[selectedType].ageNote}
+              </p>
+            </div>
           </div>
         )}
 
