@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Trophy, Plus, Trash2, TrendingUp, TrendingDown, Target, Download, Pencil, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,11 @@ import { ApiError } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { OppositionType, oppositionTypeLabels } from "@/types/api";
 import type { PhysicalTestScaleEntry, ClientPhysicalMark } from "@/types/api";
-import { OPPOSITION_TESTS, getOppositionTypeFromModality, getTestsForGender } from "@/data/oppositionScales";
-import type { OppositionTestDef } from "@/data/oppositionScales";
+import { OPPOSITION_TESTS, getOppositionTypeFromModality, getTestsForGender, type OppositionTestDef } from "@/data/oppositionScales";
+import { GC_CONVOCATORIAS, getGCApto, getGCThresholdValue, type GCConvocatoria } from "@/data/guardiaCivilConvocatorias";
 import { exportPhysicalMarksPDF } from "@/utils/exportPhysicalMarksPDF";
 import { mapDeleteMarkError } from "@/utils/mapDeleteMarkError";
+import { CalendarDays } from "lucide-react";
 
 interface Props {
   clientId: string;
@@ -67,7 +68,31 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
 
   const opType = getOppositionTypeFromModality(modality);
   const genderKey = (gender?.toUpperCase() === "FEMALE" ? "FEMALE" : "MALE") as "MALE" | "FEMALE";
-  const tests = opType ? getTestsForGender(opType, genderKey) : [];
+
+  // Guardia Civil convocatoria & age group selectors
+  const isGC = opType === OppositionType.GUARDIA_CIVIL;
+  const [gcConvYear, setGcConvYear] = useState<number>(GC_CONVOCATORIAS[0].year);
+  const [gcAgeGroup, setGcAgeGroup] = useState<string>("lt35");
+
+  const gcConv = useMemo(
+    () => GC_CONVOCATORIAS.find(c => c.year === gcConvYear) ?? GC_CONVOCATORIAS[0],
+    [gcConvYear]
+  );
+
+  const gcTests: OppositionTestDef[] = useMemo(() => {
+    if (!isGC) return [];
+    const ag = gcConv.ageGroups.find(a => a.key === gcAgeGroup);
+    if (!ag) return [];
+    return ag.thresholds.map(t => ({
+      testName: t.testName,
+      unit: t.unit,
+      unitLabel: t.unitLabel,
+      lowerIsBetter: t.lowerIsBetter,
+    }));
+  }, [isGC, gcConv, gcAgeGroup]);
+
+  const baseTests = opType ? getTestsForGender(opType, genderKey) : [];
+  const tests = isGC && gcTests.length > 0 ? gcTests : baseTests;
 
   const fetchData = useCallback(async () => {
     if (!opType) return;
@@ -89,6 +114,10 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
   const isPassFail = scales.length > 0 && scales.every(s => s.score === 0 || s.score === 5);
 
   const getScore = (testName: string, value: number): number => {
+    // For GC, use frontend convocatoria thresholds
+    if (isGC) {
+      return getGCApto(gcConv, gcAgeGroup, genderKey, testName, value) ? 5 : 0;
+    }
     const matching = scales.filter(s => s.testName === testName);
     for (const s of matching) {
       if (value >= s.minValue && value <= s.maxValue) return s.score;
@@ -205,6 +234,40 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
             {oppositionTypeLabels[opType]}
           </Badge>
         </div>
+
+      {/* GC selectors */}
+      {isGC && (
+        <div className="flex flex-wrap items-center gap-2 w-full mt-2">
+          <div className="flex items-center gap-1.5">
+            <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+            <Select value={String(gcConvYear)} onValueChange={(v) => setGcConvYear(Number(v))}>
+              <SelectTrigger className="h-8 w-[200px] text-xs bg-background border-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {GC_CONVOCATORIAS.map(c => (
+                  <SelectItem key={c.year} value={String(c.year)} className="text-xs">
+                    {c.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Select value={gcAgeGroup} onValueChange={setGcAgeGroup}>
+            <SelectTrigger className="h-8 w-[170px] text-xs bg-background border-border">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {gcConv.ageGroups.map(ag => (
+                <SelectItem key={ag.key} value={ag.key} className="text-xs">
+                  {ag.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
         <div className="flex items-center gap-2">
           {marks.length > 0 && (
             <Button
@@ -294,7 +357,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
             )}
           </div>
           <p className="text-[10px] text-muted-foreground mt-2">
-            Baremos oficiales BOE (Resolución 160/38240/2025) — Grupo &lt;35 años. Calificación: apto o no apto.
+            {gcConv.boeRef} — {gcConv.ageGroups.find(a => a.key === gcAgeGroup)?.label ?? ""}. Calificación: apto o no apto.
           </p>
         </Card>
       ) : (
@@ -307,6 +370,27 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
               </p>
             </div>
             <Target className={`h-8 w-8 ${scoreColor(totalScore / tests.length)} opacity-60`} />
+          </div>
+        </Card>
+      )}
+
+      {/* GC threshold reference */}
+      {isGC && (
+        <Card className="p-3 border border-border/30">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2 font-semibold">Marcas mínimas ({genderKey === "MALE" ? "Hombre" : "Mujer"})</p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+            {(gcConv.ageGroups.find(a => a.key === gcAgeGroup)?.thresholds ?? []).map(t => {
+              const val = genderKey === "MALE" ? t.male : t.female;
+              const display = t.unit === "seconds" ? formatTimeValue(val) : `${val} ${t.unitLabel}`;
+              return (
+                <div key={t.testName} className="flex justify-between text-[11px]">
+                  <span className="text-muted-foreground truncate mr-2">{t.testName}</span>
+                  <span className="text-foreground font-medium whitespace-nowrap">
+                    {t.lowerIsBetter ? "≤" : "≥"} {display}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </Card>
       )}
