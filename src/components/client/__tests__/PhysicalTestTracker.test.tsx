@@ -144,7 +144,7 @@ describe("PhysicalTestTracker permissions", () => {
     await user.click(confirmBtn);
 
     await waitFor(() => {
-      expect(mockDelete).toHaveBeenCalledWith("/training/physical-marks/mark-1");
+      expect(mockDelete).toHaveBeenCalledWith("/training/physical-marks/mark-1", { silent: true });
     });
   });
 
