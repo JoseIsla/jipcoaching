@@ -130,7 +130,7 @@ const AdminBaremos = () => {
   Object.values(grouped).forEach((arr) => arr.sort((a, b) => a.score - b.score));
 
   // Detect pass/fail mode for current view
-  const isPassFail = scales.length > 0 && scales.every(s => s.score === 0 || s.score === 5);
+  const isPassFail = isGCSelected || (scales.length > 0 && scales.every(s => s.score === 0 || s.score === 5));
 
   const openCreate = () => {
     setEditingId(null);
