@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Trophy, Plus, Pencil, Trash2, Save, X } from "lucide-react";
+import { Trophy, Plus, Pencil, Trash2, Save, Search, X } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,9 @@ const AdminBaremos = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm(selectedType));
   const [saving, setSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterMinValue, setFilterMinValue] = useState("");
+  const [filterMaxValue, setFilterMaxValue] = useState("");
 
   const fetchScales = useCallback(async () => {
     setLoading(true);
@@ -63,7 +66,15 @@ const AdminBaremos = () => {
 
   useEffect(() => { fetchScales(); }, [fetchScales]);
 
-  const grouped = scales.reduce<Record<string, PhysicalTestScaleEntry[]>>((acc, s) => {
+  // Apply local filters
+  const filtered = scales.filter((s) => {
+    if (searchQuery && !s.testName.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (filterMinValue && s.maxValue < parseFloat(filterMinValue)) return false;
+    if (filterMaxValue && s.minValue > parseFloat(filterMaxValue)) return false;
+    return true;
+  });
+
+  const grouped = filtered.reduce<Record<string, PhysicalTestScaleEntry[]>>((acc, s) => {
     if (!acc[s.testName]) acc[s.testName] = [];
     acc[s.testName].push(s);
     return acc;
@@ -152,7 +163,7 @@ const AdminBaremos = () => {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 items-end">
           <Tabs value={selectedType} onValueChange={(v) => setSelectedType(v as OppositionType)}>
             <TabsList className="bg-muted border border-border">
               {OPPOSITION_TYPES.map((t) => (
@@ -175,6 +186,55 @@ const AdminBaremos = () => {
             ))}
           </div>
         </div>
+
+        {/* Search & value range */}
+        <div className="flex flex-wrap gap-3 items-end">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar prueba..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 bg-background border-border"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="Valor mín"
+              value={filterMinValue}
+              onChange={(e) => setFilterMinValue(e.target.value)}
+              className="w-28 bg-background border-border text-sm"
+            />
+            <span className="text-muted-foreground text-xs">–</span>
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="Valor máx"
+              value={filterMaxValue}
+              onChange={(e) => setFilterMaxValue(e.target.value)}
+              className="w-28 bg-background border-border text-sm"
+            />
+          </div>
+          {(searchQuery || filterMinValue || filterMaxValue) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs gap-1 text-muted-foreground"
+              onClick={() => { setSearchQuery(""); setFilterMinValue(""); setFilterMaxValue(""); }}
+            >
+              <X className="h-3.5 w-3.5" /> Limpiar
+            </Button>
+          )}
+        </div>
+
+        {/* Results count */}
+        {!loading && (
+          <p className="text-xs text-muted-foreground">
+            {filtered.length} baremo{filtered.length !== 1 ? "s" : ""} en {Object.keys(grouped).length} prueba{Object.keys(grouped).length !== 1 ? "s" : ""}
+          </p>
+        )}
 
         {/* Scales list */}
         {loading ? (
