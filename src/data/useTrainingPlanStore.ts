@@ -32,7 +32,7 @@ import type {
 } from "@/data/trainingPlanStore";
 
 export type TrainingBlock = "Hipertrofia" | "Intensificación" | "Peaking" | "Tapering";
-export type TrainingModality = "Powerlifting" | "Powerbuilding" | "Oposiciones - Policía Nacional" | "Oposiciones - Policía Local" | "Oposiciones - Bomberos" | "Oposiciones - Tropa y Marinería";
+export type TrainingModality = "Powerlifting" | "Powerbuilding" | "Oposiciones - Policía Nacional" | "Oposiciones - Policía Local" | "Oposiciones - Bomberos" | "Oposiciones - Tropa y Marinería" | "Oposiciones - Guardia Civil";
 
 export type OppositionBlock = "Fuerza Base" | "Resistencia" | "Velocidad/Agilidad" | "Específico Pruebas" | "Simulacro";
 

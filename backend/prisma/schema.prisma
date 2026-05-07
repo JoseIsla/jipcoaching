@@ -910,6 +910,7 @@ enum OppositionType {
   POLICIA_LOCAL
   BOMBEROS
   TROPA_MARINERIA
+  GUARDIA_CIVIL
 }
 
 model PhysicalTestScale {

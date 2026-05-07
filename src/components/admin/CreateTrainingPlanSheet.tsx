@@ -20,6 +20,7 @@ const MODALITIES: TrainingModality[] = [
   "Powerlifting", "Powerbuilding",
   "Oposiciones - Policía Nacional", "Oposiciones - Policía Local",
   "Oposiciones - Bomberos", "Oposiciones - Tropa y Marinería",
+  "Oposiciones - Guardia Civil",
 ];
 
 const CreateTrainingPlanSheet = ({ onCreated }: { onCreated?: () => void }) => {

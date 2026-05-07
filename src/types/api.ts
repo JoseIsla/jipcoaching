@@ -66,6 +66,7 @@ export enum OppositionType {
   POLICIA_LOCAL = "POLICIA_LOCAL",
   BOMBEROS = "BOMBEROS",
   TROPA_MARINERIA = "TROPA_MARINERIA",
+  GUARDIA_CIVIL = "GUARDIA_CIVIL",
 }
 
 export const oppositionTypeLabels: Record<OppositionType, string> = {
@@ -73,6 +74,7 @@ export const oppositionTypeLabels: Record<OppositionType, string> = {
   [OppositionType.POLICIA_LOCAL]: "Policía Local",
   [OppositionType.BOMBEROS]: "Bomberos",
   [OppositionType.TROPA_MARINERIA]: "Tropa y Marinería",
+  [OppositionType.GUARDIA_CIVIL]: "Guardia Civil",
 };
 
 export interface PhysicalTestScaleEntry {

@@ -272,6 +272,7 @@ async function seedPhysicalTestScales() {
   // ═══════════════════════════════════════
   // TROPA Y MARINERÍA
   // ═══════════════════════════════════════
+
   const tropaTests: { test: string; gender: string; pass: number; unit: string; lowerBetter: boolean }[] = [
     { test: "Salto vertical", gender: "MALE", pass: 49, unit: "cm", lowerBetter: false },
     { test: "Salto vertical", gender: "FEMALE", pass: 36, unit: "cm", lowerBetter: false },
@@ -287,6 +288,34 @@ async function seedPhysicalTestScales() {
     } else {
       rows.push({ oppositionType: "TROPA_MARINERIA", testName: t.test, gender: t.gender, minValue: t.pass, maxValue: 9999, unit: t.unit, score: 5 });
       rows.push({ oppositionType: "TROPA_MARINERIA", testName: t.test, gender: t.gender, minValue: 0, maxValue: t.pass - 0.01, unit: t.unit, score: 0 });
+    }
+  }
+
+  // ═══════════════════════════════════════
+  // GUARDIA CIVIL — Apto/No-apto (<35 age group, BOE convocatoria 2022-2025)
+  // Tests: Circuito agilidad, Carrera 2000m, Flexiones brazos, Natación 50m
+  // ═══════════════════════════════════════
+  const gcTests: { test: string; gender: string; pass: number; unit: string; lowerBetter: boolean }[] = [
+    // Circuito de agilidad (seconds, lower is better)
+    { test: "Circuito de agilidad", gender: "MALE", pass: 14, unit: "seconds", lowerBetter: true },
+    { test: "Circuito de agilidad", gender: "FEMALE", pass: 16, unit: "seconds", lowerBetter: true },
+    // Carrera 2000m: H 9'25" = 565s, M 11'14" = 674s
+    { test: "Carrera 2000m", gender: "MALE", pass: 565, unit: "seconds", lowerBetter: true },
+    { test: "Carrera 2000m", gender: "FEMALE", pass: 674, unit: "seconds", lowerBetter: true },
+    // Flexiones de brazos (reps, higher is better)
+    { test: "Flexiones de brazos", gender: "MALE", pass: 16, unit: "reps", lowerBetter: false },
+    { test: "Flexiones de brazos", gender: "FEMALE", pass: 11, unit: "reps", lowerBetter: false },
+    // Natación 50m (seconds, lower is better)
+    { test: "Natación 50m", gender: "MALE", pass: 70, unit: "seconds", lowerBetter: true },
+    { test: "Natación 50m", gender: "FEMALE", pass: 81, unit: "seconds", lowerBetter: true },
+  ];
+  for (const t of gcTests) {
+    if (t.lowerBetter) {
+      rows.push({ oppositionType: "GUARDIA_CIVIL", testName: t.test, gender: t.gender, minValue: 0, maxValue: t.pass, unit: t.unit, score: 5 });
+      rows.push({ oppositionType: "GUARDIA_CIVIL", testName: t.test, gender: t.gender, minValue: t.pass + 0.01, maxValue: 9999, unit: t.unit, score: 0 });
+    } else {
+      rows.push({ oppositionType: "GUARDIA_CIVIL", testName: t.test, gender: t.gender, minValue: t.pass, maxValue: 9999, unit: t.unit, score: 5 });
+      rows.push({ oppositionType: "GUARDIA_CIVIL", testName: t.test, gender: t.gender, minValue: 0, maxValue: t.pass - 0.01, unit: t.unit, score: 0 });
     }
   }
 
