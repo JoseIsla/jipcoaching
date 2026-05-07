@@ -18,6 +18,20 @@ const OPPOSITION_TYPES = Object.values(OppositionType);
 const GENDERS = ["MALE", "FEMALE"] as const;
 const genderLabel = (g: string) => (g === "MALE" ? "Hombre" : "Mujer");
 
+/** Short description per opposition type shown below the tabs */
+const oppositionDescriptions: Record<OppositionType, string> = {
+  [OppositionType.POLICIA_NACIONAL]:
+    "Escala 0-10 puntos por prueba según BOE. Pruebas: circuito de agilidad, dominadas (H) / suspensión en barra (M), carrera 1000m.",
+  [OppositionType.POLICIA_LOCAL]:
+    "Mismos baremos de referencia que Policía Nacional. Consultar convocatoria municipal específica.",
+  [OppositionType.BOMBEROS]:
+    "Sistema apto / no apto. Pruebas: carreras (60m, 100m, 1000m, 2000m), natación 50m, salto vertical, press de banca, dominadas, circuito de agilidad.",
+  [OppositionType.TROPA_MARINERIA]:
+    "Sistema apto / no apto. Pruebas: salto vertical, flexiones de brazos, Course Navette.",
+  [OppositionType.GUARDIA_CIVIL]:
+    "Sistema apto / no apto (BOE convocatoria 2022-2025, grupo <35 años). Pruebas: circuito de agilidad, carrera 2000m, flexiones de brazos, natación 50m. Marcas mínimas diferenciadas por sexo y edad.",
+};
+
 interface FormState {
   oppositionType: OppositionType;
   testName: string;
@@ -82,6 +96,9 @@ const AdminBaremos = () => {
 
   // Sort each group by score ascending
   Object.values(grouped).forEach((arr) => arr.sort((a, b) => a.score - b.score));
+
+  // Detect pass/fail mode for current view
+  const isPassFail = scales.length > 0 && scales.every(s => s.score === 0 || s.score === 5);
 
   const openCreate = () => {
     setEditingId(null);
@@ -231,9 +248,14 @@ const AdminBaremos = () => {
 
         {/* Results count */}
         {!loading && (
-          <p className="text-xs text-muted-foreground">
-            {filtered.length} baremo{filtered.length !== 1 ? "s" : ""} en {Object.keys(grouped).length} prueba{Object.keys(grouped).length !== 1 ? "s" : ""}
-          </p>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">
+              {filtered.length} baremo{filtered.length !== 1 ? "s" : ""} en {Object.keys(grouped).length} prueba{Object.keys(grouped).length !== 1 ? "s" : ""}
+            </p>
+            <p className="text-xs text-muted-foreground/70 italic">
+              {oppositionDescriptions[selectedType]}
+            </p>
+          </div>
         )}
 
         {/* Scales list */}
@@ -263,6 +285,7 @@ const AdminBaremos = () => {
                       <thead>
                         <tr className="bg-muted/50">
                           <th className="px-3 py-2 text-left text-xs text-muted-foreground font-medium">Puntos</th>
+                          {isPassFail && <th className="px-3 py-2 text-left text-xs text-muted-foreground font-medium">Estado</th>}
                           <th className="px-3 py-2 text-left text-xs text-muted-foreground font-medium">Mín</th>
                           <th className="px-3 py-2 text-left text-xs text-muted-foreground font-medium">Máx</th>
                           <th className="px-3 py-2 text-right text-xs text-muted-foreground font-medium">Acciones</th>
@@ -272,6 +295,13 @@ const AdminBaremos = () => {
                         {entries.map((s) => (
                           <tr key={s.id} className="border-t border-border/50">
                             <td className="px-3 py-2 font-bold text-primary">{s.score}</td>
+                            {isPassFail && (
+                              <td className="px-3 py-2">
+                                <Badge variant="outline" className={`text-[10px] ${s.score >= 5 ? "border-green-500/30 text-green-400" : "border-destructive/30 text-destructive"}`}>
+                                  {s.score >= 5 ? "Apto" : "No Apto"}
+                                </Badge>
+                              </td>
+                            )}
                             <td className="px-3 py-2 text-foreground">{s.minValue}</td>
                             <td className="px-3 py-2 text-foreground">{s.maxValue}</td>
                             <td className="px-3 py-2 text-right">
