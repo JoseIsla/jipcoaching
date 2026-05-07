@@ -147,28 +147,39 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
 
   const handleDeleteMark = async (markId: string) => {
     setDeleting(true);
+    // Optimistic: remove mark from UI immediately
+    const previousMarks = marks;
+    setMarks(prev => prev.filter(m => m.id !== markId));
     try {
       await api.delete(`/training/physical-marks/${markId}`, { silent: true });
       toast({ title: "Marca eliminada" });
-      await fetchData();
+      setDeletingMarkId(null);
+      // Sync with server in background (no flicker since mark is already gone)
+      fetchData();
     } catch (err) {
+      // Rollback optimistic removal
+      setMarks(previousMarks);
       if (err instanceof ApiError) {
         if (err.status === 401) {
           toast({ title: "Sesión expirada", description: "Inicia sesión de nuevo para continuar", variant: "destructive" });
+          setDeletingMarkId(null);
         } else if (err.status === 403) {
           toast({ title: "Acceso denegado", description: "No tienes permisos para eliminar esta marca", variant: "destructive" });
+          // Keep dialog open so admin sees the error
         } else if (err.status === 404) {
           toast({ title: "Marca no encontrada", description: "Es posible que ya haya sido eliminada", variant: "destructive" });
-          await fetchData();
+          setDeletingMarkId(null);
+          fetchData();
         } else {
           toast({ title: "Error del servidor", description: err.message || "No se pudo eliminar la marca", variant: "destructive" });
+          // Keep dialog open for retry
         }
       } else {
         toast({ title: "Error de conexión", description: "Comprueba tu conexión a internet e inténtalo de nuevo", variant: "destructive" });
+        // Keep dialog open for retry
       }
     } finally {
       setDeleting(false);
-      setDeletingMarkId(null);
     }
   };
 
