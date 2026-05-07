@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Plus, Trash2, TrendingUp, TrendingDown, Target, Download } from "lucide-react";
+import { Trophy, Plus, Trash2, TrendingUp, TrendingDown, Target, Download, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { api } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
@@ -55,6 +56,9 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
   const [selectedTest, setSelectedTest] = useState("");
   const [newValue, setNewValue] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [editingMark, setEditingMark] = useState<ClientPhysicalMark | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [confirmEditOpen, setConfirmEditOpen] = useState(false);
 
   const opType = getOppositionTypeFromModality(modality);
   const tests = opType ? OPPOSITION_TESTS[opType] : [];
@@ -111,6 +115,28 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
       await fetchData();
     } catch (err) {
       toast({ title: "Error", description: "No se pudo registrar la marca", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const openEdit = (mark: ClientPhysicalMark) => {
+    setEditingMark(mark);
+    setEditValue(String(mark.value));
+  };
+
+  const handleConfirmEdit = async () => {
+    if (!editingMark || !editValue) return;
+    setSubmitting(true);
+    try {
+      await api.put(`/training/physical-marks/${editingMark.id}`, { value: parseFloat(editValue) });
+      toast({ title: "Marca actualizada", description: `${editingMark.testName}: ${editValue}` });
+      setEditingMark(null);
+      setEditValue("");
+      setConfirmEditOpen(false);
+      await fetchData();
+    } catch {
+      toast({ title: "Error", description: "No se pudo actualizar la marca", variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
@@ -255,17 +281,85 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
                     </div>
                   )}
                 </div>
-                {score !== null && (
-                  <div className={`flex flex-col items-center rounded-lg px-3 py-2 border ${scoreBg(score)}`}>
-                    <span className={`text-xl font-bold ${scoreColor(score)}`}>{score}</span>
-                    <span className="text-[9px] text-muted-foreground uppercase">pts</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  {latest && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      onClick={() => openEdit(latest)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                  {score !== null && (
+                    <div className={`flex flex-col items-center rounded-lg px-3 py-2 border ${scoreBg(score)}`}>
+                      <span className={`text-xl font-bold ${scoreColor(score)}`}>{score}</span>
+                      <span className="text-[9px] text-muted-foreground uppercase">pts</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </Card>
           );
         })}
       </div>
+
+      {/* Edit mark dialog */}
+      <Dialog open={!!editingMark && !confirmEditOpen} onOpenChange={(open) => { if (!open) setEditingMark(null); }}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle>Editar marca</DialogTitle>
+          </DialogHeader>
+          {editingMark && (
+            <div className="space-y-4 pt-2">
+              <div>
+                <p className="text-sm font-medium text-foreground">{editingMark.testName}</p>
+                <p className="text-xs text-muted-foreground">
+                  Valor actual: {editingMark.value} {editingMark.unit === "seconds" ? "seg" : editingMark.unit}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label>Nuevo valor ({tests.find(t => t.testName === editingMark.testName)?.unitLabel || editingMark.unit})</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  className="bg-background border-border"
+                  autoFocus
+                />
+              </div>
+              <Button
+                className="w-full"
+                disabled={!editValue || editValue === String(editingMark.value)}
+                onClick={() => setConfirmEditOpen(true)}
+              >
+                Actualizar marca
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation alert */}
+      <AlertDialog open={confirmEditOpen} onOpenChange={setConfirmEditOpen}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Confirmar edición?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vas a cambiar la marca de <strong>{editingMark?.testName}</strong> de{" "}
+              <strong>{editingMark?.value}</strong> a <strong>{editValue}</strong>. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmEdit} disabled={submitting}>
+              {submitting ? "Guardando..." : "Confirmar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 };
