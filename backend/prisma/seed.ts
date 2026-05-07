@@ -176,7 +176,7 @@ async function seedPhysicalTestScales() {
   // POLICÍA NACIONAL — Circuito de agilidad (seconds, lower = better)
   // ═══════════════════════════════════════
   const pnAgilidadH: [number, number, number][] = [
-    [11.7, 99, 0], [11.5, 11.6, 1], [11.0, 11.4, 2], [10.5, 11.2, 3],
+    [11.7, 999, 0], [11.5, 11.6, 1], [11.3, 11.4, 2], [11.0, 11.2, 3],
     [10.6, 10.9, 4], [10.2, 10.5, 5], [9.8, 10.1, 6], [9.4, 9.7, 7],
     [8.9, 9.3, 8], [8.3, 8.8, 9], [0, 8.2, 10],
   ];
@@ -184,7 +184,7 @@ async function seedPhysicalTestScales() {
     rows.push({ oppositionType: "POLICIA_NACIONAL", testName: "Circuito de agilidad", gender: "MALE", minValue: min, maxValue: max, unit: "seconds", score });
   }
   const pnAgilidadM: [number, number, number][] = [
-    [12.8, 99, 0], [12.6, 12.7, 1], [12.4, 12.5, 2], [12.1, 12.3, 3],
+    [12.8, 999, 0], [12.6, 12.7, 1], [12.4, 12.5, 2], [12.1, 12.3, 3],
     [11.7, 12.0, 4], [11.3, 11.6, 5], [10.9, 11.2, 6], [10.4, 10.8, 7],
     [9.9, 10.3, 8], [9.4, 9.8, 9], [0, 9.3, 10],
   ];
@@ -195,7 +195,7 @@ async function seedPhysicalTestScales() {
   // POLICÍA NACIONAL — Dominadas hombres (reps, higher = better)
   const pnDominadasH: [number, number, number][] = [
     [0, 4, 0], [5, 5, 1], [6, 6, 2], [7, 7, 3], [8, 9, 4],
-    [10, 11, 5], [12, 13, 6], [14, 14, 7], [15, 15, 8], [16, 16, 9], [17, 99, 10],
+    [10, 11, 5], [12, 13, 6], [14, 14, 7], [15, 15, 8], [16, 16, 9], [17, 999, 10],
   ];
   for (const [min, max, score] of pnDominadasH) {
     rows.push({ oppositionType: "POLICIA_NACIONAL", testName: "Dominadas", gender: "MALE", minValue: min, maxValue: max, unit: "reps", score });
