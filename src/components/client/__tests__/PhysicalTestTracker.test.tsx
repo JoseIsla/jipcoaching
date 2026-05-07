@@ -232,6 +232,28 @@ describe("PhysicalTestTracker permissions", () => {
     expect(screen.getByText("Dominadas")).toBeInTheDocument();
   });
 
+  it("403 error keeps delete confirmation dialog open", async () => {
+    const { ApiError } = await import("@/services/api");
+    mockDelete.mockRejectedValueOnce(new ApiError(403, { message: "Forbidden" }));
+
+    const user = userEvent.setup();
+    renderTracker({ isAdmin: true });
+    await waitFor(() => expect(screen.getByText("Dominadas")).toBeInTheDocument());
+
+    const trashButton = screen.getAllByRole("button").find(b => b.querySelector("svg.lucide-trash2"))!;
+    await user.click(trashButton);
+    await waitFor(() => expect(screen.getByText("¿Eliminar marca?")).toBeInTheDocument());
+    await user.click(screen.getByRole("button", { name: /eliminar/i }));
+
+    // Wait for the error to be handled
+    await waitFor(() => {
+      expect(mockToast).toHaveBeenCalled();
+    });
+
+    // Dialog must remain open for 403
+    expect(screen.getByText("¿Eliminar marca?")).toBeInTheDocument();
+  });
+
   it("admin can successfully delete a mark", async () => {
     mockDelete.mockResolvedValueOnce({ success: true });
 
