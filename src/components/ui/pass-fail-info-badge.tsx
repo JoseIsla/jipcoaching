@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
@@ -37,10 +37,23 @@ const PassFailInfoBadge = ({
       ? "border-destructive/30 text-destructive"
       : "border-green-500/30 text-green-400";
 
+  const ariaLabel = `${label} — ${title}. ${description}${boeRef ? ` Fuente: ${boeRef}` : ""}`;
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      e.stopPropagation();
+      setDrawerOpen(true);
+    }
+  }, []);
+
   const badge = (
     <Badge
       variant="outline"
-      className={`text-[9px] flex items-center gap-1 cursor-help ${colorClass}`}
+      className={`text-[9px] flex items-center gap-1 cursor-help ${colorClass} focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring`}
+      tabIndex={0}
+      role="button"
+      aria-label={ariaLabel}
       onClick={(e) => {
         if (isTouch) {
           e.stopPropagation();
@@ -48,6 +61,7 @@ const PassFailInfoBadge = ({
           setDrawerOpen(true);
         }
       }}
+      onKeyDown={handleKeyDown}
     >
       {label}
       <HelpCircle className="h-2.5 w-2.5" />
@@ -66,7 +80,7 @@ const PassFailInfoBadge = ({
     return (
       <>
         {badge}
-        <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} aria-label={title}>
           <DrawerContent className="px-4 pb-6">
             <DrawerHeader className="px-0 pb-2">
               <DrawerTitle className="text-sm">{title}</DrawerTitle>
@@ -88,10 +102,10 @@ const PassFailInfoBadge = ({
   return (
     <TooltipProvider delayDuration={200}>
       <Tooltip>
-        <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+        <TooltipTrigger asChild onClick={(e) => e.stopPropagation()} aria-describedby={undefined}>
           {badge}
         </TooltipTrigger>
-        <TooltipContent side="left" className="max-w-[240px] text-[10px] leading-relaxed">
+        <TooltipContent side="left" className="max-w-[240px] text-[10px] leading-relaxed" role="tooltip">
           {infoContent}
         </TooltipContent>
       </Tooltip>
