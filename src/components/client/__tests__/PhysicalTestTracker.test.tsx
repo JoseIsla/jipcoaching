@@ -87,7 +87,7 @@ describe("PhysicalTestTracker permissions", () => {
     await waitFor(() => expect(screen.getByText("Dominadas")).toBeInTheDocument());
     // Trash icon button should exist
     const buttons = screen.getAllByRole("button");
-    const trashBtn = buttons.find(b => b.querySelector("svg.lucide-trash-2"));
+    const trashBtn = buttons.find(b => b.querySelector("svg.lucide-trash2"));
     expect(trashBtn).toBeTruthy();
   });
 
@@ -95,7 +95,7 @@ describe("PhysicalTestTracker permissions", () => {
     renderTracker(); // no isAdmin
     await waitFor(() => expect(screen.getByText("Dominadas")).toBeInTheDocument());
     const buttons = screen.getAllByRole("button");
-    const trashBtn = buttons.find(b => b.querySelector("svg.lucide-trash-2"));
+    const trashBtn = buttons.find(b => b.querySelector("svg.lucide-trash2"));
     expect(trashBtn).toBeFalsy();
   });
 
@@ -103,7 +103,7 @@ describe("PhysicalTestTracker permissions", () => {
     renderTracker({ isAdmin: false });
     await waitFor(() => expect(screen.getByText("Dominadas")).toBeInTheDocument());
     const buttons = screen.getAllByRole("button");
-    const trashBtn = buttons.find(b => b.querySelector("svg.lucide-trash-2"));
+    const trashBtn = buttons.find(b => b.querySelector("svg.lucide-trash2"));
     expect(trashBtn).toBeFalsy();
   });
 
@@ -114,14 +114,14 @@ describe("PhysicalTestTracker permissions", () => {
     const { unmount } = renderTracker();
     await waitFor(() => expect(screen.getByText("Dominadas")).toBeInTheDocument());
     let buttons = screen.getAllByRole("button");
-    expect(buttons.find(b => b.querySelector("svg.lucide-pencil"))).toBeTruthy();
+    expect(buttons.find(b => b.querySelector("svg.lucide-pencil2"))).toBeTruthy();
     unmount();
 
     // Admin
     renderTracker({ isAdmin: true });
     await waitFor(() => expect(screen.getByText("Dominadas")).toBeInTheDocument());
     buttons = screen.getAllByRole("button");
-    expect(buttons.find(b => b.querySelector("svg.lucide-pencil"))).toBeTruthy();
+    expect(buttons.find(b => b.querySelector("svg.lucide-pencil2"))).toBeTruthy();
   });
 
   // ── Delete flow sends correct API call ──
@@ -134,7 +134,8 @@ describe("PhysicalTestTracker permissions", () => {
     // Click trash button
     const buttons = screen.getAllByRole("button");
     const trashBtn = buttons.find(b => b.querySelector("svg.lucide-trash-2"))!;
-    await user.click(trashBtn);
+    const trashButton = buttons.find(b => b.querySelector("svg.lucide-trash2"))!;
+    await user.click(trashButton);
 
     // Confirmation dialog should appear
     await waitFor(() => expect(screen.getByText("¿Eliminar marca?")).toBeInTheDocument());
@@ -157,7 +158,7 @@ describe("PhysicalTestTracker permissions", () => {
 
     // Click edit button
     const buttons = screen.getAllByRole("button");
-    const editBtn = buttons.find(b => b.querySelector("svg.lucide-pencil"))!;
+    const editBtn = buttons.find(b => b.querySelector("svg.lucide-pencil2"))!;
     await user.click(editBtn);
 
     // Edit dialog should appear
