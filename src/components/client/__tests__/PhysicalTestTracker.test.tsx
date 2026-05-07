@@ -114,14 +114,14 @@ describe("PhysicalTestTracker permissions", () => {
     const { unmount } = renderTracker();
     await waitFor(() => expect(screen.getByText("Dominadas")).toBeInTheDocument());
     let buttons = screen.getAllByRole("button");
-    expect(buttons.find(b => b.querySelector("svg.lucide-pencil2"))).toBeTruthy();
+    expect(buttons.find(b => b.querySelector("svg.lucide-pencil"))).toBeTruthy();
     unmount();
 
     // Admin
     renderTracker({ isAdmin: true });
     await waitFor(() => expect(screen.getByText("Dominadas")).toBeInTheDocument());
     buttons = screen.getAllByRole("button");
-    expect(buttons.find(b => b.querySelector("svg.lucide-pencil2"))).toBeTruthy();
+    expect(buttons.find(b => b.querySelector("svg.lucide-pencil"))).toBeTruthy();
   });
 
   // ── Delete flow sends correct API call ──
@@ -157,7 +157,7 @@ describe("PhysicalTestTracker permissions", () => {
 
     // Click edit button
     const buttons = screen.getAllByRole("button");
-    const editBtn = buttons.find(b => b.querySelector("svg.lucide-pencil2"))!;
+    const editBtn = buttons.find(b => b.querySelector("svg.lucide-pencil"))!;
     await user.click(editBtn);
 
     // Edit dialog should appear
