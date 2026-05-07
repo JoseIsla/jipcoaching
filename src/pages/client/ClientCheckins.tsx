@@ -671,6 +671,32 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
 
                 {/* ── Optional Technique Videos ── */}
                 <div className="border-t border-border pt-3 space-y-3">
+                  {/* Physical marks for opposition clients */}
+                  {isOpposition && opTests.length > 0 && (
+                    <div className="border-b border-border pb-3 space-y-3">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                        <Trophy className="h-3 w-3 text-accent" />
+                        Marcas de pruebas físicas (opcional)
+                      </p>
+                      <div className="space-y-2">
+                        {opTests.map((test) => (
+                          <div key={test.testName} className="flex items-center gap-2">
+                            <Label className="text-xs text-foreground flex-1 min-w-0 truncate">{test.testName}</Label>
+                            <Input
+                              type="number"
+                              step="0.1"
+                              placeholder={test.unit === "seconds" ? "seg" : test.unitLabel}
+                              value={physicalMarks[test.testName] || ""}
+                              onChange={(e) => setPhysicalMarks({ ...physicalMarks, [test.testName]: e.target.value })}
+                              className="h-8 w-24 text-xs bg-background border-border text-center"
+                            />
+                            <span className="text-[10px] text-muted-foreground w-8">{test.unitLabel}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                       <Video className="h-3 w-3 text-primary" />
