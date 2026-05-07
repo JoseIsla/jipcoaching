@@ -17,6 +17,7 @@ import type { PhysicalTestScaleEntry, ClientPhysicalMark } from "@/types/api";
 import { OPPOSITION_TESTS, getOppositionTypeFromModality, getTestsForGender, type OppositionTestDef } from "@/data/oppositionScales";
 import { GC_CONVOCATORIAS, getGCApto, getGCThresholdValue, type GCConvocatoria } from "@/data/guardiaCivilConvocatorias";
 import { exportPhysicalMarksPDF } from "@/utils/exportPhysicalMarksPDF";
+import { getGCThresholdValue } from "@/data/guardiaCivilConvocatorias";
 import { mapDeleteMarkError } from "@/utils/mapDeleteMarkError";
 import { CalendarDays } from "lucide-react";
 
@@ -405,6 +406,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
           const improved = latest && prev
             ? testDef.lowerIsBetter ? latest.value < prev.value : latest.value > prev.value
             : null;
+          const gcThreshold = isGC ? getGCThresholdValue(gcConv, gcAgeGroup, genderKey, testDef.testName) : null;
 
           return (
             <Card key={testDef.testName} className="p-3 border border-border/50">
@@ -480,6 +482,15 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
                   )}
                 </div>
               </div>
+              {/* BOE reference for GC apto/no-apto */}
+              {isGC && gcThreshold !== null && (
+                <p className="text-[9px] text-muted-foreground/70 mt-1.5 leading-tight">
+                  BOE: {testDef.lowerIsBetter ? "≤" : "≥"}{" "}
+                  {testDef.unit === "seconds" ? formatTimeValue(gcThreshold) : `${gcThreshold} ${testDef.unitLabel}`}
+                  {" · "}
+                  {gcConv.boeRef}
+                </p>
+              )}
             </Card>
           );
         })}
