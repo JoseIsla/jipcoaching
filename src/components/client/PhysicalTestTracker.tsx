@@ -60,6 +60,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
   const [editValue, setEditValue] = useState("");
   const [confirmEditOpen, setConfirmEditOpen] = useState(false);
   const [deletingMarkId, setDeletingMarkId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const opType = getOppositionTypeFromModality(modality);
   const tests = opType ? OPPOSITION_TESTS[opType] : [];
@@ -144,6 +145,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
   };
 
   const handleDeleteMark = async (markId: string) => {
+    setDeleting(true);
     try {
       await api.delete(`/training/physical-marks/${markId}`);
       toast({ title: "Marca eliminada" });
@@ -151,6 +153,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
     } catch {
       toast({ title: "Error", description: "No se pudo eliminar la marca", variant: "destructive" });
     } finally {
+      setDeleting(false);
       setDeletingMarkId(null);
     }
   };
@@ -397,8 +400,8 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deletingMarkId && handleDeleteMark(deletingMarkId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Eliminar
+            <AlertDialogAction onClick={() => deletingMarkId && handleDeleteMark(deletingMarkId)} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {deleting ? "Eliminando..." : "Eliminar"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
