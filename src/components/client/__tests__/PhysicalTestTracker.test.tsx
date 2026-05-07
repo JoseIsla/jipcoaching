@@ -30,18 +30,24 @@ const mockGet = vi.fn();
 const mockPut = vi.fn();
 const mockDelete = vi.fn();
 const mockPost = vi.fn();
+const mockToast = vi.fn();
 
-vi.mock("@/services/api", () => ({
-  api: {
-    get: (...args: any[]) => mockGet(...args),
-    put: (...args: any[]) => mockPut(...args),
-    delete: (...args: any[]) => mockDelete(...args),
-    post: (...args: any[]) => mockPost(...args),
-  },
-}));
+// Re-export the real ApiError so instanceof checks work inside the component
+vi.mock("@/services/api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/services/api")>();
+  return {
+    ...actual,
+    api: {
+      get: (...args: any[]) => mockGet(...args),
+      put: (...args: any[]) => mockPut(...args),
+      delete: (...args: any[]) => mockDelete(...args),
+      post: (...args: any[]) => mockPost(...args),
+    },
+  };
+});
 
 vi.mock("@/hooks/use-toast", () => ({
-  useToast: () => ({ toast: vi.fn() }),
+  useToast: () => ({ toast: mockToast }),
 }));
 
 vi.mock("@/utils/exportPhysicalMarksPDF", () => ({
@@ -194,10 +200,9 @@ describe("PhysicalTestTracker permissions", () => {
   // ── Backend permission: only ADMIN can delete ──
 
   it("client receives 403 when trying to delete a mark", async () => {
-    // Simulate backend 403 response
-    mockDelete.mockRejectedValueOnce(
-      Object.assign(new Error("Forbidden"), { response: { status: 403, data: { message: "Acceso denegado: se requiere rol ADMIN" } } })
-    );
+    // Use real ApiError so instanceof check works in mapDeleteMarkError
+    const { ApiError } = await import("@/services/api");
+    mockDelete.mockRejectedValueOnce(new ApiError(403, { message: "Acceso denegado: se requiere rol ADMIN" }));
 
     const user = userEvent.setup();
     renderTracker({ isAdmin: true }); // render with delete button visible
@@ -212,8 +217,22 @@ describe("PhysicalTestTracker permissions", () => {
       expect(mockDelete).toHaveBeenCalledWith("/training/physical-marks/mark-1", { silent: true });
     });
 
+    // Exact 403 toast message from mapDeleteMarkError
+    await waitFor(() => {
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Acceso denegado",
+          description: "No tienes permisos para eliminar esta marca",
+          variant: "destructive",
+        })
+      );
+    });
+
     // Mark should still be visible (optimistic rollback)
-    await waitFor(() => expect(screen.getByText("Dominadas")).toBeInTheDocument());
+    expect(screen.getByText("Dominadas")).toBeInTheDocument();
+
+    // Dialog must remain open (closeDialog: false for 403)
+    expect(screen.getByText("¿Eliminar marca?")).toBeInTheDocument();
   });
 
   it("admin can successfully delete a mark", async () => {
