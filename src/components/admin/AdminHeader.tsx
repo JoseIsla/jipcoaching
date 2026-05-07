@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, Check, CheckCheck, X, ClipboardList, UserPlus, Dumbbell, Info, LogOut, Settings, Loader2 } from "lucide-react";
+import { Bell, Check, Trash2, X, ClipboardList, UserPlus, Dumbbell, Info, LogOut, Settings, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAdminProfile } from "@/contexts/AdminProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -50,7 +50,7 @@ const AdminHeader = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const timeAgo = useTimeAgo();
 
-  const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } =
+  const { notifications, unreadCount, markAsRead, clearAll, removeNotification } =
     useNotificationStore();
 
   const initials = profile
@@ -117,13 +117,13 @@ const AdminHeader = () => {
                   </span>
                 )}
               </div>
-              {unreadCount > 0 && (
+              {notifications.length > 0 && (
                 <button
-                  onClick={markAllAsRead}
+                  onClick={clearAll}
                   className="flex items-center gap-1 text-[11px] text-primary hover:underline"
                 >
-                  <CheckCheck className="h-3 w-3" />
-                  {t("header.markAll")}
+                  <Trash2 className="h-3 w-3" />
+                  {t("header.deleteAll")}
                 </button>
               )}
             </div>

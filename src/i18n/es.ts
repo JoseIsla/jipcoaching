@@ -126,6 +126,7 @@ const es = {
     noResults: "Sin resultados",
     notifications: "Notificaciones",
     noNotifications: "Sin notificaciones",
+    deleteAll: "Eliminar todo",
     markAll: "Marcar todo",
     read: "Leída",
     now: "Ahora",
@@ -654,6 +655,7 @@ const es = {
   clientNotifications: {
     title: "Notificaciones",
     noNotifications: "Sin notificaciones pendientes",
+    deleteAll: "Eliminar todo",
     markAll: "Marcar todo",
     nutritionCheckinTitle: "📋 Check-in de nutrición",
     nutritionCheckinDesc: "Hoy toca rellenar tu check-in de nutrición. ¡No te lo saltes!",
