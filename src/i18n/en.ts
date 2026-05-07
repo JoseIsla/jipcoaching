@@ -128,6 +128,7 @@ const en: Translations = {
     noResults: "No results found",
     notifications: "Notifications",
     noNotifications: "No notifications",
+    deleteAll: "Delete all",
     markAll: "Mark all",
     read: "Read",
     now: "Now",
@@ -650,6 +651,7 @@ const en: Translations = {
   clientNotifications: {
     title: "Notifications",
     noNotifications: "No pending notifications",
+    deleteAll: "Delete all",
     markAll: "Mark all",
     nutritionCheckinTitle: "📋 Nutrition check-in",
     nutritionCheckinDesc: "Time to fill in your nutrition check-in today. Don't skip it!",

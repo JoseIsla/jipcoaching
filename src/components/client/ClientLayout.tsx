@@ -340,7 +340,10 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
                   {notifications.length > 0 && (
                     <button
                       onClick={() => {
-                        api.patch("/notifications/read-all", undefined, { silent: true }).catch(() => {});
+                        const serverIds = notifications
+                          .filter((n) => n.id.startsWith("server-"))
+                          .map((n) => n.id.replace("server-", ""));
+                        serverIds.forEach((sid) => api.delete(`/notifications/${sid}`).catch(() => {}));
                         useClientNotificationStore.setState((s) => ({
                           notifications: [],
                           _dismissedIds: new Set([...s._dismissedIds, ...s.notifications.map((n) => n.id)]),
@@ -349,7 +352,7 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
                       }}
                       className="text-[10px] text-primary hover:underline"
                     >
-                      {t("clientNotifications.markAll")}
+                      {t("clientNotifications.deleteAll")}
                     </button>
                   )}
                 </div>
