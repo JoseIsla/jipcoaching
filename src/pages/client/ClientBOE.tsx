@@ -6,7 +6,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { FileText, ChevronDown, CheckCircle2, XCircle, CalendarDays, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { FileText, ChevronDown, CheckCircle2, XCircle, CalendarDays, Info, HelpCircle } from "lucide-react";
 import AnimatedChevron from "@/components/ui/animated-chevron";
 import { useTrainingPlanStore, isOppositionModality } from "@/data/useTrainingPlanStore";
 import { OppositionType, oppositionTypeLabels } from "@/types/api";
@@ -101,6 +102,7 @@ const ClientBOE = () => {
   }, [opType, genderKey, isGC]);
 
   const isPassFail = isGC || (scales.length > 0 && scales.every(s => s.score === 0 || s.score === 5));
+  const boeRef = isGC ? gcConv.boeRef : info?.boeRef ?? "";
 
   // Group scales by testName
   const grouped = scales.reduce<Record<string, PhysicalTestScaleEntry[]>>((acc, s) => {
@@ -200,6 +202,7 @@ const ClientBOE = () => {
                 isGC={isGC}
                 gcConv={isGC ? gcConv : undefined}
                 gender={genderKey}
+                boeRef={boeRef}
               />
             );
           })}
@@ -246,7 +249,7 @@ const ClientBOE = () => {
               Tabla de baremos ({genderKey === "MALE" ? "Hombre" : "Mujer"})
             </h3>
             {Object.entries(grouped).map(([testName, entries]) => (
-              <ScaleTable key={testName} testName={testName} entries={entries} isPassFail={isPassFail} />
+              <ScaleTable key={testName} testName={testName} entries={entries} isPassFail={isPassFail} boeRef={boeRef} />
             ))}
           </motion.div>
         )}
@@ -274,6 +277,7 @@ interface TestCardProps {
   isGC: boolean;
   gcConv?: typeof GC_CONVOCATORIAS[0];
   gender: "MALE" | "FEMALE";
+  boeRef?: string;
 }
 
 const TEST_DESCRIPTIONS: Record<string, string> = {
@@ -291,7 +295,7 @@ const TEST_DESCRIPTIONS: Record<string, string> = {
   "Course Navette": "Test de resistencia aeróbica con carreras de ida y vuelta a ritmo progresivo.",
 };
 
-const TestCard = ({ testDef, scales, isPassFail, isGC, gcConv, gender }: TestCardProps) => {
+const TestCard = ({ testDef, scales, isPassFail, isGC, gcConv, gender, boeRef }: TestCardProps) => {
   const [open, setOpen] = useState(false);
   const description = TEST_DESCRIPTIONS[testDef.testName];
 
@@ -316,7 +320,21 @@ const TestCard = ({ testDef, scales, isPassFail, isGC, gcConv, gender }: TestCar
             <Badge variant="outline" className="text-[9px]">{testDef.unitLabel}</Badge>
           </div>
           {isPassFail && (
-            <Badge variant="outline" className="text-[9px] border-green-500/30 text-green-400">Apto / No Apto</Badge>
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                  <Badge variant="outline" className="text-[9px] border-green-500/30 text-green-400 flex items-center gap-1 cursor-help">
+                    Apto / No Apto
+                    <HelpCircle className="h-2.5 w-2.5" />
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="max-w-[240px] text-[10px] leading-relaxed">
+                  <p className="font-semibold mb-1">Sistema eliminatorio</p>
+                  <p>El aspirante debe alcanzar la marca mínima para obtener «Apto». No alcanzarla supone la eliminación del proceso.</p>
+                  {boeRef && <p className="mt-1 text-muted-foreground">Fuente: {boeRef}</p>}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </CollapsibleTrigger>
         <CollapsibleContent>
@@ -372,7 +390,7 @@ const TestCard = ({ testDef, scales, isPassFail, isGC, gcConv, gender }: TestCar
 };
 
 /** Compact scale table for non-GC oppositions */
-const ScaleTable = ({ testName, entries, isPassFail }: { testName: string; entries: PhysicalTestScaleEntry[]; isPassFail: boolean }) => (
+const ScaleTable = ({ testName, entries, isPassFail, boeRef }: { testName: string; entries: PhysicalTestScaleEntry[]; isPassFail: boolean; boeRef?: string }) => (
   <Card className="border border-border/50 overflow-hidden">
     <div className="px-3 py-2 bg-muted/30 border-b border-border/30">
       <span className="text-xs font-semibold text-foreground">{testName}</span>
@@ -383,9 +401,21 @@ const ScaleTable = ({ testName, entries, isPassFail }: { testName: string; entri
         <div key={s.id} className="flex items-center justify-between px-3 py-1.5 text-[11px]">
           <span className="text-muted-foreground">{s.minValue} – {s.maxValue}</span>
           {isPassFail ? (
-            <Badge variant="outline" className={`text-[9px] ${s.score >= 5 ? "border-green-500/30 text-green-400" : "border-destructive/30 text-destructive"}`}>
-              {s.score >= 5 ? "Apto" : "No Apto"}
-            </Badge>
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="outline" className={`text-[9px] cursor-help ${s.score >= 5 ? "border-green-500/30 text-green-400" : "border-destructive/30 text-destructive"}`}>
+                    {s.score >= 5 ? "Apto" : "No Apto"}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="max-w-[220px] text-[10px]">
+                  {s.score >= 5
+                    ? "La marca está dentro del rango apto según el baremo oficial."
+                    : "La marca no alcanza el mínimo exigido. Resultado: eliminado."}
+                  {boeRef && <p className="mt-1 text-muted-foreground">Fuente: {boeRef}</p>}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           ) : (
             <span className="text-foreground font-bold">{s.score} pts</span>
           )}
