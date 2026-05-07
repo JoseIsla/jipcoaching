@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { Trophy, Plus, Pencil, Trash2, Save, Search, X } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Trophy, Plus, Pencil, Trash2, Save, Search, X, CalendarDays } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { api } from "@/services/api";
 import { OppositionType, oppositionTypeLabels } from "@/types/api";
 import type { PhysicalTestScaleEntry } from "@/types/api";
+import { GC_CONVOCATORIAS, type GCConvocatoria } from "@/data/guardiaCivilConvocatorias";
 
 const OPPOSITION_TYPES = Object.values(OppositionType);
 const GENDERS = ["MALE", "FEMALE"] as const;
@@ -65,6 +66,13 @@ const AdminBaremos = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMinValue, setFilterMinValue] = useState("");
   const [filterMaxValue, setFilterMaxValue] = useState("");
+  // Guardia Civil convocatoria selector
+  const [gcConvYear, setGcConvYear] = useState<number>(GC_CONVOCATORIAS[0].year);
+  const gcConv = useMemo(
+    () => GC_CONVOCATORIAS.find(c => c.year === gcConvYear) ?? GC_CONVOCATORIAS[0],
+    [gcConvYear]
+  );
+  const isGCSelected = selectedType === OppositionType.GUARDIA_CIVIL;
 
   const fetchScales = useCallback(async () => {
     setLoading(true);
@@ -203,6 +211,58 @@ const AdminBaremos = () => {
             ))}
           </div>
         </div>
+
+        {/* GC Convocatoria selector */}
+        {isGCSelected && (
+          <div className="flex flex-wrap gap-3 items-center">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+              <Select value={String(gcConvYear)} onValueChange={(v) => setGcConvYear(Number(v))}>
+                <SelectTrigger className="h-9 w-[240px] bg-background border-border text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {GC_CONVOCATORIAS.map(c => (
+                    <SelectItem key={c.year} value={String(c.year)} className="text-sm">
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="text-xs text-muted-foreground italic">{gcConv.boeRef}</p>
+          </div>
+        )}
+
+        {/* GC age group thresholds reference */}
+        {isGCSelected && (
+          <Card className="bg-card border-border">
+            <CardContent className="py-3 px-4">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Marcas mínimas por grupo de edad</p>
+              <div className="space-y-3">
+                {gcConv.ageGroups.map(ag => (
+                  <div key={ag.key}>
+                    <p className="text-xs font-medium text-foreground mb-1">{ag.label}</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1">
+                      {ag.thresholds.map(t => {
+                        const mVal = t.unit === "seconds" ? formatTimeValue(t.male) : `${t.male} ${t.unitLabel}`;
+                        const fVal = t.unit === "seconds" ? formatTimeValue(t.female) : `${t.female} ${t.unitLabel}`;
+                        return (
+                          <div key={t.testName} className="text-[11px]">
+                            <span className="text-muted-foreground">{t.testName}: </span>
+                            <span className="text-foreground">H {t.lowerIsBetter ? "≤" : "≥"}{mVal}</span>
+                            <span className="text-muted-foreground"> / </span>
+                            <span className="text-foreground">M {t.lowerIsBetter ? "≤" : "≥"}{fVal}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Search & value range */}
         <div className="flex flex-wrap gap-3 items-end">
