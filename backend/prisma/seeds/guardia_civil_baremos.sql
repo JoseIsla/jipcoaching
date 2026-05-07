@@ -1,5 +1,5 @@
 -- Guardia Civil physical test scales (apto/no apto, <35 age group)
--- Based on BOE convocatoria 2022-2025
+-- BOE Resolución 160/38240/2025, 28 mayo 2025 (Apéndice II)
 -- Run after deleting existing GC rows: DELETE FROM physical_test_scales WHERE oppositionType = 'GUARDIA_CIVIL';
 
 -- Circuito de agilidad — MALE (≤14s = apto)

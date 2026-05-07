@@ -292,8 +292,9 @@ async function seedPhysicalTestScales() {
   }
 
   // ═══════════════════════════════════════
-  // GUARDIA CIVIL — Apto/No-apto (<35 age group, BOE convocatoria 2022-2025)
-  // Tests: Circuito agilidad, Carrera 2000m, Flexiones brazos, Natación 50m
+  // GUARDIA CIVIL — Apto/No-apto (<35 age group)
+  // BOE Resolución 160/38240/2025, 28 mayo 2025 (Apéndice II)
+  // Tests: Resistencia 2000m, Circuito agilidad, Flexiones brazos, Natación 50m
   // ═══════════════════════════════════════
   const gcTests: { test: string; gender: string; pass: number; unit: string; lowerBetter: boolean }[] = [
     // Circuito de agilidad (seconds, lower is better)
