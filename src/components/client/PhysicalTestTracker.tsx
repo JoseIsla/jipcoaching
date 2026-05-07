@@ -415,7 +415,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
       </AlertDialog>
 
       {/* Delete confirmation */}
-      <AlertDialog open={!!deletingMarkId} onOpenChange={(open) => { if (!open) setDeletingMarkId(null); }}>
+      <AlertDialog open={!!deletingMarkId} onOpenChange={(open) => { if (!open && !deleting) setDeletingMarkId(null); }}>
         <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar marca?</AlertDialogTitle>
@@ -424,7 +424,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={() => deletingMarkId && handleDeleteMark(deletingMarkId)} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               {deleting ? "Eliminando..." : "Eliminar"}
             </AlertDialogAction>
