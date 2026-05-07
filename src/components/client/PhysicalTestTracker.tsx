@@ -63,6 +63,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
   const [confirmEditOpen, setConfirmEditOpen] = useState(false);
   const [deletingMarkId, setDeletingMarkId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const opType = getOppositionTypeFromModality(modality);
   const genderKey = (gender?.toUpperCase() === "FEMALE" ? "FEMALE" : "MALE") as "MALE" | "FEMALE";
@@ -149,6 +150,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
 
   const handleDeleteMark = async (markId: string) => {
     setDeleting(true);
+    setDeleteError(null);
     // Optimistic: remove mark from UI immediately
     const previousMarks = marks;
     setMarks(prev => prev.filter(m => m.id !== markId));
@@ -161,8 +163,12 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
     } catch (err) {
       setMarks(previousMarks);
       const mapped = mapDeleteMarkError(err);
-      toast({ title: mapped.title, description: mapped.description, variant: "destructive" });
-      if (mapped.closeDialog) {
+      if (!mapped.closeDialog) {
+        // Show inline error in dialog (stays open)
+        setDeleteError(`${mapped.title}: ${mapped.description}`);
+      } else {
+        // Toast for errors that close the dialog
+        toast({ title: mapped.title, description: mapped.description, variant: "destructive" });
         setDeletingMarkId(null);
       }
       if (mapped.refetch) {
@@ -405,13 +411,16 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
       </AlertDialog>
 
       {/* Delete confirmation */}
-      <AlertDialog open={!!deletingMarkId} onOpenChange={(open) => { if (!open && !deleting) setDeletingMarkId(null); }}>
+      <AlertDialog open={!!deletingMarkId} onOpenChange={(open) => { if (!open && !deleting) { setDeletingMarkId(null); setDeleteError(null); } }}>
         <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar marca?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta acción eliminará la marca permanentemente y no se puede deshacer.
             </AlertDialogDescription>
+            {deleteError && (
+              <p className="mt-2 text-sm text-destructive font-medium">{deleteError}</p>
+            )}
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
