@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Plus, Trash2, TrendingUp, TrendingDown, Target, Download, Pencil, CheckCircle2, XCircle } from "lucide-react";
+import { Trophy, Plus, Trash2, TrendingUp, TrendingDown, Target, Download, Pencil, CheckCircle2, XCircle, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { api } from "@/services/api";
 import { ApiError } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
@@ -65,6 +66,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
   const [deletingMarkId, setDeletingMarkId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [criteriaOpen, setCriteriaOpen] = useState(false);
 
   const opType = getOppositionTypeFromModality(modality);
   const genderKey = (gender?.toUpperCase() === "FEMALE" ? "FEMALE" : "MALE") as "MALE" | "FEMALE";
@@ -374,25 +376,46 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
         </Card>
       )}
 
-      {/* GC threshold reference */}
+      {/* GC collapsible criteria panel */}
       {isGC && (
-        <Card className="p-3 border border-border/30">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2 font-semibold">Marcas mínimas ({genderKey === "MALE" ? "Hombre" : "Mujer"})</p>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-            {(gcConv.ageGroups.find(a => a.key === gcAgeGroup)?.thresholds ?? []).map(t => {
-              const val = genderKey === "MALE" ? t.male : t.female;
-              const display = t.unit === "seconds" ? formatTimeValue(val) : `${val} ${t.unitLabel}`;
-              return (
-                <div key={t.testName} className="flex justify-between text-[11px]">
-                  <span className="text-muted-foreground truncate mr-2">{t.testName}</span>
-                  <span className="text-foreground font-medium whitespace-nowrap">
-                    {t.lowerIsBetter ? "≤" : "≥"} {display}
-                  </span>
+        <Collapsible open={criteriaOpen} onOpenChange={setCriteriaOpen}>
+          <Card className="border border-border/30 overflow-hidden">
+            <CollapsibleTrigger asChild>
+              <button className="flex items-center justify-between w-full px-3 py-2.5 text-left hover:bg-muted/30 transition-colors">
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  Ver criterios — {genderKey === "MALE" ? "Hombre" : "Mujer"}
+                </span>
+                <motion.span
+                  animate={{ rotate: criteriaOpen ? 180 : 0 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                </motion.span>
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="px-3 pb-3 space-y-2.5 border-t border-border/30 pt-2.5">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                  {(gcConv.ageGroups.find(a => a.key === gcAgeGroup)?.thresholds ?? []).map(t => {
+                    const val = genderKey === "MALE" ? t.male : t.female;
+                    const display = t.unit === "seconds" ? formatTimeValue(val) : `${val} ${t.unitLabel}`;
+                    return (
+                      <div key={t.testName} className="flex justify-between text-[11px]">
+                        <span className="text-muted-foreground truncate mr-2">{t.testName}</span>
+                        <span className="text-foreground font-medium whitespace-nowrap">
+                          {t.lowerIsBetter ? "≤" : "≥"} {display}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
-        </Card>
+                <p className="text-[9px] text-muted-foreground/70 leading-tight">
+                  {gcConv.boeRef} — {gcConv.ageGroups.find(a => a.key === gcAgeGroup)?.label ?? ""}. Todas las pruebas deben superarse para obtener la calificación de «apto».
+                </p>
+              </div>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       )}
 
       {/* Test cards */}
@@ -481,15 +504,6 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
                   )}
                 </div>
               </div>
-              {/* BOE reference for GC apto/no-apto */}
-              {isGC && gcThreshold !== null && (
-                <p className="text-[9px] text-muted-foreground/70 mt-1.5 leading-tight">
-                  BOE: {testDef.lowerIsBetter ? "≤" : "≥"}{" "}
-                  {testDef.unit === "seconds" ? formatTimeValue(gcThreshold) : `${gcThreshold} ${testDef.unitLabel}`}
-                  {" · "}
-                  {gcConv.boeRef}
-                </p>
-              )}
             </Card>
           );
         })}
