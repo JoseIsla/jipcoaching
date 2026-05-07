@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Plus, Trash2, TrendingUp, TrendingDown, Target } from "lucide-react";
+import { Trophy, Plus, Trash2, TrendingUp, TrendingDown, Target, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ import { OppositionType, oppositionTypeLabels } from "@/types/api";
 import type { PhysicalTestScaleEntry, ClientPhysicalMark } from "@/types/api";
 import { OPPOSITION_TESTS, getOppositionTypeFromModality } from "@/data/oppositionScales";
 import type { OppositionTestDef } from "@/data/oppositionScales";
+import { exportPhysicalMarksPDF } from "@/utils/exportPhysicalMarksPDF";
 
 interface Props {
   clientId: string;
@@ -143,6 +144,25 @@ const PhysicalTestTracker = ({ clientId, modality, gender = "MALE", isAdmin }: P
               <Plus className="h-3.5 w-3.5" /> Registrar
             </Button>
           </DialogTrigger>
+          {marks.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs"
+              onClick={() =>
+                exportPhysicalMarksPDF({
+                  clientName: "Cliente",
+                  oppositionLabel: oppositionTypeLabels[opType!],
+                  gender,
+                  tests,
+                  scales,
+                  marks,
+                })
+              }
+            >
+              <Download className="h-3.5 w-3.5" /> PDF
+            </Button>
+          )}
           <DialogContent className="bg-card border-border">
             <DialogHeader>
               <DialogTitle>Registrar nueva marca</DialogTitle>
