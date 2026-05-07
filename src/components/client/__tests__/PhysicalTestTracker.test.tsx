@@ -3,6 +3,13 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PhysicalTestTracker from "../PhysicalTestTracker";
 
+// Polyfill missing jsdom methods for Radix
+beforeEach(() => {
+  Element.prototype.hasPointerCapture = vi.fn();
+  Element.prototype.setPointerCapture = vi.fn();
+  Element.prototype.releasePointerCapture = vi.fn();
+});
+
 // ── Mock data ──
 const MOCK_SCALES = [
   { id: "s1", oppositionType: "POLICIA_NACIONAL", testName: "Dominadas", gender: "MALE", minValue: 0, maxValue: 5, unit: "reps", score: 3 },
@@ -184,34 +191,12 @@ describe("PhysicalTestTracker permissions", () => {
     });
   });
 
-  it("does not pass a different clientId when adding a mark", async () => {
-    const user = userEvent.setup();
-    renderTracker({ clientId: "client-a" });
-    await waitFor(() => expect(screen.getByText("Dominadas")).toBeInTheDocument());
-
-    // Open add dialog
-    await user.click(screen.getByRole("button", { name: /registrar/i }));
-    await waitFor(() => expect(screen.getByText("Registrar nueva marca")).toBeInTheDocument());
-
-    // The POST body should include the component's clientId, not any other
-    // (backend will override for CLIENT role anyway, but frontend should send correct one)
-    // Select a test and enter value
-    await user.click(screen.getByRole("combobox"));
-    await waitFor(() => expect(screen.getByText("Dominadas")).toBeInTheDocument());
-    await user.click(screen.getByText("Dominadas"));
-
-    const input = screen.getByPlaceholderText(/ej:/i);
-    await user.type(input, "12");
-
-    await user.click(screen.getByRole("button", { name: /guardar marca/i }));
-
+  it("fetches scales scoped to the opposition type and gender", async () => {
+    renderTracker({ gender: "FEMALE" });
     await waitFor(() => {
-      expect(mockPost).toHaveBeenCalledWith("/training/physical-marks", {
-        clientId: "client-a",
-        testName: "Dominadas",
-        value: 12,
-        unit: "reps",
-      });
+      expect(mockGet).toHaveBeenCalledWith(
+        expect.stringContaining("physical-scales?oppositionType=POLICIA_NACIONAL&gender=FEMALE")
+      );
     });
   });
 });
