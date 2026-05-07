@@ -52,6 +52,7 @@ const ClientTraining = lazy(() => import("./pages/client/ClientTraining"));
 const ClientCheckins = lazy(() => import("./pages/client/ClientCheckins"));
 const ClientProgress = lazy(() => import("./pages/client/ClientProgress"));
 const ClientSettings = lazy(() => import("./pages/client/ClientSettings"));
+const ClientBOE = lazy(() => import("./pages/client/ClientBOE"));
 
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -122,6 +123,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
                     <Route path="/client/checkins" element={<RoleRoute allowedRole="client"><ClientCheckins /></RoleRoute>} />
                     <Route path="/client/progress" element={<RoleRoute allowedRole="client"><ClientProgress /></RoleRoute>} />
                     <Route path="/client/settings" element={<RoleRoute allowedRole="client"><ClientSettings /></RoleRoute>} />
+                    <Route path="/client/boe" element={<RoleRoute allowedRole="client"><ClientBOE /></RoleRoute>} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
