@@ -212,6 +212,7 @@ const ClientTraining = () => {
             <PhysicalTestTracker
               clientId={client.id}
               modality={plan.modality}
+              clientName={client.name}
               gender={client.sex?.toUpperCase() === "F" || client.sex?.toUpperCase() === "FEMALE" ? "FEMALE" : "MALE"}
             />
           </motion.div>
