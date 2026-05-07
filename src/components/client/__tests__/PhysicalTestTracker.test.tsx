@@ -133,7 +133,6 @@ describe("PhysicalTestTracker permissions", () => {
 
     // Click trash button
     const buttons = screen.getAllByRole("button");
-    const trashBtn = buttons.find(b => b.querySelector("svg.lucide-trash-2"))!;
     const trashButton = buttons.find(b => b.querySelector("svg.lucide-trash2"))!;
     await user.click(trashButton);
 
