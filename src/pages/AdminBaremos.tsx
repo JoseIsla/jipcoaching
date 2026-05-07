@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import PassFailInfoBadge from "@/components/ui/pass-fail-info-badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -419,9 +420,9 @@ const AdminBaremos = () => {
                             <td className="px-3 py-2 font-bold text-primary">{s.score}</td>
                             {isPassFail && (
                               <td className="px-3 py-2">
-                                <Badge variant="outline" className={`text-[10px] ${s.score >= 5 ? "border-green-500/30 text-green-400" : "border-destructive/30 text-destructive"}`}>
-                                  {s.score >= 5 ? "Apto" : "No Apto"}
-                                </Badge>
+                                <PassFailInfoBadge
+                                  variant={s.score >= 5 ? "apto" : "noApto"}
+                                />
                               </td>
                             )}
                             <td className="px-3 py-2 text-foreground">{s.minValue}</td>
