@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Trophy, Plus, Pencil, Trash2, Save, Search, X, CalendarDays } from "lucide-react";
+import { Trophy, Plus, Pencil, Trash2, Save, Search, X, CalendarDays, RefreshCw } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/services/api";
@@ -90,6 +91,8 @@ const AdminBaremos = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMinValue, setFilterMinValue] = useState("");
   const [filterMaxValue, setFilterMaxValue] = useState("");
+  const [refreshConfirmOpen, setRefreshConfirmOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   // Guardia Civil convocatoria selector
   const [gcConvYear, setGcConvYear] = useState<number>(GC_CONVOCATORIAS[0].year);
   const gcConv = useMemo(
@@ -97,6 +100,19 @@ const AdminBaremos = () => {
     [gcConvYear]
   );
   const isGCSelected = selectedType === OppositionType.GUARDIA_CIVIL;
+
+  const handleRefreshGC = async () => {
+    setRefreshing(true);
+    try {
+      await fetchScales();
+      toast({ title: "Baremos actualizados", description: `Datos de ${oppositionTypeLabels[OppositionType.GUARDIA_CIVIL]} recargados correctamente.` });
+    } catch {
+      toast({ title: "Error", description: "No se pudieron refrescar los baremos", variant: "destructive" });
+    } finally {
+      setRefreshing(false);
+      setRefreshConfirmOpen(false);
+    }
+  };
 
   const fetchScales = useCallback(async () => {
     setLoading(true);
@@ -206,9 +222,23 @@ const AdminBaremos = () => {
             </h1>
             <p className="text-muted-foreground text-sm mt-1">Gestiona las tablas de puntuación por oposición</p>
           </div>
-          <Button onClick={openCreate} className="gap-2 glow-primary-sm">
-            <Plus className="h-4 w-4" /> Nuevo baremo
-          </Button>
+          <div className="flex items-center gap-2">
+            {isGCSelected && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs"
+                onClick={() => setRefreshConfirmOpen(true)}
+                disabled={refreshing}
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+                Refrescar baremos
+              </Button>
+            )}
+            <Button onClick={openCreate} className="gap-2 glow-primary-sm">
+              <Plus className="h-4 w-4" /> Nuevo baremo
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -487,6 +517,25 @@ const AdminBaremos = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Refresh confirmation dialog */}
+      <AlertDialog open={refreshConfirmOpen} onOpenChange={setRefreshConfirmOpen}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Refrescar baremos de Guardia Civil?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se recargarán los baremos almacenados en base de datos para <strong>Guardia Civil</strong> ({genderLabel(selectedGender)}).
+              Los datos del frontend (convocatoria {gcConvYear}, {gcConv.boeRef}) no se modifican.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={refreshing}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRefreshGC} disabled={refreshing}>
+              {refreshing ? "Recargando..." : "Refrescar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };
