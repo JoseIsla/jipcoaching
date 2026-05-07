@@ -560,15 +560,28 @@ router.get("/physical-marks", async (req, res) => {
 });
 
 // POST /api/training/physical-marks
-router.post("/physical-marks", async (req, res) => {
+ router.post("/physical-marks", async (req, res) => {
   try {
-    const { clientId, testName, value, unit, notes } = req.body;
-    if (!clientId || !testName || value == null || !unit) {
+    const { clientId: rawClientId, testName, value, unit, notes } = req.body;
+    if (!testName || value == null || !unit) {
       res.status(400).json({ message: "Faltan campos requeridos" }); return;
     }
 
+    let resolvedClientId = rawClientId;
+
+    // Clients can only create marks for themselves
+    if ((req.user as any).role === "CLIENT") {
+      const client = await prisma.client.findUnique({ where: { userId: (req.user as any).userId } });
+      if (!client) { res.status(404).json({ message: "Cliente no encontrado" }); return; }
+      resolvedClientId = client.id;
+    } else if ((req.user as any).role !== "ADMIN") {
+      res.status(403).json({ message: "Acceso denegado" }); return;
+    }
+
+    if (!resolvedClientId) { res.status(400).json({ message: "clientId requerido" }); return; }
+
     const mark = await prisma.clientPhysicalMark.create({
-      data: { clientId, testName, value: parseFloat(value), unit, notes },
+      data: { clientId: resolvedClientId, testName, value: parseFloat(value), unit, notes },
     });
     res.status(201).json(mark);
   } catch (err: any) {
