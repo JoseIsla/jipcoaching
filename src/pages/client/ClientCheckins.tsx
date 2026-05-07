@@ -254,6 +254,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const opType = activePlan ? getOppositionTypeFromModality(activePlan.modality) : null;
   const opTests = opType ? OPPOSITION_TESTS[opType] : [];
   const [physicalMarks, setPhysicalMarks] = useState<Record<string, string>>({});
+  const [markErrors, setMarkErrors] = useState<Record<string, string>>({});
 
   const storeTrainingTemplate = useTemplateStore((s) => s.trainingTemplate);
   const apiQuestions: QuestionDefinition[] = (entry.templateQuestions || []).map((q) => ({
@@ -425,6 +426,22 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
     setTrainingLog(updated);
   };
 
+  const validatePhysicalMarks = (): boolean => {
+    if (!isOpposition || opTests.length === 0) return true;
+    const errs: Record<string, string> = {};
+    const filledCount = Object.entries(physicalMarks).filter(([, v]) => v && v.trim() !== "").length;
+    // If at least one mark is filled, validate all filled marks
+    for (const [testName, rawValue] of Object.entries(physicalMarks)) {
+      if (!rawValue || rawValue.trim() === "") continue;
+      const num = parseFloat(rawValue);
+      if (isNaN(num) || num <= 0) {
+        errs[testName] = "Debe ser mayor que 0";
+      }
+    }
+    setMarkErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const validateTrainingWeights = (): boolean => {
     const newErrors: Record<string, string> = {};
     trainingLog.forEach((day, dayIdx) => {
@@ -454,6 +471,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
       return;
     }
     if (!validateTrainingWeights()) return;
+    if (!validatePhysicalMarks()) return;
     // Fill empty actuals with planned values so admin always sees data
     const finalLog = trainingLog.map((day) => ({
       ...day,
@@ -687,11 +705,17 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                               step="0.1"
                               placeholder={test.unit === "seconds" ? "seg" : test.unitLabel}
                               value={physicalMarks[test.testName] || ""}
-                              onChange={(e) => setPhysicalMarks({ ...physicalMarks, [test.testName]: e.target.value })}
-                              className="h-8 w-24 text-xs bg-background border-border text-center"
+                              onChange={(e) => {
+                                setPhysicalMarks({ ...physicalMarks, [test.testName]: e.target.value });
+                                if (markErrors[test.testName]) setMarkErrors((prev) => { const next = { ...prev }; delete next[test.testName]; return next; });
+                              }}
+                              className={`h-8 w-24 text-xs bg-background text-center ${markErrors[test.testName] ? "border-destructive focus-visible:ring-destructive" : "border-border"}`}
                             />
                             <span className="text-[10px] text-muted-foreground w-8">{test.unitLabel}</span>
                           </div>
+                          {markErrors[test.testName] && (
+                            <p className="text-[10px] text-destructive pl-1 -mt-1">{markErrors[test.testName]}</p>
+                          )}
                         ))}
                       </div>
                     </div>
