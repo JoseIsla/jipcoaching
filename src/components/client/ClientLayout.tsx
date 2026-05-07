@@ -17,6 +17,7 @@ import { useClientNotificationStore } from "@/data/useClientNotificationStore";
 import { useQuestionnaireStore, isActionablePending } from "@/data/useQuestionnaireStore";
 import { useToast } from "@/hooks/use-toast";
 import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
+import { useTrainingPlanStore, isOppositionModality } from "@/data/useTrainingPlanStore";
 import { api } from "@/services/api";
 import ClientDeactivatedScreen from "./ClientDeactivatedScreen";
 
@@ -238,10 +239,17 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
     }
   }, [pendingEntries.length]);
 
+  // Detect active opposition plan for BOE tab
+  const trainingPlans = useTrainingPlanStore((s) => s.plans);
+  const hasOppositionPlan = trainingPlans.some(
+    (p) => p.clientId === client.id && p.active && isOppositionModality(p.modality)
+  );
+
   const tabs = [
     { label: t("clientNav.home"), icon: Home, path: "/client" },
     { label: t("clientNav.nutrition"), icon: Utensils, path: "/client/nutrition", service: "nutrition" as const },
     { label: t("clientNav.training"), icon: Dumbbell, path: "/client/training", service: "training" as const },
+    ...(hasOppositionPlan ? [{ label: "BOE", icon: FileText, path: "/client/boe" }] : []),
     { label: t("clientNav.checkins"), icon: ClipboardList, path: "/client/checkins" },
     { label: t("clientNav.progress"), icon: BarChart3, path: "/client/progress" },
     { label: t("clientNav.settings"), icon: Settings, path: "/client/settings" },
