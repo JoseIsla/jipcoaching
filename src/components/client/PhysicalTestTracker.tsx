@@ -405,6 +405,7 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
           const improved = latest && prev
             ? testDef.lowerIsBetter ? latest.value < prev.value : latest.value > prev.value
             : null;
+          const gcThreshold = isGC ? getGCThresholdValue(gcConv, gcAgeGroup, genderKey, testDef.testName) : null;
 
           return (
             <Card key={testDef.testName} className="p-3 border border-border/50">
@@ -480,6 +481,15 @@ const PhysicalTestTracker = ({ clientId, modality, clientName = "Cliente", gende
                   )}
                 </div>
               </div>
+              {/* BOE reference for GC apto/no-apto */}
+              {isGC && gcThreshold !== null && (
+                <p className="text-[9px] text-muted-foreground/70 mt-1.5 leading-tight">
+                  BOE: {testDef.lowerIsBetter ? "≤" : "≥"}{" "}
+                  {testDef.unit === "seconds" ? formatTimeValue(gcThreshold) : `${gcThreshold} ${testDef.unitLabel}`}
+                  {" · "}
+                  {gcConv.boeRef}
+                </p>
+              )}
             </Card>
           );
         })}
