@@ -252,19 +252,177 @@ const ExerciseForm = ({
 
 // ==================== DAY EDITOR ====================
 
+/**
+ * Form for opposition-specific exercises (running / running technique / official test).
+ * - running: distance / duration / pace / heart rate
+ * - running_technique: free-text style with sets/reps/notes
+ * - official_test: pick from filtered library (kind=OFFICIAL_TEST + opType) + planned mark + unit
+ */
+const OppositionExerciseForm = ({
+  exercise,
+  onChange,
+  onRemove,
+  section,
+  oppositionType,
+}: {
+  exercise: TrainingExerciseEntry;
+  onChange: (e: TrainingExerciseEntry) => void;
+  onRemove: () => void;
+  section: "running" | "running_technique" | "official_test";
+  oppositionType: string | null;
+}) => {
+  const allExercises = useExerciseLibraryStore((s) => s.exercises);
+
+  // Filter library items by kind + opposition type when applicable
+  const kindMap: Record<typeof section, string> = {
+    running: "RUNNING",
+    running_technique: "RUNNING_TECHNIQUE",
+    official_test: "OFFICIAL_TEST",
+  };
+  const wantedKind = kindMap[section];
+  const libraryItems = allExercises
+    .filter((e) => (e.kind || "GYM").toUpperCase() === wantedKind)
+    .filter((e) => {
+      if (section !== "official_test" || !oppositionType) return true;
+      try {
+        const types: string[] = e.oppositionTypes ? JSON.parse(e.oppositionTypes) : [];
+        return types.length === 0 || types.includes(oppositionType);
+      } catch {
+        return true;
+      }
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, "es"));
+
+  const update = (patch: Partial<TrainingExerciseEntry>) => onChange({ ...exercise, ...patch });
+
+  return (
+    <div className="bg-background/50 border border-border/50 rounded-lg p-3 space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <GripVertical className="h-4 w-4 text-muted-foreground shrink-0 cursor-grab" />
+          {libraryItems.length > 0 ? (
+            <Select
+              value={exercise.exerciseId || ""}
+              onValueChange={(v) => {
+                const item = allExercises.find((e) => e.id === v);
+                update({
+                  exerciseId: v,
+                  exerciseName: item?.name || "",
+                  plannedMarkUnit: section === "official_test" ? (item?.defaultUnit || exercise.plannedMarkUnit) : exercise.plannedMarkUnit,
+                });
+              }}
+            >
+              <SelectTrigger className="bg-background border-border text-sm h-8">
+                <SelectValue placeholder="Seleccionar..." />
+              </SelectTrigger>
+              <SelectContent className="max-h-60">
+                {libraryItems.map((e) => (
+                  <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input
+              className="bg-background border-border text-sm h-8"
+              placeholder={section === "running" ? "Ej: Rodaje suave" : section === "running_technique" ? "Ej: Skipping bajo" : "Prueba"}
+              value={exercise.exerciseName || ""}
+              onChange={(e) => update({ exerciseName: e.target.value })}
+            />
+          )}
+        </div>
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/70 hover:text-destructive shrink-0" onClick={onRemove}>
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+
+      {section === "running" && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Distancia (m)</Label>
+            <Input type="number" className="h-8 text-xs bg-background border-border" value={exercise.plannedDistanceM ?? ""} onChange={(e) => update({ plannedDistanceM: Number(e.target.value) || undefined })} />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Duración (s)</Label>
+            <Input type="number" className="h-8 text-xs bg-background border-border" value={exercise.plannedDurationSec ?? ""} onChange={(e) => update({ plannedDurationSec: Number(e.target.value) || undefined })} />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Ritmo</Label>
+            <Input className="h-8 text-xs bg-background border-border" placeholder="5:30/km" value={exercise.plannedPace ?? ""} onChange={(e) => update({ plannedPace: e.target.value })} />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">FC objetivo</Label>
+            <Input type="number" className="h-8 text-xs bg-background border-border" value={exercise.plannedHeartRate ?? ""} onChange={(e) => update({ plannedHeartRate: Number(e.target.value) || undefined })} />
+          </div>
+        </div>
+      )}
+
+      {section === "running_technique" && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Series</Label>
+            <Input className="h-8 text-xs bg-background border-border" placeholder="3-4" value={exercise.sets ?? ""} onChange={(e) => update({ sets: e.target.value })} />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Reps / distancia</Label>
+            <Input className="h-8 text-xs bg-background border-border" placeholder="20m" value={exercise.reps ?? ""} onChange={(e) => update({ reps: e.target.value })} />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Descanso</Label>
+            <Input className="h-8 text-xs bg-background border-border" placeholder="60s" value={exercise.plannedLoad ?? ""} onChange={(e) => update({ plannedLoad: e.target.value })} />
+          </div>
+        </div>
+      )}
+
+      {section === "official_test" && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Marca objetivo</Label>
+            <Input type="number" step="0.01" className="h-8 text-xs bg-background border-border" value={exercise.plannedMarkValue ?? ""} onChange={(e) => update({ plannedMarkValue: Number(e.target.value) || undefined })} />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Unidad</Label>
+            <Select value={exercise.plannedMarkUnit || ""} onValueChange={(v) => update({ plannedMarkUnit: v })}>
+              <SelectTrigger className="bg-background border-border text-xs h-8"><SelectValue placeholder="—" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="seconds">seg</SelectItem>
+                <SelectItem value="reps">reps</SelectItem>
+                <SelectItem value="cm">cm</SelectItem>
+                <SelectItem value="kg">kg</SelectItem>
+                <SelectItem value="periods">periodos</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-1">
+        <Label className="text-xs text-muted-foreground">Notas técnicas</Label>
+        <Input className="h-8 text-xs bg-background border-border" placeholder="Indicaciones, terreno, técnica..." value={exercise.technicalNotes ?? ""} onChange={(e) => update({ technicalNotes: e.target.value })} />
+      </div>
+    </div>
+  );
+};
+
 const DayEditor = ({
   day,
   onChange,
   allDays,
+  modality,
 }: {
   day: TrainingDay;
   onChange: (d: TrainingDay) => void;
   allDays: TrainingDay[];
+  modality: TrainingModality;
 }) => {
   const [open, setOpen] = useState(true);
   const [dragId, setDragId] = useState<string | null>(null);
   const basics = day.exercises.filter((e) => e.section === "basic");
   const accessories = day.exercises.filter((e) => e.section === "accessory");
+  const runs = day.exercises.filter((e) => e.section === "running");
+  const techs = day.exercises.filter((e) => e.section === "running_technique");
+  const tests = day.exercises.filter((e) => e.section === "official_test");
+  const isOpposition = isOppositionModality(modality);
+  const opType = getOppositionTypeFromModality(modality);
 
   const updateExercise = (idx: number, updated: TrainingExerciseEntry) => {
     const newExercises = [...day.exercises];
@@ -277,7 +435,7 @@ const DayEditor = ({
     onChange({ ...day, exercises: day.exercises.filter((e) => e.id !== id) });
   };
 
-  const addExercise = (section: "basic" | "accessory") => {
+  const addExercise = (section: TrainingExerciseEntry["section"]) => {
     const newEx: TrainingExerciseEntry = {
       id: `te-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       order: day.exercises.length + 1,
