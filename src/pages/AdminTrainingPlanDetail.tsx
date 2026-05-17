@@ -573,6 +573,80 @@ const DayEditor = ({
               </div>
             ))}
           </div>
+
+          {/* OPPOSITION SECTIONS */}
+          {isOpposition && (
+            <>
+              {/* CARRERA */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-sky-400 flex items-center gap-1.5">
+                    <Footprints className="h-3.5 w-3.5" /> Carrera / Aeróbico
+                  </h4>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-sky-400" onClick={() => addExercise("running")}>
+                    <Plus className="h-3 w-3" /> Añadir
+                  </Button>
+                </div>
+                {runs.length === 0 && <p className="text-xs text-muted-foreground italic">Sin sesiones de carrera</p>}
+                {runs.map((ex) => (
+                  <OppositionExerciseForm
+                    key={ex.id}
+                    exercise={ex}
+                    section="running"
+                    oppositionType={opType}
+                    onChange={(u) => updateExercise(0, u)}
+                    onRemove={() => removeExercise(ex.id)}
+                  />
+                ))}
+              </div>
+
+              {/* TÉCNICA DE CARRERA */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-violet-400 flex items-center gap-1.5">
+                    <Activity className="h-3.5 w-3.5" /> Técnica de carrera
+                  </h4>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-violet-400" onClick={() => addExercise("running_technique")}>
+                    <Plus className="h-3 w-3" /> Añadir
+                  </Button>
+                </div>
+                {techs.length === 0 && <p className="text-xs text-muted-foreground italic">Sin ejercicios de técnica</p>}
+                {techs.map((ex) => (
+                  <OppositionExerciseForm
+                    key={ex.id}
+                    exercise={ex}
+                    section="running_technique"
+                    oppositionType={opType}
+                    onChange={(u) => updateExercise(0, u)}
+                    onRemove={() => removeExercise(ex.id)}
+                  />
+                ))}
+              </div>
+
+              {/* PRUEBA OFICIAL */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-amber-400 flex items-center gap-1.5">
+                    <Trophy className="h-3.5 w-3.5" /> Pruebas oficiales
+                  </h4>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-amber-400" onClick={() => addExercise("official_test")}>
+                    <Plus className="h-3 w-3" /> Añadir
+                  </Button>
+                </div>
+                {tests.length === 0 && <p className="text-xs text-muted-foreground italic">Sin pruebas programadas</p>}
+                {tests.map((ex) => (
+                  <OppositionExerciseForm
+                    key={ex.id}
+                    exercise={ex}
+                    section="official_test"
+                    oppositionType={opType}
+                    onChange={(u) => updateExercise(0, u)}
+                    onRemove={() => removeExercise(ex.id)}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </CollapsibleContent>
     </Collapsible>
@@ -939,7 +1013,7 @@ const AdminTrainingPlanDetail = () => {
         {/* Days */}
         <div className="space-y-4">
           {currentWeek.days.map((day) => (
-            <DayEditor key={day.id} day={day} onChange={(d) => updateDay(day.id, d)} allDays={currentWeek.days} />
+            <DayEditor key={day.id} day={day} onChange={(d) => updateDay(day.id, d)} allDays={currentWeek.days} modality={plan.modality} />
           ))}
         </div>
 
