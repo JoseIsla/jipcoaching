@@ -320,6 +320,9 @@ export const exportTrainingWeekPDF = async (
 
     const basics = day.exercises.filter((e) => e.section === "basic");
     const accessories = day.exercises.filter((e) => e.section === "accessory");
+    const runs = day.exercises.filter((e) => e.section === "running");
+    const techs = day.exercises.filter((e) => e.section === "running_technique");
+    const tests = day.exercises.filter((e) => e.section === "official_test");
 
     // Basics table
     if (basics.length > 0) {
@@ -399,6 +402,83 @@ export const exportTrainingWeekPDF = async (
           0: { fontStyle: "bold", textColor: [...WHITE] },
           2: { fontSize: 7, textColor: [...TEXT_MUTED] },
         },
+      });
+      y = (doc as any).lastAutoTable.finalY + 3;
+    }
+
+    // Running
+    if (runs.length > 0) {
+      y = checkPage(doc, y, 15);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...NEON_GREEN);
+      doc.text("Carrera / Aeróbico", MARGIN, y + 2);
+      y += 3;
+      const rows = runs.map((ex) => {
+        const v: string[] = [];
+        if (ex.plannedDistanceM != null) v.push(`${ex.plannedDistanceM}m`);
+        if (ex.plannedDurationSec != null) v.push(`${ex.plannedDurationSec}s`);
+        if (ex.plannedPace) v.push(`Ritmo: ${ex.plannedPace}`);
+        if (ex.plannedHeartRate != null) v.push(`FC: ${ex.plannedHeartRate}`);
+        return [ex.exerciseName || "—", v.join("  ") || "—", ex.technicalNotes || ""];
+      });
+      autoTable(doc, {
+        startY: y, margin: { left: MARGIN, right: MARGIN },
+        head: [["Sesión", "Pautado", "Notas"]], body: rows, theme: "grid",
+        styles: { ...baseStyles, fontSize: 7.5, cellPadding: 2 },
+        headStyles: headStylesSecondary,
+        alternateRowStyles: { fillColor: [...altRowColor] },
+        columnStyles: { 0: { fontStyle: "bold", textColor: [...WHITE] }, 2: { fontSize: 7, textColor: [...TEXT_MUTED] } },
+      });
+      y = (doc as any).lastAutoTable.finalY + 3;
+    }
+
+    // Running technique
+    if (techs.length > 0) {
+      y = checkPage(doc, y, 15);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...NEON_GREEN);
+      doc.text("Técnica de carrera", MARGIN, y + 2);
+      y += 3;
+      const rows = techs.map((ex) => {
+        const v: string[] = [];
+        if (ex.sets) v.push(`${ex.sets} series`);
+        if (ex.reps) v.push(`× ${ex.reps}`);
+        if (ex.plannedLoad) v.push(`Descanso: ${ex.plannedLoad}`);
+        return [ex.exerciseName || "—", v.join("  ") || "—", ex.technicalNotes || ""];
+      });
+      autoTable(doc, {
+        startY: y, margin: { left: MARGIN, right: MARGIN },
+        head: [["Ejercicio", "Volumen", "Notas"]], body: rows, theme: "grid",
+        styles: { ...baseStyles, fontSize: 7.5, cellPadding: 2 },
+        headStyles: headStylesSecondary,
+        alternateRowStyles: { fillColor: [...altRowColor] },
+        columnStyles: { 0: { fontStyle: "bold", textColor: [...WHITE] }, 2: { fontSize: 7, textColor: [...TEXT_MUTED] } },
+      });
+      y = (doc as any).lastAutoTable.finalY + 3;
+    }
+
+    // Official tests
+    if (tests.length > 0) {
+      y = checkPage(doc, y, 15);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...NEON_GREEN);
+      doc.text("Pruebas oficiales", MARGIN, y + 2);
+      y += 3;
+      const rows = tests.map((ex) => {
+        const v: string[] = [];
+        if (ex.plannedMarkValue != null) v.push(`Objetivo: ${ex.plannedMarkValue} ${ex.plannedMarkUnit || ""}`.trim());
+        return [ex.exerciseName || "—", v.join("  ") || "—", ex.technicalNotes || ""];
+      });
+      autoTable(doc, {
+        startY: y, margin: { left: MARGIN, right: MARGIN },
+        head: [["Prueba", "Objetivo", "Notas"]], body: rows, theme: "grid",
+        styles: { ...baseStyles, fontSize: 7.5, cellPadding: 2 },
+        headStyles: headStylesSecondary,
+        alternateRowStyles: { fillColor: [...altRowColor] },
+        columnStyles: { 0: { fontStyle: "bold", textColor: [...WHITE] }, 2: { fontSize: 7, textColor: [...TEXT_MUTED] } },
       });
       y = (doc as any).lastAutoTable.finalY + 3;
     }

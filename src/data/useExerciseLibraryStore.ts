@@ -22,6 +22,9 @@ const toLibraryItem = (e: ApiExercise): ExerciseLibraryItem => ({
   category: exerciseCategoryFromApi(e.category),
   muscleGroup: e.muscleGroup,
   parentExerciseId: e.parentExerciseId,
+  kind: e.kind ?? null,
+  oppositionTypes: e.oppositionTypes ?? null,
+  defaultUnit: e.defaultUnit ?? null,
 });
 
 interface GlobalFoodItem {
