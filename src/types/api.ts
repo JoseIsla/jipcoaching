@@ -252,6 +252,11 @@ export interface CreateExerciseDto {
   videoUrl?: string;
   notes?: string;
   parentExerciseId?: string;
+  /** "GYM" | "RUNNING" | "RUNNING_TECHNIQUE" | "OFFICIAL_TEST" */
+  kind?: string | null;
+  /** Array of OppositionType values (server JSON-stringifies) */
+  oppositionTypes?: string[] | string | null;
+  defaultUnit?: string | null;
 }
 
 /** Map frontend category to API enum */

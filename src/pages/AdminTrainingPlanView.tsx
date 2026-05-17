@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Pencil, Dumbbell, Calendar, User, Info } from "lucide-react";
+import { ArrowLeft, Pencil, Dumbbell, Calendar, User, Info, Footprints, Activity, Trophy } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +45,45 @@ const ExerciseRow = ({ ex, section }: { ex: TrainingExerciseEntry; section: "bas
   </div>
 );
 
+const OppositionRow = ({
+  ex,
+  kind,
+}: {
+  ex: TrainingExerciseEntry;
+  kind: "running" | "running_technique" | "official_test";
+}) => (
+  <div className="bg-background/40 border border-border/40 rounded-lg p-3 space-y-1">
+    <p className="text-sm font-medium text-foreground">{ex.exerciseName || "—"}</p>
+    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+      {kind === "running" && (
+        <>
+          {ex.plannedDistanceM != null && <span><strong>Distancia:</strong> {ex.plannedDistanceM} m</span>}
+          {ex.plannedDurationSec != null && <span><strong>Tiempo:</strong> {ex.plannedDurationSec}s</span>}
+          {ex.plannedPace && <span><strong>Ritmo:</strong> {ex.plannedPace}</span>}
+          {ex.plannedHeartRate != null && <span><strong>FC:</strong> {ex.plannedHeartRate} bpm</span>}
+        </>
+      )}
+      {kind === "running_technique" && (
+        <>
+          {ex.sets && <span><strong>Series:</strong> {ex.sets}</span>}
+          {ex.reps && <span><strong>Reps:</strong> {ex.reps}</span>}
+          {ex.plannedLoad && <span><strong>Descanso:</strong> {ex.plannedLoad}</span>}
+        </>
+      )}
+      {kind === "official_test" && (
+        <>
+          {ex.plannedMarkValue != null && (
+            <span><strong>Objetivo:</strong> {ex.plannedMarkValue} {ex.plannedMarkUnit || ""}</span>
+          )}
+        </>
+      )}
+    </div>
+    {ex.technicalNotes && (
+      <p className="text-xs text-primary/80 italic mt-1">📝 {ex.technicalNotes}</p>
+    )}
+  </div>
+);
+
 const WeekView = ({ week }: { week: TrainingWeek }) => (
   <div className="space-y-4">
     {week.generalNotes && (
@@ -56,6 +95,9 @@ const WeekView = ({ week }: { week: TrainingWeek }) => (
     {week.days.map((day) => {
       const basics = day.exercises.filter((e) => e.section === "basic");
       const accessories = day.exercises.filter((e) => e.section === "accessory");
+      const runs = day.exercises.filter((e) => e.section === "running");
+      const techs = day.exercises.filter((e) => e.section === "running_technique");
+      const tests = day.exercises.filter((e) => e.section === "official_test");
       return (
         <div key={day.id} className="bg-card border border-border rounded-xl overflow-hidden">
           <div className="p-4 border-b border-border/50">
@@ -75,6 +117,30 @@ const WeekView = ({ week }: { week: TrainingWeek }) => (
               <div className="space-y-2">
                 <h4 className="text-sm font-semibold text-muted-foreground">🎯 Accesorios</h4>
                 {accessories.map((ex) => <ExerciseRow key={ex.id} ex={ex} section="accessory" />)}
+              </div>
+            )}
+            {runs.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-sky-400 flex items-center gap-1.5">
+                  <Footprints className="h-3.5 w-3.5" /> Carrera
+                </h4>
+                {runs.map((ex) => <OppositionRow key={ex.id} ex={ex} kind="running" />)}
+              </div>
+            )}
+            {techs.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-violet-400 flex items-center gap-1.5">
+                  <Activity className="h-3.5 w-3.5" /> Técnica de carrera
+                </h4>
+                {techs.map((ex) => <OppositionRow key={ex.id} ex={ex} kind="running_technique" />)}
+              </div>
+            )}
+            {tests.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-amber-400 flex items-center gap-1.5">
+                  <Trophy className="h-3.5 w-3.5" /> Prueba oficial
+                </h4>
+                {tests.map((ex) => <OppositionRow key={ex.id} ex={ex} kind="official_test" />)}
               </div>
             )}
             {day.exercises.length === 0 && (
