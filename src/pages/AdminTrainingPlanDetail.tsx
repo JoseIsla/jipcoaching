@@ -336,7 +336,11 @@ const OppositionExerciseForm = ({
       </div>
 
       {section === "running" && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Series</Label>
+            <Input className="h-8 text-xs bg-background border-border" placeholder="1" value={exercise.sets ?? ""} onChange={(e) => update({ sets: e.target.value })} />
+          </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Distancia (m)</Label>
             <Input type="number" className="h-8 text-xs bg-background border-border" value={exercise.plannedDistanceM ?? ""} onChange={(e) => update({ plannedDistanceM: Number(e.target.value) || undefined })} />
@@ -375,6 +379,10 @@ const OppositionExerciseForm = ({
 
       {section === "official_test" && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Series</Label>
+            <Input className="h-8 text-xs bg-background border-border" placeholder="1" value={exercise.sets ?? ""} onChange={(e) => update({ sets: e.target.value })} />
+          </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Marca objetivo</Label>
             <Input type="number" step="0.01" className="h-8 text-xs bg-background border-border" value={exercise.plannedMarkValue ?? ""} onChange={(e) => update({ plannedMarkValue: Number(e.target.value) || undefined })} />

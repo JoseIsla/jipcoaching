@@ -57,6 +57,7 @@ const OppositionRow = ({
     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
       {kind === "running" && (
         <>
+          {ex.sets && <span><strong>Series:</strong> {ex.sets}</span>}
           {ex.plannedDistanceM != null && <span><strong>Distancia:</strong> {ex.plannedDistanceM} m</span>}
           {ex.plannedDurationSec != null && <span><strong>Tiempo:</strong> {ex.plannedDurationSec}s</span>}
           {ex.plannedPace && <span><strong>Ritmo:</strong> {ex.plannedPace}</span>}
@@ -72,6 +73,7 @@ const OppositionRow = ({
       )}
       {kind === "official_test" && (
         <>
+          {ex.sets && <span><strong>Series:</strong> {ex.sets}</span>}
           {ex.plannedMarkValue != null && (
             <span><strong>Objetivo:</strong> {ex.plannedMarkValue} {ex.plannedMarkUnit || ""}</span>
           )}
