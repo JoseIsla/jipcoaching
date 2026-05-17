@@ -98,6 +98,7 @@ const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<strin
                       {ex.plannedDurationSec != null && <span><span className="font-medium text-foreground">Tiempo:</span> {ex.plannedDurationSec}s</span>}
                       {ex.plannedPace && <span><span className="font-medium text-foreground">Ritmo:</span> {ex.plannedPace}</span>}
                       {ex.plannedHeartRate != null && <span><span className="font-medium text-foreground">FC:</span> {ex.plannedHeartRate}</span>}
+                      {ex.plannedLoad && <span><span className="font-medium text-foreground">Recuperación:</span> {ex.plannedLoad}</span>}
                     </div>
                   )}
                   {ex.section === "running_technique" && (
@@ -111,6 +112,7 @@ const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<strin
                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                       {ex.sets && <span>{ex.sets} {t("clientTraining.series")}</span>}
                       {ex.plannedMarkValue != null && <span><span className="font-medium text-foreground">Objetivo:</span> {ex.plannedMarkValue} {ex.plannedMarkUnit || ""}</span>}
+                      {ex.plannedLoad && <span><span className="font-medium text-foreground">Recuperación:</span> {ex.plannedLoad}</span>}
                     </div>
                   )}
                   {ex.technicalNotes && <p className="text-[11px] text-muted-foreground italic mt-1">💡 {ex.technicalNotes}</p>}

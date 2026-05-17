@@ -336,7 +336,7 @@ const OppositionExerciseForm = ({
       </div>
 
       {section === "running" && (
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Series</Label>
             <Input className="h-8 text-xs bg-background border-border" placeholder="1" value={exercise.sets ?? ""} onChange={(e) => update({ sets: e.target.value })} />
@@ -356,6 +356,10 @@ const OppositionExerciseForm = ({
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">FC objetivo</Label>
             <Input type="number" className="h-8 text-xs bg-background border-border" value={exercise.plannedHeartRate ?? ""} onChange={(e) => update({ plannedHeartRate: Number(e.target.value) || undefined })} />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Recuperación</Label>
+            <Input className="h-8 text-xs bg-background border-border" placeholder="2 min" value={exercise.plannedLoad ?? ""} onChange={(e) => update({ plannedLoad: e.target.value })} />
           </div>
         </div>
       )}
@@ -378,7 +382,7 @@ const OppositionExerciseForm = ({
       )}
 
       {section === "official_test" && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Series</Label>
             <Input className="h-8 text-xs bg-background border-border" placeholder="1" value={exercise.sets ?? ""} onChange={(e) => update({ sets: e.target.value })} />
@@ -399,6 +403,10 @@ const OppositionExerciseForm = ({
                 <SelectItem value="periods">periodos</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Recuperación</Label>
+            <Input className="h-8 text-xs bg-background border-border" placeholder="2 min" value={exercise.plannedLoad ?? ""} onChange={(e) => update({ plannedLoad: e.target.value })} />
           </div>
         </div>
       )}
