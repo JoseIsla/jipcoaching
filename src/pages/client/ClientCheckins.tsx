@@ -984,6 +984,51 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                         </thead>
                         <tbody>
                           {day.exercises.map((ex, i) => {
+                            const sect = (ex as any).sectionExt || ex.section;
+                            const isOpp =
+                              sect === "running" || sect === "running_technique" || sect === "official_test";
+                            if (isOpp) {
+                              const fmtTime = (s?: number) => {
+                                if (s == null) return null;
+                                const m = Math.floor(s / 60); const r = Math.round(s % 60);
+                                return m > 0 ? `${m}:${String(r).padStart(2, "0")}` : `${r}s`;
+                              };
+                              const plannedBits: string[] = [];
+                              if ((ex as any).plannedDistanceM) plannedBits.push(`${(ex as any).plannedDistanceM}m`);
+                              const pt = fmtTime((ex as any).plannedDurationSec); if (pt) plannedBits.push(pt);
+                              if ((ex as any).plannedPace) plannedBits.push(`${(ex as any).plannedPace}/km`);
+                              if ((ex as any).plannedMarkValue != null)
+                                plannedBits.push(`${(ex as any).plannedMarkValue}${(ex as any).plannedMarkUnit || ""}`);
+                              const actualBits: string[] = [];
+                              if ((ex as any).actualDistanceM) actualBits.push(`${(ex as any).actualDistanceM}m`);
+                              const at = fmtTime((ex as any).actualDurationSec); if (at) actualBits.push(at);
+                              if ((ex as any).actualPace) actualBits.push(`${(ex as any).actualPace}/km`);
+                              if ((ex as any).actualHeartRate) actualBits.push(`${(ex as any).actualHeartRate}bpm`);
+                              if ((ex as any).actualMarkValue != null)
+                                actualBits.push(`${(ex as any).actualMarkValue}${(ex as any).actualMarkUnit || (ex as any).plannedMarkUnit || ""}`);
+                              const score = (ex as any).scoreObtained as number | undefined;
+                              return (
+                                <tr key={i} className="border-t border-border/50 align-top bg-primary/[0.03]">
+                                  <td className="px-2 py-1.5 font-medium text-foreground">
+                                    {ex.exerciseName}
+                                    {ex.comment && <p className="text-[9px] text-muted-foreground font-normal mt-0.5 italic">"{ex.comment}"</p>}
+                                  </td>
+                                  <td className="px-2 py-1.5 text-center text-muted-foreground whitespace-pre-line">
+                                    {plannedBits.length > 0 ? plannedBits.join("\n") : "—"}
+                                  </td>
+                                  <td className="px-2 py-1.5 text-center text-foreground font-medium whitespace-pre-line">
+                                    {actualBits.length > 0 ? actualBits.join("\n") : "—"}
+                                  </td>
+                                  <td className="px-2 py-1.5 text-center">
+                                    {sect === "official_test" && score != null ? (
+                                      <span className="text-[10px] font-mono font-bold text-primary">{score}/10</span>
+                                    ) : (
+                                      <span className="text-muted-foreground">—</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            }
                             const rpeDiff = (ex.actualRPE != null && ex.plannedRPE != null)
                               ? ex.actualRPE - ex.plannedRPE
                               : null;
