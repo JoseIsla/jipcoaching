@@ -5,7 +5,7 @@ import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, Dumbbell, Lock, Calendar, Download } from "lucide-react";
+import { ChevronDown, Dumbbell, Lock, Calendar, Download, Footprints, Activity, Trophy } from "lucide-react";
 import AnimatedChevron from "@/components/ui/animated-chevron";
 import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-content";
 import { useTrainingPlanStore, TRAINING_METHOD_LABELS, isOppositionModality, type TrainingPlanFull, type TrainingWeek, type TrainingDay } from "@/data/useTrainingPlanStore";
@@ -18,6 +18,9 @@ const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<strin
   const [open, setOpen] = useState(false);
   const basics = day.exercises.filter((e) => e.section === "basic");
   const accessories = day.exercises.filter((e) => e.section === "accessory");
+  const runs = day.exercises.filter((e) => e.section === "running");
+  const techs = day.exercises.filter((e) => e.section === "running_technique");
+  const tests = day.exercises.filter((e) => e.section === "official_test");
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -81,6 +84,53 @@ const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<strin
                       {ex.reps && <span>× {ex.reps}</span>}
                       {ex.intensityType && ex.intensityValue != null && <span><span className="font-medium text-foreground">{ex.intensityType}:</span> {ex.intensityValue}</span>}
                       {ex.plannedLoad && <span><span className="font-medium text-foreground">Carga:</span> {ex.plannedLoad}</span>}
+                    </div>
+                    {ex.technicalNotes && <p className="text-[11px] text-muted-foreground italic">💡 {ex.technicalNotes}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+            {runs.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-sky-400 flex items-center gap-1"><Footprints className="h-3 w-3" /> {t("clientTraining.runningSection")}</p>
+                {runs.map((ex) => (
+                  <div key={ex.id} className="bg-background/50 border border-border/40 rounded-lg p-3 space-y-1">
+                    <p className="text-sm font-medium text-foreground">{ex.exerciseName || "—"}</p>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      {ex.plannedDistanceM != null && <span><span className="font-medium text-foreground">Dist:</span> {ex.plannedDistanceM} m</span>}
+                      {ex.plannedDurationSec != null && <span><span className="font-medium text-foreground">Tiempo:</span> {ex.plannedDurationSec}s</span>}
+                      {ex.plannedPace && <span><span className="font-medium text-foreground">Ritmo:</span> {ex.plannedPace}</span>}
+                      {ex.plannedHeartRate != null && <span><span className="font-medium text-foreground">FC:</span> {ex.plannedHeartRate}</span>}
+                    </div>
+                    {ex.technicalNotes && <p className="text-[11px] text-muted-foreground italic">💡 {ex.technicalNotes}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+            {techs.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-violet-400 flex items-center gap-1"><Activity className="h-3 w-3" /> {t("clientTraining.runningTechniqueSection")}</p>
+                {techs.map((ex) => (
+                  <div key={ex.id} className="bg-background/50 border border-border/40 rounded-lg p-3 space-y-1">
+                    <p className="text-sm font-medium text-foreground">{ex.exerciseName || "—"}</p>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      {ex.sets && <span>{ex.sets} {t("clientTraining.series")}</span>}
+                      {ex.reps && <span>× {ex.reps}</span>}
+                      {ex.plannedLoad && <span><span className="font-medium text-foreground">Descanso:</span> {ex.plannedLoad}</span>}
+                    </div>
+                    {ex.technicalNotes && <p className="text-[11px] text-muted-foreground italic">💡 {ex.technicalNotes}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+            {tests.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-amber-400 flex items-center gap-1"><Trophy className="h-3 w-3" /> {t("clientTraining.officialTestSection")}</p>
+                {tests.map((ex) => (
+                  <div key={ex.id} className="bg-background/50 border border-border/40 rounded-lg p-3 space-y-1">
+                    <p className="text-sm font-medium text-foreground">{ex.exerciseName || "—"}</p>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      {ex.plannedMarkValue != null && <span><span className="font-medium text-foreground">Objetivo:</span> {ex.plannedMarkValue} {ex.plannedMarkUnit || ""}</span>}
                     </div>
                     {ex.technicalNotes && <p className="text-[11px] text-muted-foreground italic">💡 {ex.technicalNotes}</p>}
                   </div>
