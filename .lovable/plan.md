@@ -1,70 +1,93 @@
+# Plan: ejercicios de oposiciones en planes y check-ins
 
-# Completar funcionalidad de Oposiciones
+## 1. Catálogo fijo de tipos de prueba (seed)
 
-4 bloques de trabajo para completar el sistema de oposiciones.
+Amplío el seed con un catálogo cerrado de **pruebas oficiales** por oposición. Marcadas como `isOfficialTest: true` (no editables desde la biblioteca). Cobertura investigada:
+
+- **Resistencia aeróbica**: Course-Navette (PN, GC, PL, Bomberos, Mossos), 1000 m, 2000 m, 6 min Cooper (Ejército/Tropa), 50 m natación.
+- **Velocidad**: 50 m lisos, 60 m, agilidad (circuito 9-3-6-3-9 Bomberos, slalom PL).
+- **Fuerza tren superior**: dominadas (PN/GC/Ejército/Bomberos), flexiones máximas en X tiempo, press banca (PN femenino y GC: 40 kg).
+- **Fuerza tren inferior / potencia**: salto vertical (PL, Mossos), salto horizontal a pies juntos (PN, GC, Ejército).
+- **Fuerza-resistencia abdominal**: abdominales en 1 min / 2 min (Ejército, Bomberos).
+- **Trepa de cuerda** (Bomberos: 5 m, con/sin presa de piernas).
+- **Natación**: 50 m crol (PN, GC, Bomberos, Armada).
+- **Pruebas específicas Bomberos**: press banca tendido, dominadas, course-navette, agilidad, natación, trepa cuerda, prueba de altura.
+
+Esto se añade al seed como `GlobalExerciseItem` con campos `category` (`OFFICIAL_TEST` | `RUNNING` | `RUNNING_TECHNIQUE` | `GYM`) y `oppositionTypes[]`. **Idempotente** vía `upsert` por `(name, category)` — no rompe ni duplica nada del seed actual de suplementos/alimentos.
+
+## 2. Categorías nuevas en la biblioteca de ejercicios
+
+Añado a `GlobalExerciseItem` (schema Prisma) un campo:
+
+```
+category  ExerciseCategory  @default(GYM)
+// enum: GYM, RUNNING, RUNNING_TECHNIQUE, OFFICIAL_TEST
+oppositionTypes  Json?  // ["POLICIA_NACIONAL", "BOMBEROS", ...]
+```
+
+Migración aditiva (default `GYM`) → los ejercicios actuales quedan como gym, sin romper nada.
+
+En el admin (`AdminExerciseLibrary`) → filtro por categoría y badge visual. El opositor puede crear sus propios ejercicios de carrera/técnica; las pruebas oficiales solo se ven, no se editan.
+
+## 3. Secciones extra en el plan de entrenamiento
+
+En `TrainingExerciseEntry.section` (hoy `"basic" | "accessory"`) amplío a:
+
+```
+section: "basic" | "accessory" | "running" | "running_technique" | "official_test"
+```
+
+Cuando el plan es de modalidad oposición (`isOppositionModality`), el editor `CreateTrainingPlanSheet` muestra 3 secciones colapsables extra debajo de Accesorios:
+- **Carrera** (rodajes, series): campos = distancia, tiempo objetivo, ritmo, RPE, FC.
+- **Técnica de carrera**: campos = ejercicio, series×reps, descanso, notas.
+- **Prueba oficial**: selector limitado a `OFFICIAL_TEST` filtrado por `oppositionType`; campos = marca objetivo + unidad heredada del baremo.
+
+El cliente las ve en `ClientTraining` con el mismo patrón colapsable. Si la sección está vacía no se renderiza.
+
+## 4. Check-in híbrido
+
+En `ExerciseLog` añado columnas opcionales (todas nullable, no rompen logs existentes):
+
+```
+distanceMeters  Float?
+durationSeconds Int?
+pace            String?     // "4:30/km"
+heartRateAvg    Int?
+markValue       Float?      // marca obtenida en prueba
+markUnit        String?
+scoreObtained   Int?        // calculado desde baremo
+```
+
+Flujo en `ClientCheckins`:
+- **basic / accessory**: campos actuales (series/reps/RPE/carga).
+- **running**: distancia + tiempo + ritmo + FC.
+- **running_technique**: series/reps + notas.
+- **official_test**: marca + unidad → al guardar, backend cruza con `PhysicalTestScale` (oppositionType + testName + gender + valor) y rellena `scoreObtained` automáticamente, además de crear un `ClientPhysicalMark` (reutilizamos lo que ya hay).
+
+Admin ve la revisión con cada bloque renderizado según `section`.
+
+## 5. Migraciones (nuevas, aditivas)
+
+1. `20260508_add_exercise_category` → enum + columnas en `global_exercise_items`.
+2. `20260508_add_section_running_official` — solo string, sin enum DB (el campo `section` ya es VARCHAR).
+3. `20260508_add_exercise_log_metrics` → columnas nullable en `exercise_logs`.
+
+Ninguna toca tablas de clientes/planes existentes ni borra datos.
+
+## 6. Detalles técnicos
+
+- `isOppositionModality()` ya existe en `useTrainingPlanStore` → reutilizar para condicionar UI.
+- Cálculo de puntuación: helper `scoreFromMark(oppositionType, testName, gender, value)` en backend `utils/oppositionScoring.ts`, consultado en `POST /api/checkins/exercise-logs`.
+- Seed: bloque nuevo `seedOfficialTests()` con `upsert by (name, category)` — convive con el seed actual sin sobrescribir suplementos ni alimentos.
+- i18n: claves nuevas en `es.ts`/`en.ts` para las 3 secciones.
+- PDF export (`exportTrainingWeekPDF`): añadir las 3 secciones al render.
+
+## 7. Lo que NO toco
+
+- Schema de clientes, planes activos, nutrición, baremos ya cargados.
+- Lógica del notificador, billing, cron de check-ins (siguen igual; el check-in semanal ya incluye todos los `ExerciseLog` del plan).
+- Plans no-oposición: la UI extra está oculta por `isOppositionModality()`.
 
 ---
 
-## 1. Check-ins de entrenamiento adaptados para opositores
-
-Cuando el plan activo del cliente es de tipo oposiciones, el check-in de entrenamiento incluirá una sección adicional para registrar marcas de pruebas físicas.
-
-- **`src/pages/client/ClientCheckins.tsx`** (o componente de submit de check-in): Detectar si el plan activo es de oposiciones. Si lo es, mostrar campos extra por cada prueba física (ej: "Circuito de agilidad: ___ seg", "Dominadas: ___ reps").
-- **`backend/src/routes/checkins.ts`**: En el endpoint `POST /:id/submit`, si se reciben `physicalMarks` en el body, crear automáticamente registros en `ClientPhysicalMark` vinculados al cliente.
-- El cliente podrá ver su puntuación inmediata tras registrar marcas en el check-in.
-
----
-
-## 2. Vista admin de marcas físicas en detalle de cliente
-
-Nueva sección en `AdminClientDetail.tsx` que se muestra solo si el cliente tiene un plan de oposiciones activo.
-
-- Mostrar tabla con las últimas marcas por prueba, puntuación según baremo, y tendencia (mejora/empeora).
-- Reutilizar `PhysicalTestTracker` con `isAdmin={true}` pasando el `clientId`.
-- El admin podrá registrar marcas manualmente y eliminarlas.
-- Se muestra junto a la sección de "Contexto Inicial" o como card nueva entre la info del cliente.
-
----
-
-## 3. Panel admin de gestión de baremos
-
-Nueva página `AdminBaremos.tsx` accesible desde el sidebar (bajo Entrenamiento o como sección propia).
-
-- Listado de baremos agrupados por tipo de oposición y prueba.
-- CRUD: ver escalas existentes, editar rangos/puntuaciones, añadir nuevas escalas.
-- Endpoints backend: `PUT /training/physical-scales/:id`, `POST /training/physical-scales`, `DELETE /training/physical-scales/:id`.
-- Filtros por oposición y género.
-
----
-
-## 4. PDF de marcas/baremo del opositor
-
-Nueva utilidad `exportPhysicalMarksPDF` que genera un PDF con:
-
-- Nombre del cliente, tipo de oposición, fecha.
-- Tabla con cada prueba: última marca, puntuación según baremo, historial reciente.
-- Puntuación total.
-- Botón de descarga en `PhysicalTestTracker` y en la vista admin del cliente.
-
----
-
-## Archivos principales a crear/modificar
-
-| Archivo | Acción |
-|---------|--------|
-| `src/pages/AdminBaremos.tsx` | Crear — página de gestión de baremos |
-| `src/App.tsx` | Modificar — añadir ruta `/admin/baremos` |
-| `src/components/admin/AdminSidebar.tsx` | Modificar — enlace al panel de baremos |
-| `src/pages/AdminClientDetail.tsx` | Modificar — sección de marcas para opositores |
-| `src/pages/client/ClientCheckins.tsx` | Modificar — campos de marcas físicas en check-in training |
-| `backend/src/routes/checkins.ts` | Modificar — guardar marcas físicas al submit |
-| `backend/src/routes/training.ts` | Modificar — endpoints CRUD para baremos |
-| `src/utils/exportPhysicalMarksPDF.ts` | Crear — generador PDF |
-| `src/components/client/PhysicalTestTracker.tsx` | Modificar — botón PDF |
-| `src/i18n/es.ts` + `en.ts` | Modificar — traducciones |
-
-## Lo que NO se toca
-
-- Lógica de powerlifting/powerbuilding
-- Nutrición, billing, landing
-- Check-ins de nutrición
+¿Confirmas y lo implemento, o quieres ajustar algo (por ejemplo, separar también nado en su propia sección, o que las pruebas oficiales aparezcan como un check-in mensual aparte en vez de dentro del semanal)?
