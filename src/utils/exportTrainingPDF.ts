@@ -89,7 +89,11 @@ export const exportTrainingLogPDF = async (entry: QuestionnaireEntry, trainingQu
       y += 2;
 
       const filteredExercises = day.exercises.filter((ex) => ex.section !== "accessory");
-      const tableBody = filteredExercises.map((ex) => {
+      const isOpp = (s: string) => s === "running" || s === "running_technique" || s === "official_test";
+      const gymExercises = filteredExercises.filter((ex) => !isOpp((ex as any).sectionExt || ex.section));
+      const oppExercises = filteredExercises.filter((ex) => isOpp((ex as any).sectionExt || ex.section));
+
+      const tableBody = gymExercises.map((ex) => {
         const rpeDiff =
           ex.actualRPE && ex.plannedRPE
             ? ex.actualRPE - ex.plannedRPE
@@ -114,7 +118,8 @@ export const exportTrainingLogPDF = async (entry: QuestionnaireEntry, trainingQu
         ];
       });
 
-      autoTable(doc, {
+      if (tableBody.length > 0) {
+        autoTable(doc, {
         startY: y,
         margin: { left: margin, right: margin },
         head: [
@@ -154,9 +159,84 @@ export const exportTrainingLogPDF = async (entry: QuestionnaireEntry, trainingQu
             }
           }
         },
-      });
+        });
+        y = (doc as any).lastAutoTable.finalY + 6;
+      }
 
-      y = (doc as any).lastAutoTable.finalY + 8;
+      // ── Opposition exercises (running / running_technique / official_test) ──
+      if (oppExercises.length > 0) {
+        const oppBody = oppExercises.map((ex) => {
+          const sect = (ex as any).sectionExt || ex.section;
+          const sectLabel =
+            sect === "running" ? "Carrera"
+            : sect === "running_technique" ? "Téc. carrera"
+            : "Prueba oficial";
+
+          const plannedBits: string[] = [];
+          if (ex.plannedSets && ex.plannedSets !== "—") plannedBits.push(`${ex.plannedSets} series`);
+          if (sect === "running") {
+            if ((ex as any).plannedDistanceM != null) plannedBits.push(`${(ex as any).plannedDistanceM}m`);
+            if ((ex as any).plannedDurationSec != null) plannedBits.push(`${(ex as any).plannedDurationSec}s`);
+            if ((ex as any).plannedPace) plannedBits.push(`Ritmo ${(ex as any).plannedPace}`);
+            if ((ex as any).plannedHeartRate != null) plannedBits.push(`FC ${(ex as any).plannedHeartRate}`);
+          } else if (sect === "running_technique") {
+            if (ex.plannedReps && ex.plannedReps !== "—") plannedBits.push(`× ${ex.plannedReps}`);
+          } else if (sect === "official_test") {
+            if ((ex as any).plannedMarkValue != null) {
+              plannedBits.push(`Obj. ${(ex as any).plannedMarkValue} ${(ex as any).plannedMarkUnit || ""}`.trim());
+            }
+          }
+          if (ex.plannedLoad && ex.plannedLoad !== "Autoregulada") plannedBits.push(`Rec. ${ex.plannedLoad}`);
+
+          const actualBits: string[] = [];
+          if (ex.actualSets) actualBits.push(`${ex.actualSets} series`);
+          if (sect === "running") {
+            if ((ex as any).actualDistanceM != null) actualBits.push(`${(ex as any).actualDistanceM}m`);
+            if ((ex as any).actualDurationSec != null) actualBits.push(`${(ex as any).actualDurationSec}s`);
+            if ((ex as any).actualPace) actualBits.push(`Ritmo ${(ex as any).actualPace}`);
+            if ((ex as any).actualHeartRate != null) actualBits.push(`FC ${(ex as any).actualHeartRate}`);
+          } else if (sect === "running_technique") {
+            if (ex.actualReps) actualBits.push(`× ${ex.actualReps}`);
+          } else if (sect === "official_test") {
+            if ((ex as any).actualMarkValue != null) {
+              actualBits.push(`${(ex as any).actualMarkValue} ${(ex as any).actualMarkUnit || (ex as any).plannedMarkUnit || ""}`.trim());
+            }
+            if ((ex as any).scoreObtained != null) actualBits.push(`Puntos: ${(ex as any).scoreObtained}`);
+          }
+
+          return [
+            ex.exerciseName,
+            sectLabel,
+            plannedBits.join("  ") || "—",
+            actualBits.join("  ") || "—",
+            ex.comment || "",
+          ];
+        });
+
+        autoTable(doc, {
+          startY: y,
+          margin: { left: margin, right: margin },
+          head: [["Ejercicio", "Tipo", "Pautado", "Real", "Notas"]],
+          body: oppBody,
+          theme: "grid",
+          styles: baseStyles,
+          headStyles,
+          alternateRowStyles: { fillColor: [...ALT_ROW] },
+          columnStyles: {
+            0: { fontStyle: "bold", halign: "left", cellWidth: 38, textColor: [...WHITE] },
+            1: { halign: "center", fontSize: 6.5, cellWidth: 22 },
+            2: { halign: "left", fontSize: 7 },
+            3: { halign: "left", fontSize: 7, fontStyle: "bold", textColor: [...WHITE] },
+            4: { halign: "left", cellWidth: 30, fontSize: 6.5, textColor: [...TEXT_MUTED] },
+          },
+          willDrawPage: (data) => {
+            if (data.pageNumber > 1) fillBackground(doc);
+          },
+        });
+        y = (doc as any).lastAutoTable.finalY + 8;
+      } else {
+        y += 2;
+      }
 
       if (y > doc.internal.pageSize.getHeight() - 40) {
         doc.addPage();
