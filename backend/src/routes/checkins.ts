@@ -207,6 +207,73 @@ router.post("/:id/submit", async (req, res) => {
     const { responses, trainingLog, physicalMarks } = req.body;
     const checkinId = req.params.id as string;
 
+    // ── Helpers: sanitize & validate opposition fields per section ──
+    const toPosNum = (v: any): number | null => {
+      if (v === null || v === undefined || v === "") return null;
+      const n = typeof v === "number" ? v : parseFloat(String(v));
+      return Number.isFinite(n) && n >= 0 ? n : null;
+    };
+    const toPosInt = (v: any): number | null => {
+      const n = toPosNum(v);
+      return n === null ? null : Math.round(n);
+    };
+    const toStr = (v: any, max = 80): string | null => {
+      if (v === null || v === undefined) return null;
+      const s = String(v).trim().slice(0, max);
+      return s.length ? s : null;
+    };
+    const ALLOWED_MARK_UNITS = new Set(["seconds", "reps", "cm", "kg", "periods", "m", "min"]);
+    const sanitizeUnit = (v: any): string | null => {
+      const s = toStr(v, 16);
+      if (!s) return null;
+      return ALLOWED_MARK_UNITS.has(s) ? s : s.replace(/[^a-zA-Z0-9/]/g, "").slice(0, 12) || null;
+    };
+
+    /**
+     * Cross-section field hygiene:
+     *  - running: distance/duration/pace/HR + sets/recovery; nulls marks
+     *  - running_technique: sets/reps + recovery; nulls running/mark metrics
+     *  - official_test: mark value + unit (+ sets/recovery); nulls running metrics
+     *  - basic/variant/accessory: gym fields only; nulls all opposition metrics
+     */
+    const sanitizeExerciseRow = (e: any) => {
+      const sect = e.sectionExt || e.section || "basic";
+      const row: any = { ...e };
+      if (sect === "running") {
+        row.actualDistanceM = toPosNum(e.actualDistanceM);
+        row.actualDurationSec = toPosInt(e.actualDurationSec);
+        row.actualPace = toStr(e.actualPace, 20);
+        row.actualHeartRate = toPosInt(e.actualHeartRate);
+        row.actualMarkValue = null;
+        row.actualMarkUnit = null;
+      } else if (sect === "running_technique") {
+        row.actualSets = toStr(e.actualSets, 20);
+        row.actualReps = toStr(e.actualReps, 20);
+        row.actualDistanceM = null;
+        row.actualDurationSec = null;
+        row.actualPace = null;
+        row.actualHeartRate = null;
+        row.actualMarkValue = null;
+        row.actualMarkUnit = null;
+      } else if (sect === "official_test") {
+        row.actualMarkValue = toPosNum(e.actualMarkValue);
+        row.actualMarkUnit = sanitizeUnit(e.actualMarkUnit) || sanitizeUnit(e.plannedMarkUnit);
+        row.actualDistanceM = null;
+        row.actualDurationSec = null;
+        row.actualPace = null;
+        row.actualHeartRate = null;
+      } else {
+        // gym sections: drop any opposition leakage
+        row.actualDistanceM = null;
+        row.actualDurationSec = null;
+        row.actualPace = null;
+        row.actualHeartRate = null;
+        row.actualMarkValue = null;
+        row.actualMarkUnit = null;
+      }
+      return row;
+    };
+
     // Save responses — validate question IDs exist before inserting to avoid FK errors
     if (responses && typeof responses === "object") {
       const responseEntries = Object.entries(responses).map(([questionId, value]) => ({
@@ -278,48 +345,49 @@ router.post("/:id/submit", async (req, res) => {
 
           const rows: any[] = [];
           for (const e of day.exercises as any[]) {
+            const clean = sanitizeExerciseRow(e);
             let scoreObtained: number | null = null;
             if (
-              (e.section === "official_test" || e.sectionExt === "official_test") &&
-              e.actualMarkValue != null &&
+              (clean.section === "official_test" || clean.sectionExt === "official_test") &&
+              clean.actualMarkValue != null &&
               clientOppositionType
             ) {
               scoreObtained = await scoreFromMark({
                 oppositionType: clientOppositionType,
-                testName: e.exerciseName,
+                testName: clean.exerciseName,
                 gender: clientGender || "MALE",
-                value: parseFloat(e.actualMarkValue),
+                value: clean.actualMarkValue,
               });
             }
             rows.push({
               logId: log.id,
-              exerciseId: e.exerciseId,
-              exerciseName: e.exerciseName,
-              section: e.section || "basic",
-              sectionExt: e.sectionExt || null,
-              method: e.method || null,
-              plannedSets: e.plannedSets,
-              plannedReps: e.plannedReps,
-              plannedLoad: e.plannedLoad,
-              plannedRPE: e.plannedRPE,
-              plannedDistanceM: e.plannedDistanceM != null ? parseFloat(e.plannedDistanceM) : null,
-              plannedDurationSec: e.plannedDurationSec != null ? parseInt(e.plannedDurationSec) : null,
-              plannedPace: e.plannedPace || null,
-              plannedHeartRate: e.plannedHeartRate != null ? parseInt(e.plannedHeartRate) : null,
-              plannedMarkValue: e.plannedMarkValue != null ? parseFloat(e.plannedMarkValue) : null,
-              plannedMarkUnit: e.plannedMarkUnit || null,
-              actualWeight: e.actualWeight,
-              actualRPE: e.actualRPE,
-              actualSets: e.actualSets,
-              actualReps: e.actualReps,
-              backoffWeights: e.backoffWeights || null,
-              comment: e.comment || null,
-              actualDistanceM: e.actualDistanceM != null ? parseFloat(e.actualDistanceM) : null,
-              actualDurationSec: e.actualDurationSec != null ? parseInt(e.actualDurationSec) : null,
-              actualPace: e.actualPace || null,
-              actualHeartRate: e.actualHeartRate != null ? parseInt(e.actualHeartRate) : null,
-              actualMarkValue: e.actualMarkValue != null ? parseFloat(e.actualMarkValue) : null,
-              actualMarkUnit: e.actualMarkUnit || null,
+              exerciseId: clean.exerciseId,
+              exerciseName: clean.exerciseName,
+              section: clean.section || "basic",
+              sectionExt: clean.sectionExt || null,
+              method: clean.method || null,
+              plannedSets: clean.plannedSets,
+              plannedReps: clean.plannedReps,
+              plannedLoad: clean.plannedLoad,
+              plannedRPE: clean.plannedRPE,
+              plannedDistanceM: toPosNum(clean.plannedDistanceM),
+              plannedDurationSec: toPosInt(clean.plannedDurationSec),
+              plannedPace: toStr(clean.plannedPace, 20),
+              plannedHeartRate: toPosInt(clean.plannedHeartRate),
+              plannedMarkValue: toPosNum(clean.plannedMarkValue),
+              plannedMarkUnit: sanitizeUnit(clean.plannedMarkUnit),
+              actualWeight: clean.actualWeight,
+              actualRPE: clean.actualRPE,
+              actualSets: clean.actualSets,
+              actualReps: clean.actualReps,
+              backoffWeights: clean.backoffWeights || null,
+              comment: toStr(clean.comment, 1000),
+              actualDistanceM: clean.actualDistanceM,
+              actualDurationSec: clean.actualDurationSec,
+              actualPace: clean.actualPace,
+              actualHeartRate: clean.actualHeartRate,
+              actualMarkValue: clean.actualMarkValue,
+              actualMarkUnit: clean.actualMarkUnit,
               scoreObtained,
             });
           }
