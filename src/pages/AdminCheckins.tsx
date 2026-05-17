@@ -281,6 +281,70 @@ const AdminCheckins = () => {
                             </thead>
                             <tbody>
                               {day.exercises.map((ex, i) => {
+                                const sect = (ex as any).sectionExt || ex.section;
+                                const isOpposition =
+                                  sect === "running" ||
+                                  sect === "running_technique" ||
+                                  sect === "official_test";
+                                if (isOpposition) {
+                                  const fmtTime = (s?: number) => {
+                                    if (s == null) return "—";
+                                    const m = Math.floor(s / 60);
+                                    const r = Math.round(s % 60);
+                                    return m > 0 ? `${m}:${String(r).padStart(2, "0")}` : `${r}s`;
+                                  };
+                                  const plannedBits: string[] = [];
+                                  if ((ex as any).plannedDistanceM) plannedBits.push(`${(ex as any).plannedDistanceM}m`);
+                                  if ((ex as any).plannedDurationSec) plannedBits.push(fmtTime((ex as any).plannedDurationSec));
+                                  if ((ex as any).plannedPace) plannedBits.push(`${(ex as any).plannedPace}/km`);
+                                  if ((ex as any).plannedHeartRate) plannedBits.push(`${(ex as any).plannedHeartRate}bpm`);
+                                  if ((ex as any).plannedMarkValue != null)
+                                    plannedBits.push(`${(ex as any).plannedMarkValue}${(ex as any).plannedMarkUnit || ""}`);
+                                  const actualBits: string[] = [];
+                                  if ((ex as any).actualDistanceM) actualBits.push(`${(ex as any).actualDistanceM}m`);
+                                  if ((ex as any).actualDurationSec) actualBits.push(fmtTime((ex as any).actualDurationSec));
+                                  if ((ex as any).actualPace) actualBits.push(`${(ex as any).actualPace}/km`);
+                                  if ((ex as any).actualHeartRate) actualBits.push(`${(ex as any).actualHeartRate}bpm`);
+                                  if ((ex as any).actualMarkValue != null)
+                                    actualBits.push(`${(ex as any).actualMarkValue}${(ex as any).actualMarkUnit || (ex as any).plannedMarkUnit || ""}`);
+                                  const score = (ex as any).scoreObtained as number | undefined;
+                                  const sectLabel =
+                                    sect === "running"
+                                      ? "Carrera"
+                                      : sect === "running_technique"
+                                      ? "Técnica de carrera"
+                                      : "Prueba oficial";
+                                  const scoreVariant: "default" | "secondary" | "destructive" =
+                                    score == null ? "secondary" : score >= 7 ? "default" : score >= 5 ? "secondary" : "destructive";
+                                  return (
+                                    <tr key={i} className="border-t border-border/50 bg-primary/[0.02]">
+                                      <td className="px-3 py-2">
+                                        <p className="text-sm font-medium text-foreground">{ex.exerciseName}</p>
+                                        <p className="text-[10px] text-primary/80">{sectLabel}</p>
+                                        {ex.comment && <p className="text-[10px] text-primary/80 italic mt-0.5">"{ex.comment}"</p>}
+                                      </td>
+                                      <td className="px-3 py-2 text-center">
+                                        <p className="text-[11px] text-muted-foreground whitespace-pre-line">
+                                          {plannedBits.length > 0 ? plannedBits.join(" · ") : "—"}
+                                        </p>
+                                      </td>
+                                      <td className="px-3 py-2 text-center">
+                                        <p className="text-[11px] font-medium text-foreground whitespace-pre-line">
+                                          {actualBits.length > 0 ? actualBits.join(" · ") : "—"}
+                                        </p>
+                                      </td>
+                                      <td className="px-3 py-2 text-center">
+                                        {sect === "official_test" ? (
+                                          <Badge variant={scoreVariant} className="font-mono">
+                                            {score != null ? `${score}/10` : "—"}
+                                          </Badge>
+                                        ) : (
+                                          <span className="text-xs text-muted-foreground">—</span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  );
+                                }
                                 const rpeDiff = ex.actualRPE && ex.plannedRPE ? ex.actualRPE - ex.plannedRPE : null;
                                 return (
                                   <tr key={i} className="border-t border-border/50">
