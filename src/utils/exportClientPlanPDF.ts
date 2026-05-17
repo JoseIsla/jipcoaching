@@ -408,7 +408,7 @@ export const exportTrainingWeekPDF = async (
       y = checkPage(doc, y, 15);
       const rows = runs.map((ex) => {
         const v: string[] = [];
-        if (ex.sets) v.push(`${ex.sets} series`);
+        if (ex.sets) v.push(`Series: ${ex.sets}`);
         if (ex.plannedDistanceM != null) v.push(`${ex.plannedDistanceM}m`);
         if (ex.plannedDurationSec != null) v.push(`${ex.plannedDurationSec}s`);
         if (ex.plannedPace) v.push(`Ritmo: ${ex.plannedPace}`);
@@ -450,7 +450,7 @@ export const exportTrainingWeekPDF = async (
       y = checkPage(doc, y, 15);
       const rows = tests.map((ex) => {
         const v: string[] = [];
-        if (ex.sets) v.push(`${ex.sets} series`);
+        if (ex.sets) v.push(`Series: ${ex.sets}`);
         if (ex.plannedMarkValue != null) v.push(`Objetivo: ${ex.plannedMarkValue} ${ex.plannedMarkUnit || ""}`.trim());
         return [ex.exerciseName || "—", v.join("  ") || "—", ex.technicalNotes || ""];
       });
