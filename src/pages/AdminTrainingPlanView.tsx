@@ -93,57 +93,47 @@ const WeekView = ({ week }: { week: TrainingWeek }) => (
       </div>
     )}
     {week.days.map((day) => {
-      const basics = day.exercises.filter((e) => e.section === "basic");
-      const accessories = day.exercises.filter((e) => e.section === "accessory");
-      const runs = day.exercises.filter((e) => e.section === "running");
-      const techs = day.exercises.filter((e) => e.section === "running_technique");
-      const tests = day.exercises.filter((e) => e.section === "official_test");
+      const ordered = [...day.exercises].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
       return (
         <div key={day.id} className="bg-card border border-border rounded-xl overflow-hidden">
           <div className="p-4 border-b border-border/50">
             <h3 className="font-semibold text-foreground">Día {day.dayNumber} — {day.name}</h3>
             {day.warmup && <p className="text-xs text-muted-foreground mt-1">🔥 {day.warmup}</p>}
           </div>
-          <div className="p-4 space-y-4">
-            {basics.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-primary flex items-center gap-1.5">
-                  <Dumbbell className="h-3.5 w-3.5" /> Básicos / Variantes
-                </h4>
-                {basics.map((ex) => <ExerciseRow key={ex.id} ex={ex} section="basic" />)}
-              </div>
-            )}
-            {accessories.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-muted-foreground">🎯 Accesorios</h4>
-                {accessories.map((ex) => <ExerciseRow key={ex.id} ex={ex} section="accessory" />)}
-              </div>
-            )}
-            {runs.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-sky-400 flex items-center gap-1.5">
-                  <Footprints className="h-3.5 w-3.5" /> Carrera
-                </h4>
-                {runs.map((ex) => <OppositionRow key={ex.id} ex={ex} kind="running" />)}
-              </div>
-            )}
-            {techs.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-violet-400 flex items-center gap-1.5">
-                  <Activity className="h-3.5 w-3.5" /> Técnica de carrera
-                </h4>
-                {techs.map((ex) => <OppositionRow key={ex.id} ex={ex} kind="running_technique" />)}
-              </div>
-            )}
-            {tests.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-amber-400 flex items-center gap-1.5">
-                  <Trophy className="h-3.5 w-3.5" /> Prueba oficial
-                </h4>
-                {tests.map((ex) => <OppositionRow key={ex.id} ex={ex} kind="official_test" />)}
-              </div>
-            )}
-            {day.exercises.length === 0 && (
+          <div className="p-4 space-y-3">
+            {ordered.map((ex, i) => {
+              const meta =
+                ex.section === "basic"
+                  ? { label: "Básico / Variante", cls: "text-primary", Icon: Dumbbell }
+                  : ex.section === "accessory"
+                  ? { label: "Accesorio", cls: "text-muted-foreground", Icon: Dumbbell }
+                  : ex.section === "running"
+                  ? { label: "Carrera", cls: "text-sky-400", Icon: Footprints }
+                  : ex.section === "running_technique"
+                  ? { label: "Técnica de carrera", cls: "text-violet-400", Icon: Activity }
+                  : { label: "Prueba oficial", cls: "text-amber-400", Icon: Trophy };
+              const Icon = meta.Icon;
+              const isOpp =
+                ex.section === "running" ||
+                ex.section === "running_technique" ||
+                ex.section === "official_test";
+              return (
+                <div key={ex.id} className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-muted-foreground/60 font-mono">#{i + 1}</span>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 ${meta.cls}`}>
+                      <Icon className="h-3 w-3" /> {meta.label}
+                    </span>
+                  </div>
+                  {isOpp ? (
+                    <OppositionRow ex={ex} kind={ex.section as "running" | "running_technique" | "official_test"} />
+                  ) : (
+                    <ExerciseRow ex={ex} section={ex.section as "basic" | "accessory"} />
+                  )}
+                </div>
+              );
+            })}
+            {ordered.length === 0 && (
               <p className="text-sm text-muted-foreground italic text-center py-4">Sin ejercicios programados</p>
             )}
           </div>

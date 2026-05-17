@@ -16,11 +16,10 @@ import PhysicalTestTracker from "@/components/client/PhysicalTestTracker";
 
 const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<string, string | number>) => string }) => {
   const [open, setOpen] = useState(false);
-  const basics = day.exercises.filter((e) => e.section === "basic");
-  const accessories = day.exercises.filter((e) => e.section === "accessory");
-  const runs = day.exercises.filter((e) => e.section === "running");
-  const techs = day.exercises.filter((e) => e.section === "running_technique");
-  const tests = day.exercises.filter((e) => e.section === "official_test");
+  // Render in admin-defined order (single ordered list, mixing all section types).
+  const orderedExercises = [...day.exercises].sort(
+    (a, b) => (a.order ?? 0) - (b.order ?? 0),
+  );
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -41,102 +40,81 @@ const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<strin
                 <p className="text-xs text-foreground">{day.warmup}</p>
               </div>
             )}
-            {basics.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-primary flex items-center gap-1"><Dumbbell className="h-3 w-3" /> {t("clientTraining.basicsVariants")}</p>
-                {basics.map((ex) => (
-                  <div key={ex.id} className="bg-background/50 border border-border/40 rounded-lg p-3 space-y-1">
-                    <p className="text-sm font-medium text-foreground">{ex.exerciseName || "—"}</p>
-                    {ex.method && (
-                      <Badge variant="outline" className="text-[10px]">
-                        {ex.method === "custom" && ex.customMethodName
-                          ? ex.customMethodName
-                          : TRAINING_METHOD_LABELS[ex.method] || ex.method}
-                      </Badge>
-                    )}
-                    {ex.method === "custom" && ex.customMethodDescription && (
-                      <p className="text-[11px] text-muted-foreground italic">📋 {ex.customMethodDescription}</p>
-                    )}
-                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      {ex.topSetReps && <span><span className="font-medium text-foreground">Top Set:</span> {ex.topSetReps} reps{ex.topSetRPE ? ` @RPE ${ex.topSetRPE}` : ""}</span>}
-                      {ex.backoffSets && <span><span className="font-medium text-foreground">Back-off:</span> {ex.backoffSets} sets{ex.backoffReps ? ` × ${ex.backoffReps} reps` : ""}{ex.backoffPercent ? ` @RPE ${ex.backoffPercent}` : ""}</span>}
-                      {ex.estimatedSeries && <span><span className="font-medium text-foreground">Series est.:</span> {ex.estimatedSeries}</span>}
-                      {ex.sets && <span>{ex.sets} {t("clientTraining.series")}</span>}
-                      {ex.reps && <span>× {ex.reps}</span>}
-                      {/* RPE for straight_sets/ramp/wave where topSetReps is not used */}
-                      {!ex.topSetReps && ex.topSetRPE != null && <span><span className="font-medium text-foreground">RPE:</span> {ex.topSetRPE}</span>}
-                      {ex.plannedLoad && <span><span className="font-medium text-foreground">Carga:</span> {ex.plannedLoad}</span>}
-                      {ex.backoffRule && <span><span className="font-medium text-foreground">Regla:</span> {ex.backoffRule}</span>}
-                    </div>
-                    {ex.technicalNotes && <p className="text-[11px] text-muted-foreground italic mt-1">💡 {ex.technicalNotes}</p>}
+            {orderedExercises.map((ex) => {
+              const meta =
+                ex.section === "basic"
+                  ? { label: t("clientTraining.basicsVariants"), cls: "text-primary", Icon: Dumbbell, accent: "" }
+                  : ex.section === "accessory"
+                  ? { label: t("clientTraining.accessories"), cls: "text-muted-foreground", Icon: Dumbbell, accent: "" }
+                  : ex.section === "running"
+                  ? { label: t("clientTraining.runningSection"), cls: "text-sky-400", Icon: Footprints, accent: "border-l-2 border-l-sky-400/40" }
+                  : ex.section === "running_technique"
+                  ? { label: t("clientTraining.runningTechniqueSection"), cls: "text-violet-400", Icon: Activity, accent: "border-l-2 border-l-violet-400/40" }
+                  : { label: t("clientTraining.officialTestSection"), cls: "text-amber-400", Icon: Trophy, accent: "border-l-2 border-l-amber-400/40" };
+              const Icon = meta.Icon;
+              return (
+                <div key={ex.id} className={`bg-background/50 border border-border/40 rounded-lg p-3 space-y-1 ${meta.accent}`}>
+                  <div className="flex items-center gap-1.5">
+                    <Icon className={`h-3 w-3 ${meta.cls}`} />
+                    <span className={`text-[10px] font-semibold uppercase tracking-wider ${meta.cls}`}>{meta.label}</span>
                   </div>
-                ))}
-              </div>
-            )}
-            {accessories.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">{t("clientTraining.accessories")}</p>
-                {accessories.map((ex) => (
-                  <div key={ex.id} className="bg-background/50 border border-border/40 rounded-lg p-3 space-y-1">
-                    <p className="text-sm font-medium text-foreground">{ex.exerciseName || "—"}</p>
+                  <p className="text-sm font-medium text-foreground">{ex.exerciseName || "—"}</p>
+                  {ex.section === "basic" && (
+                    <>
+                      {ex.method && (
+                        <Badge variant="outline" className="text-[10px]">
+                          {ex.method === "custom" && ex.customMethodName
+                            ? ex.customMethodName
+                            : TRAINING_METHOD_LABELS[ex.method] || ex.method}
+                        </Badge>
+                      )}
+                      {ex.method === "custom" && ex.customMethodDescription && (
+                        <p className="text-[11px] text-muted-foreground italic">📋 {ex.customMethodDescription}</p>
+                      )}
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                        {ex.topSetReps && <span><span className="font-medium text-foreground">Top Set:</span> {ex.topSetReps} reps{ex.topSetRPE ? ` @RPE ${ex.topSetRPE}` : ""}</span>}
+                        {ex.backoffSets && <span><span className="font-medium text-foreground">Back-off:</span> {ex.backoffSets} sets{ex.backoffReps ? ` × ${ex.backoffReps} reps` : ""}{ex.backoffPercent ? ` @RPE ${ex.backoffPercent}` : ""}</span>}
+                        {ex.estimatedSeries && <span><span className="font-medium text-foreground">Series est.:</span> {ex.estimatedSeries}</span>}
+                        {ex.sets && <span>{ex.sets} {t("clientTraining.series")}</span>}
+                        {ex.reps && <span>× {ex.reps}</span>}
+                        {!ex.topSetReps && ex.topSetRPE != null && <span><span className="font-medium text-foreground">RPE:</span> {ex.topSetRPE}</span>}
+                        {ex.plannedLoad && <span><span className="font-medium text-foreground">Carga:</span> {ex.plannedLoad}</span>}
+                        {ex.backoffRule && <span><span className="font-medium text-foreground">Regla:</span> {ex.backoffRule}</span>}
+                      </div>
+                    </>
+                  )}
+                  {ex.section === "accessory" && (
                     <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                       {ex.sets && <span>{ex.sets} {t("clientTraining.series")}</span>}
                       {ex.reps && <span>× {ex.reps}</span>}
                       {ex.intensityType && ex.intensityValue != null && <span><span className="font-medium text-foreground">{ex.intensityType}:</span> {ex.intensityValue}</span>}
                       {ex.plannedLoad && <span><span className="font-medium text-foreground">Carga:</span> {ex.plannedLoad}</span>}
                     </div>
-                    {ex.technicalNotes && <p className="text-[11px] text-muted-foreground italic">💡 {ex.technicalNotes}</p>}
-                  </div>
-                ))}
-              </div>
-            )}
-            {runs.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-sky-400 flex items-center gap-1"><Footprints className="h-3 w-3" /> {t("clientTraining.runningSection")}</p>
-                {runs.map((ex) => (
-                  <div key={ex.id} className="bg-background/50 border border-border/40 rounded-lg p-3 space-y-1">
-                    <p className="text-sm font-medium text-foreground">{ex.exerciseName || "—"}</p>
+                  )}
+                  {ex.section === "running" && (
                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                       {ex.plannedDistanceM != null && <span><span className="font-medium text-foreground">Dist:</span> {ex.plannedDistanceM} m</span>}
                       {ex.plannedDurationSec != null && <span><span className="font-medium text-foreground">Tiempo:</span> {ex.plannedDurationSec}s</span>}
                       {ex.plannedPace && <span><span className="font-medium text-foreground">Ritmo:</span> {ex.plannedPace}</span>}
                       {ex.plannedHeartRate != null && <span><span className="font-medium text-foreground">FC:</span> {ex.plannedHeartRate}</span>}
                     </div>
-                    {ex.technicalNotes && <p className="text-[11px] text-muted-foreground italic">💡 {ex.technicalNotes}</p>}
-                  </div>
-                ))}
-              </div>
-            )}
-            {techs.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-violet-400 flex items-center gap-1"><Activity className="h-3 w-3" /> {t("clientTraining.runningTechniqueSection")}</p>
-                {techs.map((ex) => (
-                  <div key={ex.id} className="bg-background/50 border border-border/40 rounded-lg p-3 space-y-1">
-                    <p className="text-sm font-medium text-foreground">{ex.exerciseName || "—"}</p>
+                  )}
+                  {ex.section === "running_technique" && (
                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                       {ex.sets && <span>{ex.sets} {t("clientTraining.series")}</span>}
                       {ex.reps && <span>× {ex.reps}</span>}
                       {ex.plannedLoad && <span><span className="font-medium text-foreground">Descanso:</span> {ex.plannedLoad}</span>}
                     </div>
-                    {ex.technicalNotes && <p className="text-[11px] text-muted-foreground italic">💡 {ex.technicalNotes}</p>}
-                  </div>
-                ))}
-              </div>
-            )}
-            {tests.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-amber-400 flex items-center gap-1"><Trophy className="h-3 w-3" /> {t("clientTraining.officialTestSection")}</p>
-                {tests.map((ex) => (
-                  <div key={ex.id} className="bg-background/50 border border-border/40 rounded-lg p-3 space-y-1">
-                    <p className="text-sm font-medium text-foreground">{ex.exerciseName || "—"}</p>
+                  )}
+                  {ex.section === "official_test" && (
                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                       {ex.plannedMarkValue != null && <span><span className="font-medium text-foreground">Objetivo:</span> {ex.plannedMarkValue} {ex.plannedMarkUnit || ""}</span>}
                     </div>
-                    {ex.technicalNotes && <p className="text-[11px] text-muted-foreground italic">💡 {ex.technicalNotes}</p>}
-                  </div>
-                ))}
-              </div>
-            )}
+                  )}
+                  {ex.technicalNotes && <p className="text-[11px] text-muted-foreground italic mt-1">💡 {ex.technicalNotes}</p>}
+                </div>
+              );
+            })}
             {day.exercises.length === 0 && <p className="text-xs text-muted-foreground italic text-center py-4">{t("clientTraining.noExercises")}</p>}
           </div>
         </AnimatedCollapsibleContent>
