@@ -18,13 +18,23 @@ router.get("/", async (_req, res) => {
 // POST /api/exercises — Admin only
 router.post("/", requireRole("ADMIN"), async (req, res) => {
   try {
-    const { name, category, muscleGroup, videoUrl, notes, parentExerciseId } = req.body;
+    const { name, category, muscleGroup, videoUrl, notes, parentExerciseId, kind, oppositionTypes, defaultUnit } = req.body;
     if (!name || !category) {
       res.status(400).json({ message: "name y category son obligatorios" });
       return;
     }
     const exercise = await prisma.exercise.create({
-      data: { name, category, muscleGroup, videoUrl, notes, parentExerciseId },
+      data: {
+        name,
+        category,
+        muscleGroup,
+        videoUrl,
+        notes,
+        parentExerciseId,
+        kind: kind ?? null,
+        oppositionTypes: Array.isArray(oppositionTypes) ? JSON.stringify(oppositionTypes) : (oppositionTypes ?? null),
+        defaultUnit: defaultUnit ?? null,
+      },
     });
     res.status(201).json(exercise);
   } catch (err: any) {
@@ -35,7 +45,7 @@ router.post("/", requireRole("ADMIN"), async (req, res) => {
 // PATCH /api/exercises/:id — Admin only
 router.patch("/:id", requireRole("ADMIN"), async (req, res) => {
   try {
-    const { name, category, muscleGroup, videoUrl, notes, parentExerciseId } = req.body;
+    const { name, category, muscleGroup, videoUrl, notes, parentExerciseId, kind, oppositionTypes, defaultUnit } = req.body;
     const exercise = await prisma.exercise.update({
       where: { id: req.params.id as string },
       data: {
@@ -45,6 +55,9 @@ router.patch("/:id", requireRole("ADMIN"), async (req, res) => {
         ...(videoUrl !== undefined && { videoUrl }),
         ...(notes !== undefined && { notes }),
         ...(parentExerciseId !== undefined && { parentExerciseId }),
+        ...(kind !== undefined && { kind }),
+        ...(oppositionTypes !== undefined && { oppositionTypes: Array.isArray(oppositionTypes) ? JSON.stringify(oppositionTypes) : oppositionTypes }),
+        ...(defaultUnit !== undefined && { defaultUnit }),
       },
     });
     res.json(exercise);
