@@ -5,6 +5,7 @@ import { prisma } from "../server";
 import { authenticate, requireRole } from "../middleware/auth";
 import { uploadVideo } from "../middleware/upload";
 import { transcodeVideoInBackground } from "../utils/transcodeVideo";
+import { scoreFromMark, modalityToOppositionType } from "../utils/oppositionScoring";
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || "./uploads";
 
@@ -238,8 +239,43 @@ router.post("/:id/submit", async (req, res) => {
         });
 
         if (day.exercises && Array.isArray(day.exercises)) {
-          await prisma.checkinTrainingExercise.createMany({
-            data: day.exercises.map((e: any) => ({
+          // Resolve client oppositionType once per checkin for auto-scoring
+          let clientOppositionType: string | null = null;
+          let clientGender: string | null = null;
+          try {
+            const ck = await prisma.checkin.findUnique({
+              where: { id: checkinId },
+              include: {
+                client: {
+                  include: { trainingIntake: true },
+                },
+              },
+            });
+            clientOppositionType =
+              ck?.client?.trainingIntake?.oppositionType ||
+              modalityToOppositionType(ck?.client?.trainingIntake?.modality);
+            const sex = ck?.client?.sex?.toUpperCase() || "";
+            clientGender = sex === "F" || sex.startsWith("FEM") ? "FEMALE" : "MALE";
+          } catch {
+            /* non-blocking */
+          }
+
+          const rows: any[] = [];
+          for (const e of day.exercises as any[]) {
+            let scoreObtained: number | null = null;
+            if (
+              (e.section === "official_test" || e.sectionExt === "official_test") &&
+              e.actualMarkValue != null &&
+              clientOppositionType
+            ) {
+              scoreObtained = await scoreFromMark({
+                oppositionType: clientOppositionType,
+                testName: e.exerciseName,
+                gender: clientGender || "MALE",
+                value: parseFloat(e.actualMarkValue),
+              });
+            }
+            rows.push({
               logId: log.id,
               exerciseId: e.exerciseId,
               exerciseName: e.exerciseName,
@@ -255,8 +291,47 @@ router.post("/:id/submit", async (req, res) => {
               actualReps: e.actualReps,
               backoffWeights: e.backoffWeights || null,
               comment: e.comment || null,
-            })),
-          });
+              actualDistanceM: e.actualDistanceM != null ? parseFloat(e.actualDistanceM) : null,
+              actualDurationSec: e.actualDurationSec != null ? parseInt(e.actualDurationSec) : null,
+              actualPace: e.actualPace || null,
+              actualHeartRate: e.actualHeartRate != null ? parseInt(e.actualHeartRate) : null,
+              actualMarkValue: e.actualMarkValue != null ? parseFloat(e.actualMarkValue) : null,
+              actualMarkUnit: e.actualMarkUnit || null,
+              scoreObtained,
+            });
+          }
+          if (rows.length) {
+            await prisma.checkinTrainingExercise.createMany({ data: rows });
+          }
+
+          // Auto-create ClientPhysicalMark entries for official_test exercises with a mark
+          for (const e of day.exercises as any[]) {
+            if (
+              (e.section === "official_test" || e.sectionExt === "official_test") &&
+              e.actualMarkValue != null &&
+              e.exerciseName
+            ) {
+              try {
+                const checkinForClient = await prisma.checkin.findUnique({
+                  where: { id: checkinId },
+                  select: { clientId: true },
+                });
+                if (checkinForClient?.clientId) {
+                  await prisma.clientPhysicalMark.create({
+                    data: {
+                      clientId: checkinForClient.clientId,
+                      testName: e.exerciseName,
+                      value: parseFloat(e.actualMarkValue),
+                      unit: e.actualMarkUnit || e.plannedMarkUnit || "",
+                      notes: e.comment || null,
+                    },
+                  });
+                }
+              } catch (markErr) {
+                console.warn("auto ClientPhysicalMark failed:", markErr);
+              }
+            }
+          }
         }
       }
     }
