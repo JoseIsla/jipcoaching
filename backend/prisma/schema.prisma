@@ -401,6 +401,14 @@ model ExercisePrescription {
   customMethodDescription String?  @db.Text
   plannedLoad    String?       // e.g. "Autoreg.", "80kg"
   intensityType  String?       @db.VarChar(10) // "RPE" or "RIR"
+  // Extended sections for opposition plans: "running" | "running_technique" | "official_test"
+  sectionExt          String?       @db.VarChar(30)
+  plannedDistanceM    Float?
+  plannedDurationSec  Int?
+  plannedPace         String?       @db.VarChar(20)
+  plannedHeartRate    Int?
+  plannedMarkValue    Float?
+  plannedMarkUnit     String?       @db.VarChar(20)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
