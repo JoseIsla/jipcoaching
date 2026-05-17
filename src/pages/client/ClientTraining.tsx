@@ -93,6 +93,7 @@ const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<strin
                   )}
                   {ex.section === "running" && (
                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      {ex.sets && <span>{ex.sets} {t("clientTraining.series")}</span>}
                       {ex.plannedDistanceM != null && <span><span className="font-medium text-foreground">Dist:</span> {ex.plannedDistanceM} m</span>}
                       {ex.plannedDurationSec != null && <span><span className="font-medium text-foreground">Tiempo:</span> {ex.plannedDurationSec}s</span>}
                       {ex.plannedPace && <span><span className="font-medium text-foreground">Ritmo:</span> {ex.plannedPace}</span>}
@@ -108,6 +109,7 @@ const DayView = ({ day, t }: { day: TrainingDay; t: (k: string, v?: Record<strin
                   )}
                   {ex.section === "official_test" && (
                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      {ex.sets && <span>{ex.sets} {t("clientTraining.series")}</span>}
                       {ex.plannedMarkValue != null && <span><span className="font-medium text-foreground">Objetivo:</span> {ex.plannedMarkValue} {ex.plannedMarkUnit || ""}</span>}
                     </div>
                   )}
