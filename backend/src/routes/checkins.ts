@@ -384,15 +384,28 @@ router.post("/:id/submit", async (req, res) => {
     if (physicalMarks && Array.isArray(physicalMarks) && updatedCheckin.clientId) {
       for (const mark of physicalMarks) {
         if (mark.testName && mark.value != null && mark.unit) {
-          await prisma.clientPhysicalMark.create({
-            data: {
+          // Dedupe by client + testName + day to prevent duplicates when the
+          // mark is also recorded via the trainingLog official_test row.
+          const todayStart = new Date();
+          todayStart.setHours(0, 0, 0, 0);
+          const existing = await prisma.clientPhysicalMark.findFirst({
+            where: {
               clientId: updatedCheckin.clientId,
               testName: mark.testName,
-              value: parseFloat(mark.value),
-              unit: mark.unit,
-              notes: mark.notes || null,
+              recordedAt: { gte: todayStart },
             },
           });
+          if (!existing) {
+            await prisma.clientPhysicalMark.create({
+              data: {
+                clientId: updatedCheckin.clientId,
+                testName: mark.testName,
+                value: parseFloat(mark.value),
+                unit: mark.unit,
+                notes: mark.notes || null,
+              },
+            });
+          }
         }
       }
     }
