@@ -711,6 +711,7 @@ const AdminTrainingPlanDetail = () => {
           exercises: exercisesToSave.map((e, i) => ({
             name: e.exerciseName,
             type: e.section === "basic" ? (e.exerciseType === "Variante" ? "VARIANT" : "BASIC") : "ACCESSORY",
+            sectionExt: ["running", "running_technique", "official_test"].includes(e.section) ? e.section : null,
             method: e.method?.toUpperCase() || "STRAIGHT_SETS",
             topSetReps: e.topSetReps,
             topSetRpe: e.topSetRPE,
@@ -731,6 +732,12 @@ const AdminTrainingPlanDetail = () => {
             customMethodName: e.customMethodName || undefined,
             customMethodDescription: e.customMethodDescription || undefined,
             intensityType: e.intensityType || undefined,
+            plannedDistanceM: e.plannedDistanceM ?? null,
+            plannedDurationSec: e.plannedDurationSec ?? null,
+            plannedPace: e.plannedPace || null,
+            plannedHeartRate: e.plannedHeartRate ?? null,
+            plannedMarkValue: e.plannedMarkValue ?? null,
+            plannedMarkUnit: e.plannedMarkUnit || null,
           })),
         });
       }
@@ -796,6 +803,7 @@ const AdminTrainingPlanDetail = () => {
           exercises: exercisesToCopy.map((e, i) => ({
             name: e.exerciseName,
             type: e.section === "basic" ? (e.exerciseType === "Variante" ? "VARIANT" : "BASIC") : "ACCESSORY",
+            sectionExt: ["running", "running_technique", "official_test"].includes(e.section) ? e.section : null,
             method: e.method?.toUpperCase() || "STRAIGHT_SETS",
             topSetReps: e.topSetReps,
             topSetRpe: e.topSetRPE,
@@ -816,6 +824,12 @@ const AdminTrainingPlanDetail = () => {
             customMethodName: e.customMethodName || undefined,
             customMethodDescription: e.customMethodDescription || undefined,
             intensityType: e.intensityType || undefined,
+            plannedDistanceM: e.plannedDistanceM ?? null,
+            plannedDurationSec: e.plannedDurationSec ?? null,
+            plannedPace: e.plannedPace || null,
+            plannedHeartRate: e.plannedHeartRate ?? null,
+            plannedMarkValue: e.plannedMarkValue ?? null,
+            plannedMarkUnit: e.plannedMarkUnit || null,
           })),
         });
       }
