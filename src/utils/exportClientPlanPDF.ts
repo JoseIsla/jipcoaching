@@ -413,6 +413,7 @@ export const exportTrainingWeekPDF = async (
         if (ex.plannedDurationSec != null) v.push(`${ex.plannedDurationSec}s`);
         if (ex.plannedPace) v.push(`Ritmo: ${ex.plannedPace}`);
         if (ex.plannedHeartRate != null) v.push(`FC: ${ex.plannedHeartRate}`);
+        if (ex.plannedLoad) v.push(`Recuperación: ${ex.plannedLoad}`);
         return [ex.exerciseName || "—", v.join("  ") || "—", ex.technicalNotes || ""];
       });
       autoTable(doc, {
@@ -452,6 +453,7 @@ export const exportTrainingWeekPDF = async (
         const v: string[] = [];
         if (ex.sets) v.push(`Series: ${ex.sets}`);
         if (ex.plannedMarkValue != null) v.push(`Objetivo: ${ex.plannedMarkValue} ${ex.plannedMarkUnit || ""}`.trim());
+        if (ex.plannedLoad) v.push(`Recuperación: ${ex.plannedLoad}`);
         return [ex.exerciseName || "—", v.join("  ") || "—", ex.technicalNotes || ""];
       });
       autoTable(doc, {

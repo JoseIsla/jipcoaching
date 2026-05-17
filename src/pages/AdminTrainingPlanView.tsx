@@ -62,6 +62,7 @@ const OppositionRow = ({
           {ex.plannedDurationSec != null && <span><strong>Tiempo:</strong> {ex.plannedDurationSec}s</span>}
           {ex.plannedPace && <span><strong>Ritmo:</strong> {ex.plannedPace}</span>}
           {ex.plannedHeartRate != null && <span><strong>FC:</strong> {ex.plannedHeartRate} bpm</span>}
+          {ex.plannedLoad && <span><strong>Recuperación:</strong> {ex.plannedLoad}</span>}
         </>
       )}
       {kind === "running_technique" && (
@@ -77,6 +78,7 @@ const OppositionRow = ({
           {ex.plannedMarkValue != null && (
             <span><strong>Objetivo:</strong> {ex.plannedMarkValue} {ex.plannedMarkUnit || ""}</span>
           )}
+          {ex.plannedLoad && <span><strong>Recuperación:</strong> {ex.plannedLoad}</span>}
         </>
       )}
     </div>
