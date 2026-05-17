@@ -599,6 +599,270 @@ const SupplementSection = ({
 
 // ==================== MAIN PAGE ====================
 
+// ==================== OPPOSITION DIALOGS ====================
+
+const OppositionForm = ({
+  initial,
+  onSubmit,
+  onCancel,
+  submitLabel,
+}: {
+  initial?: { name: string; kind: OppKind; oppositionTypes: OppositionType[]; defaultUnit: string };
+  onSubmit: (v: { name: string; kind: OppKind; oppositionTypes: OppositionType[]; defaultUnit: string }) => void;
+  onCancel: () => void;
+  submitLabel: string;
+}) => {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [kind, setKind] = useState<OppKind>(initial?.kind ?? "RUNNING");
+  const [opps, setOpps] = useState<OppositionType[]>(initial?.oppositionTypes ?? [...ALL_OPPOSITIONS]);
+  const [unit, setUnit] = useState<string>(initial?.defaultUnit ?? "seconds");
+
+  const toggleOpp = (o: OppositionType) =>
+    setOpps((prev) => (prev.includes(o) ? prev.filter((x) => x !== o) : [...prev, o]));
+
+  return (
+    <div className="space-y-4 pt-2">
+      <div className="space-y-2">
+        <Label>Nombre</Label>
+        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Series 800 m" className="bg-background border-border" />
+      </div>
+      <div className="space-y-2">
+        <Label>Tipo</Label>
+        <Select value={kind} onValueChange={(v) => setKind(v as OppKind)}>
+          <SelectTrigger className="bg-background border-border"><SelectValue /></SelectTrigger>
+          <SelectContent className="bg-card border-border z-50">
+            {(Object.keys(OPP_KIND_LABEL) as OppKind[]).map((k) => (
+              <SelectItem key={k} value={k}>{OPP_KIND_LABEL[k]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label>Oposiciones</Label>
+        <div className="flex flex-wrap gap-1.5">
+          {ALL_OPPOSITIONS.map((o) => {
+            const active = opps.includes(o);
+            return (
+              <button
+                key={o}
+                type="button"
+                onClick={() => toggleOpp(o)}
+                className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+                  active
+                    ? "bg-primary/15 border-primary/40 text-primary"
+                    : "border-border text-muted-foreground hover:text-foreground hover:border-border/80"
+                }`}
+              >
+                {oppositionTypeLabels[o]}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label>Unidad por defecto {kind === "OFFICIAL_TEST" ? "(para baremo)" : "(referencia)"}</Label>
+        <Select value={unit} onValueChange={setUnit}>
+          <SelectTrigger className="bg-background border-border"><SelectValue /></SelectTrigger>
+          <SelectContent className="bg-card border-border z-50">
+            {OPP_UNITS.map((u) => (<SelectItem key={u.value} value={u.value}>{u.label}</SelectItem>))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={onCancel}>Cancelar</Button>
+        <Button
+          onClick={() => onSubmit({ name: name.trim(), kind, oppositionTypes: opps, defaultUnit: unit })}
+          disabled={!name.trim() || opps.length === 0}
+        >
+          {submitLabel}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const AddOppositionDialog = ({ defaultKind }: { defaultKind: OppKind }) => {
+  const [open, setOpen] = useState(false);
+  const { toast } = useToast();
+  const allExercises = useExerciseLibraryStore((s) => s.exercises);
+  const addExercise = useExerciseLibraryStore((s) => s.addExercise);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={(e) => e.stopPropagation()}>
+          <Plus className="h-3.5 w-3.5" /> Añadir
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md bg-card border-border">
+        <DialogHeader><DialogTitle>Nuevo ejercicio de oposición</DialogTitle></DialogHeader>
+        {open && (
+          <OppositionForm
+            initial={{ name: "", kind: defaultKind, oppositionTypes: [...ALL_OPPOSITIONS], defaultUnit: defaultKind === "OFFICIAL_TEST" ? "seconds" : "minutes" }}
+            submitLabel="Añadir"
+            onCancel={() => setOpen(false)}
+            onSubmit={async ({ name, kind, oppositionTypes, defaultUnit }) => {
+              if (allExercises.some((e) => (e.kind || "") === kind && e.name.toLowerCase() === name.toLowerCase())) {
+                toast({ title: "Duplicado", description: `"${name}" ya existe en esta categoría.`, variant: "destructive" });
+                return;
+              }
+              await addExercise({
+                name,
+                // Persist as ACCESSORY for non-test items; tests as BASIC to mirror seed conventions.
+                category: "accesorio",
+                muscleGroup: kind === "RUNNING" ? "Cardio" : kind === "RUNNING_TECHNIQUE" ? "Técnica" : "Prueba oficial",
+                kind,
+                oppositionTypes: JSON.stringify(oppositionTypes),
+                defaultUnit,
+              });
+              toast({ title: "Ejercicio añadido", description: `"${name}" añadido a la biblioteca.` });
+              setOpen(false);
+            }}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const EditOppositionDialog = ({ exercise }: { exercise: ExerciseLibraryItem }) => {
+  const [open, setOpen] = useState(false);
+  const { toast } = useToast();
+  const updateExercise = useExerciseLibraryStore((s) => s.updateExercise);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
+          <Pencil className="h-3.5 w-3.5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md bg-card border-border">
+        <DialogHeader><DialogTitle>Editar ejercicio de oposición</DialogTitle></DialogHeader>
+        {open && (
+          <OppositionForm
+            initial={{
+              name: exercise.name,
+              kind: (exercise.kind as OppKind) || "RUNNING",
+              oppositionTypes: parseOppositionTypes(exercise.oppositionTypes),
+              defaultUnit: exercise.defaultUnit || "seconds",
+            }}
+            submitLabel="Guardar"
+            onCancel={() => setOpen(false)}
+            onSubmit={async ({ name, kind, oppositionTypes, defaultUnit }) => {
+              await updateExercise(exercise.id, {
+                name,
+                kind,
+                oppositionTypes: JSON.stringify(oppositionTypes),
+                defaultUnit,
+              });
+              toast({ title: "Ejercicio actualizado", description: `"${name}" guardado.` });
+              setOpen(false);
+            }}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const OppositionSection = ({
+  icon: Icon,
+  iconClass,
+  title,
+  kind,
+  items,
+  onRemove,
+}: {
+  icon: typeof Footprints;
+  iconClass: string;
+  title: string;
+  kind: OppKind;
+  items: ExerciseLibraryItem[];
+  onRemove: (id: string) => void;
+}) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+          <div className="flex items-center gap-3">
+            <motion.div animate={{ rotate: open ? 0 : -90 }} transition={{ duration: 0.2, ease: "easeInOut" }}>
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </motion.div>
+            <Icon className={`h-5 w-5 ${iconClass}`} />
+            <h2 className="text-base font-semibold text-foreground">{title}</h2>
+            <Badge variant="outline" className="text-xs">{items.length}</Badge>
+          </div>
+          <div onClick={(e) => e.stopPropagation()}>
+            <AddOppositionDialog defaultKind={kind} />
+          </div>
+        </CollapsibleTrigger>
+        <AnimatePresence initial={false}>
+          {open && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="border-t border-border">
+                <div className="bg-card overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-border hover:bg-transparent">
+                        <TableHead className="text-muted-foreground">Ejercicio</TableHead>
+                        <TableHead className="text-muted-foreground">Oposiciones</TableHead>
+                        <TableHead className="text-muted-foreground">Unidad</TableHead>
+                        <TableHead className="text-muted-foreground w-20"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {items.map((item) => {
+                        const opps = parseOppositionTypes(item.oppositionTypes);
+                        return (
+                          <TableRow key={item.id} className="border-border/50 hover:bg-muted/30">
+                            <TableCell className="font-medium text-foreground">{item.name}</TableCell>
+                            <TableCell className="text-muted-foreground text-xs">
+                              <div className="flex flex-wrap gap-1">
+                                {opps.length === 0 && <span>—</span>}
+                                {opps.map((o) => (
+                                  <Badge key={o} variant="outline" className="text-[10px]">{oppositionTypeLabels[o]}</Badge>
+                                ))}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">{item.defaultUnit || "—"}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <EditOppositionDialog exercise={item} />
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/60 hover:text-destructive" onClick={() => onRemove(item.id)}>
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                      {items.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                            No hay ejercicios en esta categoría
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </Collapsible>
+  );
+};
+
 const AdminExerciseLibrary = () => {
   const [search, setSearch] = useState("");
   const { toast } = useToast();
