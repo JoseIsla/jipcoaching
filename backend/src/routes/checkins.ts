@@ -340,15 +340,29 @@ router.post("/:id/submit", async (req, res) => {
                   select: { clientId: true },
                 });
                 if (checkinForClient?.clientId) {
-                  await prisma.clientPhysicalMark.create({
-                    data: {
+                  // Dedupe: skip if a mark for the same client/test was already
+                  // recorded today (avoids duplicates on re-submission and when
+                  // the client also fills the dedicated physicalMarks form).
+                  const todayStart = new Date();
+                  todayStart.setHours(0, 0, 0, 0);
+                  const existing = await prisma.clientPhysicalMark.findFirst({
+                    where: {
                       clientId: checkinForClient.clientId,
                       testName: e.exerciseName,
-                      value: parseFloat(e.actualMarkValue),
-                      unit: e.actualMarkUnit || e.plannedMarkUnit || "",
-                      notes: e.comment || null,
+                      recordedAt: { gte: todayStart },
                     },
                   });
+                  if (!existing) {
+                    await prisma.clientPhysicalMark.create({
+                      data: {
+                        clientId: checkinForClient.clientId,
+                        testName: e.exerciseName,
+                        value: parseFloat(e.actualMarkValue),
+                        unit: e.actualMarkUnit || e.plannedMarkUnit || "",
+                        notes: e.comment || null,
+                      },
+                    });
+                  }
                 }
               } catch (markErr) {
                 console.warn("auto ClientPhysicalMark failed:", markErr);
