@@ -41,7 +41,8 @@ export interface RMRecord {
 export interface TrainingLogExercise {
   exerciseId: string;
   exerciseName: string;
-  section: "basic" | "variant" | "accessory";
+  section: "basic" | "variant" | "accessory" | "running" | "running_technique" | "official_test";
+  sectionExt?: "running" | "running_technique" | "official_test";
   method?: string;
   plannedSets: string;
   plannedReps: string;
@@ -53,6 +54,21 @@ export interface TrainingLogExercise {
   actualReps?: string;
   backoffWeights?: string;
   comment?: string;
+  // Opposition planned
+  plannedDistanceM?: number;
+  plannedDurationSec?: number;
+  plannedPace?: string;
+  plannedHeartRate?: number;
+  plannedMarkValue?: number;
+  plannedMarkUnit?: string;
+  // Opposition actual
+  actualDistanceM?: number;
+  actualDurationSec?: number;
+  actualPace?: string;
+  actualHeartRate?: number;
+  actualMarkValue?: number;
+  actualMarkUnit?: string;
+  scoreObtained?: number;
 }
 
 export interface TrainingLogDay {
