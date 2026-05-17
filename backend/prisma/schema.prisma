@@ -301,6 +301,12 @@ model Exercise {
   videoUrl         String?          @db.VarChar(500)
   notes            String?          @db.Text
   parentExerciseId String?
+  /// Domain: "GYM" | "RUNNING" | "RUNNING_TECHNIQUE" | "OFFICIAL_TEST" (null = GYM)
+  kind             String?          @db.VarChar(30)
+  /// JSON array of OppositionType values where this exercise applies
+  oppositionTypes  String?          @db.Text
+  /// Default unit for official tests ("seconds", "reps", "cm", "kg", "meters", "periods")
+  defaultUnit      String?          @db.VarChar(20)
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -395,6 +401,14 @@ model ExercisePrescription {
   customMethodDescription String?  @db.Text
   plannedLoad    String?       // e.g. "Autoreg.", "80kg"
   intensityType  String?       @db.VarChar(10) // "RPE" or "RIR"
+  // Extended sections for opposition plans: "running" | "running_technique" | "official_test"
+  sectionExt          String?       @db.VarChar(30)
+  plannedDistanceM    Float?
+  plannedDurationSec  Int?
+  plannedPace         String?       @db.VarChar(20)
+  plannedHeartRate    Int?
+  plannedMarkValue    Float?
+  plannedMarkUnit     String?       @db.VarChar(20)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
@@ -637,7 +651,7 @@ model CheckinTrainingExercise {
   logId          String
   exerciseId     String?
   exerciseName   String
-  section        String  @db.VarChar(20)
+  section        String  @db.VarChar(30) @default("basic")
   method         String? @db.VarChar(30)
   plannedSets    String?
   plannedReps    String?
@@ -650,6 +664,14 @@ model CheckinTrainingExercise {
   backoffWeights String? @db.VarChar(200)
   comment        String? @db.Text
   sortOrder      Int     @default(0)
+  // Opposition / running actual metrics
+  actualDistanceM   Float?
+  actualDurationSec Int?
+  actualPace        String? @db.VarChar(20)
+  actualHeartRate   Int?
+  actualMarkValue   Float?
+  actualMarkUnit    String? @db.VarChar(20)
+  scoreObtained     Int?
   createdAt      DateTime @default(now())
 
   log CheckinTrainingLog @relation(fields: [logId], references: [id], onDelete: Cascade)
@@ -683,6 +705,14 @@ model ExerciseLog {
   backoffRpe      Float?
   backoffSetsCount Int?
   notes           String? @db.Text
+  // Opposition / running metrics
+  distanceMeters  Float?
+  durationSeconds Int?
+  pace            String? @db.VarChar(20)
+  heartRateAvg    Int?
+  markValue       Float?
+  markUnit        String? @db.VarChar(20)
+  scoreObtained   Int?
   createdAt       DateTime @default(now())
 
   prescription ExercisePrescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)

@@ -447,6 +447,14 @@ router.put("/days/:dayId", requireRole("ADMIN"), async (req, res) => {
             customMethodName: e.customMethodName || null,
             customMethodDescription: e.customMethodDescription || null,
             intensityType: e.intensityType || null,
+            // Opposition / running extensions
+            sectionExt: e.sectionExt || null,
+            plannedDistanceM: e.plannedDistanceM != null ? parseFloat(e.plannedDistanceM) : null,
+            plannedDurationSec: e.plannedDurationSec != null ? parseInt(e.plannedDurationSec) : null,
+            plannedPace: e.plannedPace || null,
+            plannedHeartRate: e.plannedHeartRate != null ? parseInt(e.plannedHeartRate) : null,
+            plannedMarkValue: e.plannedMarkValue != null ? parseFloat(e.plannedMarkValue) : null,
+            plannedMarkUnit: e.plannedMarkUnit || null,
           })),
         });
       }

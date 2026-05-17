@@ -156,6 +156,8 @@ async function main() {
 
   await seedPhysicalTestScales();
 
+  await seedOppositionExercises();
+
   await ensureTestAccounts();
 
   console.log("🎉 Seed complete!");
@@ -346,6 +348,123 @@ async function seedPhysicalTestScales() {
     }
   }
   console.log(`✅ Physical test scales seeded: ${rows.length} total (${created} created, ${updated} updated, ${rows.length - created - updated} unchanged)`);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// OPPOSITION EXERCISE CATALOG
+// Adds running / running-technique / official-test entries to the
+// global Exercise library. Idempotent: matches by (name + kind) and
+// only updates kind/oppositionTypes/defaultUnit if changed. Does NOT
+// touch existing gym exercises.
+// ════════════════════════════════════════════════════════════════════
+async function seedOppositionExercises() {
+  console.log("🏃 Seeding opposition exercise catalog...");
+
+  type Item = {
+    name: string;
+    kind: "RUNNING" | "RUNNING_TECHNIQUE" | "OFFICIAL_TEST";
+    category: "BASIC" | "ACCESSORY";
+    muscleGroup?: string;
+    oppositionTypes?: string[];
+    defaultUnit?: string;
+    notes?: string;
+  };
+
+  const ALL = [
+    "POLICIA_NACIONAL",
+    "POLICIA_LOCAL",
+    "BOMBEROS",
+    "TROPA_MARINERIA",
+    "GUARDIA_CIVIL",
+  ];
+
+  const items: Item[] = [
+    // ── RUNNING (carrera continua / intervalos) ──
+    { name: "Rodaje suave (Z2)", kind: "RUNNING", category: "ACCESSORY", muscleGroup: "Cardio", oppositionTypes: ALL, defaultUnit: "minutes" },
+    { name: "Rodaje progresivo", kind: "RUNNING", category: "ACCESSORY", muscleGroup: "Cardio", oppositionTypes: ALL, defaultUnit: "minutes" },
+    { name: "Tirada larga", kind: "RUNNING", category: "ACCESSORY", muscleGroup: "Cardio", oppositionTypes: ALL, defaultUnit: "minutes" },
+    { name: "Fartlek", kind: "RUNNING", category: "ACCESSORY", muscleGroup: "Cardio", oppositionTypes: ALL, defaultUnit: "minutes" },
+    { name: "Series 400 m", kind: "RUNNING", category: "ACCESSORY", muscleGroup: "Cardio", oppositionTypes: ALL, defaultUnit: "seconds" },
+    { name: "Series 1000 m", kind: "RUNNING", category: "ACCESSORY", muscleGroup: "Cardio", oppositionTypes: ALL, defaultUnit: "seconds" },
+    { name: "Series 2000 m", kind: "RUNNING", category: "ACCESSORY", muscleGroup: "Cardio", oppositionTypes: ALL, defaultUnit: "seconds" },
+    { name: "Cuestas cortas", kind: "RUNNING", category: "ACCESSORY", muscleGroup: "Cardio", oppositionTypes: ALL, defaultUnit: "reps" },
+    { name: "Cuestas largas", kind: "RUNNING", category: "ACCESSORY", muscleGroup: "Cardio", oppositionTypes: ALL, defaultUnit: "reps" },
+    { name: "Sprint 30 m", kind: "RUNNING", category: "ACCESSORY", muscleGroup: "Cardio", oppositionTypes: ALL, defaultUnit: "seconds" },
+    { name: "Sprint 60 m", kind: "RUNNING", category: "ACCESSORY", muscleGroup: "Cardio", oppositionTypes: ALL, defaultUnit: "seconds" },
+
+    // ── RUNNING TECHNIQUE (drills) ──
+    { name: "Skipping bajo", kind: "RUNNING_TECHNIQUE", category: "ACCESSORY", muscleGroup: "Técnica", oppositionTypes: ALL, defaultUnit: "reps" },
+    { name: "Skipping alto", kind: "RUNNING_TECHNIQUE", category: "ACCESSORY", muscleGroup: "Técnica", oppositionTypes: ALL, defaultUnit: "reps" },
+    { name: "Talones al glúteo", kind: "RUNNING_TECHNIQUE", category: "ACCESSORY", muscleGroup: "Técnica", oppositionTypes: ALL, defaultUnit: "reps" },
+    { name: "A-skip", kind: "RUNNING_TECHNIQUE", category: "ACCESSORY", muscleGroup: "Técnica", oppositionTypes: ALL, defaultUnit: "reps" },
+    { name: "B-skip", kind: "RUNNING_TECHNIQUE", category: "ACCESSORY", muscleGroup: "Técnica", oppositionTypes: ALL, defaultUnit: "reps" },
+    { name: "Multisaltos a una pierna", kind: "RUNNING_TECHNIQUE", category: "ACCESSORY", muscleGroup: "Técnica", oppositionTypes: ALL, defaultUnit: "reps" },
+    { name: "Multisaltos a pies juntos", kind: "RUNNING_TECHNIQUE", category: "ACCESSORY", muscleGroup: "Técnica", oppositionTypes: ALL, defaultUnit: "reps" },
+    { name: "Zancadas (strides)", kind: "RUNNING_TECHNIQUE", category: "ACCESSORY", muscleGroup: "Técnica", oppositionTypes: ALL, defaultUnit: "reps" },
+    { name: "Coordinación de brazos", kind: "RUNNING_TECHNIQUE", category: "ACCESSORY", muscleGroup: "Técnica", oppositionTypes: ALL, defaultUnit: "reps" },
+    { name: "Sprint con salida en parado", kind: "RUNNING_TECHNIQUE", category: "ACCESSORY", muscleGroup: "Técnica", oppositionTypes: ALL, defaultUnit: "reps" },
+
+    // ── OFFICIAL TESTS (pruebas oficiales por oposición) ──
+    // Resistencia aeróbica
+    { name: "Course-Navette", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["POLICIA_NACIONAL","POLICIA_LOCAL","BOMBEROS","TROPA_MARINERIA"], defaultUnit: "periods" },
+    { name: "Carrera 1000m", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["POLICIA_NACIONAL","POLICIA_LOCAL","BOMBEROS"], defaultUnit: "seconds" },
+    { name: "Carrera 2000m", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["GUARDIA_CIVIL","BOMBEROS"], defaultUnit: "seconds" },
+    { name: "Carrera 6 min (Cooper)", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["TROPA_MARINERIA"], defaultUnit: "meters" },
+    // Velocidad / agilidad
+    { name: "Carrera 60m", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["BOMBEROS"], defaultUnit: "seconds" },
+    { name: "Carrera 100m", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["BOMBEROS"], defaultUnit: "seconds" },
+    { name: "Circuito de agilidad", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["POLICIA_NACIONAL","POLICIA_LOCAL","BOMBEROS","GUARDIA_CIVIL"], defaultUnit: "seconds" },
+    // Fuerza superior
+    { name: "Dominadas (prueba)", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["POLICIA_NACIONAL","BOMBEROS"], defaultUnit: "reps" },
+    { name: "Flexiones de brazos (prueba)", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["TROPA_MARINERIA","GUARDIA_CIVIL"], defaultUnit: "reps" },
+    { name: "Suspensión en barra", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["POLICIA_NACIONAL"], defaultUnit: "seconds" },
+    { name: "Press de banca (prueba)", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["BOMBEROS"], defaultUnit: "kg" },
+    // Potencia / saltos
+    { name: "Salto vertical", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["POLICIA_LOCAL","BOMBEROS","TROPA_MARINERIA"], defaultUnit: "cm" },
+    { name: "Salto horizontal", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["POLICIA_LOCAL","TROPA_MARINERIA"], defaultUnit: "cm" },
+    // Abdominales
+    { name: "Abdominales 1 min", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["BOMBEROS","TROPA_MARINERIA"], defaultUnit: "reps" },
+    { name: "Abdominales 2 min", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["TROPA_MARINERIA"], defaultUnit: "reps" },
+    // Específicas Bomberos
+    { name: "Trepa de cuerda 5m", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["BOMBEROS"], defaultUnit: "seconds" },
+    { name: "Prueba de altura", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["BOMBEROS"], defaultUnit: "pass" },
+    // Natación
+    { name: "Natación 50m", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["BOMBEROS","GUARDIA_CIVIL"], defaultUnit: "seconds" },
+    { name: "Natación 100m", kind: "OFFICIAL_TEST", category: "BASIC", muscleGroup: "Prueba oficial", oppositionTypes: ["BOMBEROS"], defaultUnit: "seconds" },
+  ];
+
+  let created = 0;
+  let updated = 0;
+  for (const it of items) {
+    // Idempotency key: name + kind (an exercise of the same name in OFFICIAL_TEST is distinct from a gym one with the same name).
+    const existing = await prisma.exercise.findFirst({
+      where: { name: it.name, kind: it.kind },
+    });
+    const data = {
+      name: it.name,
+      category: it.category as any,
+      kind: it.kind,
+      muscleGroup: it.muscleGroup ?? null,
+      oppositionTypes: it.oppositionTypes ? JSON.stringify(it.oppositionTypes) : null,
+      defaultUnit: it.defaultUnit ?? null,
+      notes: it.notes ?? null,
+    };
+    if (existing) {
+      const needsUpdate =
+        existing.category !== data.category ||
+        existing.muscleGroup !== data.muscleGroup ||
+        existing.oppositionTypes !== data.oppositionTypes ||
+        existing.defaultUnit !== data.defaultUnit;
+      if (needsUpdate) {
+        await prisma.exercise.update({ where: { id: existing.id }, data });
+        updated++;
+      }
+    } else {
+      await prisma.exercise.create({ data });
+      created++;
+    }
+  }
+  console.log(`✅ Opposition exercises seeded: ${items.length} total (${created} created, ${updated} updated, ${items.length - created - updated} unchanged)`);
 }
 
 main()
