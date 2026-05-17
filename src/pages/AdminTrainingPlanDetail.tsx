@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "@/services/api";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, Plus, Trash2, GripVertical, Dumbbell, ChevronDown, ChevronRight, Lock, Copy, Circle, CheckCircle2, FileEdit } from "lucide-react";
+import { ArrowLeft, Save, Plus, Trash2, GripVertical, Dumbbell, ChevronDown, ChevronRight, Lock, Copy, Circle, CheckCircle2, FileEdit, Footprints, Activity, Trophy } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,10 +22,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import type { TrainingBlock } from "@/data/useTrainingPlanStore";
+import type { TrainingBlock, TrainingModality } from "@/data/useTrainingPlanStore";
 import {
   useTrainingPlanStore,
   TRAINING_METHOD_LABELS,
+  isOppositionModality,
   type TrainingPlanFull,
   type TrainingWeek,
   type TrainingDay,
@@ -34,6 +35,7 @@ import {
   type IntensityMeasure,
 } from "@/data/useTrainingPlanStore";
 import { useExerciseLibraryStore } from "@/data/useExerciseLibraryStore";
+import { OPPOSITION_TESTS, getOppositionTypeFromModality } from "@/data/oppositionScales";
 
 // ==================== EXERCISE FORM ====================
 
