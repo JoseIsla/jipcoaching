@@ -475,11 +475,19 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
     // Fill empty actuals with planned values so admin always sees data
     const finalLog = trainingLog.map((day) => ({
       ...day,
-      exercises: day.exercises.map((ex) => ({
-        ...ex,
-        actualSets: ex.actualSets || ex.plannedSets,
-        actualReps: ex.actualReps || ex.plannedReps,
-      })),
+      exercises: day.exercises.map((ex) => {
+        const sect = (ex as any).sectionExt || ex.section;
+        const isOpposition =
+          sect === "running" || sect === "running_technique" || sect === "official_test";
+        // For opposition exercises, sets/reps are not used — keep them untouched
+        // to avoid filling them with the placeholder "—" planned values.
+        if (isOpposition) return ex;
+        return {
+          ...ex,
+          actualSets: ex.actualSets || ex.plannedSets,
+          actualReps: ex.actualReps || ex.plannedReps,
+        };
+      }),
     }));
 
     // Build physical marks array for opposition clients
