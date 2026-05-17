@@ -416,13 +416,18 @@ const DayEditor = ({
 }) => {
   const [open, setOpen] = useState(true);
   const [dragId, setDragId] = useState<string | null>(null);
-  const basics = day.exercises.filter((e) => e.section === "basic");
-  const accessories = day.exercises.filter((e) => e.section === "accessory");
-  const runs = day.exercises.filter((e) => e.section === "running");
-  const techs = day.exercises.filter((e) => e.section === "running_technique");
-  const tests = day.exercises.filter((e) => e.section === "official_test");
   const isOpposition = isOppositionModality(modality);
   const opType = getOppositionTypeFromModality(modality);
+
+  // Single ordered list (source of truth for rendering & drag/drop).
+  const orderedExercises = [...day.exercises].sort(
+    (a, b) => (a.order ?? 0) - (b.order ?? 0),
+  );
+  const basicsCount = orderedExercises.filter((e) => e.section === "basic").length;
+  const accessoriesCount = orderedExercises.filter((e) => e.section === "accessory").length;
+  const oppositionCount = orderedExercises.filter(
+    (e) => e.section === "running" || e.section === "running_technique" || e.section === "official_test",
+  ).length;
 
   const updateExercise = (idx: number, updated: TrainingExerciseEntry) => {
     const newExercises = [...day.exercises];
@@ -432,13 +437,18 @@ const DayEditor = ({
   };
 
   const removeExercise = (id: string) => {
-    onChange({ ...day, exercises: day.exercises.filter((e) => e.id !== id) });
+    const next = day.exercises
+      .filter((e) => e.id !== id)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .map((e, i) => ({ ...e, order: i + 1 }));
+    onChange({ ...day, exercises: next });
   };
 
   const addExercise = (section: TrainingExerciseEntry["section"]) => {
+    const maxOrder = day.exercises.reduce((m, e) => Math.max(m, e.order ?? 0), 0);
     const newEx: TrainingExerciseEntry = {
       id: `te-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      order: day.exercises.length + 1,
+      order: maxOrder + 1,
       section,
       exerciseName: "",
       method: section === "basic" ? "load_drop" : undefined,
@@ -447,24 +457,24 @@ const DayEditor = ({
     onChange({ ...day, exercises: [...day.exercises, newEx] });
   };
 
-  const reorderExercises = (sectionExercises: TrainingExerciseEntry[], fromIdx: number, toIdx: number, section: "basic" | "accessory") => {
-    const reordered = [...sectionExercises];
-    const [moved] = reordered.splice(fromIdx, 1);
-    reordered.splice(toIdx, 0, moved);
-    const otherSection = day.exercises.filter((e) => e.section !== section);
-    const newExercises = section === "basic" ? [...reordered, ...otherSection] : [...otherSection, ...reordered];
-    onChange({ ...day, exercises: newExercises });
-  };
-
   const handleDragStart = (id: string) => setDragId(id);
   const handleDragEnd = () => setDragId(null);
 
-  const handleDrop = (targetId: string, sectionExercises: TrainingExerciseEntry[], section: "basic" | "accessory") => {
+  /**
+   * Cross-section drop: reorder the unified ordered list so that the dragged
+   * exercise is placed immediately before the target (regardless of section).
+   * Re-assigns sequential `order` values so the backend persists the new order.
+   */
+  const handleDrop = (targetId: string) => {
     if (!dragId || dragId === targetId) return;
-    const fromIdx = sectionExercises.findIndex((e) => e.id === dragId);
-    const toIdx = sectionExercises.findIndex((e) => e.id === targetId);
+    const list = [...orderedExercises];
+    const fromIdx = list.findIndex((e) => e.id === dragId);
+    const toIdx = list.findIndex((e) => e.id === targetId);
     if (fromIdx < 0 || toIdx < 0) return;
-    reorderExercises(sectionExercises, fromIdx, toIdx, section);
+    const [moved] = list.splice(fromIdx, 1);
+    list.splice(toIdx, 0, moved);
+    const reordered = list.map((e, i) => ({ ...e, order: i + 1 }));
+    onChange({ ...day, exercises: reordered });
   };
 
   return (
@@ -474,7 +484,9 @@ const DayEditor = ({
           {open ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
           <span className="font-semibold text-foreground">Día {day.dayNumber}</span>
           <span className="text-sm text-muted-foreground">— {day.name || "Sin nombre"}</span>
-          <Badge variant="outline" className="text-xs">{basics.length} básicos · {accessories.length} accesorios</Badge>
+          <Badge variant="outline" className="text-xs">
+            {basicsCount} básicos · {accessoriesCount} accesorios{isOpposition ? ` · ${oppositionCount} oposición` : ""}
+          </Badge>
         </div>
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           {allDays.filter((d) => d.id !== day.id && d.exercises.length > 0).length > 0 && (
@@ -483,9 +495,13 @@ const DayEditor = ({
               onValueChange={(sourceDayId) => {
                 const sourceDay = allDays.find((d) => d.id === sourceDayId);
                 if (!sourceDay) return;
-                const clonedExercises = sourceDay.exercises.map((ex) => ({
+                const baseOrder = day.exercises.reduce((m, e) => Math.max(m, e.order ?? 0), 0);
+                const clonedExercises = [...sourceDay.exercises]
+                  .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                  .map((ex, i) => ({
                   ...ex,
                   id: `te-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                  order: baseOrder + i + 1,
                 }));
                 onChange({ ...day, exercises: [...day.exercises, ...clonedExercises] });
               }}
@@ -522,131 +538,91 @@ const DayEditor = ({
             </div>
           </div>
 
-          {/* BASICS */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-primary flex items-center gap-1.5">
-                <Dumbbell className="h-3.5 w-3.5" /> Básicos / Variantes
-              </h4>
-              <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-primary" onClick={() => addExercise("basic")}>
-                <Plus className="h-3 w-3" /> Añadir
-              </Button>
-            </div>
-            {basics.length === 0 && <p className="text-xs text-muted-foreground italic">Sin ejercicios básicos</p>}
-            {basics.map((ex, i) => (
-              <div
-                key={ex.id}
-                draggable
-                onDragStart={() => handleDragStart(ex.id)}
-                onDragEnd={handleDragEnd}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => handleDrop(ex.id, basics, "basic")}
-                className={`transition-opacity ${dragId === ex.id ? "opacity-40" : ""}`}
-              >
-                <ExerciseForm exercise={ex} section="basic" onChange={(u) => updateExercise(i, u)} onRemove={() => removeExercise(ex.id)} />
-              </div>
-            ))}
+          {/* Unified add-exercise toolbar — items are added at the end of the
+              ordered list and can then be repositioned via drag & drop. */}
+          <div className="flex flex-wrap items-center gap-2 p-2 rounded-lg border border-dashed border-border bg-muted/20">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1">Añadir:</span>
+            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-primary" onClick={() => addExercise("basic")}>
+              <Plus className="h-3 w-3" /> <Dumbbell className="h-3 w-3" /> Básico
+            </Button>
+            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-muted-foreground" onClick={() => addExercise("accessory")}>
+              <Plus className="h-3 w-3" /> Accesorio
+            </Button>
+            {isOpposition && (
+              <>
+                <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-sky-400" onClick={() => addExercise("running")}>
+                  <Plus className="h-3 w-3" /> <Footprints className="h-3 w-3" /> Carrera
+                </Button>
+                <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-violet-400" onClick={() => addExercise("running_technique")}>
+                  <Plus className="h-3 w-3" /> <Activity className="h-3 w-3" /> Técnica
+                </Button>
+                <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-amber-400" onClick={() => addExercise("official_test")}>
+                  <Plus className="h-3 w-3" /> <Trophy className="h-3 w-3" /> Prueba
+                </Button>
+              </>
+            )}
           </div>
 
-          {/* ACCESSORIES */}
+          {/* UNIFIED ORDERED LIST — drag & drop across all section types */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5">
-                🎯 Accesorios
-              </h4>
-              <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => addExercise("accessory")}>
-                <Plus className="h-3 w-3" /> Añadir
-              </Button>
-            </div>
-            {accessories.length === 0 && <p className="text-xs text-muted-foreground italic">Sin accesorios</p>}
-            {accessories.map((ex, i) => (
-              <div
-                key={ex.id}
-                draggable
-                onDragStart={() => handleDragStart(ex.id)}
-                onDragEnd={handleDragEnd}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => handleDrop(ex.id, accessories, "accessory")}
-                className={`transition-opacity ${dragId === ex.id ? "opacity-40" : ""}`}
-              >
-                <ExerciseForm exercise={ex} section="accessory" onChange={(u) => updateExercise(i, u)} onRemove={() => removeExercise(ex.id)} />
-              </div>
-            ))}
+            {orderedExercises.length === 0 && (
+              <p className="text-xs text-muted-foreground italic text-center py-4">
+                Sin ejercicios — añade el primero con los botones de arriba.
+              </p>
+            )}
+            {orderedExercises.map((ex, i) => {
+              const isOpp =
+                ex.section === "running" ||
+                ex.section === "running_technique" ||
+                ex.section === "official_test";
+              const sectLabel =
+                ex.section === "basic"
+                  ? { label: "Básico / Variante", cls: "text-primary", Icon: Dumbbell }
+                  : ex.section === "accessory"
+                  ? { label: "Accesorio", cls: "text-muted-foreground", Icon: Dumbbell }
+                  : ex.section === "running"
+                  ? { label: "Carrera", cls: "text-sky-400", Icon: Footprints }
+                  : ex.section === "running_technique"
+                  ? { label: "Técnica", cls: "text-violet-400", Icon: Activity }
+                  : { label: "Prueba oficial", cls: "text-amber-400", Icon: Trophy };
+              const SectIcon = sectLabel.Icon;
+              return (
+                <div
+                  key={ex.id}
+                  draggable
+                  onDragStart={() => handleDragStart(ex.id)}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => handleDrop(ex.id)}
+                  className={`transition-opacity ${dragId === ex.id ? "opacity-40" : ""}`}
+                >
+                  <div className="flex items-center gap-2 px-1 mb-1">
+                    <span className="text-[9px] text-muted-foreground/60 font-mono w-5 text-right">#{i + 1}</span>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 ${sectLabel.cls}`}>
+                      <SectIcon className="h-3 w-3" /> {sectLabel.label}
+                    </span>
+                    <span className="text-[9px] text-muted-foreground/50 ml-auto">⋮⋮ arrastra para reordenar</span>
+                  </div>
+                  {isOpp ? (
+                    <OppositionExerciseForm
+                      exercise={ex}
+                      section={ex.section as "running" | "running_technique" | "official_test"}
+                      oppositionType={opType}
+                      onChange={(u) => updateExercise(i, u)}
+                      onRemove={() => removeExercise(ex.id)}
+                    />
+                  ) : (
+                    <ExerciseForm
+                      exercise={ex}
+                      section={ex.section as "basic" | "accessory"}
+                      onChange={(u) => updateExercise(i, u)}
+                      onRemove={() => removeExercise(ex.id)}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
-
-          {/* OPPOSITION SECTIONS */}
-          {isOpposition && (
-            <>
-              {/* CARRERA */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-sky-400 flex items-center gap-1.5">
-                    <Footprints className="h-3.5 w-3.5" /> Carrera / Aeróbico
-                  </h4>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-sky-400" onClick={() => addExercise("running")}>
-                    <Plus className="h-3 w-3" /> Añadir
-                  </Button>
-                </div>
-                {runs.length === 0 && <p className="text-xs text-muted-foreground italic">Sin sesiones de carrera</p>}
-                {runs.map((ex) => (
-                  <OppositionExerciseForm
-                    key={ex.id}
-                    exercise={ex}
-                    section="running"
-                    oppositionType={opType}
-                    onChange={(u) => updateExercise(0, u)}
-                    onRemove={() => removeExercise(ex.id)}
-                  />
-                ))}
-              </div>
-
-              {/* TÉCNICA DE CARRERA */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-violet-400 flex items-center gap-1.5">
-                    <Activity className="h-3.5 w-3.5" /> Técnica de carrera
-                  </h4>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-violet-400" onClick={() => addExercise("running_technique")}>
-                    <Plus className="h-3 w-3" /> Añadir
-                  </Button>
-                </div>
-                {techs.length === 0 && <p className="text-xs text-muted-foreground italic">Sin ejercicios de técnica</p>}
-                {techs.map((ex) => (
-                  <OppositionExerciseForm
-                    key={ex.id}
-                    exercise={ex}
-                    section="running_technique"
-                    oppositionType={opType}
-                    onChange={(u) => updateExercise(0, u)}
-                    onRemove={() => removeExercise(ex.id)}
-                  />
-                ))}
-              </div>
-
-              {/* PRUEBA OFICIAL */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-amber-400 flex items-center gap-1.5">
-                    <Trophy className="h-3.5 w-3.5" /> Pruebas oficiales
-                  </h4>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-amber-400" onClick={() => addExercise("official_test")}>
-                    <Plus className="h-3 w-3" /> Añadir
-                  </Button>
-                </div>
-                {tests.length === 0 && <p className="text-xs text-muted-foreground italic">Sin pruebas programadas</p>}
-                {tests.map((ex) => (
-                  <OppositionExerciseForm
-                    key={ex.id}
-                    exercise={ex}
-                    section="official_test"
-                    oppositionType={opType}
-                    onChange={(u) => updateExercise(0, u)}
-                    onRemove={() => removeExercise(ex.id)}
-                  />
-                ))}
-              </div>
-            </>
-          )}
         </div>
       </CollapsibleContent>
     </Collapsible>
