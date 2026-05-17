@@ -672,6 +672,14 @@ model CheckinTrainingExercise {
   actualMarkValue   Float?
   actualMarkUnit    String? @db.VarChar(20)
   scoreObtained     Int?
+  // Opposition / running planned (snapshot from prescription)
+  sectionExt         String? @db.VarChar(30)
+  plannedDistanceM   Float?
+  plannedDurationSec Int?
+  plannedPace        String? @db.VarChar(20)
+  plannedHeartRate   Int?
+  plannedMarkValue   Float?
+  plannedMarkUnit    String? @db.VarChar(20)
   createdAt      DateTime @default(now())
 
   log CheckinTrainingLog @relation(fields: [logId], references: [id], onDelete: Cascade)

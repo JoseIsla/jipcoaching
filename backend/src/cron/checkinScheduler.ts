@@ -242,7 +242,14 @@ async function generateTrainingCheckins() {
 
       // Pre-populate training log
       for (const day of activeWeek.days) {
-        const logExercises = day.exercises.filter((e) => e.type === "BASIC" || e.type === "VARIANT");
+        const logExercises = day.exercises.filter(
+          (e) =>
+            e.type === "BASIC" ||
+            e.type === "VARIANT" ||
+            (e as any).sectionExt === "running" ||
+            (e as any).sectionExt === "running_technique" ||
+            (e as any).sectionExt === "official_test",
+        );
         if (logExercises.length === 0) continue;
 
         const log = await prisma.checkinTrainingLog.create({
@@ -297,12 +304,23 @@ async function generateTrainingCheckins() {
               logId: log.id,
               exerciseId: ex.id,
               exerciseName: ex.name,
-              section: ex.type === "BASIC" ? "basic" : "variant",
+              section: (ex as any).sectionExt
+                ? (ex as any).sectionExt
+                : ex.type === "BASIC"
+                ? "basic"
+                : "variant",
+              sectionExt: (ex as any).sectionExt || null,
               method,
               plannedSets,
               plannedReps,
               plannedLoad,
               plannedRPE: ex.topSetRpe,
+              plannedDistanceM: (ex as any).plannedDistanceM ?? null,
+              plannedDurationSec: (ex as any).plannedDurationSec ?? null,
+              plannedPace: (ex as any).plannedPace ?? null,
+              plannedHeartRate: (ex as any).plannedHeartRate ?? null,
+              plannedMarkValue: (ex as any).plannedMarkValue ?? null,
+              plannedMarkUnit: (ex as any).plannedMarkUnit ?? null,
               sortOrder: ex.order ?? idx,
             };
           }),
