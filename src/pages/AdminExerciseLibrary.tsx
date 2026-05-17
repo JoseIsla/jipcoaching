@@ -975,6 +975,14 @@ const AdminExerciseLibrary = () => {
               <ExerciseSection icon={Dumbbell} iconClass="text-primary" title="Básicos" items={basics} mode="basico" onRemove={handleRemove} />
               <ExerciseSection icon={Layers} iconClass="text-accent" title="Variantes" items={variants} mode="variante" onRemove={handleRemove} showParent />
               <ExerciseSection icon={Target} iconClass="text-muted-foreground" title="Accesorios" items={accessories} mode="accesorio" onRemove={handleRemove} />
+              <div className="pt-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Oposiciones</p>
+                <div className="space-y-4">
+                  <OppositionSection icon={Footprints} iconClass="text-sky-400" title="Carrera" kind="RUNNING" items={runs} onRemove={handleRemove} />
+                  <OppositionSection icon={Activity} iconClass="text-violet-400" title="Técnica de carrera" kind="RUNNING_TECHNIQUE" items={techs} onRemove={handleRemove} />
+                  <OppositionSection icon={Trophy} iconClass="text-amber-400" title="Pruebas oficiales" kind="OFFICIAL_TEST" items={tests} onRemove={handleRemove} />
+                </div>
+              </div>
             </div>
           </TabsContent>
 
