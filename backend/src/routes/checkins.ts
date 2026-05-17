@@ -344,7 +344,9 @@ router.post("/:id/submit", async (req, res) => {
           }
 
           const rows: any[] = [];
-          for (const e of day.exercises as any[]) {
+          const dayExercises = day.exercises as any[];
+          for (let exIdx = 0; exIdx < dayExercises.length; exIdx++) {
+            const e = dayExercises[exIdx];
             const clean = sanitizeExerciseRow(e);
             let scoreObtained: number | null = null;
             if (
@@ -366,6 +368,7 @@ router.post("/:id/submit", async (req, res) => {
               section: clean.section || "basic",
               sectionExt: clean.sectionExt || null,
               method: clean.method || null,
+              sortOrder: Number.isFinite(Number(e.sortOrder)) ? Number(e.sortOrder) : exIdx,
               plannedSets: clean.plannedSets,
               plannedReps: clean.plannedReps,
               plannedLoad: clean.plannedLoad,
