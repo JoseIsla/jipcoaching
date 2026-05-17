@@ -565,7 +565,127 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                               </tr>
                             </thead>
                             <tbody>
-                              {day.exercises.map((ex, exIdx) => (
+                              {day.exercises.map((ex, exIdx) => {
+                                const sect = (ex as any).sectionExt || ex.section;
+                                const isOpp =
+                                  sect === "running" ||
+                                  sect === "running_technique" ||
+                                  sect === "official_test";
+                                if (isOpp) {
+                                  const sectLabel =
+                                    sect === "running"
+                                      ? "Carrera"
+                                      : sect === "running_technique"
+                                      ? "Técnica"
+                                      : "Prueba oficial";
+                                  const plannedBits: string[] = [];
+                                  if ((ex as any).plannedDistanceM) plannedBits.push(`${(ex as any).plannedDistanceM}m`);
+                                  if ((ex as any).plannedDurationSec) {
+                                    const s = (ex as any).plannedDurationSec as number;
+                                    const m = Math.floor(s / 60); const r = s % 60;
+                                    plannedBits.push(m > 0 ? `${m}:${String(r).padStart(2, "0")}` : `${r}s`);
+                                  }
+                                  if ((ex as any).plannedPace) plannedBits.push(`${(ex as any).plannedPace}/km`);
+                                  if ((ex as any).plannedHeartRate) plannedBits.push(`${(ex as any).plannedHeartRate}bpm`);
+                                  if ((ex as any).plannedMarkValue != null)
+                                    plannedBits.push(`${(ex as any).plannedMarkValue}${(ex as any).plannedMarkUnit || ""}`);
+                                  return (
+                                    <React.Fragment key={exIdx}>
+                                      <tr className="border-t border-border/50 align-top bg-primary/[0.03]">
+                                        <td className="px-2 py-2 font-medium text-foreground max-w-[90px]">
+                                          <span className="block leading-tight">{ex.exerciseName}</span>
+                                          <span className="block text-[9px] text-primary/80 mt-0.5">{sectLabel}</span>
+                                        </td>
+                                        <td className="px-2 py-2 text-center text-muted-foreground">
+                                          <span className="block text-[9px] whitespace-pre-line">
+                                            {plannedBits.length > 0 ? plannedBits.join("\n") : "—"}
+                                          </span>
+                                        </td>
+                                        <td className="px-1.5 py-1.5" colSpan={2}>
+                                          <div className="grid grid-cols-2 gap-1">
+                                            <div>
+                                              <span className="block text-[8px] text-primary/70 text-center leading-none mb-0.5">Distancia (m)</span>
+                                              <Input
+                                                type="number"
+                                                inputMode="decimal"
+                                                className="h-7 text-[11px] text-center bg-background border-border px-1"
+                                                placeholder={(ex as any).plannedDistanceM ? String((ex as any).plannedDistanceM) : "m"}
+                                                value={(ex as any).actualDistanceM ?? ""}
+                                                onChange={(e) => updateExercise(dayIdx, exIdx, "actualDistanceM", e.target.value === "" ? undefined : Number(e.target.value))}
+                                              />
+                                            </div>
+                                            <div>
+                                              <span className="block text-[8px] text-primary/70 text-center leading-none mb-0.5">Tiempo (seg)</span>
+                                              <Input
+                                                type="number"
+                                                inputMode="decimal"
+                                                className="h-7 text-[11px] text-center bg-background border-border px-1"
+                                                placeholder={(ex as any).plannedDurationSec ? String((ex as any).plannedDurationSec) : "seg"}
+                                                value={(ex as any).actualDurationSec ?? ""}
+                                                onChange={(e) => updateExercise(dayIdx, exIdx, "actualDurationSec", e.target.value === "" ? undefined : Number(e.target.value))}
+                                              />
+                                            </div>
+                                            <div>
+                                              <span className="block text-[8px] text-muted-foreground/70 text-center leading-none mb-0.5">Ritmo /km</span>
+                                              <Input
+                                                type="text"
+                                                className="h-7 text-[11px] text-center bg-background border-border px-1"
+                                                placeholder={(ex as any).plannedPace || "4:30"}
+                                                value={(ex as any).actualPace ?? ""}
+                                                onChange={(e) => updateExercise(dayIdx, exIdx, "actualPace", e.target.value || undefined)}
+                                              />
+                                            </div>
+                                            <div>
+                                              <span className="block text-[8px] text-muted-foreground/70 text-center leading-none mb-0.5">FC media</span>
+                                              <Input
+                                                type="number"
+                                                inputMode="numeric"
+                                                className="h-7 text-[11px] text-center bg-background border-border px-1"
+                                                placeholder={(ex as any).plannedHeartRate ? String((ex as any).plannedHeartRate) : "bpm"}
+                                                value={(ex as any).actualHeartRate ?? ""}
+                                                onChange={(e) => updateExercise(dayIdx, exIdx, "actualHeartRate", e.target.value === "" ? undefined : Number(e.target.value))}
+                                              />
+                                            </div>
+                                            {sect === "official_test" && (
+                                              <div className="col-span-2">
+                                                <span className="block text-[8px] text-primary/80 text-center leading-none mb-0.5">
+                                                  Marca {(ex as any).plannedMarkUnit ? `(${(ex as any).plannedMarkUnit})` : ""}
+                                                </span>
+                                                <Input
+                                                  type="number"
+                                                  inputMode="decimal"
+                                                  step="0.01"
+                                                  className="h-7 text-[11px] text-center bg-background border-border px-1"
+                                                  placeholder={(ex as any).plannedMarkValue != null ? String((ex as any).plannedMarkValue) : "valor"}
+                                                  value={(ex as any).actualMarkValue ?? ""}
+                                                  onChange={(e) => {
+                                                    const v = e.target.value === "" ? undefined : Number(e.target.value);
+                                                    updateExercise(dayIdx, exIdx, "actualMarkValue", v as any);
+                                                    if (!(ex as any).actualMarkUnit && (ex as any).plannedMarkUnit) {
+                                                      updateExercise(dayIdx, exIdx, "actualMarkUnit", (ex as any).plannedMarkUnit);
+                                                    }
+                                                  }}
+                                                />
+                                              </div>
+                                            )}
+                                          </div>
+                                        </td>
+                                      </tr>
+                                      <tr className="border-t border-border/20">
+                                        <td colSpan={4} className="px-2 py-1">
+                                          <Input
+                                            type="text"
+                                            className="h-6 text-[10px] bg-background border-border px-1.5 w-full"
+                                            placeholder="Comentario (opcional)"
+                                            value={ex.comment ?? ""}
+                                            onChange={(e) => updateExercise(dayIdx, exIdx, "comment", e.target.value || undefined)}
+                                          />
+                                        </td>
+                                      </tr>
+                                    </React.Fragment>
+                                  );
+                                }
+                                return (
                                 <React.Fragment key={exIdx}>
                                 <tr className="border-t border-border/50 align-top">
                                   <td className="px-2 py-2 font-medium text-foreground max-w-[90px]">
@@ -662,7 +782,8 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                   </td>
                                 </tr>
                                 </React.Fragment>
-                              ))}
+                                );
+                              })}
                             </tbody>
                           </table>
                         </div>
