@@ -905,9 +905,14 @@ const AdminExerciseLibrary = () => {
   const match = (e: ExerciseLibraryItem) =>
     e.name.toLowerCase().includes(ls) || (e.muscleGroup || "").toLowerCase().includes(ls);
 
-  const basics = exercises.filter((e) => e.category === "basico" && match(e));
-  const variants = exercises.filter((e) => e.category === "variante" && match(e));
-  const accessories = exercises.filter((e) => e.category === "accesorio" && match(e));
+  const isGym = (e: ExerciseLibraryItem) => !e.kind || e.kind === "GYM";
+  const isOppKind = (e: ExerciseLibraryItem, k: OppKind) => (e.kind || "") === k;
+  const basics = exercises.filter((e) => e.category === "basico" && isGym(e) && match(e));
+  const variants = exercises.filter((e) => e.category === "variante" && isGym(e) && match(e));
+  const accessories = exercises.filter((e) => e.category === "accesorio" && isGym(e) && match(e));
+  const runs = exercises.filter((e) => isOppKind(e, "RUNNING") && match(e));
+  const techs = exercises.filter((e) => isOppKind(e, "RUNNING_TECHNIQUE") && match(e));
+  const tests = exercises.filter((e) => isOppKind(e, "OFFICIAL_TEST") && match(e));
 
   return (
     <AdminLayout>
