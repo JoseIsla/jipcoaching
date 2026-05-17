@@ -318,14 +318,21 @@ export const exportTrainingWeekPDF = async (
       y += 6;
     }
 
-    const basics = day.exercises.filter((e) => e.section === "basic");
-    const accessories = day.exercises.filter((e) => e.section === "accessory");
-    const runs = day.exercises.filter((e) => e.section === "running");
-    const techs = day.exercises.filter((e) => e.section === "running_technique");
-    const tests = day.exercises.filter((e) => e.section === "official_test");
+    // Render exercises in the admin-defined order (single ordered list).
+    // Each contiguous run of same-section items is emitted as one mini-table so
+    // headers and columns remain meaningful per section type.
+    const ordered = [...day.exercises].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-    // Basics table
-    if (basics.length > 0) {
+    // Group consecutive items of the same section.
+    type Group = { section: string; items: typeof ordered };
+    const groups: Group[] = [];
+    for (const ex of ordered) {
+      const last = groups[groups.length - 1];
+      if (last && last.section === ex.section) last.items.push(ex);
+      else groups.push({ section: ex.section, items: [ex] });
+    }
+
+    const renderBasics = (basics: typeof ordered) => {
       const basicRows = basics.map((ex) => {
         const method = ex.method ? (TRAINING_METHOD_LABELS[ex.method] || ex.method) : "";
         const prescription: string[] = [];
@@ -352,11 +359,10 @@ export const exportTrainingWeekPDF = async (
           notes || "",
         ];
       });
-
       autoTable(doc, {
         startY: y,
         margin: { left: MARGIN, right: MARGIN },
-        head: [["Ejercicio", "Método", "Prescripción", "Notas"]],
+        head: [["Básico / Variante", "Método", "Prescripción", "Notas"]],
         body: basicRows,
         theme: "grid",
         styles: { ...baseStyles, cellPadding: 2.5 },
@@ -370,17 +376,10 @@ export const exportTrainingWeekPDF = async (
         },
       });
       y = (doc as any).lastAutoTable.finalY + 3;
-    }
+    };
 
-    // Accessories table
-    if (accessories.length > 0) {
+    const renderAccessories = (accessories: typeof ordered) => {
       y = checkPage(doc, y, 15);
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(...TEXT_MUTED);
-      doc.text("Accesorios", MARGIN, y + 2);
-      y += 3;
-
       const accRows = accessories.map((ex) => {
         const vol: string[] = [];
         if (ex.sets) vol.push(`${ex.sets} series`);
@@ -388,7 +387,6 @@ export const exportTrainingWeekPDF = async (
         if (ex.intensityType && ex.intensityValue != null) vol.push(`${ex.intensityType} ${ex.intensityValue}`);
         return [ex.exerciseName || "—", vol.join("  ") || "—", ex.technicalNotes || ""];
       });
-
       autoTable(doc, {
         startY: y,
         margin: { left: MARGIN, right: MARGIN },
@@ -404,16 +402,10 @@ export const exportTrainingWeekPDF = async (
         },
       });
       y = (doc as any).lastAutoTable.finalY + 3;
-    }
+    };
 
-    // Running
-    if (runs.length > 0) {
+    const renderRuns = (runs: typeof ordered) => {
       y = checkPage(doc, y, 15);
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(...NEON_GREEN);
-      doc.text("Carrera / Aeróbico", MARGIN, y + 2);
-      y += 3;
       const rows = runs.map((ex) => {
         const v: string[] = [];
         if (ex.plannedDistanceM != null) v.push(`${ex.plannedDistanceM}m`);
@@ -424,23 +416,17 @@ export const exportTrainingWeekPDF = async (
       });
       autoTable(doc, {
         startY: y, margin: { left: MARGIN, right: MARGIN },
-        head: [["Sesión", "Pautado", "Notas"]], body: rows, theme: "grid",
+        head: [["Carrera / Aeróbico", "Pautado", "Notas"]], body: rows, theme: "grid",
         styles: { ...baseStyles, fontSize: 7.5, cellPadding: 2 },
         headStyles: headStylesSecondary,
         alternateRowStyles: { fillColor: [...altRowColor] },
         columnStyles: { 0: { fontStyle: "bold", textColor: [...WHITE] }, 2: { fontSize: 7, textColor: [...TEXT_MUTED] } },
       });
       y = (doc as any).lastAutoTable.finalY + 3;
-    }
+    };
 
-    // Running technique
-    if (techs.length > 0) {
+    const renderTechs = (techs: typeof ordered) => {
       y = checkPage(doc, y, 15);
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(...NEON_GREEN);
-      doc.text("Técnica de carrera", MARGIN, y + 2);
-      y += 3;
       const rows = techs.map((ex) => {
         const v: string[] = [];
         if (ex.sets) v.push(`${ex.sets} series`);
@@ -450,23 +436,17 @@ export const exportTrainingWeekPDF = async (
       });
       autoTable(doc, {
         startY: y, margin: { left: MARGIN, right: MARGIN },
-        head: [["Ejercicio", "Volumen", "Notas"]], body: rows, theme: "grid",
+        head: [["Técnica de carrera", "Volumen", "Notas"]], body: rows, theme: "grid",
         styles: { ...baseStyles, fontSize: 7.5, cellPadding: 2 },
         headStyles: headStylesSecondary,
         alternateRowStyles: { fillColor: [...altRowColor] },
         columnStyles: { 0: { fontStyle: "bold", textColor: [...WHITE] }, 2: { fontSize: 7, textColor: [...TEXT_MUTED] } },
       });
       y = (doc as any).lastAutoTable.finalY + 3;
-    }
+    };
 
-    // Official tests
-    if (tests.length > 0) {
+    const renderTests = (tests: typeof ordered) => {
       y = checkPage(doc, y, 15);
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(...NEON_GREEN);
-      doc.text("Pruebas oficiales", MARGIN, y + 2);
-      y += 3;
       const rows = tests.map((ex) => {
         const v: string[] = [];
         if (ex.plannedMarkValue != null) v.push(`Objetivo: ${ex.plannedMarkValue} ${ex.plannedMarkUnit || ""}`.trim());
@@ -474,13 +454,23 @@ export const exportTrainingWeekPDF = async (
       });
       autoTable(doc, {
         startY: y, margin: { left: MARGIN, right: MARGIN },
-        head: [["Prueba", "Objetivo", "Notas"]], body: rows, theme: "grid",
+        head: [["Prueba oficial", "Objetivo", "Notas"]], body: rows, theme: "grid",
         styles: { ...baseStyles, fontSize: 7.5, cellPadding: 2 },
         headStyles: headStylesSecondary,
         alternateRowStyles: { fillColor: [...altRowColor] },
         columnStyles: { 0: { fontStyle: "bold", textColor: [...WHITE] }, 2: { fontSize: 7, textColor: [...TEXT_MUTED] } },
       });
       y = (doc as any).lastAutoTable.finalY + 3;
+    };
+
+    // Emit one mini-table per consecutive same-section group, preserving the
+    // admin's chosen ordering across sections.
+    for (const g of groups) {
+      if (g.section === "basic") renderBasics(g.items);
+      else if (g.section === "accessory") renderAccessories(g.items);
+      else if (g.section === "running") renderRuns(g.items);
+      else if (g.section === "running_technique") renderTechs(g.items);
+      else if (g.section === "official_test") renderTests(g.items);
     }
 
     if (day.exercises.length === 0) {
