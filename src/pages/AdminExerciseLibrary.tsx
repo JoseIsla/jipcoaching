@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Library, Dumbbell, Target, Plus, Trash2, Search, Pencil, ChevronDown, Layers, Apple, Leaf, Pill } from "lucide-react";
+import { Library, Dumbbell, Target, Plus, Trash2, Search, Pencil, ChevronDown, Layers, Apple, Leaf, Pill, Footprints, Activity, Trophy } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,11 +18,44 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useExerciseLibraryStore, type ExerciseLibraryItem } from "@/data/useExerciseLibraryStore";
 import { useNutritionPlanStore, type ApiSupplement } from "@/data/useNutritionPlanStore";
+import { OppositionType, oppositionTypeLabels } from "@/types/api";
 
 const MUSCLE_GROUPS = [
   "Pierna", "Posterior", "Glúteo", "Pecho", "Hombro",
   "Espalda", "Brazos", "Core", "Prehab",
 ];
+
+// Opposition kinds and units
+type OppKind = "RUNNING" | "RUNNING_TECHNIQUE" | "OFFICIAL_TEST";
+const OPP_KIND_LABEL: Record<OppKind, string> = {
+  RUNNING: "Carrera",
+  RUNNING_TECHNIQUE: "Técnica de carrera",
+  OFFICIAL_TEST: "Prueba oficial",
+};
+const OPP_UNITS: { value: string; label: string }[] = [
+  { value: "seconds", label: "Segundos" },
+  { value: "minutes", label: "Minutos" },
+  { value: "meters", label: "Metros" },
+  { value: "reps", label: "Repeticiones" },
+  { value: "periods", label: "Periodos (Course-Navette)" },
+  { value: "cm", label: "Centímetros" },
+  { value: "kg", label: "Kilogramos" },
+];
+const ALL_OPPOSITIONS: OppositionType[] = [
+  OppositionType.POLICIA_NACIONAL,
+  OppositionType.POLICIA_LOCAL,
+  OppositionType.BOMBEROS,
+  OppositionType.TROPA_MARINERIA,
+  OppositionType.GUARDIA_CIVIL,
+];
+
+const parseOppositionTypes = (raw?: string | null): OppositionType[] => {
+  if (!raw) return [];
+  try {
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? (arr as OppositionType[]) : [];
+  } catch { return []; }
+};
 
 // ==================== ADD DIALOG ====================
 
