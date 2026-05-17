@@ -118,10 +118,21 @@ const mapApiExerciseToEntry = (ex: ApiExercisePrescription, idx: number, exercis
     ? (ex.intensityType as "RIR" | "RPE" || "RIR")
     : undefined;
 
+  // Map sectionExt (running / running_technique / official_test) to the
+  // frontend's `section` union; otherwise fall back to basic/accessory derived
+  // from the exercise type.
+  const sectionExt = (ex as any).sectionExt as string | null | undefined;
+  let section: "basic" | "accessory" | "running" | "running_technique" | "official_test";
+  if (sectionExt === "running" || sectionExt === "running_technique" || sectionExt === "official_test") {
+    section = sectionExt;
+  } else {
+    section = (ex.type === "BASIC" || ex.type === "VARIANT") ? "basic" : "accessory";
+  }
+
   return {
     id: ex.id,
     order: ex.order ?? idx + 1,
-    section: (ex.type === "BASIC" || ex.type === "VARIANT" ? "basic" : "accessory") as "basic" | "accessory",
+    section,
     exerciseId: matchedExercise?.id,
     exerciseName: ex.name,
     exerciseType: ex.type,
@@ -144,6 +155,12 @@ const mapApiExerciseToEntry = (ex: ApiExercisePrescription, idx: number, exercis
     backoffRule: ex.backoffRule,
     customMethodName: ex.customMethodName,
     customMethodDescription: ex.customMethodDescription,
+    plannedDistanceM: ex.plannedDistanceM ?? undefined,
+    plannedDurationSec: ex.plannedDurationSec ?? undefined,
+    plannedPace: ex.plannedPace ?? undefined,
+    plannedHeartRate: ex.plannedHeartRate ?? undefined,
+    plannedMarkValue: ex.plannedMarkValue ?? undefined,
+    plannedMarkUnit: ex.plannedMarkUnit ?? undefined,
   };
 };
 

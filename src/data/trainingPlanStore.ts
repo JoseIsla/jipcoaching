@@ -30,12 +30,18 @@ export interface ExerciseLibraryItem {
   category: "basico" | "variante" | "accesorio";
   muscleGroup?: string;
   parentExerciseId?: string;
+  /** "GYM" | "RUNNING" | "RUNNING_TECHNIQUE" | "OFFICIAL_TEST" — null/undefined = GYM */
+  kind?: string | null;
+  /** JSON-stringified array of OppositionType values (when applicable) */
+  oppositionTypes?: string | null;
+  /** Default measurement unit for OFFICIAL_TEST items ("seconds" | "reps" | "cm" | "kg" | "periods") */
+  defaultUnit?: string | null;
 }
 
 export interface TrainingExerciseEntry {
   id: string;
   order: number;
-  section: "basic" | "accessory";
+  section: "basic" | "accessory" | "running" | "running_technique" | "official_test";
   exerciseId?: string;
   exerciseName: string;
   exerciseType?: string;
@@ -60,6 +66,13 @@ export interface TrainingExerciseEntry {
   // Custom method
   customMethodName?: string;
   customMethodDescription?: string;
+  // ── Opposition-specific planned metrics (running / official_test) ──
+  plannedDistanceM?: number;
+  plannedDurationSec?: number;
+  plannedPace?: string;
+  plannedHeartRate?: number;
+  plannedMarkValue?: number;
+  plannedMarkUnit?: string;
 }
 
 export interface TrainingDay {
