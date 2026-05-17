@@ -236,6 +236,11 @@ export interface ApiExercise {
   videoUrl?: string;
   notes?: string;
   parentExerciseId?: string;
+  /** "GYM" | "RUNNING" | "RUNNING_TECHNIQUE" | "OFFICIAL_TEST" (null = GYM) */
+  kind?: string | null;
+  /** JSON string array of OppositionType values */
+  oppositionTypes?: string | null;
+  defaultUnit?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -301,6 +306,14 @@ export interface ApiExercisePrescription {
   customMethodName?: string;
   customMethodDescription?: string;
   intensityType?: string;
+  // Opposition / running extensions
+  sectionExt?: string | null;
+  plannedDistanceM?: number | null;
+  plannedDurationSec?: number | null;
+  plannedPace?: string | null;
+  plannedHeartRate?: number | null;
+  plannedMarkValue?: number | null;
+  plannedMarkUnit?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -357,6 +370,14 @@ export interface ApiExerciseLog {
   backoffRpe?: number;
   backoffSetsCount?: number;
   notes?: string;
+  // Opposition / running metrics
+  distanceMeters?: number | null;
+  durationSeconds?: number | null;
+  pace?: string | null;
+  heartRateAvg?: number | null;
+  markValue?: number | null;
+  markUnit?: string | null;
+  scoreObtained?: number | null;
   createdAt?: string;
 }
 
