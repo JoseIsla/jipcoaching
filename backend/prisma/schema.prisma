@@ -301,6 +301,12 @@ model Exercise {
   videoUrl         String?          @db.VarChar(500)
   notes            String?          @db.Text
   parentExerciseId String?
+  /// Domain: "GYM" | "RUNNING" | "RUNNING_TECHNIQUE" | "OFFICIAL_TEST" (null = GYM)
+  kind             String?          @db.VarChar(30)
+  /// JSON array of OppositionType values where this exercise applies
+  oppositionTypes  String?          @db.Text
+  /// Default unit for official tests ("seconds", "reps", "cm", "kg", "meters", "periods")
+  defaultUnit      String?          @db.VarChar(20)
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
