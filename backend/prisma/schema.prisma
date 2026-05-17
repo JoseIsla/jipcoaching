@@ -697,6 +697,14 @@ model ExerciseLog {
   backoffRpe      Float?
   backoffSetsCount Int?
   notes           String? @db.Text
+  // Opposition / running metrics
+  distanceMeters  Float?
+  durationSeconds Int?
+  pace            String? @db.VarChar(20)
+  heartRateAvg    Int?
+  markValue       Float?
+  markUnit        String? @db.VarChar(20)
+  scoreObtained   Int?
   createdAt       DateTime @default(now())
 
   prescription ExercisePrescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
