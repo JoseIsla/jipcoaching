@@ -6,6 +6,7 @@ import { authenticate, requireRole } from "../middleware/auth";
 import { uploadVideo } from "../middleware/upload";
 import { transcodeVideoInBackground } from "../utils/transcodeVideo";
 import { scoreFromMark, modalityToOppositionType } from "../utils/oppositionScoring";
+import { runAndPersistAnalysis, isClaudeConfigured } from "../utils/claudeClient";
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || "./uploads";
 
@@ -135,6 +136,11 @@ trainingLogs: {
         required: q.required,
         options: q.optionsJson ? JSON.parse(q.optionsJson) : undefined,
       })),
+      aiAnalysis: (c as any).aiAnalysis ?? null,
+      aiDraftResponse: (c as any).aiDraftResponse ?? null,
+      aiAnalyzedAt: (c as any).aiAnalyzedAt ? (c as any).aiAnalyzedAt.toISOString() : null,
+      adminFeedback: (c as any).adminFeedback ?? null,
+      feedbackSentAt: (c as any).feedbackSentAt ? (c as any).feedbackSentAt.toISOString() : null,
     }));
 
     // Deduplicate: if multiple check-ins exist for same client+date+category,
@@ -554,6 +560,13 @@ router.post("/:id/submit", async (req, res) => {
     }
 
     res.json({ message: "Check-in enviado correctamente" });
+
+    // Fire-and-forget: auto-analizar check-in de nutrición con Claude
+    if (checkin && checkin.category === "NUTRITION" && isClaudeConfigured()) {
+      runAndPersistAnalysis(checkinId).catch((err) => {
+        console.warn("[AI] Auto-analysis failed for checkin", checkinId, err?.message || err);
+      });
+    }
   } catch (err: any) {
     console.error("POST /checkins/:id/submit error:", err);
     res.status(500).json({ message: "Error al enviar check-in" });
@@ -571,6 +584,94 @@ router.patch("/:id/review", requireRole("ADMIN"), async (req, res) => {
   } catch (err: any) {
     console.error("PATCH /checkins/:id/review error:", err);
     res.status(500).json({ message: "Error al marcar check-in como revisado" });
+  }
+});
+
+// POST /api/checkins/:id/analyze — Trigger / re-run Claude analysis (admin only)
+router.post("/:id/analyze", requireRole("ADMIN"), async (req, res) => {
+  try {
+    if (!isClaudeConfigured()) {
+      res.status(503).json({ message: "ANTHROPIC_API_KEY no configurada en el servidor" });
+      return;
+    }
+    const id = req.params.id as string;
+    const checkin = await prisma.checkin.findUnique({ where: { id } });
+    if (!checkin) { res.status(404).json({ message: "Check-in no encontrado" }); return; }
+    if (checkin.category !== "NUTRITION") {
+      res.status(400).json({ message: "Por ahora solo se analizan check-ins de nutrición" });
+      return;
+    }
+    const result = await runAndPersistAnalysis(id);
+    if (!result) { res.status(500).json({ message: "No se pudo generar el análisis" }); return; }
+    const updated = await prisma.checkin.findUnique({ where: { id } });
+    res.json({
+      aiAnalysis: (updated as any)?.aiAnalysis ?? null,
+      aiDraftResponse: (updated as any)?.aiDraftResponse ?? null,
+      aiAnalyzedAt: (updated as any)?.aiAnalyzedAt?.toISOString() ?? null,
+    });
+  } catch (err: any) {
+    console.error("POST /checkins/:id/analyze error:", err);
+    res.status(500).json({ message: err?.message || "Error al analizar check-in" });
+  }
+});
+
+// PUT /api/checkins/:id/feedback — Save admin draft without sending
+router.put("/:id/feedback", requireRole("ADMIN"), async (req, res) => {
+  try {
+    const id = req.params.id as string;
+    const { adminFeedback } = req.body as { adminFeedback?: string };
+    if (typeof adminFeedback !== "string") {
+      res.status(400).json({ message: "adminFeedback requerido" });
+      return;
+    }
+    await prisma.checkin.update({
+      where: { id },
+      data: ({ adminFeedback: adminFeedback.slice(0, 8000) } as any),
+    });
+    res.json({ message: "Borrador guardado" });
+  } catch (err: any) {
+    console.error("PUT /checkins/:id/feedback error:", err);
+    res.status(500).json({ message: "Error al guardar borrador" });
+  }
+});
+
+// POST /api/checkins/:id/feedback/send — Send feedback to client
+router.post("/:id/feedback/send", requireRole("ADMIN"), async (req, res) => {
+  try {
+    const id = req.params.id as string;
+    const { adminFeedback } = req.body as { adminFeedback?: string };
+    const checkin = await prisma.checkin.findUnique({
+      where: { id },
+      include: { client: { select: { userId: true, name: true } } },
+    });
+    if (!checkin) { res.status(404).json({ message: "Check-in no encontrado" }); return; }
+    const finalFeedback = (typeof adminFeedback === "string" ? adminFeedback : (checkin as any).adminFeedback || "").trim();
+    if (!finalFeedback) {
+      res.status(400).json({ message: "El feedback está vacío" });
+      return;
+    }
+    await prisma.checkin.update({
+      where: { id },
+      data: ({
+        adminFeedback: finalFeedback.slice(0, 8000),
+        feedbackSentAt: new Date(),
+        status: "REVIEWED",
+        reviewedAt: new Date(),
+      } as any),
+    });
+    await prisma.notification.create({
+      data: {
+        userId: checkin.client.userId,
+        type: "checkin_feedback",
+        title: "💬 Tu coach ha revisado tu check-in",
+        message: "Has recibido feedback personalizado en tu check-in de nutrición.",
+        link: "/client/checkins",
+      },
+    });
+    res.json({ message: "Feedback enviado al cliente", feedbackSentAt: new Date().toISOString() });
+  } catch (err: any) {
+    console.error("POST /checkins/:id/feedback/send error:", err);
+    res.status(500).json({ message: "Error al enviar feedback" });
   }
 });
 

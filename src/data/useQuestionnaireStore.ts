@@ -106,6 +106,12 @@ export interface QuestionnaireEntry {
   planId?: string;
   weekNumber?: number;
   templateQuestions?: { id: string; label: string; type: string; required: boolean; options?: string[] }[];
+  // AI-assisted review (Claude) — nutrition only
+  aiAnalysis?: string | null;
+  aiDraftResponse?: string | null;
+  aiAnalyzedAt?: string | null;
+  adminFeedback?: string | null;
+  feedbackSentAt?: string | null;
 }
 
 // ── Window status helper ──
