@@ -626,7 +626,7 @@ router.put("/:id/feedback", requireRole("ADMIN"), async (req, res) => {
     }
     await prisma.checkin.update({
       where: { id },
-      data: { adminFeedback: adminFeedback.slice(0, 8000) },
+      data: ({ adminFeedback: adminFeedback.slice(0, 8000) } as any),
     });
     res.json({ message: "Borrador guardado" });
   } catch (err: any) {
@@ -652,12 +652,12 @@ router.post("/:id/feedback/send", requireRole("ADMIN"), async (req, res) => {
     }
     await prisma.checkin.update({
       where: { id },
-      data: {
+      data: ({
         adminFeedback: finalFeedback.slice(0, 8000),
         feedbackSentAt: new Date(),
         status: "REVIEWED",
         reviewedAt: new Date(),
-      },
+      } as any),
     });
     await prisma.notification.create({
       data: {

@@ -178,11 +178,11 @@ export async function runAndPersistAnalysis(checkinId: string): Promise<AnalyzeR
     : "";
   await prisma.checkin.update({
     where: { id: checkinId },
-    data: {
+    data: ({
       aiAnalysis: result.analysis + alertsLine,
       aiDraftResponse: result.draftResponse,
       aiAnalyzedAt: new Date(),
-    },
+    } as any),
   });
   return result;
 }
