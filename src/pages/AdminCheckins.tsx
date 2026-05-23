@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { Video, RotateCcw, ChevronDown } from "lucide-react";
+import { Video, RotateCcw, ChevronDown, Sparkles, Send, Loader2, MessageSquareText } from "lucide-react";
 import { api } from "@/services/api";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { ClipboardList, Utensils, Dumbbell, CheckCircle2, Clock, XCircle, ChevronLeft, ChevronRight, Eye, Download, User, AlertTriangle } from "lucide-react";
 import { type QuestionnaireEntry, getEntryWindowStatus } from "@/data/useQuestionnaireStore";
 import { useQuestionnaireStore } from "@/data/useQuestionnaireStore";
@@ -414,6 +415,9 @@ const AdminCheckins = () => {
                   </div>
                 )}
                 {selectedEntry.responses && (
+                  {selectedEntry.category === "nutrition" && (
+                    <AINutritionPanel entry={selectedEntry} />
+                  )}
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("questionnaires.responses")}</p>
                     {(() => {
