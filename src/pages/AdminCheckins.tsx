@@ -414,10 +414,10 @@ const AdminCheckins = () => {
                     </div>
                   </div>
                 )}
+                {selectedEntry.category === "nutrition" && (
+                  <AINutritionPanel entry={selectedEntry} />
+                )}
                 {selectedEntry.responses && (
-                  {selectedEntry.category === "nutrition" && (
-                    <AINutritionPanel entry={selectedEntry} />
-                  )}
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("questionnaires.responses")}</p>
                     {(() => {
