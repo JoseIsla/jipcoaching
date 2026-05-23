@@ -622,4 +622,138 @@ function EmptyState({ text }: { text: string }) {
   );
 }
 
+// ─── AI Nutrition Panel (Claude analysis + admin feedback editor) ───
+function AINutritionPanel({ entry }: { entry: QuestionnaireEntry }) {
+  const fetchEntries = useQuestionnaireStore((s) => s.fetchEntries);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState<string | null>(entry.aiAnalysis ?? null);
+  const [draft, setDraft] = useState<string>(entry.adminFeedback || entry.aiDraftResponse || "");
+  const [analyzedAt, setAnalyzedAt] = useState<string | null>(entry.aiAnalyzedAt ?? null);
+  const [sentAt, setSentAt] = useState<string | null>(entry.feedbackSentAt ?? null);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  // Sync local state when switching entries
+  useEffect(() => {
+    setAnalysis(entry.aiAnalysis ?? null);
+    setDraft(entry.adminFeedback || entry.aiDraftResponse || "");
+    setAnalyzedAt(entry.aiAnalyzedAt ?? null);
+    setSentAt(entry.feedbackSentAt ?? null);
+  }, [entry.id, entry.aiAnalysis, entry.aiDraftResponse, entry.aiAnalyzedAt, entry.adminFeedback, entry.feedbackSentAt]);
+
+  const isResponded = entry.status === "respondido" || entry.status === "revisado";
+  if (!isResponded) return null;
+
+  const runAnalyze = async () => {
+    setAnalyzing(true);
+    try {
+      const res = await api.post<{ aiAnalysis: string; aiDraftResponse: string; aiAnalyzedAt: string }>(
+        `/checkins/${entry.id}/analyze`,
+      );
+      setAnalysis(res.aiAnalysis);
+      setAnalyzedAt(res.aiAnalyzedAt);
+      if (!entry.adminFeedback) setDraft(res.aiDraftResponse);
+      toast({ title: "Análisis generado", description: "Claude ha analizado el check-in." });
+      fetchEntries();
+    } catch {
+      // api.ts toasts the error
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const saveDraft = async () => {
+    setSavingDraft(true);
+    try {
+      await api.put(`/checkins/${entry.id}/feedback`, { adminFeedback: draft });
+      toast({ title: "Borrador guardado" });
+      fetchEntries();
+    } catch {
+      // toast handled
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
+  const sendFeedback = async () => {
+    if (!draft.trim()) {
+      toast({ title: "El feedback está vacío", variant: "destructive" });
+      return;
+    }
+    if (sentAt && !confirm("Ya enviaste feedback antes. ¿Reenviarlo al cliente?")) return;
+    setSending(true);
+    try {
+      const res = await api.post<{ feedbackSentAt: string }>(`/checkins/${entry.id}/feedback/send`, {
+        adminFeedback: draft,
+      });
+      setSentAt(res.feedbackSentAt);
+      toast({ title: "Feedback enviado al cliente" });
+      fetchEntries();
+    } catch {
+      // toast handled
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3 rounded-lg border border-primary/20 bg-primary/5 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-medium text-primary flex items-center gap-1.5">
+          <Sparkles className="h-4 w-4" /> Análisis con IA
+        </p>
+        <Button size="sm" variant="outline" onClick={runAnalyze} disabled={analyzing}>
+          {analyzing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+          <span className="ml-1.5">{analysis ? "Regenerar" : "Analizar"}</span>
+        </Button>
+      </div>
+
+      {analysis ? (
+        <div className="rounded-md bg-background/60 border border-border p-3 text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+          {analysis}
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground italic">
+          Aún no hay análisis. Pulsa "Analizar" para que Claude resuma este check-in y detecte tendencias.
+        </p>
+      )}
+      {analyzedAt && (
+        <p className="text-[10px] text-muted-foreground">
+          Generado el {new Date(analyzedAt).toLocaleString("es-ES")}
+        </p>
+      )}
+
+      <div className="space-y-2 pt-2 border-t border-border/50">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
+            <MessageSquareText className="h-4 w-4 text-primary" /> Feedback para el cliente
+          </p>
+          {sentAt && (
+            <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">
+              Enviado {new Date(sentAt).toLocaleDateString("es-ES")}
+            </Badge>
+          )}
+        </div>
+        <Textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          rows={6}
+          placeholder="Escribe el feedback que enviarás al cliente (puedes editar el borrador de la IA)…"
+          className="text-sm"
+        />
+        <div className="flex justify-end gap-2">
+          <Button size="sm" variant="outline" onClick={saveDraft} disabled={savingDraft || !draft.trim()}>
+            {savingDraft ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+            <span className={savingDraft ? "ml-1.5" : ""}>Guardar borrador</span>
+          </Button>
+          <Button size="sm" onClick={sendFeedback} disabled={sending || !draft.trim()}>
+            {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+            <span className="ml-1.5">{sentAt ? "Reenviar" : "Enviar al cliente"}</span>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default AdminCheckins;
