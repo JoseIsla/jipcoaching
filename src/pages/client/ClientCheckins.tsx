@@ -215,6 +215,19 @@ const NutritionCheckinCard = ({ entry }: { entry: QuestionnaireEntry }) => {
         </CollapsibleTrigger>
         <AnimatedCollapsibleContent open={open}>
           <div className="p-4 pt-0 space-y-4">
+            {entry.feedbackSentAt && entry.adminFeedback && (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-1.5">
+                <p className="text-xs font-semibold text-primary uppercase tracking-wider">
+                  💬 Feedback de tu coach
+                </p>
+                <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                  {entry.adminFeedback}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {new Date(entry.feedbackSentAt).toLocaleString("es-ES")}
+                </p>
+              </div>
+            )}
             {canFill ? (
               <>{questions.map((q) => <QuestionField key={q.id} q={q} value={responses[q.id]} error={errors[q.id]} onChange={(v) => { setResponses({ ...responses, [q.id]: v }); if (errors[q.id]) setErrors((prev) => { const next = { ...prev }; delete next[q.id]; return next; }); }} />)}<Button onClick={handleSubmit} className="w-full glow-primary-sm">{t("clientCheckins.submitCheckin")}</Button></>
             ) : submitted ? (
