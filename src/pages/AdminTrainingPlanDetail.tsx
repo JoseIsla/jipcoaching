@@ -659,6 +659,8 @@ const AdminTrainingPlanDetail = () => {
   const getDetail = useTrainingPlanStore((s) => s.getDetail);
   const saveWeek = useTrainingPlanStore((s) => s.saveWeek);
   const addWeek = useTrainingPlanStore((s) => s.addWeek);
+  const previousLoadsByPlan = useTrainingPlanStore((s) => s.previousLoadsByPlan);
+  const fetchPreviousLoads = useTrainingPlanStore((s) => s.fetchPreviousLoads);
   
   const [plan, setPlan] = useState<TrainingPlanFull | null>(null);
   const [weekIdx, setWeekIdx] = useState(0);
@@ -685,6 +687,10 @@ const AdminTrainingPlanDetail = () => {
     };
     loadPlan();
   }, [planId, navigate, getDetail]);
+
+  useEffect(() => {
+    if (planId) fetchPreviousLoads(planId);
+  }, [planId]);
 
   if (!plan || !currentWeek) return null;
 
@@ -1023,7 +1029,7 @@ const AdminTrainingPlanDetail = () => {
         {/* Days */}
         <div className="space-y-4">
           {currentWeek.days.map((day) => (
-            <DayEditor key={day.id} day={day} onChange={(d) => updateDay(day.id, d)} allDays={currentWeek.days} modality={plan.modality} />
+            <DayEditor key={day.id} day={day} onChange={(d) => updateDay(day.id, d)} allDays={currentWeek.days} modality={plan.modality} previousLoads={planId ? previousLoadsByPlan[planId] : undefined} />
           ))}
         </div>
 
