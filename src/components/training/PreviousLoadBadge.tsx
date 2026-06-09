@@ -16,7 +16,7 @@ const formatDate = (iso: string) => {
   }
 };
 
-const buildText = (load: PreviousLoad): string | null => {
+const buildText = (load: PreviousLoad): string => {
   if (load.weightMode === "per_set" && load.perSetWeights) {
     return `Anterior: ${load.perSetWeights}kg`;
   }
@@ -31,14 +31,14 @@ const buildText = (load: PreviousLoad): string | null => {
     const km = load.actualDistanceM >= 1000 ? `${(load.actualDistanceM / 1000).toFixed(2)}km` : `${load.actualDistanceM}m`;
     return `Anterior: ${km}`;
   }
-  return null;
+  // Athlete logged the exercise but left the weight blank
+  return "Anterior: —";
 };
 
 /** Small inline badge that surfaces the athlete's last logged value for an exercise. */
 const PreviousLoadBadge = ({ load, className }: PreviousLoadBadgeProps) => {
   if (!load) return null;
   const text = buildText(load);
-  if (!text) return null;
 
   return (
     <TooltipProvider delayDuration={150}>
