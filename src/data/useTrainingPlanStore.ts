@@ -40,6 +40,20 @@ export const isOppositionModality = (m: string): boolean => m.startsWith("Oposic
 
 export const OPPOSITION_BLOCKS: OppositionBlock[] = ["Fuerza Base", "Resistencia", "Velocidad/Agilidad", "Específico Pruebas", "Simulacro"];
 
+export interface PreviousLoad {
+  exerciseName: string;
+  actualWeight?: number | null;
+  actualReps?: string | null;
+  actualSets?: string | null;
+  weightMode?: "single" | "per_set" | null;
+  perSetWeights?: string | null;
+  actualMarkValue?: number | null;
+  actualMarkUnit?: string | null;
+  actualDistanceM?: number | null;
+  actualDurationSec?: number | null;
+  createdAt: string;
+}
+
 interface TrainingPlanListEntry {
   id: string;
   clientId: string;
@@ -74,10 +88,12 @@ interface TrainingPlanState {
   details: Record<string, TrainingPlanFull>;
   loading: boolean;
   error: string | null;
+  previousLoadsByPlan: Record<string, Record<string, PreviousLoad>>;
 
   // API actions
   fetchPlans: (clientId?: string) => Promise<void>;
   fetchPlanDetail: (planId: string) => Promise<TrainingPlanFull | null>;
+  fetchPreviousLoads: (planId: string) => Promise<Record<string, PreviousLoad>>;
 
   // List operations
   togglePlanActive: (planId: string, active: boolean) => void;
