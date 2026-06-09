@@ -253,14 +253,17 @@ router.post("/:id/submit", async (req, res) => {
       if (row.weightMode === "per_set" && typeof e.perSetWeights === "string") {
         // Keep CSV-ish, strip whitespace, cap to 200 chars
         row.perSetWeights = e.perSetWeights.replace(/\s+/g, "").slice(0, 200) || null;
-        // Derive actualWeight = max(perSetWeights) so existing analytics keep working
-        const nums = row.perSetWeights
+        // Derive actualWeight = max(perSetWeights) so existing analytics keep working.
+        // If the athlete leaves it blank, actualWeight stays null.
+        const nums = (row.perSetWeights || "")
           .split(",")
           .map((s: string) => Number(s.replace(",", ".")))
           .filter((n: number) => Number.isFinite(n) && n > 0);
-        if (nums.length) row.actualWeight = Math.max(...nums);
+        row.actualWeight = nums.length ? Math.max(...nums) : null;
       } else {
         row.perSetWeights = null;
+        // Single mode (or unspecified): normalize blank/invalid weights to null
+        row.actualWeight = toPosNum(e.actualWeight);
       }
       if (sect === "running") {
         row.actualDistanceM = toPosNum(e.actualDistanceM);
