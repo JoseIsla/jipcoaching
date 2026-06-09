@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "@/services/api";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, Plus, Trash2, GripVertical, Dumbbell, ChevronDown, ChevronRight, Lock, Copy, Circle, CheckCircle2, FileEdit, Footprints, Activity, Trophy } from "lucide-react";
+import PreviousLoadBadge, { lookupPreviousLoad } from "@/components/training/PreviousLoadBadge";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -424,11 +425,13 @@ const DayEditor = ({
   onChange,
   allDays,
   modality,
+  previousLoads,
 }: {
   day: TrainingDay;
   onChange: (d: TrainingDay) => void;
   allDays: TrainingDay[];
   modality: TrainingModality;
+  previousLoads?: Record<string, import("@/data/useTrainingPlanStore").PreviousLoad>;
 }) => {
   const [open, setOpen] = useState(true);
   const [dragId, setDragId] = useState<string | null>(null);
@@ -617,6 +620,7 @@ const DayEditor = ({
                     <span className={`text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 ${sectLabel.cls}`}>
                       <SectIcon className="h-3 w-3" /> {sectLabel.label}
                     </span>
+                    <PreviousLoadBadge load={lookupPreviousLoad(previousLoads, ex.exerciseName)} className="ml-1" />
                     <span className="text-[9px] text-muted-foreground/50 ml-auto">⋮⋮ arrastra para reordenar</span>
                   </div>
                   {isOpp ? (
