@@ -54,6 +54,9 @@ export interface TrainingLogExercise {
   actualReps?: string;
   backoffWeights?: string;
   comment?: string;
+  /** "single" = one weight for the whole exercise; "per_set" = CSV of weights per set */
+  weightMode?: "single" | "per_set";
+  perSetWeights?: string;
   // Opposition planned
   plannedDistanceM?: number;
   plannedDurationSec?: number;
