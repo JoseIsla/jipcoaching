@@ -39,7 +39,6 @@ const buildText = (load: PreviousLoad): string => {
 const PreviousLoadBadge = ({ load, className }: PreviousLoadBadgeProps) => {
   if (!load) return null;
   const text = buildText(load);
-  if (!text) return null;
 
   return (
     <TooltipProvider delayDuration={150}>
