@@ -722,6 +722,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                 <tr className="border-t border-border/50 align-top">
                                   <td className="px-2 py-2 font-medium text-foreground max-w-[90px]">
                                     <span className="block leading-tight">{ex.exerciseName}</span>
+                                    <PreviousLoadBadge load={lookupPreviousLoad(previousLoads, ex.exerciseName)} className="mt-1" />
                                   </td>
                                   <td className="px-2 py-2 text-center text-muted-foreground">
                                     <span className="block">{ex.plannedSets}×{ex.plannedReps}</span>
