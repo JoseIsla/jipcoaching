@@ -33,6 +33,7 @@ import { parseDecimal } from "@/utils/parseDecimal";
 import { useTrainingPlanStore, isOppositionModality } from "@/data/useTrainingPlanStore";
 import { OPPOSITION_TESTS, getOppositionTypeFromModality } from "@/data/oppositionScales";
 import { Trophy } from "lucide-react";
+import PreviousLoadBadge, { lookupPreviousLoad } from "@/components/training/PreviousLoadBadge";
 
 /** Build default responses for all questions so untouched fields are still submitted. */
 const buildDefaultResponses = (
@@ -268,6 +269,16 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const opTests = opType ? OPPOSITION_TESTS[opType] : [];
   const [physicalMarks, setPhysicalMarks] = useState<Record<string, string>>({});
   const [markErrors, setMarkErrors] = useState<Record<string, string>>({});
+
+  // Previous-week loads for the athlete (keyed by lower-cased exercise name)
+  const previousLoadsByPlan = useTrainingPlanStore((s) => s.previousLoadsByPlan);
+  const fetchPreviousLoads = useTrainingPlanStore((s) => s.fetchPreviousLoads);
+  const previousLoads = activePlan ? previousLoadsByPlan[activePlan.id] : undefined;
+  useEffect(() => {
+    if (open && activePlan?.id && !previousLoadsByPlan[activePlan.id]) {
+      fetchPreviousLoads(activePlan.id);
+    }
+  }, [open, activePlan?.id]);
 
   const storeTrainingTemplate = useTemplateStore((s) => s.trainingTemplate);
   const apiQuestions: QuestionDefinition[] = (entry.templateQuestions || []).map((q) => ({
