@@ -211,6 +211,21 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
   details: DEV_MOCK ? (mockTrainingDetails as any) : {},
   loading: false,
   error: null,
+  previousLoadsByPlan: {},
+
+  fetchPreviousLoads: async (planId) => {
+    try {
+      const data = await api.get<Record<string, PreviousLoad>>(`/training/plans/${planId}/previous-loads`);
+      const map = data || {};
+      set((s) => ({ previousLoadsByPlan: { ...s.previousLoadsByPlan, [planId]: map } }));
+      return map;
+    } catch (err) {
+      // Silently degrade: no previous-loads is non-blocking
+      console.warn("fetchPreviousLoads failed", err);
+      set((s) => ({ previousLoadsByPlan: { ...s.previousLoadsByPlan, [planId]: {} } }));
+      return {};
+    }
+  },
 
   fetchPlans: async (clientId) => {
     set({ loading: true, error: null });
