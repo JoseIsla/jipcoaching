@@ -33,6 +33,7 @@ import { parseDecimal } from "@/utils/parseDecimal";
 import { useTrainingPlanStore, isOppositionModality } from "@/data/useTrainingPlanStore";
 import { OPPOSITION_TESTS, getOppositionTypeFromModality } from "@/data/oppositionScales";
 import { Trophy } from "lucide-react";
+import PreviousLoadBadge, { lookupPreviousLoad } from "@/components/training/PreviousLoadBadge";
 
 /** Build default responses for all questions so untouched fields are still submitted. */
 const buildDefaultResponses = (
@@ -268,6 +269,16 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
   const opTests = opType ? OPPOSITION_TESTS[opType] : [];
   const [physicalMarks, setPhysicalMarks] = useState<Record<string, string>>({});
   const [markErrors, setMarkErrors] = useState<Record<string, string>>({});
+
+  // Previous-week loads for the athlete (keyed by lower-cased exercise name)
+  const previousLoadsByPlan = useTrainingPlanStore((s) => s.previousLoadsByPlan);
+  const fetchPreviousLoads = useTrainingPlanStore((s) => s.fetchPreviousLoads);
+  const previousLoads = activePlan ? previousLoadsByPlan[activePlan.id] : undefined;
+  useEffect(() => {
+    if (open && activePlan?.id && !previousLoadsByPlan[activePlan.id]) {
+      fetchPreviousLoads(activePlan.id);
+    }
+  }, [open, activePlan?.id]);
 
   const storeTrainingTemplate = useTemplateStore((s) => s.trainingTemplate);
   const apiQuestions: QuestionDefinition[] = (entry.templateQuestions || []).map((q) => ({
@@ -616,6 +627,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                         <td className="px-2 py-2 font-medium text-foreground max-w-[90px]">
                                           <span className="block leading-tight">{ex.exerciseName}</span>
                                           <span className="block text-[9px] text-primary/80 mt-0.5">{sectLabel}</span>
+                                          <PreviousLoadBadge load={lookupPreviousLoad(previousLoads, ex.exerciseName)} className="mt-1" />
                                         </td>
                                         <td className="px-2 py-2 text-center text-muted-foreground">
                                           <span className="block text-[9px] whitespace-pre-line">
@@ -711,6 +723,7 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                 <tr className="border-t border-border/50 align-top">
                                   <td className="px-2 py-2 font-medium text-foreground max-w-[90px]">
                                     <span className="block leading-tight">{ex.exerciseName}</span>
+                                    <PreviousLoadBadge load={lookupPreviousLoad(previousLoads, ex.exerciseName)} className="mt-1" />
                                   </td>
                                   <td className="px-2 py-2 text-center text-muted-foreground">
                                     <span className="block">{ex.plannedSets}×{ex.plannedReps}</span>
@@ -745,12 +758,38 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                       {(ex.method === "TOP_SET_BACKOFFS" || ex.method === "LOAD_DROP") && (
                                         <span className="text-[8px] text-primary/70 text-center leading-none">Top Set (kg)</span>
                                       )}
-                                      <DecimalInput
-                                        value={ex.actualWeight ?? undefined}
-                                        onChange={(v) => { updateExercise(dayIdx, exIdx, "actualWeight", v as any); if (weightErrors[`${dayIdx}-${exIdx}`]) setWeightErrors((prev) => { const next = { ...prev }; delete next[`${dayIdx}-${exIdx}`]; return next; }); }}
-                                        placeholder={ex.method === "TOP_SET_BACKOFFS" || ex.method === "LOAD_DROP" ? "Top Set kg" : "kg"}
-                                        className={`h-7 text-[11px] text-center bg-background border-border px-1 ${weightErrors[`${dayIdx}-${exIdx}`] ? "border-destructive" : ""}`}
-                                      />
+                                      {/* Weight mode toggle: same weight for all sets vs one per set */}
+                                      <div className="flex gap-0.5 justify-center">
+                                        <button
+                                          type="button"
+                                          onClick={() => { updateExercise(dayIdx, exIdx, "weightMode", "single"); updateExercise(dayIdx, exIdx, "perSetWeights", undefined); }}
+                                          className={`text-[8px] px-1.5 py-0.5 rounded-l border ${ (ex.weightMode || "single") === "single" ? "bg-primary/20 border-primary/40 text-primary" : "bg-background border-border text-muted-foreground"}`}
+                                          title="Mismo peso en todas las series"
+                                        >Mismo</button>
+                                        <button
+                                          type="button"
+                                          onClick={() => { updateExercise(dayIdx, exIdx, "weightMode", "per_set"); }}
+                                          className={`text-[8px] px-1.5 py-0.5 rounded-r border ${ex.weightMode === "per_set" ? "bg-primary/20 border-primary/40 text-primary" : "bg-background border-border text-muted-foreground"}`}
+                                          title="Un peso distinto por serie"
+                                        >Por serie</button>
+                                      </div>
+                                      {ex.weightMode !== "per_set" ? (
+                                        <DecimalInput
+                                          value={ex.actualWeight ?? undefined}
+                                          onChange={(v) => { updateExercise(dayIdx, exIdx, "actualWeight", v as any); if (weightErrors[`${dayIdx}-${exIdx}`]) setWeightErrors((prev) => { const next = { ...prev }; delete next[`${dayIdx}-${exIdx}`]; return next; }); }}
+                                          placeholder={ex.method === "TOP_SET_BACKOFFS" || ex.method === "LOAD_DROP" ? "Top Set kg" : "kg"}
+                                          className={`h-7 text-[11px] text-center bg-background border-border px-1 ${weightErrors[`${dayIdx}-${exIdx}`] ? "border-destructive" : ""}`}
+                                        />
+                                      ) : (
+                                        <Input
+                                          type="text"
+                                          inputMode="decimal"
+                                          className="h-7 text-[11px] text-center bg-background border-border px-1"
+                                          placeholder="ej: 80, 75, 72"
+                                          value={ex.perSetWeights ?? ""}
+                                          onChange={(e) => updateExercise(dayIdx, exIdx, "perSetWeights", e.target.value || undefined)}
+                                        />
+                                      )}
                                       {weightErrors[`${dayIdx}-${exIdx}`] && (
                                         <p className="text-[11px] text-destructive mt-0.5">{weightErrors[`${dayIdx}-${exIdx}`]}</p>
                                       )}

@@ -95,6 +95,77 @@ router.get("/me/active", async (req, res) => {
   }
 });
 
+// GET /api/training/plans/:planId/previous-loads
+// Returns the latest logged weight/reps per exerciseName for the plan's client.
+router.get("/plans/:planId/previous-loads", async (req, res) => {
+  try {
+    const planId = req.params.planId as string;
+    const plan = await prisma.trainingPlan.findUnique({
+      where: { id: planId },
+      select: { clientId: true },
+    });
+    if (!plan) { res.status(404).json({ message: "Plan no encontrado" }); return; }
+
+    if (req.user!.role === "CLIENT") {
+      const client = await prisma.client.findUnique({ where: { userId: req.user!.userId } });
+      if (!client || client.id !== plan.clientId) {
+        res.status(403).json({ message: "Acceso denegado" });
+        return;
+      }
+    }
+
+    const rows = await prisma.checkinTrainingExercise.findMany({
+      where: {
+        log: { checkin: { clientId: plan.clientId, category: "TRAINING" } },
+        OR: [
+          { actualWeight: { not: null } },
+          { perSetWeights: { not: null } },
+          { actualMarkValue: { not: null } },
+          { actualDistanceM: { not: null } },
+        ],
+      },
+      select: {
+        exerciseName: true,
+        actualWeight: true,
+        actualReps: true,
+        actualSets: true,
+        weightMode: true,
+        perSetWeights: true,
+        actualMarkValue: true,
+        actualMarkUnit: true,
+        actualDistanceM: true,
+        actualDurationSec: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+    });
+
+    const byName: Record<string, any> = {};
+    for (const r of rows) {
+      const key = (r.exerciseName || "").trim().toLowerCase();
+      if (!key || byName[key]) continue;
+      byName[key] = {
+        exerciseName: r.exerciseName,
+        actualWeight: r.actualWeight,
+        actualReps: r.actualReps,
+        actualSets: r.actualSets,
+        weightMode: r.weightMode,
+        perSetWeights: r.perSetWeights,
+        actualMarkValue: r.actualMarkValue,
+        actualMarkUnit: r.actualMarkUnit,
+        actualDistanceM: r.actualDistanceM,
+        actualDurationSec: r.actualDurationSec,
+        createdAt: r.createdAt,
+      };
+    }
+    res.json(byName);
+  } catch (err: any) {
+    console.error("GET /training/plans/:planId/previous-loads error:", err);
+    res.status(500).json({ message: "Error al obtener cargas anteriores" });
+  }
+});
+
 // POST /api/training/plans — Admin only
 router.post("/plans", requireRole("ADMIN"), async (req, res) => {
   try {

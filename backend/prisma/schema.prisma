@@ -671,6 +671,9 @@ model CheckinTrainingExercise {
   backoffWeights String? @db.VarChar(200)
   comment        String? @db.Text
   sortOrder      Int     @default(0)
+  // Weight mode: "single" (one weight for the whole exercise) or "per_set" (csv weights)
+  weightMode     String? @db.VarChar(20)
+  perSetWeights  String? @db.VarChar(200)
   // Opposition / running actual metrics
   actualDistanceM   Float?
   actualDurationSec Int?

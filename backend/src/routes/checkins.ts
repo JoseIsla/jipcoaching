@@ -102,6 +102,8 @@ trainingLogs: {
           actualReps: e.actualReps,
           backoffWeights: e.backoffWeights || undefined,
           comment: e.comment || undefined,
+          weightMode: (e as any).weightMode || undefined,
+          perSetWeights: (e as any).perSetWeights || undefined,
           // Opposition planned
           plannedDistanceM: (e as any).plannedDistanceM ?? undefined,
           plannedDurationSec: (e as any).plannedDurationSec ?? undefined,
@@ -245,6 +247,21 @@ router.post("/:id/submit", async (req, res) => {
     const sanitizeExerciseRow = (e: any) => {
       const sect = e.sectionExt || e.section || "basic";
       const row: any = { ...e };
+      // Weight mode normalization (allowed for any section)
+      const mode = String(e.weightMode || "").toLowerCase();
+      row.weightMode = mode === "per_set" ? "per_set" : (mode === "single" ? "single" : null);
+      if (row.weightMode === "per_set" && typeof e.perSetWeights === "string") {
+        // Keep CSV-ish, strip whitespace, cap to 200 chars
+        row.perSetWeights = e.perSetWeights.replace(/\s+/g, "").slice(0, 200) || null;
+        // Derive actualWeight = max(perSetWeights) so existing analytics keep working
+        const nums = row.perSetWeights
+          .split(",")
+          .map((s: string) => Number(s.replace(",", ".")))
+          .filter((n: number) => Number.isFinite(n) && n > 0);
+        if (nums.length) row.actualWeight = Math.max(...nums);
+      } else {
+        row.perSetWeights = null;
+      }
       if (sect === "running") {
         row.actualDistanceM = toPosNum(e.actualDistanceM);
         row.actualDurationSec = toPosInt(e.actualDurationSec);
@@ -391,6 +408,8 @@ router.post("/:id/submit", async (req, res) => {
               actualReps: clean.actualReps,
               backoffWeights: clean.backoffWeights || null,
               comment: toStr(clean.comment, 1000),
+              weightMode: clean.weightMode || null,
+              perSetWeights: clean.perSetWeights || null,
               actualDistanceM: clean.actualDistanceM,
               actualDurationSec: clean.actualDurationSec,
               actualPace: clean.actualPace,
