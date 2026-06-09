@@ -138,6 +138,8 @@ const ClientTraining = () => {
   const details = useTrainingPlanStore((s) => s.details);
   const fetchPlans = useTrainingPlanStore((s) => s.fetchPlans);
   const fetchPlanDetail = useTrainingPlanStore((s) => s.fetchPlanDetail);
+  const previousLoadsByPlan = useTrainingPlanStore((s) => s.previousLoadsByPlan);
+  const fetchPreviousLoads = useTrainingPlanStore((s) => s.fetchPreviousLoads);
   const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
 
   const refreshData = useCallback(async () => {
@@ -152,6 +154,9 @@ const ClientTraining = () => {
   useEffect(() => {
     if (activePlan && !details[activePlan.id]) {
       fetchPlanDetail(activePlan.id);
+    }
+    if (activePlan && !previousLoadsByPlan[activePlan.id]) {
+      fetchPreviousLoads(activePlan.id);
     }
   }, [activePlan?.id]);
 
@@ -237,7 +242,7 @@ const ClientTraining = () => {
               })()}
             </div>
             {currentWeek.generalNotes && <div className="bg-muted/30 border border-border/40 rounded-lg p-3"><p className="text-xs text-muted-foreground">{currentWeek.generalNotes}</p></div>}
-            <div className="space-y-2">{[...currentWeek.days].sort((a, b) => a.dayNumber - b.dayNumber).map((day) => <DayView key={day.id} day={day} t={t} />)}</div>
+            <div className="space-y-2">{[...currentWeek.days].sort((a, b) => a.dayNumber - b.dayNumber).map((day) => <DayView key={day.id} day={day} t={t} previousLoads={activePlan ? previousLoadsByPlan[activePlan.id] : undefined} />)}</div>
           </motion.div>
         )}
 
