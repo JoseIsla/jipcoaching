@@ -757,12 +757,38 @@ const TrainingLogCard = ({ entry }: { entry: QuestionnaireEntry }) => {
                                       {(ex.method === "TOP_SET_BACKOFFS" || ex.method === "LOAD_DROP") && (
                                         <span className="text-[8px] text-primary/70 text-center leading-none">Top Set (kg)</span>
                                       )}
-                                      <DecimalInput
-                                        value={ex.actualWeight ?? undefined}
-                                        onChange={(v) => { updateExercise(dayIdx, exIdx, "actualWeight", v as any); if (weightErrors[`${dayIdx}-${exIdx}`]) setWeightErrors((prev) => { const next = { ...prev }; delete next[`${dayIdx}-${exIdx}`]; return next; }); }}
-                                        placeholder={ex.method === "TOP_SET_BACKOFFS" || ex.method === "LOAD_DROP" ? "Top Set kg" : "kg"}
-                                        className={`h-7 text-[11px] text-center bg-background border-border px-1 ${weightErrors[`${dayIdx}-${exIdx}`] ? "border-destructive" : ""}`}
-                                      />
+                                      {/* Weight mode toggle: same weight for all sets vs one per set */}
+                                      <div className="flex gap-0.5 justify-center">
+                                        <button
+                                          type="button"
+                                          onClick={() => { updateExercise(dayIdx, exIdx, "weightMode", "single"); updateExercise(dayIdx, exIdx, "perSetWeights", undefined); }}
+                                          className={`text-[8px] px-1.5 py-0.5 rounded-l border ${ (ex.weightMode || "single") === "single" ? "bg-primary/20 border-primary/40 text-primary" : "bg-background border-border text-muted-foreground"}`}
+                                          title="Mismo peso en todas las series"
+                                        >Mismo</button>
+                                        <button
+                                          type="button"
+                                          onClick={() => { updateExercise(dayIdx, exIdx, "weightMode", "per_set"); }}
+                                          className={`text-[8px] px-1.5 py-0.5 rounded-r border ${ex.weightMode === "per_set" ? "bg-primary/20 border-primary/40 text-primary" : "bg-background border-border text-muted-foreground"}`}
+                                          title="Un peso distinto por serie"
+                                        >Por serie</button>
+                                      </div>
+                                      {ex.weightMode !== "per_set" ? (
+                                        <DecimalInput
+                                          value={ex.actualWeight ?? undefined}
+                                          onChange={(v) => { updateExercise(dayIdx, exIdx, "actualWeight", v as any); if (weightErrors[`${dayIdx}-${exIdx}`]) setWeightErrors((prev) => { const next = { ...prev }; delete next[`${dayIdx}-${exIdx}`]; return next; }); }}
+                                          placeholder={ex.method === "TOP_SET_BACKOFFS" || ex.method === "LOAD_DROP" ? "Top Set kg" : "kg"}
+                                          className={`h-7 text-[11px] text-center bg-background border-border px-1 ${weightErrors[`${dayIdx}-${exIdx}`] ? "border-destructive" : ""}`}
+                                        />
+                                      ) : (
+                                        <Input
+                                          type="text"
+                                          inputMode="decimal"
+                                          className="h-7 text-[11px] text-center bg-background border-border px-1"
+                                          placeholder="ej: 80, 75, 72"
+                                          value={ex.perSetWeights ?? ""}
+                                          onChange={(e) => updateExercise(dayIdx, exIdx, "perSetWeights", e.target.value || undefined)}
+                                        />
+                                      )}
                                       {weightErrors[`${dayIdx}-${exIdx}`] && (
                                         <p className="text-[11px] text-destructive mt-0.5">{weightErrors[`${dayIdx}-${exIdx}`]}</p>
                                       )}
