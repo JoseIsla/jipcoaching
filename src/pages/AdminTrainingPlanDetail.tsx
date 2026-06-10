@@ -426,12 +426,14 @@ const DayEditor = ({
   allDays,
   modality,
   previousLoads,
+  sessionLogs,
 }: {
   day: TrainingDay;
   onChange: (d: TrainingDay) => void;
   allDays: TrainingDay[];
   modality: TrainingModality;
   previousLoads?: Record<string, import("@/data/useTrainingPlanStore").PreviousLoad>;
+  sessionLogs?: Record<string, import("@/data/useTrainingPlanStore").SessionLog>;
 }) => {
   const [open, setOpen] = useState(true);
   const [dragId, setDragId] = useState<string | null>(null);
