@@ -155,7 +155,13 @@ const ClientTraining = () => {
 
   const refreshData = useCallback(async () => {
     await fetchPlans(client.id);
-  }, [client.id, fetchPlans]);
+    if (activePlan?.id) {
+      await Promise.all([
+        fetchPreviousLoads(activePlan.id),
+        fetchSessionLogs(activePlan.id),
+      ]);
+    }
+  }, [client.id, fetchPlans, fetchPreviousLoads, fetchSessionLogs]);
 
   useEffect(() => { refreshData(); }, [client.id]);
 
