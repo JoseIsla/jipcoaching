@@ -29,9 +29,7 @@ const ClientSettings = () => {
   const { t } = useTranslation();
   const setAppLanguage = useLanguageStore((s) => s.setLanguage);
   const appLanguage = useLanguageStore((s) => s.language);
-  const notifSound = useClientPreferencesStore((s) => s.notificationSound);
   const notifVibration = useClientPreferencesStore((s) => s.notificationVibration);
-  const setNotifSound = useClientPreferencesStore((s) => s.setNotificationSound);
   const setNotifVibration = useClientPreferencesStore((s) => s.setNotificationVibration);
   const currentTheme = useThemeStore((s) => s.theme);
   const setTheme = useThemeStore((s) => s.setTheme);
