@@ -54,6 +54,25 @@ export interface PreviousLoad {
   createdAt: string;
 }
 
+export interface SessionLog {
+  id?: string;
+  prescriptionId: string;
+  actualWeight?: number | null;
+  actualReps?: string | null;
+  actualRPE?: number | null;
+  weightMode?: "single" | "per_set" | null;
+  perSetWeights?: string | null;
+  notes?: string | null;
+  actualDistanceM?: number | null;
+  actualDurationSec?: number | null;
+  actualPace?: string | null;
+  actualHeartRate?: number | null;
+  actualMarkValue?: number | null;
+  actualMarkUnit?: string | null;
+  loggedAt?: string;
+  createdAt?: string;
+}
+
 interface TrainingPlanListEntry {
   id: string;
   clientId: string;
@@ -89,11 +108,14 @@ interface TrainingPlanState {
   loading: boolean;
   error: string | null;
   previousLoadsByPlan: Record<string, Record<string, PreviousLoad>>;
+  sessionLogsByPlan: Record<string, Record<string, SessionLog>>;
 
   // API actions
   fetchPlans: (clientId?: string) => Promise<void>;
   fetchPlanDetail: (planId: string) => Promise<TrainingPlanFull | null>;
   fetchPreviousLoads: (planId: string) => Promise<Record<string, PreviousLoad>>;
+  fetchSessionLogs: (planId: string) => Promise<Record<string, SessionLog>>;
+  upsertSessionLog: (planId: string, prescriptionId: string, payload: Partial<SessionLog>) => Promise<SessionLog | null>;
 
   // List operations
   togglePlanActive: (planId: string, active: boolean) => void;
@@ -212,6 +234,7 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
   loading: false,
   error: null,
   previousLoadsByPlan: {},
+  sessionLogsByPlan: {},
 
   fetchPreviousLoads: async (planId) => {
     try {
@@ -224,6 +247,38 @@ export const useTrainingPlanStore = create<TrainingPlanState>((set, get) => ({
       console.warn("fetchPreviousLoads failed", err);
       set((s) => ({ previousLoadsByPlan: { ...s.previousLoadsByPlan, [planId]: {} } }));
       return {};
+    }
+  },
+
+  fetchSessionLogs: async (planId) => {
+    try {
+      const data = await api.get<Record<string, SessionLog>>(`/training/plans/${planId}/session-logs`);
+      const map = data || {};
+      set((s) => ({ sessionLogsByPlan: { ...s.sessionLogsByPlan, [planId]: map } }));
+      return map;
+    } catch (err) {
+      console.warn("fetchSessionLogs failed", err);
+      set((s) => ({ sessionLogsByPlan: { ...s.sessionLogsByPlan, [planId]: {} } }));
+      return {};
+    }
+  },
+
+  upsertSessionLog: async (planId, prescriptionId, payload) => {
+    try {
+      const saved = await api.put<SessionLog>(`/training/prescriptions/${prescriptionId}/log`, payload);
+      set((s) => ({
+        sessionLogsByPlan: {
+          ...s.sessionLogsByPlan,
+          [planId]: {
+            ...(s.sessionLogsByPlan[planId] || {}),
+            [prescriptionId]: { ...(saved as any), prescriptionId },
+          },
+        },
+      }));
+      return saved;
+    } catch (err) {
+      console.error("upsertSessionLog failed", err);
+      return null;
     }
   },
 
