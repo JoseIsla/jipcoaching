@@ -325,6 +325,46 @@ async function generateTrainingCheckins() {
             };
           }),
         });
+
+        // Prefill actuals from in-session ExerciseLogs (athlete may have logged during the week)
+        try {
+          const prescriptionIds = logExercises.map((ex) => ex.id);
+          const sessionLogs = await prisma.exerciseLog.findMany({
+            where: { prescriptionId: { in: prescriptionIds } },
+            orderBy: { createdAt: "desc" },
+          });
+          const latestByPresc: Record<string, typeof sessionLogs[number]> = {};
+          for (const l of sessionLogs) {
+            if (!latestByPresc[l.prescriptionId]) latestByPresc[l.prescriptionId] = l;
+          }
+          const checkinRows = await prisma.checkinTrainingExercise.findMany({
+            where: { logId: log.id },
+          });
+          for (const row of checkinRows) {
+            if (!row.exerciseId) continue;
+            const l = latestByPresc[row.exerciseId];
+            if (!l) continue;
+            await prisma.checkinTrainingExercise.update({
+              where: { id: row.id },
+              data: {
+                actualWeight: l.topKg ?? null,
+                actualReps: l.topReps != null ? String(l.topReps) : null,
+                actualRPE: l.topRpe ?? null,
+                weightMode: (l as any).weightMode ?? null,
+                perSetWeights: (l as any).perSetWeights ?? null,
+                actualDistanceM: l.distanceMeters ?? null,
+                actualDurationSec: l.durationSeconds ?? null,
+                actualPace: l.pace ?? null,
+                actualHeartRate: l.heartRateAvg ?? null,
+                actualMarkValue: l.markValue ?? null,
+                actualMarkUnit: l.markUnit ?? null,
+                comment: row.comment ?? l.notes ?? null,
+              },
+            });
+          }
+        } catch (prefillErr) {
+          console.warn("[CRON] ⚠️ Prefill from session logs failed:", prefillErr);
+        }
       }
 
       totalCreated++;

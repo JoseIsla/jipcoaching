@@ -67,6 +67,52 @@ trainingLogs: {
       : [];
     const urlToTechniqueId = new Map(techniqueVideos.map((tv) => [tv.url, tv.id]));
 
+    // Hydrate pending training rows from in-session ExerciseLogs so the athlete
+    // sees what they already registered on the plan, even if it was logged
+    // after the check-in was generated. Only used in-memory for unresponded rows.
+    const pendingPrescriptionIds: string[] = [];
+    for (const c of checkins) {
+      if (c.category !== "TRAINING" || c.status !== "PENDING") continue;
+      for (const log of c.trainingLogs) {
+        for (const e of log.exercises) {
+          if (e.exerciseId && e.actualWeight == null && (e as any).perSetWeights == null) {
+            pendingPrescriptionIds.push(e.exerciseId);
+          }
+        }
+      }
+    }
+    let sessionLogByPresc: Record<string, any> = {};
+    if (pendingPrescriptionIds.length > 0) {
+      const sessionLogs = await prisma.exerciseLog.findMany({
+        where: { prescriptionId: { in: pendingPrescriptionIds } },
+        orderBy: { createdAt: "desc" },
+      });
+      for (const l of sessionLogs) {
+        if (!sessionLogByPresc[l.prescriptionId]) sessionLogByPresc[l.prescriptionId] = l;
+      }
+    }
+    const applyPrefill = (e: any) => {
+      if (!e.exerciseId) return e;
+      if (e.actualWeight != null || e.perSetWeights != null) return e;
+      const l = sessionLogByPresc[e.exerciseId];
+      if (!l) return e;
+      return {
+        ...e,
+        actualWeight: l.topKg ?? e.actualWeight,
+        actualReps: l.topReps != null ? String(l.topReps) : e.actualReps,
+        actualRPE: l.topRpe ?? e.actualRPE,
+        weightMode: l.weightMode ?? e.weightMode,
+        perSetWeights: l.perSetWeights ?? e.perSetWeights,
+        actualDistanceM: l.distanceMeters ?? e.actualDistanceM,
+        actualDurationSec: l.durationSeconds ?? e.actualDurationSec,
+        actualPace: l.pace ?? e.actualPace,
+        actualHeartRate: l.heartRateAvg ?? e.actualHeartRate,
+        actualMarkValue: l.markValue ?? e.actualMarkValue,
+        actualMarkUnit: l.markUnit ?? e.actualMarkUnit,
+        prefilledFromSession: true,
+      };
+    };
+
     // Transform to match frontend QuestionnaireEntry format
     const rawResult = checkins.map((c) => ({
       id: c.id,
@@ -86,7 +132,7 @@ trainingLogs: {
       trainingLog: c.trainingLogs.map((log) => ({
         dayNumber: log.dayNumber,
         dayName: log.dayName,
-        exercises: log.exercises.map((e) => ({
+        exercises: log.exercises.map((e) => applyPrefill({
           exerciseId: e.exerciseId,
           exerciseName: e.exerciseName,
           section: e.section,

@@ -426,12 +426,14 @@ const DayEditor = ({
   allDays,
   modality,
   previousLoads,
+  sessionLogs,
 }: {
   day: TrainingDay;
   onChange: (d: TrainingDay) => void;
   allDays: TrainingDay[];
   modality: TrainingModality;
   previousLoads?: Record<string, import("@/data/useTrainingPlanStore").PreviousLoad>;
+  sessionLogs?: Record<string, import("@/data/useTrainingPlanStore").SessionLog>;
 }) => {
   const [open, setOpen] = useState(true);
   const [dragId, setDragId] = useState<string | null>(null);
@@ -621,6 +623,23 @@ const DayEditor = ({
                       <SectIcon className="h-3 w-3" /> {sectLabel.label}
                     </span>
                     <PreviousLoadBadge load={lookupPreviousLoad(previousLoads, ex.exerciseName)} className="ml-1" />
+                    {(() => {
+                      const sl = sessionLogs?.[ex.id];
+                      if (!sl) return null;
+                      const text =
+                        sl.weightMode === "per_set" && sl.perSetWeights
+                          ? `${sl.perSetWeights}kg`
+                          : sl.actualWeight != null
+                          ? `${sl.actualWeight}kg${sl.actualReps ? ` ×${sl.actualReps}` : ""}`
+                          : sl.actualMarkValue != null
+                          ? `${sl.actualMarkValue}${sl.actualMarkUnit || ""}`
+                          : "—";
+                      return (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 text-[10px] text-primary px-1.5 py-0.5 border border-primary/30 leading-none">
+                          Sesión: {text}
+                        </span>
+                      );
+                    })()}
                     <span className="text-[9px] text-muted-foreground/50 ml-auto">⋮⋮ arrastra para reordenar</span>
                   </div>
                   {isOpp ? (
@@ -661,6 +680,8 @@ const AdminTrainingPlanDetail = () => {
   const addWeek = useTrainingPlanStore((s) => s.addWeek);
   const previousLoadsByPlan = useTrainingPlanStore((s) => s.previousLoadsByPlan);
   const fetchPreviousLoads = useTrainingPlanStore((s) => s.fetchPreviousLoads);
+  const sessionLogsByPlan = useTrainingPlanStore((s) => s.sessionLogsByPlan);
+  const fetchSessionLogs = useTrainingPlanStore((s) => s.fetchSessionLogs);
   
   const [plan, setPlan] = useState<TrainingPlanFull | null>(null);
   const [weekIdx, setWeekIdx] = useState(0);
@@ -690,6 +711,10 @@ const AdminTrainingPlanDetail = () => {
 
   useEffect(() => {
     if (planId) fetchPreviousLoads(planId);
+  }, [planId]);
+
+  useEffect(() => {
+    if (planId) fetchSessionLogs(planId);
   }, [planId]);
 
   if (!plan || !currentWeek) return null;
@@ -1029,7 +1054,7 @@ const AdminTrainingPlanDetail = () => {
         {/* Days */}
         <div className="space-y-4">
           {currentWeek.days.map((day) => (
-            <DayEditor key={day.id} day={day} onChange={(d) => updateDay(day.id, d)} allDays={currentWeek.days} modality={plan.modality} previousLoads={planId ? previousLoadsByPlan[planId] : undefined} />
+            <DayEditor key={day.id} day={day} onChange={(d) => updateDay(day.id, d)} allDays={currentWeek.days} modality={plan.modality} previousLoads={planId ? previousLoadsByPlan[planId] : undefined} sessionLogs={planId ? sessionLogsByPlan[planId] : undefined} />
           ))}
         </div>
 

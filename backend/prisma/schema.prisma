@@ -732,6 +732,10 @@ model ExerciseLog {
   markUnit        String? @db.VarChar(20)
   scoreObtained   Int?
   createdAt       DateTime @default(now())
+  // In-session weight logging (mirrors checkin training exercise)
+  weightMode      String?  @db.VarChar(20)
+  perSetWeights   String?  @db.VarChar(200)
+  loggedAt        DateTime?
 
   prescription ExercisePrescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
 

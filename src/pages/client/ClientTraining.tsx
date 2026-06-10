@@ -10,13 +10,14 @@ import AnimatedChevron from "@/components/ui/animated-chevron";
 import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-content";
 import { useTrainingPlanStore, TRAINING_METHOD_LABELS, isOppositionModality, type TrainingPlanFull, type TrainingWeek, type TrainingDay } from "@/data/useTrainingPlanStore";
 import PreviousLoadBadge, { lookupPreviousLoad } from "@/components/training/PreviousLoadBadge";
+import InSessionLogForm from "@/components/training/InSessionLogForm";
 import type { PreviousLoad } from "@/data/useTrainingPlanStore";
 import { exportTrainingWeekPDF } from "@/utils/exportClientPlanPDF";
 import { useTranslation } from "@/i18n/useTranslation";
 import PullToRefresh from "@/components/client/PullToRefresh";
 import PhysicalTestTracker from "@/components/client/PhysicalTestTracker";
 
-const DayView = ({ day, t, previousLoads }: { day: TrainingDay; t: (k: string, v?: Record<string, string | number>) => string; previousLoads?: Record<string, PreviousLoad> }) => {
+const DayView = ({ day, t, previousLoads, planId }: { day: TrainingDay; t: (k: string, v?: Record<string, string | number>) => string; previousLoads?: Record<string, PreviousLoad>; planId?: string }) => {
   const [open, setOpen] = useState(false);
   // Render in admin-defined order (single ordered list, mixing all section types).
   const orderedExercises = [...day.exercises].sort(
@@ -119,6 +120,14 @@ const DayView = ({ day, t, previousLoads }: { day: TrainingDay; t: (k: string, v
                     </div>
                   )}
                   {ex.technicalNotes && <p className="text-[11px] text-muted-foreground italic mt-1">💡 {ex.technicalNotes}</p>}
+                  {planId && ex.id && (
+                    <InSessionLogForm
+                      planId={planId}
+                      prescriptionId={ex.id}
+                      exerciseName={ex.exerciseName}
+                      section={ex.section}
+                    />
+                  )}
                 </div>
               );
             })}
@@ -140,6 +149,8 @@ const ClientTraining = () => {
   const fetchPlanDetail = useTrainingPlanStore((s) => s.fetchPlanDetail);
   const previousLoadsByPlan = useTrainingPlanStore((s) => s.previousLoadsByPlan);
   const fetchPreviousLoads = useTrainingPlanStore((s) => s.fetchPreviousLoads);
+  const fetchSessionLogs = useTrainingPlanStore((s) => s.fetchSessionLogs);
+  const sessionLogsByPlan = useTrainingPlanStore((s) => s.sessionLogsByPlan);
   const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
 
   const refreshData = useCallback(async () => {
@@ -157,6 +168,9 @@ const ClientTraining = () => {
     }
     if (activePlan && !previousLoadsByPlan[activePlan.id]) {
       fetchPreviousLoads(activePlan.id);
+    }
+    if (activePlan && !sessionLogsByPlan[activePlan.id]) {
+      fetchSessionLogs(activePlan.id);
     }
   }, [activePlan?.id]);
 
@@ -242,7 +256,7 @@ const ClientTraining = () => {
               })()}
             </div>
             {currentWeek.generalNotes && <div className="bg-muted/30 border border-border/40 rounded-lg p-3"><p className="text-xs text-muted-foreground">{currentWeek.generalNotes}</p></div>}
-            <div className="space-y-2">{[...currentWeek.days].sort((a, b) => a.dayNumber - b.dayNumber).map((day) => <DayView key={day.id} day={day} t={t} previousLoads={activePlan ? previousLoadsByPlan[activePlan.id] : undefined} />)}</div>
+            <div className="space-y-2">{[...currentWeek.days].sort((a, b) => a.dayNumber - b.dayNumber).map((day) => <DayView key={day.id} day={day} t={t} previousLoads={activePlan ? previousLoadsByPlan[activePlan.id] : undefined} planId={activePlan?.id} />)}</div>
           </motion.div>
         )}
 
