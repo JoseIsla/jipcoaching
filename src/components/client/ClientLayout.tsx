@@ -118,13 +118,6 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
     return () => clearInterval(interval);
   }, [client.id]);
 
-  // Play feedback: once on login if unread, then only when count genuinely increases
-  // State is tracked in the Zustand store so navigation doesn't re-trigger
-  useEffect(() => {
-    if (useClientNotificationStore.getState().shouldPlaySound()) {
-      playNotificationFeedback();
-    }
-  }, [unreadCount]);
 
   // Get pending check-in entries for this client (only actionable — not expired/future)
   const allEntries = useQuestionnaireStore((s) => s.entries);
