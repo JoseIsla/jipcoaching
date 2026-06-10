@@ -84,7 +84,6 @@ export const useClientNotificationStore = create<ClientNotificationState>()(
       notifications: [],
       _dismissedIds: new Set<string>(),
       _lastKnownUnread: 0,
-      _loginSoundPlayed: false,
 
       generateForClient: (clientId, services, pendingCheckinIds) => {
         const existing = get().notifications;
