@@ -50,7 +50,7 @@ function fmt(d: Date | null | undefined) {
  * Includes current responses + last 4 nutrition check-ins of the same client.
  */
 async function buildContext(checkinId: string): Promise<string | null> {
-  const checkin = await prisma.checkin.findUnique({
+  const checkin: any = await (prisma as any).checkin.findUnique({
     where: { id: checkinId },
     include: {
       client: { select: { id: true, name: true, currentWeight: true, height: true, goal: true } },
@@ -60,13 +60,13 @@ async function buildContext(checkinId: string): Promise<string | null> {
   });
   if (!checkin || checkin.category !== "NUTRITION") return null;
 
-  const responseMap = new Map(checkin.responses.map((r) => [r.questionId, r.value]));
+  const responseMap = new Map(checkin.responses.map((r: any) => [r.questionId, r.value]));
   const currentLines = (checkin.template?.questions || [])
-    .map((q) => `- ${q.label}: ${responseMap.get(q.id) ?? "—"}`)
+    .map((q: any) => `- ${q.label}: ${responseMap.get(q.id) ?? "—"}`)
     .join("\n");
 
   // Last 4 prior NUTRITION check-ins of the same client (responded)
-  const history = await prisma.checkin.findMany({
+  const history: any[] = await (prisma as any).checkin.findMany({
     where: {
       clientId: checkin.clientId,
       category: "NUTRITION",
@@ -82,11 +82,11 @@ async function buildContext(checkinId: string): Promise<string | null> {
   });
 
   const historyBlocks = history
-    .map((h) => {
-      const rm = new Map(h.responses.map((r) => [r.questionId, r.value]));
+    .map((h: any) => {
+      const rm = new Map(h.responses.map((r: any) => [r.questionId, r.value]));
       const lines = (h.template?.questions || [])
         .slice(0, 8)
-        .map((q) => `  - ${q.label}: ${rm.get(q.id) ?? "—"}`)
+        .map((q: any) => `  - ${q.label}: ${rm.get(q.id) ?? "—"}`)
         .join("\n");
       return `• ${fmt(h.date)} (${h.weekLabel || ""}):\n${lines}`;
     })
