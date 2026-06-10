@@ -119,6 +119,7 @@ const en: Translations = {
     checkins: "Check-ins",
     questionnaires: "Templates",
     emails: "Email Templates",
+    announcements: "Announcements",
     settings: "Settings",
   },
 
