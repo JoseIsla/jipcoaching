@@ -623,6 +623,17 @@ const DayEditor = ({
                       <SectIcon className="h-3 w-3" /> {sectLabel.label}
                     </span>
                     <PreviousLoadBadge load={lookupPreviousLoad(previousLoads, ex.exerciseName)} className="ml-1" />
+                    {sessionLogs?.[ex.id] && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 text-[10px] text-primary px-1.5 py-0.5 border border-primary/30 leading-none">
+                        Sesión: {sessionLogs[ex.id].weightMode === "per_set" && sessionLogs[ex.id].perSetWeights
+                          ? `${sessionLogs[ex.id].perSetWeights}kg`
+                          : sessionLogs[ex.id].actualWeight != null
+                          ? `${sessionLogs[ex.id].actualWeight}kg${sessionLogs[ex.id].actualReps ? ` ×${sessionLogs[ex.id].actualReps}` : ""}`
+                          : sessionLogs[ex.id].actualMarkValue != null
+                          ? `${sessionLogs[ex.id].actualMarkValue}${sessionLogs[ex.id].actualMarkUnit || ""}`
+                          : "—"}
+                      </span>
+                    )}
                     <span className="text-[9px] text-muted-foreground/50 ml-auto">⋮⋮ arrastra para reordenar</span>
                   </div>
                   {isOpp ? (
