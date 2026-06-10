@@ -367,13 +367,6 @@ const ClientSettings = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Volume2 className="h-3.5 w-3.5 text-muted-foreground" />
-                <Label className="text-sm text-foreground">{t("clientSettings.notifSound") || "Sonido"}</Label>
-              </div>
-              <Switch checked={notifSound} onCheckedChange={setNotifSound} />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
                 <Vibrate className="h-3.5 w-3.5 text-muted-foreground" />
                 <Label className="text-sm text-foreground">{t("clientSettings.notifVibration") || "Vibración"}</Label>
               </div>
