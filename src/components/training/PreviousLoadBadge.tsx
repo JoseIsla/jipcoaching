@@ -37,22 +37,22 @@ const buildText = (load: PreviousLoad): string => {
 
 /** Small inline badge that surfaces the athlete's last logged value for an exercise. */
 const PreviousLoadBadge = ({ load, className }: PreviousLoadBadgeProps) => {
-  if (!load) return null;
-  const text = buildText(load);
+  const hasLoad = !!load;
+  const text = hasLoad ? buildText(load!) : "Anterior: sin registro";
 
   return (
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>
           <span
-            className={`inline-flex items-center gap-1 rounded-full bg-muted/40 text-[10px] text-muted-foreground px-1.5 py-0.5 border border-border/40 leading-none ${className || ""}`}
+            className={`inline-flex items-center gap-1 rounded-full text-[10px] px-1.5 py-0.5 border leading-none ${hasLoad ? "bg-muted/40 text-muted-foreground border-border/40" : "bg-transparent text-muted-foreground/60 border-border/30 italic"} ${className || ""}`}
           >
             <History className="h-2.5 w-2.5" />
             <span>{text}</span>
           </span>
         </TooltipTrigger>
         <TooltipContent side="top" className="text-[11px]">
-          Registrado el {formatDate(load.createdAt)}
+          {hasLoad ? `Registrado el ${formatDate(load!.createdAt)}` : "Aún no hay carga registrada para este ejercicio"}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
