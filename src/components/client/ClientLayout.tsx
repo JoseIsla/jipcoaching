@@ -1,4 +1,4 @@
-import { type ReactNode, forwardRef, useState, useEffect, useRef } from "react";
+import { type ReactNode, forwardRef, useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings, LogOut, Loader2, Bell, MessageSquare, CreditCard, FileText, Info } from "lucide-react";
@@ -16,7 +16,6 @@ import { useLanguageStore } from "@/i18n/store";
 import { useClientNotificationStore } from "@/data/useClientNotificationStore";
 import { useQuestionnaireStore, isActionablePending } from "@/data/useQuestionnaireStore";
 import { useToast } from "@/hooks/use-toast";
-import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 import { useTrainingPlanStore, isOppositionModality } from "@/data/useTrainingPlanStore";
 import { api } from "@/services/api";
 import ClientDeactivatedScreen from "./ClientDeactivatedScreen";
