@@ -117,6 +117,7 @@ const es = {
     checkins: "Check-ins",
     questionnaires: "Plantillas",
     emails: "Plantillas Email",
+    announcements: "Novedades",
     settings: "Configuración",
   },
 
