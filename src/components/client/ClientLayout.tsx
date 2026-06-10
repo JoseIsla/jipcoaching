@@ -1,4 +1,4 @@
-import { type ReactNode, forwardRef, useState, useEffect, useRef } from "react";
+import { type ReactNode, forwardRef, useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Utensils, Dumbbell, ClipboardList, BarChart3, Home, Settings, LogOut, Loader2, Bell, MessageSquare, CreditCard, FileText, Info } from "lucide-react";
@@ -16,7 +16,6 @@ import { useLanguageStore } from "@/i18n/store";
 import { useClientNotificationStore } from "@/data/useClientNotificationStore";
 import { useQuestionnaireStore, isActionablePending } from "@/data/useQuestionnaireStore";
 import { useToast } from "@/hooks/use-toast";
-import { useClientPreferencesStore } from "@/data/useClientPreferencesStore";
 import { useTrainingPlanStore, isOppositionModality } from "@/data/useTrainingPlanStore";
 import { api } from "@/services/api";
 import ClientDeactivatedScreen from "./ClientDeactivatedScreen";
@@ -31,21 +30,6 @@ const formatRelativeTime = (date: Date) => {
   if (hours < 24) return `hace ${hours}h`;
   const days = Math.floor(hours / 24);
   return `hace ${days}d`;
-};
-
-/** Trigger haptic vibration + notification sound based on user prefs. */
-const playNotificationFeedback = () => {
-  const { notificationSound, notificationVibration } = useClientPreferencesStore.getState();
-  if (notificationVibration && navigator.vibrate) {
-    navigator.vibrate([80, 50, 80]);
-  }
-  if (notificationSound) {
-    try {
-      const audio = new Audio("/sounds/notification.mp3");
-      audio.volume = 0.8;
-      audio.play().catch(() => {});
-    } catch { /* */ }
-  }
 };
 
 // Module-level flags so they survive component remounts during tab navigation
@@ -134,13 +118,6 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
     return () => clearInterval(interval);
   }, [client.id]);
 
-  // Play feedback: once on login if unread, then only when count genuinely increases
-  // State is tracked in the Zustand store so navigation doesn't re-trigger
-  useEffect(() => {
-    if (useClientNotificationStore.getState().shouldPlaySound()) {
-      playNotificationFeedback();
-    }
-  }, [unreadCount]);
 
   // Get pending check-in entries for this client (only actionable — not expired/future)
   const allEntries = useQuestionnaireStore((s) => s.entries);
@@ -273,7 +250,6 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
     useClientNotificationStore.setState({
       notifications: [],
       _lastKnownUnread: 0,
-      _loginSoundPlayed: false,
     });
     await logout();
     navigate("/login", { replace: true });

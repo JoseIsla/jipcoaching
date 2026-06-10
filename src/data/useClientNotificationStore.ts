@@ -39,8 +39,6 @@ interface ClientNotificationState {
   _dismissedIds: Set<string>;
   /** Tracks last known unread count to detect genuine new notifications */
   _lastKnownUnread: number;
-  /** Whether the initial login sound has been played this session */
-  _loginSoundPlayed: boolean;
   /** Generates notifications based on client services and current day */
   generateForClient: (clientId: string, services: ServiceType[], pendingCheckinIds: string[]) => void;
   /** Add a single notification (e.g. from admin actions) */
@@ -57,8 +55,6 @@ interface ClientNotificationState {
   isDismissed: (id: string) => boolean;
   /** Get unread count */
   getUnreadCount: () => number;
-  /** Check if sound should play and update tracking. Returns true if sound should play. */
-  shouldPlaySound: () => boolean;
   /** Clear all */
   clear: () => void;
 }
@@ -88,7 +84,6 @@ export const useClientNotificationStore = create<ClientNotificationState>()(
       notifications: [],
       _dismissedIds: new Set<string>(),
       _lastKnownUnread: 0,
-      _loginSoundPlayed: false,
 
       generateForClient: (clientId, services, pendingCheckinIds) => {
         const existing = get().notifications;
@@ -184,27 +179,7 @@ export const useClientNotificationStore = create<ClientNotificationState>()(
 
       getUnreadCount: () => get().notifications.filter((n) => !n.read).length,
 
-      shouldPlaySound: () => {
-        const unread = get().getUnreadCount();
-        const { _lastKnownUnread, _loginSoundPlayed } = get();
-
-        if (!_loginSoundPlayed) {
-          set({ _loginSoundPlayed: true, _lastKnownUnread: unread });
-          return unread > 0;
-        }
-
-        if (unread > _lastKnownUnread) {
-          set({ _lastKnownUnread: unread });
-          return true;
-        }
-
-        if (unread !== _lastKnownUnread) {
-          set({ _lastKnownUnread: unread });
-        }
-        return false;
-      },
-
-      clear: () => set({ notifications: [], _dismissedIds: new Set<string>(), _lastKnownUnread: 0, _loginSoundPlayed: false }),
+      clear: () => set({ notifications: [], _dismissedIds: new Set<string>(), _lastKnownUnread: 0 }),
     }),
     {
       name: "jip-client-notification-dismissed",
