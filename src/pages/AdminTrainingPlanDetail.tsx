@@ -661,6 +661,8 @@ const AdminTrainingPlanDetail = () => {
   const addWeek = useTrainingPlanStore((s) => s.addWeek);
   const previousLoadsByPlan = useTrainingPlanStore((s) => s.previousLoadsByPlan);
   const fetchPreviousLoads = useTrainingPlanStore((s) => s.fetchPreviousLoads);
+  const sessionLogsByPlan = useTrainingPlanStore((s) => s.sessionLogsByPlan);
+  const fetchSessionLogs = useTrainingPlanStore((s) => s.fetchSessionLogs);
   
   const [plan, setPlan] = useState<TrainingPlanFull | null>(null);
   const [weekIdx, setWeekIdx] = useState(0);
@@ -690,6 +692,10 @@ const AdminTrainingPlanDetail = () => {
 
   useEffect(() => {
     if (planId) fetchPreviousLoads(planId);
+  }, [planId]);
+
+  useEffect(() => {
+    if (planId) fetchSessionLogs(planId);
   }, [planId]);
 
   if (!plan || !currentWeek) return null;
