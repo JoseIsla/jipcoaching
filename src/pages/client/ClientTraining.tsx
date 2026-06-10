@@ -153,6 +153,8 @@ const ClientTraining = () => {
   const sessionLogsByPlan = useTrainingPlanStore((s) => s.sessionLogsByPlan);
   const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
 
+  const activePlan = plans.find((p) => p.clientId === client.id && p.active);
+
   const refreshData = useCallback(async () => {
     await fetchPlans(client.id);
     if (activePlan?.id) {
@@ -161,11 +163,9 @@ const ClientTraining = () => {
         fetchSessionLogs(activePlan.id),
       ]);
     }
-  }, [client.id, fetchPlans, fetchPreviousLoads, fetchSessionLogs]);
+  }, [client.id, activePlan?.id, fetchPlans, fetchPreviousLoads, fetchSessionLogs]);
 
   useEffect(() => { refreshData(); }, [client.id]);
-
-  const activePlan = plans.find((p) => p.clientId === client.id && p.active);
 
   // Fetch plan detail when active plan is known
   useEffect(() => {
