@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTrainingPlanStore, isOppositionModality } from "@/data/useTrainingPlanStore";
 import { api } from "@/services/api";
 import ClientDeactivatedScreen from "./ClientDeactivatedScreen";
+import AnnouncementModal from "./AnnouncementModal";
 
 const formatRelativeTime = (date: Date) => {
   const now = Date.now();
@@ -475,6 +476,7 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
           })}
         </div>
       </nav>
+      <AnnouncementModal />
     </div>
   );
 });

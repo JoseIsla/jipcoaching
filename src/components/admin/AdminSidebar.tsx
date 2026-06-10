@@ -20,6 +20,7 @@ import {
   FileCheck,
   Activity,
   Trophy,
+  Megaphone,
 } from "lucide-react";
 import logoJip from "@/assets/logo-jip.png";
 import logoJipDark from "@/assets/logo-jip-dark.png";
@@ -86,6 +87,7 @@ const navEntries: NavEntry[] = [
   { key: "sidebar.leads", icon: Inbox, path: "/admin/leads" },
   { key: "sidebar.questionnaires", icon: ClipboardList, path: "/admin/questionnaires" },
   { key: "sidebar.emails", icon: Mail, path: "/admin/emails" },
+  { key: "sidebar.announcements", icon: Megaphone, path: "/admin/announcements" },
   { key: "sidebar.settings", icon: Settings, path: "/admin/settings" },
 ];
 

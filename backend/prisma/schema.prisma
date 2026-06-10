@@ -992,3 +992,42 @@ model ClientPhysicalMark {
 
   @@map("client_physical_marks")
 }
+
+// ── Announcements (modal "Novedades" para clientes) ──
+
+enum AnnouncementAudience {
+  NUTRITION
+  TRAINING
+  ALL
+}
+
+model Announcement {
+  id          String               @id @default(uuid())
+  title       String               @db.VarChar(180)
+  body        String               @db.Text
+  bullets     Json?
+  audience    AnnouncementAudience @default(ALL)
+  version     String?              @db.VarChar(40)
+  active      Boolean              @default(true)
+  publishedAt DateTime             @default(now())
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  reads AnnouncementRead[]
+
+  @@index([active, publishedAt])
+  @@map("announcements")
+}
+
+model AnnouncementRead {
+  id             String   @id @default(uuid())
+  announcementId String
+  clientId       String
+  readAt         DateTime @default(now())
+
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, clientId])
+  @@index([clientId])
+  @@map("announcement_reads")
+}
