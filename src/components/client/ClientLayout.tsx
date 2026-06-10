@@ -476,6 +476,7 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
           })}
         </div>
       </nav>
+      <AnnouncementModal />
     </div>
   );
 });
