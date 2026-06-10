@@ -1035,7 +1035,7 @@ const AdminTrainingPlanDetail = () => {
         {/* Days */}
         <div className="space-y-4">
           {currentWeek.days.map((day) => (
-            <DayEditor key={day.id} day={day} onChange={(d) => updateDay(day.id, d)} allDays={currentWeek.days} modality={plan.modality} previousLoads={planId ? previousLoadsByPlan[planId] : undefined} />
+            <DayEditor key={day.id} day={day} onChange={(d) => updateDay(day.id, d)} allDays={currentWeek.days} modality={plan.modality} previousLoads={planId ? previousLoadsByPlan[planId] : undefined} sessionLogs={planId ? sessionLogsByPlan[planId] : undefined} />
           ))}
         </div>
 
