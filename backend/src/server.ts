@@ -29,6 +29,7 @@ import questionnaireRoutes from "./routes/questionnaires";
 import emailTemplateRoutes from "./routes/emailTemplates";
 import foodRoutes from "./routes/foods";
 import adminRoutes from "./routes/admin";
+import announcementRoutes from "./routes/announcements";
 
 export const prisma = new PrismaClient();
 
@@ -171,6 +172,7 @@ app.use("/api/supplements", supplementRoutes);
 app.use("/api/questionnaires", questionnaireRoutes);
 app.use("/api/email-templates", emailTemplateRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/announcements", announcementRoutes);
 
 // Mount media routes also under /api/clients/:clientId/media
 // so frontend calls like /clients/abc/media/photos work
