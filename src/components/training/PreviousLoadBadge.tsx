@@ -18,27 +18,27 @@ const formatDate = (iso: string) => {
 
 const buildText = (load: PreviousLoad): string => {
   if (load.weightMode === "per_set" && load.perSetWeights) {
-    return `Anterior: ${load.perSetWeights}kg`;
+    return `Carga semana pasada: ${load.perSetWeights}kg`;
   }
   if (load.actualWeight != null) {
     const reps = load.actualReps ? `×${load.actualReps}` : "";
-    return `Anterior: ${load.actualWeight}kg${reps}`;
+    return `Carga semana pasada: ${load.actualWeight}kg${reps}`;
   }
   if (load.actualMarkValue != null) {
-    return `Anterior: ${load.actualMarkValue}${load.actualMarkUnit || ""}`;
+    return `Carga semana pasada: ${load.actualMarkValue}${load.actualMarkUnit || ""}`;
   }
   if (load.actualDistanceM != null) {
     const km = load.actualDistanceM >= 1000 ? `${(load.actualDistanceM / 1000).toFixed(2)}km` : `${load.actualDistanceM}m`;
-    return `Anterior: ${km}`;
+    return `Carga semana pasada: ${km}`;
   }
   // Athlete logged the exercise but left the weight blank
-  return "Anterior: —";
+  return "Carga semana pasada: —";
 };
 
 /** Small inline badge that surfaces the athlete's last logged value for an exercise. */
 const PreviousLoadBadge = ({ load, className }: PreviousLoadBadgeProps) => {
   const hasLoad = !!load;
-  const text = hasLoad ? buildText(load!) : "Anterior: sin registro";
+  const text = hasLoad ? buildText(load!) : "Carga semana pasada: sin registro";
 
   return (
     <TooltipProvider delayDuration={150}>
