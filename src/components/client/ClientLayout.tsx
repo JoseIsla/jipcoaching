@@ -250,7 +250,6 @@ const ClientLayout = forwardRef<HTMLDivElement, { children: ReactNode }>(({ chil
     useClientNotificationStore.setState({
       notifications: [],
       _lastKnownUnread: 0,
-      _loginSoundPlayed: false,
     });
     await logout();
     navigate("/login", { replace: true });
