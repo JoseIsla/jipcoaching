@@ -39,8 +39,6 @@ interface ClientNotificationState {
   _dismissedIds: Set<string>;
   /** Tracks last known unread count to detect genuine new notifications */
   _lastKnownUnread: number;
-  /** Whether the initial login sound has been played this session */
-  _loginSoundPlayed: boolean;
   /** Generates notifications based on client services and current day */
   generateForClient: (clientId: string, services: ServiceType[], pendingCheckinIds: string[]) => void;
   /** Add a single notification (e.g. from admin actions) */
@@ -57,8 +55,6 @@ interface ClientNotificationState {
   isDismissed: (id: string) => boolean;
   /** Get unread count */
   getUnreadCount: () => number;
-  /** Check if sound should play and update tracking. Returns true if sound should play. */
-  shouldPlaySound: () => boolean;
   /** Clear all */
   clear: () => void;
 }
