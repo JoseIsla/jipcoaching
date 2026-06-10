@@ -179,27 +179,7 @@ export const useClientNotificationStore = create<ClientNotificationState>()(
 
       getUnreadCount: () => get().notifications.filter((n) => !n.read).length,
 
-      shouldPlaySound: () => {
-        const unread = get().getUnreadCount();
-        const { _lastKnownUnread, _loginSoundPlayed } = get();
-
-        if (!_loginSoundPlayed) {
-          set({ _loginSoundPlayed: true, _lastKnownUnread: unread });
-          return unread > 0;
-        }
-
-        if (unread > _lastKnownUnread) {
-          set({ _lastKnownUnread: unread });
-          return true;
-        }
-
-        if (unread !== _lastKnownUnread) {
-          set({ _lastKnownUnread: unread });
-        }
-        return false;
-      },
-
-      clear: () => set({ notifications: [], _dismissedIds: new Set<string>(), _lastKnownUnread: 0, _loginSoundPlayed: false }),
+      clear: () => set({ notifications: [], _dismissedIds: new Set<string>(), _lastKnownUnread: 0 }),
     }),
     {
       name: "jip-client-notification-dismissed",
