@@ -32,21 +32,6 @@ const formatRelativeTime = (date: Date) => {
   return `hace ${days}d`;
 };
 
-/** Trigger haptic vibration + notification sound based on user prefs. */
-const playNotificationFeedback = () => {
-  const { notificationSound, notificationVibration } = useClientPreferencesStore.getState();
-  if (notificationVibration && navigator.vibrate) {
-    navigator.vibrate([80, 50, 80]);
-  }
-  if (notificationSound) {
-    try {
-      const audio = new Audio("/sounds/notification.mp3");
-      audio.volume = 0.8;
-      audio.play().catch(() => {});
-    } catch { /* */ }
-  }
-};
-
 // Module-level flags so they survive component remounts during tab navigation
 let sessionToastShown = false;
 let sessionPrevPending = 0;
