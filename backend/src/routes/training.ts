@@ -166,6 +166,139 @@ router.get("/plans/:planId/previous-loads", async (req, res) => {
   }
 });
 
+// ── In-session exercise logs (athletes log carga directly on the plan) ──
+
+// GET /api/training/plans/:planId/session-logs
+// Returns the latest ExerciseLog per prescription for the active week of the plan.
+router.get("/plans/:planId/session-logs", async (req, res) => {
+  try {
+    const planId = req.params.planId as string;
+    const plan = await prisma.trainingPlan.findUnique({
+      where: { id: planId },
+      include: {
+        weeks: { include: { days: { include: { exercises: { select: { id: true } } } } } },
+      },
+    });
+    if (!plan) { res.status(404).json({ message: "Plan no encontrado" }); return; }
+
+    if (req.user!.role === "CLIENT") {
+      const client = await prisma.client.findUnique({ where: { userId: req.user!.userId } });
+      if (!client || client.id !== plan.clientId) {
+        res.status(403).json({ message: "Acceso denegado" });
+        return;
+      }
+    }
+
+    const prescriptionIds = plan.weeks.flatMap((w) => w.days.flatMap((d) => d.exercises.map((e) => e.id)));
+    if (prescriptionIds.length === 0) { res.json({}); return; }
+
+    const logs = await prisma.exerciseLog.findMany({
+      where: { prescriptionId: { in: prescriptionIds } },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Most recent log per prescriptionId
+    const byPrescription: Record<string, any> = {};
+    for (const log of logs) {
+      if (byPrescription[log.prescriptionId]) continue;
+      byPrescription[log.prescriptionId] = {
+        id: log.id,
+        prescriptionId: log.prescriptionId,
+        actualWeight: log.topKg,
+        actualReps: log.topReps != null ? String(log.topReps) : null,
+        actualRPE: log.topRpe,
+        weightMode: (log as any).weightMode,
+        perSetWeights: (log as any).perSetWeights,
+        notes: log.notes,
+        actualDistanceM: log.distanceMeters,
+        actualDurationSec: log.durationSeconds,
+        actualPace: log.pace,
+        actualHeartRate: log.heartRateAvg,
+        actualMarkValue: log.markValue,
+        actualMarkUnit: log.markUnit,
+        loggedAt: (log as any).loggedAt ?? log.createdAt,
+        createdAt: log.createdAt,
+      };
+    }
+    res.json(byPrescription);
+  } catch (err: any) {
+    console.error("GET /training/plans/:planId/session-logs error:", err);
+    res.status(500).json({ message: "Error al obtener registros de sesión" });
+  }
+});
+
+// PUT /api/training/prescriptions/:prescriptionId/log
+// Upsert the in-session log for a prescription. Client must own the plan; admin always allowed.
+router.put("/prescriptions/:prescriptionId/log", async (req, res) => {
+  try {
+    const prescriptionId = req.params.prescriptionId as string;
+    const prescription = await prisma.exercisePrescription.findUnique({
+      where: { id: prescriptionId },
+      include: { day: { include: { week: { include: { plan: true } } } } },
+    });
+    if (!prescription) { res.status(404).json({ message: "Ejercicio no encontrado" }); return; }
+
+    if (req.user!.role === "CLIENT") {
+      const client = await prisma.client.findUnique({ where: { userId: req.user!.userId } });
+      if (!client || client.id !== prescription.day.week.plan.clientId) {
+        res.status(403).json({ message: "Acceso denegado" });
+        return;
+      }
+    }
+
+    const b = req.body || {};
+    const toNum = (v: any): number | null => {
+      if (v === null || v === undefined || v === "") return null;
+      const n = typeof v === "number" ? v : parseFloat(String(v).replace(",", "."));
+      return isNaN(n) ? null : n;
+    };
+    const toInt = (v: any): number | null => {
+      const n = toNum(v);
+      return n == null ? null : Math.round(n);
+    };
+    const toStr = (v: any): string | null => (v === null || v === undefined || v === "" ? null : String(v));
+
+    const weightMode: "single" | "per_set" = b.weightMode === "per_set" ? "per_set" : "single";
+    const perSetWeights = weightMode === "per_set" ? toStr(b.perSetWeights) : null;
+    let topKg = toNum(b.actualWeight);
+    if (weightMode === "per_set" && perSetWeights) {
+      const nums = perSetWeights.split(",").map((s) => parseFloat(s.trim().replace(",", "."))).filter((n) => !isNaN(n));
+      if (nums.length > 0) topKg = Math.max(...nums);
+    }
+
+    const data: any = {
+      prescriptionId,
+      topKg,
+      topReps: toInt(b.actualReps),
+      topRpe: toNum(b.actualRPE),
+      notes: toStr(b.notes),
+      distanceMeters: toNum(b.actualDistanceM),
+      durationSeconds: toInt(b.actualDurationSec),
+      pace: toStr(b.actualPace),
+      heartRateAvg: toInt(b.actualHeartRate),
+      markValue: toNum(b.actualMarkValue),
+      markUnit: toStr(b.actualMarkUnit),
+      weightMode,
+      perSetWeights,
+      loggedAt: new Date(),
+    };
+
+    // Upsert: keep one log per prescription (the in-session "current" one)
+    const existing = await prisma.exerciseLog.findFirst({
+      where: { prescriptionId },
+      orderBy: { createdAt: "desc" },
+    });
+    const saved = existing
+      ? await prisma.exerciseLog.update({ where: { id: existing.id }, data })
+      : await prisma.exerciseLog.create({ data });
+
+    res.json(saved);
+  } catch (err: any) {
+    console.error("PUT /training/prescriptions/:prescriptionId/log error:", err);
+    res.status(500).json({ message: "Error al guardar registro" });
+  }
+});
+
 // POST /api/training/plans — Admin only
 router.post("/plans", requireRole("ADMIN"), async (req, res) => {
   try {
