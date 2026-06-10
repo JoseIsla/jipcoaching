@@ -38,7 +38,7 @@ const buildText = (load: PreviousLoad): string => {
 /** Small inline badge that surfaces the athlete's last logged value for an exercise. */
 const PreviousLoadBadge = ({ load, className }: PreviousLoadBadgeProps) => {
   const hasLoad = !!load;
-  const text = hasLoad ? buildText(load!) : "Anterior: sin registro";
+  const text = hasLoad ? buildText(load!) : "Carga semana pasada: sin registro";
 
   return (
     <TooltipProvider delayDuration={150}>
