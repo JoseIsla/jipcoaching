@@ -12,7 +12,8 @@
     "prisma:push": "prisma db push",
     "prisma:seed": "tsx prisma/seed.ts",
     "prisma:studio": "prisma studio",
-    "transcode:legacy": "tsx src/scripts/transcodeLegacyVideos.ts"
+    "transcode:legacy": "tsx src/scripts/transcodeLegacyVideos.ts",
+    "sync:announcements": "tsx src/scripts/syncAnnouncements.ts"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
