@@ -30,6 +30,8 @@ export interface ExerciseLibraryItem {
   category: "basico" | "variante" | "accesorio";
   muscleGroup?: string;
   parentExerciseId?: string;
+  /** YouTube URL (full link) for technique demo video shown to the client */
+  videoUrl?: string | null;
   /** "GYM" | "RUNNING" | "RUNNING_TECHNIQUE" | "OFFICIAL_TEST" — null/undefined = GYM */
   kind?: string | null;
   /** JSON-stringified array of OppositionType values (when applicable) */

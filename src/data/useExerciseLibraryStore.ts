@@ -22,6 +22,7 @@ const toLibraryItem = (e: ApiExercise): ExerciseLibraryItem => ({
   category: exerciseCategoryFromApi(e.category),
   muscleGroup: e.muscleGroup,
   parentExerciseId: e.parentExerciseId,
+  videoUrl: e.videoUrl ?? null,
   kind: e.kind ?? null,
   oppositionTypes: e.oppositionTypes ?? null,
   defaultUnit: e.defaultUnit ?? null,
@@ -113,6 +114,7 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
       category: exerciseCategoryToApi(item.category),
       muscleGroup: item.muscleGroup,
       parentExerciseId: item.parentExerciseId,
+      videoUrl: item.videoUrl ?? null,
       kind: item.kind ?? null,
       oppositionTypes: item.oppositionTypes ?? null,
       defaultUnit: item.defaultUnit ?? null,
@@ -142,6 +144,7 @@ export const useExerciseLibraryStore = create<ExerciseLibraryState>((set, get) =
       if (updates.muscleGroup !== undefined) dto.muscleGroup = updates.muscleGroup;
       if (updates.parentExerciseId !== undefined) dto.parentExerciseId = updates.parentExerciseId;
       if (updates.category !== undefined) dto.category = exerciseCategoryToApi(updates.category);
+      if (updates.videoUrl !== undefined) dto.videoUrl = updates.videoUrl;
       if (updates.kind !== undefined) dto.kind = updates.kind;
       if (updates.oppositionTypes !== undefined) dto.oppositionTypes = updates.oppositionTypes;
       if (updates.defaultUnit !== undefined) dto.defaultUnit = updates.defaultUnit;

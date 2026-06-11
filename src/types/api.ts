@@ -249,7 +249,7 @@ export interface CreateExerciseDto {
   name: string;
   category: ExerciseCategory;
   muscleGroup?: string;
-  videoUrl?: string;
+  videoUrl?: string | null;
   notes?: string;
   parentExerciseId?: string;
   /** "GYM" | "RUNNING" | "RUNNING_TECHNIQUE" | "OFFICIAL_TEST" */
