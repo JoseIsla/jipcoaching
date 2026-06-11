@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useExerciseLibraryStore, type ExerciseLibraryItem } from "@/data/useExerciseLibraryStore";
 import { useNutritionPlanStore, type ApiSupplement } from "@/data/useNutritionPlanStore";
 import { OppositionType, oppositionTypeLabels } from "@/types/api";
+import { extractYouTubeId } from "@/utils/youtube";
 
 const MUSCLE_GROUPS = [
   "Pierna", "Posterior", "Glúteo", "Pecho", "Hombro",
@@ -64,6 +65,7 @@ const AddExerciseDialog = ({ mode }: { mode: "basico" | "variante" | "accesorio"
   const [name, setName] = useState("");
   const [muscleGroup, setMuscleGroup] = useState("");
   const [parentId, setParentId] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
   const { toast } = useToast();
 
   const allExercises = useExerciseLibraryStore((s) => s.exercises);
@@ -77,14 +79,20 @@ const AddExerciseDialog = ({ mode }: { mode: "basico" | "variante" | "accesorio"
       toast({ title: "Duplicado", description: `"${trimmed}" ya existe en esta categoría.`, variant: "destructive" });
       return;
     }
+    const ytUrl = videoUrl.trim();
+    if (ytUrl && !extractYouTubeId(ytUrl)) {
+      toast({ title: "URL inválida", description: "Pega un enlace de YouTube válido.", variant: "destructive" });
+      return;
+    }
     await addExercise({
       name: trimmed,
       category: mode,
       muscleGroup: muscleGroup || undefined,
       parentExerciseId: mode === "variante" && parentId ? parentId : undefined,
+      videoUrl: ytUrl || null,
     });
     toast({ title: "Ejercicio añadido", description: `"${trimmed}" añadido a la biblioteca.` });
-    setName(""); setMuscleGroup(""); setParentId(""); setOpen(false);
+    setName(""); setMuscleGroup(""); setParentId(""); setVideoUrl(""); setOpen(false);
   };
 
   const title = mode === "basico" ? "Nuevo básico" : mode === "variante" ? "Nueva variante" : "Nuevo accesorio";
@@ -123,6 +131,16 @@ const AddExerciseDialog = ({ mode }: { mode: "basico" | "variante" | "accesorio"
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-2">
+            <Label>Vídeo de YouTube (opcional)</Label>
+            <Input
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              placeholder="https://youtu.be/..."
+              className="bg-background border-border"
+            />
+            <p className="text-[11px] text-muted-foreground">Si añades un enlace, el cliente verá un icono ℹ️ para ver la técnica.</p>
+          </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button onClick={handleAdd} disabled={!name.trim()}>Añadir</Button>
@@ -140,6 +158,7 @@ const EditExerciseDialog = ({ exercise }: { exercise: ExerciseLibraryItem }) => 
   const [name, setName] = useState(exercise.name);
   const [muscleGroup, setMuscleGroup] = useState(exercise.muscleGroup || "");
   const [parentId, setParentId] = useState(exercise.parentExerciseId || "");
+  const [videoUrl, setVideoUrl] = useState(exercise.videoUrl || "");
   const { toast } = useToast();
 
   const allExercises = useExerciseLibraryStore((s) => s.exercises);
@@ -153,17 +172,23 @@ const EditExerciseDialog = ({ exercise }: { exercise: ExerciseLibraryItem }) => 
       toast({ title: "Duplicado", description: `"${trimmed}" ya existe en esta categoría.`, variant: "destructive" });
       return;
     }
+    const ytUrl = videoUrl.trim();
+    if (ytUrl && !extractYouTubeId(ytUrl)) {
+      toast({ title: "URL inválida", description: "Pega un enlace de YouTube válido.", variant: "destructive" });
+      return;
+    }
     await updateExercise(exercise.id, {
       name: trimmed,
       muscleGroup: muscleGroup || undefined,
       parentExerciseId: exercise.category === "variante" && parentId ? parentId : undefined,
+      videoUrl: ytUrl ? ytUrl : null,
     });
     toast({ title: "Ejercicio actualizado", description: `"${trimmed}" guardado.` });
     setOpen(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v) { setName(exercise.name); setMuscleGroup(exercise.muscleGroup || ""); setParentId(exercise.parentExerciseId || ""); } }}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v) { setName(exercise.name); setMuscleGroup(exercise.muscleGroup || ""); setParentId(exercise.parentExerciseId || ""); setVideoUrl(exercise.videoUrl || ""); } }}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
           <Pencil className="h-3.5 w-3.5" />
@@ -195,6 +220,16 @@ const EditExerciseDialog = ({ exercise }: { exercise: ExerciseLibraryItem }) => 
                 {MUSCLE_GROUPS.map((g) => (<SelectItem key={g} value={g}>{g}</SelectItem>))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Vídeo de YouTube (opcional)</Label>
+            <Input
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              placeholder="https://youtu.be/..."
+              className="bg-background border-border"
+            />
+            <p className="text-[11px] text-muted-foreground">Déjalo vacío para ocultar el icono de vídeo al cliente.</p>
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
