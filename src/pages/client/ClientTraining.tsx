@@ -5,7 +5,7 @@ import { useClient } from "@/contexts/ClientContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, Dumbbell, Lock, Calendar, Download, Footprints, Activity, Trophy } from "lucide-react";
+import { ChevronDown, Dumbbell, Lock, Calendar, Download, Footprints, Activity, Trophy, Info } from "lucide-react";
 import AnimatedChevron from "@/components/ui/animated-chevron";
 import AnimatedCollapsibleContent from "@/components/ui/animated-collapsible-content";
 import { useTrainingPlanStore, TRAINING_METHOD_LABELS, isOppositionModality, type TrainingPlanFull, type TrainingWeek, type TrainingDay } from "@/data/useTrainingPlanStore";
@@ -16,9 +16,27 @@ import { exportTrainingWeekPDF } from "@/utils/exportClientPlanPDF";
 import { useTranslation } from "@/i18n/useTranslation";
 import PullToRefresh from "@/components/client/PullToRefresh";
 import PhysicalTestTracker from "@/components/client/PhysicalTestTracker";
+import ExerciseVideoModal from "@/components/client/ExerciseVideoModal";
+import { useExerciseLibraryStore } from "@/data/useExerciseLibraryStore";
+import { Button } from "@/components/ui/button";
 
 const DayView = ({ day, t, previousLoads, planId }: { day: TrainingDay; t: (k: string, v?: Record<string, string | number>) => string; previousLoads?: Record<string, PreviousLoad>; planId?: string }) => {
   const [open, setOpen] = useState(false);
+  const [videoModal, setVideoModal] = useState<{ name: string; url: string | null } | null>(null);
+  const library = useExerciseLibraryStore((s) => s.exercises);
+
+  const findVideoUrl = (exerciseId?: string, exerciseName?: string): string | null => {
+    if (exerciseId) {
+      const byId = library.find((l) => l.id === exerciseId);
+      if (byId?.videoUrl) return byId.videoUrl;
+    }
+    if (exerciseName) {
+      const byName = library.find((l) => l.name.toLowerCase() === exerciseName.toLowerCase());
+      if (byName?.videoUrl) return byName.videoUrl;
+    }
+    return null;
+  };
+
   // Render in admin-defined order (single ordered list, mixing all section types).
   const orderedExercises = [...day.exercises].sort(
     (a, b) => (a.order ?? 0) - (b.order ?? 0),
@@ -55,13 +73,28 @@ const DayView = ({ day, t, previousLoads, planId }: { day: TrainingDay; t: (k: s
                   ? { label: t("clientTraining.runningTechniqueSection"), cls: "text-violet-400", Icon: Activity, accent: "border-l-2 border-l-violet-400/40" }
                   : { label: t("clientTraining.officialTestSection"), cls: "text-amber-400", Icon: Trophy, accent: "border-l-2 border-l-amber-400/40" };
               const Icon = meta.Icon;
+              const videoUrl = findVideoUrl(ex.exerciseId, ex.exerciseName);
               return (
                 <div key={ex.id} className={`bg-background/50 border border-border/40 rounded-lg p-3 space-y-1 ${meta.accent}`}>
                   <div className="flex items-center gap-1.5">
                     <Icon className={`h-3 w-3 ${meta.cls}`} />
                     <span className={`text-[10px] font-semibold uppercase tracking-wider ${meta.cls}`}>{meta.label}</span>
                   </div>
-                  <p className="text-sm font-medium text-foreground">{ex.exerciseName || "—"}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-medium text-foreground">{ex.exerciseName || "—"}</p>
+                    {videoUrl && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 text-primary hover:text-primary hover:bg-primary/10 rounded-full"
+                        onClick={(e) => { e.stopPropagation(); setVideoModal({ name: ex.exerciseName || "Ejercicio", url: videoUrl }); }}
+                        aria-label="Ver vídeo de técnica"
+                      >
+                        <Info className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
                   <PreviousLoadBadge load={lookupPreviousLoad(previousLoads, ex.exerciseName)} />
                   {ex.section === "basic" && (
                     <>
