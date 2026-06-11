@@ -167,6 +167,12 @@ const DayView = ({ day, t, previousLoads, planId }: { day: TrainingDay; t: (k: s
           </div>
         </AnimatedCollapsibleContent>
       </div>
+      <ExerciseVideoModal
+        open={!!videoModal}
+        onOpenChange={(o) => { if (!o) setVideoModal(null); }}
+        exerciseName={videoModal?.name || ""}
+        videoUrl={videoModal?.url}
+      />
     </Collapsible>
   );
 };
@@ -175,6 +181,8 @@ const ClientTraining = () => {
   const { t } = useTranslation();
   const { client } = useClient();
   const plans = useTrainingPlanStore((s) => s.plans);
+  const fetchExercises = useExerciseLibraryStore((s) => s.fetchExercises);
+  useEffect(() => { fetchExercises(); }, [fetchExercises]);
   const getDetail = useTrainingPlanStore((s) => s.getDetail);
   const details = useTrainingPlanStore((s) => s.details);
   const fetchPlans = useTrainingPlanStore((s) => s.fetchPlans);
