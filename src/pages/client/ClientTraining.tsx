@@ -18,7 +18,6 @@ import PullToRefresh from "@/components/client/PullToRefresh";
 import PhysicalTestTracker from "@/components/client/PhysicalTestTracker";
 import ExerciseVideoModal from "@/components/client/ExerciseVideoModal";
 import { useExerciseLibraryStore } from "@/data/useExerciseLibraryStore";
-import { Button } from "@/components/ui/button";
 
 const DayView = ({ day, t, previousLoads, planId }: { day: TrainingDay; t: (k: string, v?: Record<string, string | number>) => string; previousLoads?: Record<string, PreviousLoad>; planId?: string }) => {
   const [open, setOpen] = useState(false);
