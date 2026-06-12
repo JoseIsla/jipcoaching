@@ -58,6 +58,23 @@ const parseOppositionTypes = (raw?: string | null): OppositionType[] => {
   } catch { return []; }
 };
 
+const YouTubePreview = ({ url }: { url: string }) => {
+  const embedUrl = buildYouTubeEmbedUrl(url);
+  if (!embedUrl) return null;
+  return (
+    <div className="relative w-full overflow-hidden rounded-lg bg-black mt-2" style={{ paddingTop: "56.25%" }}>
+      <iframe
+        src={embedUrl}
+        title="Preview"
+        className="absolute inset-0 w-full h-full"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        referrerPolicy="strict-origin-when-cross-origin"
+      />
+    </div>
+  );
+};
+
 // ==================== ADD DIALOG ====================
 
 const AddExerciseDialog = ({ mode }: { mode: "basico" | "variante" | "accesorio" }) => {
