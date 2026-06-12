@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useExerciseLibraryStore, type ExerciseLibraryItem } from "@/data/useExerciseLibraryStore";
 import { useNutritionPlanStore, type ApiSupplement } from "@/data/useNutritionPlanStore";
 import { OppositionType, oppositionTypeLabels } from "@/types/api";
-import { extractYouTubeId } from "@/utils/youtube";
+import { extractYouTubeId, buildYouTubeEmbedUrl } from "@/utils/youtube";
 
 const MUSCLE_GROUPS = [
   "Pierna", "Posterior", "Glúteo", "Pecho", "Hombro",
@@ -56,6 +56,23 @@ const parseOppositionTypes = (raw?: string | null): OppositionType[] => {
     const arr = JSON.parse(raw);
     return Array.isArray(arr) ? (arr as OppositionType[]) : [];
   } catch { return []; }
+};
+
+const YouTubePreview = ({ url }: { url: string }) => {
+  const embedUrl = buildYouTubeEmbedUrl(url);
+  if (!embedUrl) return null;
+  return (
+    <div className="relative w-full overflow-hidden rounded-lg bg-black mt-2" style={{ paddingTop: "56.25%" }}>
+      <iframe
+        src={embedUrl}
+        title="Preview"
+        className="absolute inset-0 w-full h-full"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        referrerPolicy="strict-origin-when-cross-origin"
+      />
+    </div>
+  );
 };
 
 // ==================== ADD DIALOG ====================
@@ -140,6 +157,7 @@ const AddExerciseDialog = ({ mode }: { mode: "basico" | "variante" | "accesorio"
               className="bg-background border-border"
             />
             <p className="text-[11px] text-muted-foreground">Si añades un enlace, el cliente verá un icono ℹ️ para ver la técnica.</p>
+            <YouTubePreview url={videoUrl} />
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
@@ -230,6 +248,7 @@ const EditExerciseDialog = ({ exercise }: { exercise: ExerciseLibraryItem }) => 
               className="bg-background border-border"
             />
             <p className="text-[11px] text-muted-foreground">Déjalo vacío para ocultar el icono de vídeo al cliente.</p>
+            <YouTubePreview url={videoUrl} />
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
