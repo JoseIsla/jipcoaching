@@ -248,6 +248,7 @@ const EditExerciseDialog = ({ exercise }: { exercise: ExerciseLibraryItem }) => 
               className="bg-background border-border"
             />
             <p className="text-[11px] text-muted-foreground">Déjalo vacío para ocultar el icono de vídeo al cliente.</p>
+            <YouTubePreview url={videoUrl} />
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
