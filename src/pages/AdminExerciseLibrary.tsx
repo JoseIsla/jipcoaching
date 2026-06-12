@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useExerciseLibraryStore, type ExerciseLibraryItem } from "@/data/useExerciseLibraryStore";
 import { useNutritionPlanStore, type ApiSupplement } from "@/data/useNutritionPlanStore";
 import { OppositionType, oppositionTypeLabels } from "@/types/api";
-import { extractYouTubeId } from "@/utils/youtube";
+import { extractYouTubeId, buildYouTubeEmbedUrl } from "@/utils/youtube";
 
 const MUSCLE_GROUPS = [
   "Pierna", "Posterior", "Glúteo", "Pecho", "Hombro",
