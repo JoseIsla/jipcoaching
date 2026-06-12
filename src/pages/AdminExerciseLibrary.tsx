@@ -153,10 +153,14 @@ const AddExerciseDialog = ({ mode }: { mode: "basico" | "variante" | "accesorio"
             <Input
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
-              placeholder="https://youtu.be/..."
+              onBlur={() => {
+                const id = extractYouTubeId(videoUrl);
+                if (id) setVideoUrl(id);
+              }}
+              placeholder="Pega cualquier enlace de YouTube..."
               className="bg-background border-border"
             />
-            <p className="text-[11px] text-muted-foreground">Si añades un enlace, el cliente verá un icono ℹ️ para ver la técnica.</p>
+            <p className="text-[11px] text-muted-foreground">Se guardará solo el ID del vídeo para mayor compatibilidad.</p>
             <YouTubePreview url={videoUrl} />
           </div>
           <div className="flex justify-end gap-2">
@@ -244,10 +248,14 @@ const EditExerciseDialog = ({ exercise }: { exercise: ExerciseLibraryItem }) => 
             <Input
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
-              placeholder="https://youtu.be/..."
+              onBlur={() => {
+                const id = extractYouTubeId(videoUrl);
+                if (id) setVideoUrl(id);
+              }}
+              placeholder="Pega cualquier enlace de YouTube..."
               className="bg-background border-border"
             />
-            <p className="text-[11px] text-muted-foreground">Déjalo vacío para ocultar el icono de vídeo al cliente.</p>
+            <p className="text-[11px] text-muted-foreground">Se guardará solo el ID del vídeo para mayor compatibilidad.</p>
             <YouTubePreview url={videoUrl} />
           </div>
           <div className="flex justify-end gap-2">
