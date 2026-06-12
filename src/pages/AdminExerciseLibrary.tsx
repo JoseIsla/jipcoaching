@@ -157,6 +157,7 @@ const AddExerciseDialog = ({ mode }: { mode: "basico" | "variante" | "accesorio"
               className="bg-background border-border"
             />
             <p className="text-[11px] text-muted-foreground">Si añades un enlace, el cliente verá un icono ℹ️ para ver la técnica.</p>
+            <YouTubePreview url={videoUrl} />
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
