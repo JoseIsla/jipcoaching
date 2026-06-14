@@ -246,6 +246,7 @@ async function generateTrainingCheckins() {
           (e) =>
             e.type === "BASIC" ||
             e.type === "VARIANT" ||
+            e.type === "ACCESSORY" ||
             (e as any).sectionExt === "running" ||
             (e as any).sectionExt === "running_technique" ||
             (e as any).sectionExt === "official_test",
@@ -308,6 +309,8 @@ async function generateTrainingCheckins() {
                 ? (ex as any).sectionExt
                 : ex.type === "BASIC"
                 ? "basic"
+                : ex.type === "ACCESSORY"
+                ? "accessory"
                 : "variant",
               sectionExt: (ex as any).sectionExt || null,
               method,

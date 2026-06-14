@@ -351,7 +351,7 @@ const AdminCheckins = () => {
                                   <tr key={i} className="border-t border-border/50">
                                     <td className="px-3 py-2">
                                       <p className="text-sm font-medium text-foreground">{ex.exerciseName}</p>
-                                      <p className="text-[10px] text-muted-foreground">{ex.section === "basic" ? "Básico" : "Variante"}</p>
+                                      <p className="text-[10px] text-muted-foreground">{ex.section === "basic" ? "Básico" : ex.section === "accessory" ? "Accesorio" : "Variante"}</p>
                                       {ex.comment && <p className="text-[10px] text-primary/80 italic mt-0.5">"{ex.comment}"</p>}
                                     </td>
                                     <td className="px-3 py-2 text-center">
@@ -360,7 +360,7 @@ const AdminCheckins = () => {
                                     </td>
                                     <td className="px-3 py-2 text-center">
                                       <p className="text-xs text-foreground font-medium">{ex.actualSets ? `${ex.actualSets}×${ex.actualReps || "?"}` : "—"}</p>
-                                      <p className="text-[10px] font-mono font-bold text-foreground">{ex.actualWeight ? `${ex.actualWeight}kg` : "—"}</p>
+                                      <p className="text-[10px] font-mono font-bold text-foreground">{(ex as any).weightMode === "per_set" && (ex as any).perSetWeights ? `${(ex as any).perSetWeights} kg` : ex.actualWeight ? `${ex.actualWeight}kg` : "—"}</p>
                                       {ex.backoffWeights && (
                                         <p className="text-[9px] text-muted-foreground mt-0.5">Back-offs: {ex.backoffWeights}</p>
                                       )}
