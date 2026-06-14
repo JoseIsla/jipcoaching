@@ -13,6 +13,111 @@ const UPLOAD_DIR = process.env.UPLOAD_DIR || "./uploads";
 const router = Router();
 router.use(authenticate);
 
+// Ensures all qualifying exercises (BASIC, VARIANT, ACCESSORY, running variants)
+// from the active plan week exist as rows in the training check-in. Used to
+// backfill check-ins that were generated before accessories were included.
+async function backfillTrainingCheckinRows(checkin: any): Promise<boolean> {
+  if (checkin.category !== "TRAINING" || !checkin.planId || checkin.status !== "PENDING") return false;
+  try {
+    const plan = await prisma.trainingPlan.findUnique({
+      where: { id: checkin.planId },
+      include: {
+        weeks: {
+          where: checkin.weekNumber ? { weekNumber: checkin.weekNumber } : { status: "ACTIVE" },
+          include: {
+            days: {
+              include: { exercises: { orderBy: { order: "asc" } } },
+              orderBy: { dayNumber: "asc" },
+            },
+          },
+          take: 1,
+        },
+      },
+    });
+    if (!plan || plan.weeks.length === 0) return false;
+    const week = plan.weeks[0];
+    let inserted = false;
+    for (const day of week.days) {
+      const qualifying = day.exercises.filter(
+        (e: any) =>
+          e.type === "BASIC" ||
+          e.type === "VARIANT" ||
+          e.type === "ACCESSORY" ||
+          e.sectionExt === "running" ||
+          e.sectionExt === "running_technique" ||
+          e.sectionExt === "official_test",
+      );
+      if (qualifying.length === 0) continue;
+
+      let log = checkin.trainingLogs.find((l: any) => l.dayNumber === day.dayNumber);
+      if (!log) {
+        const created = await prisma.checkinTrainingLog.create({
+          data: { checkinId: checkin.id, dayNumber: day.dayNumber, dayName: day.title || `Día ${day.dayNumber}` },
+        });
+        log = { ...created, exercises: [] };
+        checkin.trainingLogs.push(log);
+      }
+
+      const existingIds = new Set<string>(log.exercises.map((e: any) => e.exerciseId).filter(Boolean));
+      const missing = qualifying.filter((ex: any) => !existingIds.has(ex.id));
+      if (missing.length === 0) continue;
+
+      const rowsData = missing.map((ex: any, idx: number) => {
+        const method = ex.method || "STRAIGHT_SETS";
+        let plannedSets = "—";
+        if (method === "TOP_SET_BACKOFFS") plannedSets = `1+${ex.backoffSets ?? 3}`;
+        else if (method === "LOAD_DROP") plannedSets = ex.estimatedSeries || "—";
+        else if (ex.setsMin) plannedSets = ex.setsMin === ex.setsMax ? String(ex.setsMin) : `${ex.setsMin}${ex.setsMax ? `-${ex.setsMax}` : ""}`;
+
+        let plannedReps = "—";
+        if (ex.topSetReps) plannedReps = String(ex.topSetReps);
+        else if (ex.reps) plannedReps = ex.reps;
+        else if (ex.dropReps) plannedReps = String(ex.dropReps);
+
+        let plannedLoad = ex.plannedLoad || "Autoregulada";
+        if (method === "TOP_SET_BACKOFFS") {
+          if (ex.backoffReps) plannedLoad += ` | Back-off: ${ex.backoffReps} reps`;
+          if (ex.backoffPercent) plannedLoad += ` @RPE ${ex.backoffPercent}`;
+        }
+        if (ex.backoffRule) plannedLoad += ` | Regla: ${ex.backoffRule}`;
+
+        return {
+          logId: log.id,
+          exerciseId: ex.id,
+          exerciseName: ex.name,
+          section: ex.sectionExt
+            ? ex.sectionExt
+            : ex.type === "BASIC"
+            ? "basic"
+            : ex.type === "ACCESSORY"
+            ? "accessory"
+            : "variant",
+          sectionExt: ex.sectionExt || null,
+          method,
+          plannedSets,
+          plannedReps,
+          plannedLoad,
+          plannedRPE: ex.topSetRpe,
+          plannedDistanceM: ex.plannedDistanceM ?? null,
+          plannedDurationSec: ex.plannedDurationSec ?? null,
+          plannedPace: ex.plannedPace ?? null,
+          plannedHeartRate: ex.plannedHeartRate ?? null,
+          plannedMarkValue: ex.plannedMarkValue ?? null,
+          plannedMarkUnit: ex.plannedMarkUnit ?? null,
+          sortOrder: ex.order ?? (log.exercises.length + idx),
+        };
+      });
+
+      await prisma.checkinTrainingExercise.createMany({ data: rowsData });
+      inserted = true;
+    }
+    return inserted;
+  } catch (err) {
+    console.warn("[backfillTrainingCheckinRows] error:", err);
+    return false;
+  }
+}
+
 // GET /api/checkins?clientId=xxx
 router.get("/", async (req, res) => {
   try {
@@ -30,7 +135,7 @@ router.get("/", async (req, res) => {
     if (category) where.category = category;
     if (status) where.status = status;
 
-    const checkins = await prisma.checkin.findMany({
+    let checkins = await prisma.checkin.findMany({
       where,
       include: {
         template: {
@@ -51,6 +156,37 @@ trainingLogs: {
       },
       orderBy: { date: "desc" },
     });
+
+    // Backfill missing accessory/qualifying rows for pending training check-ins
+    // (covers check-ins generated before accessories were supported).
+    let anyBackfilled = false;
+    for (const c of checkins) {
+      const did = await backfillTrainingCheckinRows(c);
+      if (did) anyBackfilled = true;
+    }
+    if (anyBackfilled) {
+      checkins = await prisma.checkin.findMany({
+        where,
+        include: {
+          template: {
+            select: {
+              name: true,
+              category: true,
+              dayOfWeek: true,
+              questions: { orderBy: { order: "asc" } },
+            },
+          },
+          responses: { include: { question: true } },
+          trainingLogs: {
+            include: { exercises: { orderBy: { sortOrder: "asc" } } },
+            orderBy: { dayNumber: "asc" },
+          },
+          videos: true,
+          client: { select: { name: true } },
+        },
+        orderBy: { date: "desc" },
+      });
+    }
 
     // Helper: get local date string (avoids UTC timezone shift)
     const toLocalDateStr = (d: Date) => {
